@@ -23,7 +23,7 @@ export default {
   author: {
     name: `이지훈`,
     nickname: `후니`,
-    stack: ['React', 'Typescript', 'Javascript', 'Zustand', '만두'],
+    stack: ['React', 'Typescript', 'Javascript', 'Zustand'],
     bio: {
       email: `jihoon7705@gmail.com`,
       residence: 'Seoul, South Korea',
@@ -31,7 +31,7 @@ export default {
     social: {
       github: `https://github.com/jiji-hoon96`,
       linkedIn: `https://www.linkedin.com/in/jiji-hoon96`,
-      resume: `https://www.figma.com/design/jM6I7TfZB6pOQxM5a51cVD/%EC%9D%B4%EC%A7%80%ED%9B%88-%EC%9D%B4%EB%A0%A5%EC%84%9C?node-id=0-1&t=0etn40XFHFxjDUPW-1`,
+      resume: `https://www.figma.com/design/K0exYLedyNLV1iZaV9V4Iu/%EC%9D%B4%EB%A0%A5%EC%84%9C-%ED%94%BC%EB%93%9C%EB%B0%B1?t=IMQlxnD4VprguXaN-1`,
     },
     dropdown: {
       tistory: '',
