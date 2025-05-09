@@ -1,6 +1,6 @@
 ---
 emoji: 🫥
-title: 'TypeScript infer'
+title: 'TS infer 에 대해서 깊이 탐구해보자'
 date: '2025-04-24'
 categories: 프론트엔드 TypeScript
 ---
