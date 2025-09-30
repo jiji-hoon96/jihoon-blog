@@ -2,7 +2,7 @@
 emoji: 📋
 title: 'Convention List'
 date: '2023-07-07'
-categories: 프론트엔드 소박한궁금증
+categories: 프론트엔드 소박한궁금증 ignore
 ---
 
 ## Branch 구조와 전략을 세워보자!

@@ -2,7 +2,7 @@
 emoji: 📚
 title: '점핏에서 주최한 Front-end 개취콘을 다녀와서'
 date: '2023-04-30'
-categories: 대외활동
+categories: 대외활동 ignore
 ---
 
 ![상단1.jpeg](상단1.jpeg)

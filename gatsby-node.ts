@@ -127,14 +127,10 @@ export const createPages: GatsbyNode['createPages'] = async ({ graphql, actions,
     return;
   }
 
-  const filteredEdges = result.data.allMarkdownRemark.edges.map((edge) => {
+  const filteredEdges = result.data.allMarkdownRemark.edges.filter((edge) => {
     const { categories } = edge.node.frontmatter;
     const categoriesArr = categories.split(' ');
-    const categoriesIgnoreRemoved = categoriesArr.filter((category) => !category.includes('ignore'));
-    return {
-      ...edge,
-      node: { ...edge.node, frontmatter: { ...edge.node.frontmatter, categories: categoriesIgnoreRemoved.join(' ') } },
-    };
+    return !categoriesArr.some((category) => category.includes('ignore'));
   });
 
   createPosts({ createPage, edges: filteredEdges });
