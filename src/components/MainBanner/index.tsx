@@ -21,14 +21,9 @@ const MainBanner: React.FC<MainBannerProps> = ({ author }) => {
         <S.Title>
           안녕하세요!
           <br />
+          프론트엔드 개발자 <br />
           <strong>
-            <ReactRotatingText items={stack} />
-          </strong>
-          <span>를 좋아하는</span>
-          <br />
-          주니어 프론트엔드 개발자 <br />
-          <strong>
-            <ReactRotatingText items={[name, nickname]} />
+            이지훈
           </strong>
           입니다.
           {/* <Image alt='thumbnail' src='thumbnail.jpeg' /> */}
