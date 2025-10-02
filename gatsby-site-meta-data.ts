@@ -56,8 +56,8 @@ export default {
       category: '대외활동',
     },
     {
-      title: '일상',
-      category: '일상',
+      title: '회고',
+      category: '회고',
     },
   ],
 

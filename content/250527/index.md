@@ -2,7 +2,7 @@
 emoji: 🐣
 title: '심해에서 올라오는 중입니다'
 date: '2025-05-28'
-categories: 일상
+categories: 회고
 ---
 
 ### 내가 잘하고 있는 걸까?

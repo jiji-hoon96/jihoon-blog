@@ -2,7 +2,7 @@
 emoji: 📔
 title: '비전공 프론트엔드 신입 개발자의 2023년 회고'
 date: '2024-01-01'
-categories: 일상
+categories: 회고
 ---
 
 # 2023 회고록
