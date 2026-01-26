@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { allPosts } from 'contentlayer/generated'
 import { getAllCategories } from '@/lib/categories'
+import { getSortedPublishedPosts } from '@/lib/filter-posts'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -10,9 +11,7 @@ export const metadata: Metadata = {
 
 export default function AllPostsPage() {
   const categories = getAllCategories()
-  const sortedPosts = allPosts.sort((a, b) =>
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  )
+  const sortedPosts = getSortedPublishedPosts(allPosts)
 
   return (
     <div className="py-12">
@@ -20,7 +19,7 @@ export default function AllPostsPage() {
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">모든 글</h1>
         <p className="text-light-gray60 dark:text-dark-gray60">
-          {allPosts.length}개의 글
+          {sortedPosts.length}개의 글
         </p>
       </div>
 

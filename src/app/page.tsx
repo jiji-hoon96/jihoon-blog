@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { allPosts } from "contentlayer/generated";
 import { siteMetadata } from "@/lib/site-metadata";
+import { getSortedPublishedPosts } from "@/lib/filter-posts";
 
 export default function HomePage() {
-  const sortedPosts = allPosts.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
+  const sortedPosts = getSortedPublishedPosts(allPosts);
 
   // 최근 작성한 글 3개
   const recentPosts = sortedPosts.slice(0, 3);

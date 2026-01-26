@@ -3,6 +3,7 @@ import { allPosts } from 'contentlayer/generated'
 import { getAdjacentPosts } from '@/lib/post-navigation'
 import { siteMetadata } from '@/lib/site-metadata'
 import Utterances from '@/components/Utterances'
+import TableOfContents from '@/components/TableOfContents'
 import type { Metadata } from 'next'
 
 type Props = {
@@ -46,7 +47,7 @@ export default async function PostPage({ params }: Props) {
   const { slug } = await params
   const post = allPosts.find(p => p.slug === `/${slug}`)
 
-  if (!post) {
+  if (!post || post.draft) {
     notFound()
   }
 
@@ -83,6 +84,9 @@ export default async function PostPage({ params }: Props) {
           ))}
         </div>
       </header>
+
+      {/* Table of Contents */}
+      <TableOfContents content={post.body.html} />
 
       {/* Post Content */}
       <div

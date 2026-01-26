@@ -7,18 +7,40 @@ import readingTime from "reading-time";
 
 // src/lib/rehype-image-path.ts
 import { visit } from "unist-util-visit";
+import path from "path";
 function rehypeImagePath() {
   return (tree, file) => {
-    const filePath = file.history[0] || "";
-    const match = filePath.match(/content\/([^\/]+)\//);
-    const folderName = match ? match[1] : "";
-    if (!folderName)
+    let folderName = "";
+    if (file.history && file.history.length > 0) {
+      const filePath = file.history[0];
+      const match = filePath.match(/content\/([^\/]+)\//);
+      if (match) {
+        folderName = match[1];
+      }
+    }
+    if (!folderName && file.path) {
+      const match = file.path.match(/content\/([^\/]+)\//);
+      if (match) {
+        folderName = match[1];
+      }
+    }
+    if (!folderName && file.dirname) {
+      folderName = path.basename(file.dirname);
+    }
+    if (!folderName && file.data?.rawDocumentData?.sourceFileDir) {
+      folderName = file.data.rawDocumentData.sourceFileDir;
+    }
+    if (!folderName) {
+      console.warn("[rehype-image-path] Could not determine folder name for:", file.path || file.history?.[0] || "unknown");
       return;
+    }
     visit(tree, "element", (node) => {
       if (node.tagName === "img" && node.properties?.src) {
         const src = node.properties.src;
-        if (!src.startsWith("http") && !src.startsWith("/")) {
-          node.properties.src = `/content/${folderName}/${src}`;
+        if (!src.startsWith("http") && !src.startsWith("https") && !src.startsWith("/")) {
+          const newSrc = `/content/${folderName}/${src}`;
+          console.log(`[rehype-image-path] Converting: ${src} -> ${newSrc}`);
+          node.properties.src = newSrc;
         }
       }
     });
@@ -34,7 +56,8 @@ var Post = defineDocumentType(() => ({
     title: { type: "string", required: true },
     date: { type: "date", required: true },
     emoji: { type: "string", required: true },
-    categories: { type: "string", required: true }
+    categories: { type: "string", required: true },
+    draft: { type: "boolean", required: false }
   },
   computedFields: {
     slug: {
@@ -96,4 +119,4 @@ export {
   Post,
   contentlayer_config_default as default
 };
-//# sourceMappingURL=compiled-contentlayer-config-IMH3HNF5.mjs.map
+//# sourceMappingURL=compiled-contentlayer-config-DH24EZIR.mjs.map

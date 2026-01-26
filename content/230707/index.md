@@ -1,8 +1,9 @@
 ---
 emoji: 📋
-title: 'Convention List'
-date: '2023-07-07'
+title: "Convention List"
+date: "2023-07-07"
 categories: 프론트엔드 소박한궁금증
+draft: true
 ---
 
 ## Branch 구조와 전략을 세워보자!
@@ -111,7 +112,7 @@ categories: 프론트엔드 소박한궁금증
    | 🔥     | 코드 또는 파일 제거할 때 , @CHANGED주석 태그와 함께               |
    | 🚜     | 파일 구조를 변경할 때 . 🎨과 함께 사용                            |
    | 🔨     | 코드를 리팩토링 할 때                                             |
-   | ☔️    | 테스트를 추가 할 때                                               |
+   | ☔️     | 테스트를 추가 할 때                                               |
    | 🔬     | 코드 범위를 추가 할 때                                            |
    | 💚     | CI 빌드를 고칠 때                                                 |
    | 🔒     | 보안을 다룰 때                                                    |
@@ -121,7 +122,7 @@ categories: 프론트엔드 소박한궁금증
    | ⏪     | 최신 버전 / 지점에서 기능을 백 포트 할 때                         |
    | 👕     | linter / strict / deprecation 경고를 제거 할 때                   |
    | 💄     | UI / style 개선시                                                 |
-   | ♿️    | 접근성을 향상시킬 때                                              |
+   | ♿️     | 접근성을 향상시킬 때                                              |
    | 🚧     | WIP (진행중인 작업)에 커밋, @REVIEW주석 태그와 함께 사용          |
    | 💎     | New Release                                                       |
    | 🔖     | 버전 태그                                                         |
@@ -129,7 +130,7 @@ categories: 프론트엔드 소박한궁금증
    | 🔈     | 로깅을 추가 할 때                                                 |
    | 🔇     | 로깅을 줄일 때                                                    |
    | ✨     | 새로운 기능을 소개 할 때                                          |
-   | ⚡️    | 도입 할 때 이전 버전과 호환되지 않는 특징, @CHANGED주석 태그 사용 |
+   | ⚡️     | 도입 할 때 이전 버전과 호환되지 않는 특징, @CHANGED주석 태그 사용 |
    | 💡     | 새로운 아이디어, @IDEA주석 태그                                   |
    | 🚀     | 배포 / 개발 작업 과 관련된 모든 것                                |
    | 🐘     | PostgreSQL 데이터베이스 별 (마이그레이션, 스크립트, 확장 등)      |
@@ -154,7 +155,6 @@ categories: 프론트엔드 소박한궁금증
 ### Code Convention
 
 1. Naming conventions
-
    - Components 는 Pascal Case(첫 단어 대문자)
 
      ```tsx
@@ -182,7 +182,6 @@ categories: 프론트엔드 소박한궁금증
    - React 의 return 내부에 직접적인 함수처리 자제하기
    - 각 function , import 사이에 1줄 공백으로 구분하기
 3. ES6
-
    - spread 연산자 사용
    - 구조분해할당 사용
    - let, const 사용 (var 은 사용금지)
@@ -255,13 +254,13 @@ categories: 프론트엔드 소박한궁금증
     //코드 마지막에 세미콜론이 있게 formatting
     tabWidth: 4,
     // 들여쓰기 너비는 4칸
-    trailingComma: 'all',
+    trailingComma: "all",
     // 배열 키:값 뒤에 항상 콤마를 붙히도록 formatting
     printWidth: 80,
     // 코드 한줄이 maximum 80칸
-    arrowParens: 'avoid',
+    arrowParens: "avoid",
     // 화살표 함수가 하나의 매개변수를 받을 때 괄호를 생략하게 formatting
-    endOfLine: 'auto',
+    endOfLine: "auto",
     // windows에 뜨는 'Delete cr' 에러 해결
   };
   ```

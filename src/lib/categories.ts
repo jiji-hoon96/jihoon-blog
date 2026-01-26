@@ -1,9 +1,11 @@
 import { allPosts } from 'contentlayer/generated'
+import { filterPublishedPosts } from './filter-posts'
 
 export function getAllCategories(): string[] {
   const categorySet = new Set<string>(['All'])
+  const publishedPosts = filterPublishedPosts(allPosts)
 
-  allPosts.forEach(post => {
+  publishedPosts.forEach(post => {
     post.categoryArray.forEach((category: string) => {
       if (!category.includes('ignore')) {
         categorySet.add(category)
@@ -15,13 +17,15 @@ export function getAllCategories(): string[] {
 }
 
 export function getPostsByCategory(category: string) {
+  const publishedPosts = filterPublishedPosts(allPosts)
+  
   if (category === 'All') {
-    return allPosts.sort((a, b) =>
+    return publishedPosts.sort((a, b) =>
       new Date(b.date).getTime() - new Date(a.date).getTime()
     )
   }
 
-  return allPosts
+  return publishedPosts
     .filter(post => post.categoryArray.includes(category))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }

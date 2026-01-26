@@ -128,16 +128,11 @@
 
 /* Autolink headers */
 .prose .anchor {
-  @apply float-left -ml-5 pr-1 no-underline opacity-0;
+  @apply no-underline text-inherit;
 }
 
-.prose h1:hover .anchor,
-.prose h2:hover .anchor,
-.prose h3:hover .anchor,
-.prose h4:hover .anchor,
-.prose h5:hover .anchor,
-.prose h6:hover .anchor {
-  @apply opacity-100;
+.prose .anchor:hover {
+  @apply text-blue-600 dark:text-blue-400;
 }
 
 /* Video */
