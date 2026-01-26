@@ -1,65 +1,101 @@
-import Image from "next/image";
+import Link from "next/link";
+import { allPosts } from "contentlayer/generated";
+import { siteMetadata } from "@/lib/site-metadata";
 
-export default function Home() {
+export default function HomePage() {
+  const sortedPosts = allPosts.sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+
+  // 최근 작성한 글 3개
+  const recentPosts = sortedPosts.slice(0, 3);
+
+  // 조회수 높은 글 3개 (임시: 중간에서 3개 선택)
+  // TODO: 실제 조회수 데이터 연동 시 수정 필요
+  const popularPosts = sortedPosts.slice(10, 13);
+
+  // 고정 글 3개
+  // site-metadata.pinnedPosts에서 slug로 찾거나, 없으면 임시로 특정 글 선택
+  const pinnedPosts =
+    siteMetadata.pinnedPosts.length > 0
+      ? siteMetadata.pinnedPosts
+          .map((slug) => allPosts.find((post) => post.slug === slug))
+          .filter((post) => post !== undefined)
+          .slice(0, 3)
+      : sortedPosts.slice(5, 8);
+
+  const PostCard = ({ post }: { post: typeof allPosts[0] }) => (
+    <Link
+      href={post.slug}
+      className="block p-4 border border-light-gray20 dark:border-dark-gray20 rounded-lg hover:border-light-gray40 dark:hover:border-dark-gray40 transition-colors"
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-xl">{post.emoji}</span>
+        <h3 className="text-base font-bold line-clamp-2">{post.title}</h3>
+      </div>
+      <p className="text-xs text-light-gray60 dark:text-dark-gray60 mb-2">
+        {new Date(post.date).toLocaleDateString("ko-KR")} · {post.readingTime}
+      </p>
+      <p className="text-sm text-light-gray80 dark:text-dark-gray80 line-clamp-2">
+        {post.excerpt}
+      </p>
+    </Link>
+  );
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="py-12">
+      {/* Hero Section */}
+      <div className="mb-12">
+        <h1 className="text-4xl font-bold mb-4">{siteMetadata.title}</h1>
+        <p className="text-lg text-light-gray80 dark:text-dark-gray80">
+          {siteMetadata.description}
+        </p>
+        <p className="mt-2 text-sm text-light-gray60 dark:text-dark-gray60">
+          {siteMetadata.author.name} - {siteMetadata.author.bio.email}
+        </p>
+      </div>
+
+      {/* 고정 글 */}
+      <section className="mb-12">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold">📌 고정 글</h2>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {pinnedPosts.map((post) => (
+            <PostCard key={post.slug} post={post} />
+          ))}
         </div>
-      </main>
+      </section>
+
+      {/* 최근 작성한 글 */}
+      <section className="mb-12">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold">🆕 최근 작성한 글</h2>
+          <Link
+            href="/posts"
+            className="text-sm text-light-gray60 dark:text-dark-gray60 hover:text-light-black100 dark:hover:text-dark-black100"
+          >
+            전체보기 →
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {recentPosts.map((post) => (
+            <PostCard key={post.slug} post={post} />
+          ))}
+        </div>
+      </section>
+
+      {/* 조회수 높은 글 */}
+      <section className="mb-12">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold">🔥 인기 글</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {popularPosts.map((post) => (
+            <PostCard key={post.slug} post={post} />
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

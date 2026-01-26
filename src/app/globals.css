@@ -1,26 +1,69 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@import "../styles/prose.css";
+
+/* GmarketSans Korean Font */
+@font-face {
+  font-family: 'GmarketSans';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansLight.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GmarketSans';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GmarketSans';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Light theme colors */
+  --color-light-black100: #0F1010;
+  --color-light-black60: #2C2D2E;
+  --color-light-black40: #3C3D40;
+  --color-light-gray80: #808388;
+  --color-light-gray60: #989BA0;
+  --color-light-gray40: #C0C5C9;
+  --color-light-gray20: #EEEFF1;
+  --color-light-gray10: #F7F8FA;
+  --color-light-white100: #FFFFFF;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Dark theme colors */
+  --color-dark-black100: #e6e6e6;
+  --color-dark-black60: #F7F8FA;
+  --color-dark-black40: #EEEFF1;
+  --color-dark-gray80: #b9bbc5;
+  --color-dark-gray60: #8e8f97;
+  --color-dark-gray40: #626368;
+  --color-dark-gray20: #3C3D40;
+  --color-dark-gray10: #2C2D2E;
+  --color-dark-white100: #232326;
+
+  /* Font families */
+  --font-gmarket: 'GmarketSans', sans-serif;
+
+  /* Responsive */
+  --breakpoint-mobile: 768px;
+
+  /* Content max width */
+  --width-content: 720px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-light-white100 text-light-black100;
+  @apply dark:bg-dark-white100 dark:text-dark-black100;
+  @apply font-[family-name:var(--font-gmarket)] font-medium;
+  @apply transition-colors duration-200;
 }
