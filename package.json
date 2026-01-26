@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:clean": "rm -rf .contentlayer .next && node scripts/copy-content-images.js && npx contentlayer build && next dev",
-    "rebuild": "rm -rf .contentlayer .next && node scripts/copy-content-images.js && npx contentlayer build",
-    "content:sync": "node scripts/copy-content-images.js && npx contentlayer build",
+    "dev:clean": "rm -rf .contentlayer .next && node scripts/copy-content-images.js && (npx contentlayer build || true) && next dev",
+    "rebuild": "rm -rf .contentlayer .next && node scripts/copy-content-images.js && (npx contentlayer build || true)",
+    "content:sync": "node scripts/copy-content-images.js && (npx contentlayer build || true)",
     "build": "node scripts/copy-content-images.js && next build",
     "start": "next start",
     "lint": "eslint"
