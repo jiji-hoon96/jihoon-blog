@@ -1,22 +1,22 @@
-import Link from 'next/link'
+import Link from "next/link";
 
 type Project = {
-  title: string
-  description: string
-  techStack: string[]
-  thumbnailUrl: string
+  title: string;
+  description: string;
+  techStack: string[];
+  thumbnailUrl: string;
   links: {
-    post?: string
-    github?: string
-    demo?: string
-    googlePlay?: string
-    appStore?: string
-  }
-}
+    post?: string;
+    github?: string;
+    demo?: string;
+    googlePlay?: string;
+    appStore?: string;
+  };
+};
 
 type ProjectCardProps = {
-  project: Project
-}
+  project: Project;
+};
 
 export default function ProjectCard({ project }: ProjectCardProps) {
   return (
@@ -67,10 +67,10 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               >
                 {linkType}
               </Link>
-            ) : null
+            ) : null,
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }

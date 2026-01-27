@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Enable class-based dark mode for next-themes */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @import "../styles/prose.css";
 
 /* GmarketSans Korean Font */
@@ -29,9 +32,6 @@
 }
 
 @theme inline {
-  /* Dark mode selector */
-  --dark-mode-selector: .dark;
-
   /* Light theme colors */
   --color-light-black100: #0F1010;
   --color-light-black60: #2C2D2E;
