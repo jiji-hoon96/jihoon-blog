@@ -3,7 +3,7 @@ import { siteMetadata } from "@/lib/site-metadata";
 export default function Footer() {
   return (
     <footer className="border-t border-light-gray20 dark:border-dark-gray20 mt-12">
-      <div className="mx-auto max-w-[720px] px-4 py-8">
+      <div className="mx-auto max-w-[1200px] px-4 py-8">
         <div className="flex flex-col items-center gap-4 text-sm text-light-gray60 dark:text-dark-gray60">
           <div className="flex gap-4">
             <a

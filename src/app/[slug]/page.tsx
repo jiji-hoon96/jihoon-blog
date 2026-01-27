@@ -54,10 +54,10 @@ export default async function PostPage({ params }: Props) {
   const { prev, next } = getAdjacentPosts(post.slug)
 
   return (
-    <article className="py-12">
+    <article className="py-8 sm:py-12">
       {/* Post Header */}
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
+      <header className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-4xl font-bold mb-4">{post.title}</h1>
         <div className="flex flex-wrap items-center gap-3 text-sm text-light-gray60 dark:text-dark-gray60">
           <time dateTime={post.date}>
             {new Date(post.date).toLocaleDateString('ko-KR', {
@@ -82,57 +82,72 @@ export default async function PostPage({ params }: Props) {
         </div>
       </header>
 
-      {/* Table of Contents */}
-      <TableOfContents content={post.body.html} />
+      {/* Mobile: 목차 (본문 위) */}
+      <div className="lg:hidden">
+        <TableOfContents content={post.body.html} />
+      </div>
 
-      {/* Post Content */}
-      <div
-        className="prose prose-lg dark:prose-invert max-w-none mb-12"
-        dangerouslySetInnerHTML={{ __html: post.body.html }}
-      />
+      {/* Desktop: 사이드바 목차 + 본문 */}
+      <div className="lg:flex lg:gap-8">
+        {/* 왼쪽 목차 사이드바 (Desktop) */}
+        <aside className="hidden lg:block w-56 flex-shrink-0">
+          <div className="sticky top-8">
+            <TableOfContents content={post.body.html} variant="sidebar" />
+          </div>
+        </aside>
 
-      {/* Post Navigation */}
-      <nav className="flex justify-between items-center py-8 border-t border-light-gray20 dark:border-dark-gray20">
-        {prev ? (
-          <a
-            href={prev.slug}
-            className="flex-1 group text-left"
-          >
-            <div className="text-sm text-light-gray60 dark:text-dark-gray60 mb-1">
-              ← 이전 글
-            </div>
-            <div className="font-medium group-hover:text-light-gray80 dark:group-hover:text-dark-gray80 transition-colors">
-              {prev.title}
-            </div>
-          </a>
-        ) : (
-          <div className="flex-1" />
-        )}
+        {/* 본문 */}
+        <div className="flex-1 min-w-0">
+          {/* Post Content */}
+          <div
+            className="prose prose-lg dark:prose-invert max-w-none mb-12"
+            dangerouslySetInnerHTML={{ __html: post.body.html }}
+          />
 
-        {next ? (
-          <a
-            href={next.slug}
-            className="flex-1 group text-right"
-          >
-            <div className="text-sm text-light-gray60 dark:text-dark-gray60 mb-1">
-              다음 글 →
-            </div>
-            <div className="font-medium group-hover:text-light-gray80 dark:group-hover:text-dark-gray80 transition-colors">
-              {next.title}
-            </div>
-          </a>
-        ) : (
-          <div className="flex-1" />
-        )}
-      </nav>
+          {/* Post Navigation */}
+          <nav className="flex justify-between items-center py-8 border-t border-light-gray20 dark:border-dark-gray20">
+            {prev ? (
+              <a
+                href={prev.slug}
+                className="flex-1 group text-left"
+              >
+                <div className="text-sm text-light-gray60 dark:text-dark-gray60 mb-1">
+                  ← 이전 글
+                </div>
+                <div className="font-medium group-hover:text-light-gray80 dark:group-hover:text-dark-gray80 transition-colors">
+                  {prev.title}
+                </div>
+              </a>
+            ) : (
+              <div className="flex-1" />
+            )}
 
-      {/* Comments */}
-      <div className="mt-12">
-        <h3 className="text-xl font-bold mb-4">💬 댓글</h3>
-        <Utterances
-          repo={siteMetadata.comments.utterances.repo}
-          path={post.slug}
-        />
+            {next ? (
+              <a
+                href={next.slug}
+                className="flex-1 group text-right"
+              >
+                <div className="text-sm text-light-gray60 dark:text-dark-gray60 mb-1">
+                  다음 글 →
+                </div>
+                <div className="font-medium group-hover:text-light-gray80 dark:group-hover:text-dark-gray80 transition-colors">
+                  {next.title}
+                </div>
+              </a>
+            ) : (
+              <div className="flex-1" />
+            )}
+          </nav>
+
+          {/* Comments */}
+          <div className="mt-12">
+            <h3 className="text-xl font-bold mb-4">댓글</h3>
+            <Utterances
+              repo={siteMetadata.comments.utterances.repo}
+              path={post.slug}
+            />
+          </div>
+        </div>
       </div>
     </article>
   )

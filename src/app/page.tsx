@@ -50,7 +50,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <div className="mb-8 sm:mb-12">
         <h1 className="text-2xl sm:text-4xl font-bold mb-3 sm:mb-4">
-          {siteMetadata.title}
+          {`안녕하세요 ${siteMetadata.author.name}입니다`}
         </h1>
         <p className="text-base sm:text-lg text-light-gray80 dark:text-dark-gray80">
           {siteMetadata.description}

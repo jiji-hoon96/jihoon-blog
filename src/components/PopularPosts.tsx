@@ -99,7 +99,9 @@ export function PopularPosts({ allPosts }: PopularPostsProps) {
             <p className="text-xs text-light-gray60 dark:text-dark-gray60 mb-2">
               {new Date(post.date).toLocaleDateString("ko-KR")} ·{" "}
               {post.readingTime}
-              <span className="ml-2">👀 {post.views.toLocaleString()}</span>
+              <span className="ml-2">
+                · {post.views.toLocaleString()} views
+              </span>
             </p>
             <p className="text-sm text-light-gray80 dark:text-dark-gray80 line-clamp-2">
               {post.excerpt}

@@ -45,5 +45,7 @@ export default function Utterances({ repo, path }: UtterancesProps) {
     iframe.contentWindow?.postMessage(message, 'https://utteranc.es')
   }, [resolvedTheme])
 
-  return <div ref={ref} />
+  return (
+    <div ref={ref} className="utterances-wrapper" />
+  )
 }

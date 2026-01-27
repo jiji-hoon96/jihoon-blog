@@ -10,9 +10,10 @@ interface TocItem {
 
 interface TableOfContentsProps {
   content: string;
+  variant?: "default" | "sidebar";
 }
 
-export default function TableOfContents({ content }: TableOfContentsProps) {
+export default function TableOfContents({ content, variant = "default" }: TableOfContentsProps) {
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
 
@@ -80,12 +81,45 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
     return null;
   }
 
+  if (variant === "sidebar") {
+    return (
+      <nav className="text-sm">
+        <h2 className="font-bold mb-3 text-light-black100 dark:text-dark-black100">
+          목차
+        </h2>
+        <ul className="space-y-1 border-l-2 border-light-gray20 dark:border-dark-gray20">
+          {toc.map((item) => (
+            <li
+              key={item.id}
+              className={item.level === 3 ? "ml-3" : ""}
+            >
+              <a
+                href={`#${item.id}`}
+                onClick={(e) => handleClick(e, item.id)}
+                className={`
+                  block py-1 pl-3 -ml-[2px] border-l-2 transition-colors
+                  ${
+                    activeId === item.id
+                      ? "border-light-black100 dark:border-dark-black100 text-light-black100 dark:text-dark-black100 font-medium"
+                      : "border-transparent text-light-gray60 dark:text-dark-gray60 hover:text-light-black100 dark:hover:text-dark-black100"
+                  }
+                `}
+              >
+                {item.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    );
+  }
+
   return (
-    <nav className="mb-8 p-6 rounded-lg bg-light-gray10 dark:bg-dark-gray10 border border-light-gray20 dark:border-dark-gray20">
-      <h2 className="text-xl font-bold mb-4 text-light-black100 dark:text-dark-black100">
-        📋 목차
+    <nav className="mb-8 p-4 sm:p-6 rounded-lg bg-light-gray10 dark:bg-dark-gray10 border border-light-gray20 dark:border-dark-gray20">
+      <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-light-black100 dark:text-dark-black100">
+        목차
       </h2>
-      <ul className="space-y-2">
+      <ul className="space-y-2 text-sm sm:text-base">
         {toc.map((item) => (
           <li
             key={item.id}
@@ -98,7 +132,7 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
                 block py-1 px-2 rounded transition-colors
                 ${
                   activeId === item.id
-                    ? "text-blue-600 dark:text-blue-400 bg-light-gray20 dark:bg-dark-gray20 font-medium"
+                    ? "text-light-black100 dark:text-dark-black100 bg-light-gray20 dark:bg-dark-gray20 font-medium"
                     : "text-light-gray80 dark:text-dark-gray80 hover:text-light-black100 dark:hover:text-dark-black100 hover:bg-light-gray20 dark:hover:bg-dark-gray20"
                 }
               `}

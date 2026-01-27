@@ -14,51 +14,78 @@ export default function AllPostsPage() {
   const sortedPosts = getSortedPublishedPosts(allPosts)
 
   return (
-    <div className="py-12">
+    <div className="py-8 sm:py-12">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">모든 글</h1>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-4xl font-bold mb-2">모든 글</h1>
         <p className="text-light-gray60 dark:text-dark-gray60">
           {sortedPosts.length}개의 글
         </p>
       </div>
 
-      {/* Category Tabs */}
-      <div className="flex gap-2 overflow-x-auto mb-8 pb-2">
+      {/* Mobile: 가로 탭 */}
+      <div className="flex gap-2 overflow-x-auto mb-6 pb-2 sm:hidden">
         {categories.map(cat => (
           <Link
             key={cat}
             href={`/posts/${encodeURIComponent(cat)}`}
-            className="px-4 py-2 rounded-lg whitespace-nowrap bg-light-gray10 dark:bg-dark-gray10 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors"
+            className="px-3 py-1.5 text-sm rounded-lg whitespace-nowrap bg-light-gray10 dark:bg-dark-gray10 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors"
           >
             {cat}
           </Link>
         ))}
       </div>
 
-      {/* Posts List */}
-      <div className="space-y-6">
+      {/* Desktop: 사이드바 + 콘텐츠 */}
+      <div className="hidden sm:flex gap-8">
+        {/* 왼쪽 카테고리 사이드바 */}
+        <aside className="w-40 flex-shrink-0">
+          <nav className="flex flex-col gap-2 sticky top-8">
+            {categories.map(cat => (
+              <Link
+                key={cat}
+                href={`/posts/${encodeURIComponent(cat)}`}
+                className="px-3 py-2 rounded-lg transition-colors text-sm hover:bg-light-gray10 dark:hover:bg-dark-gray10"
+              >
+                {cat}
+              </Link>
+            ))}
+          </nav>
+        </aside>
+
+        {/* 오른쪽 글 목록 */}
+        <div className="flex-1 space-y-4">
+          {sortedPosts.map(post => (
+            <Link
+              key={post.slug}
+              href={post.slug}
+              className="block p-4 border border-light-gray20 dark:border-dark-gray20 rounded-lg hover:border-light-gray40 dark:hover:border-dark-gray40 transition-colors"
+            >
+              <h3 className="text-lg font-bold mb-2">{post.title}</h3>
+              <p className="text-sm text-light-gray60 dark:text-dark-gray60 mb-2">
+                {new Date(post.date).toLocaleDateString('ko-KR')} · {post.readingTime}
+              </p>
+              <p className="text-sm text-light-gray80 dark:text-dark-gray80 line-clamp-2">
+                {post.excerpt}
+              </p>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Mobile: 글 목록 */}
+      <div className="sm:hidden space-y-4">
         {sortedPosts.map(post => (
           <Link
             key={post.slug}
             href={post.slug}
-            className="block p-6 border border-light-gray20 dark:border-dark-gray20 rounded-lg hover:border-light-gray40 dark:hover:border-dark-gray40 transition-colors"
+            className="block p-4 border border-light-gray20 dark:border-dark-gray20 rounded-lg hover:border-light-gray40 dark:hover:border-dark-gray40 transition-colors"
           >
-            <h3 className="text-xl font-bold mb-2">{post.title}</h3>
-            <p className="text-sm text-light-gray60 dark:text-dark-gray60 mb-2">
+            <h3 className="text-base font-bold mb-2">{post.title}</h3>
+            <p className="text-xs text-light-gray60 dark:text-dark-gray60 mb-2">
               {new Date(post.date).toLocaleDateString('ko-KR')} · {post.readingTime}
             </p>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {post.categoryArray.map((category: string) => (
-                <span
-                  key={category}
-                  className="px-2 py-1 text-xs rounded bg-light-gray10 dark:bg-dark-gray10"
-                >
-                  {category}
-                </span>
-              ))}
-            </div>
-            <p className="text-light-gray80 dark:text-dark-gray80 line-clamp-2">
+            <p className="text-sm text-light-gray80 dark:text-dark-gray80 line-clamp-2">
               {post.excerpt}
             </p>
           </Link>

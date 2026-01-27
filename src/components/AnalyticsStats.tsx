@@ -43,8 +43,10 @@ export function AnalyticsStats() {
 
   return (
     <div className="flex gap-4 text-sm text-light-gray60 dark:text-dark-gray60">
-      <span>👀 전체 조회수 {stats.totalPageViews.toLocaleString()}회</span>
-      <span>📅 오늘 방문자 {stats.todayVisitors.toLocaleString()}명</span>
+      <span>
+        Total: {stats.totalPageViews.toLocaleString()} / Today:{" "}
+        {stats.todayVisitors.toLocaleString()}
+      </span>
     </div>
   );
 }

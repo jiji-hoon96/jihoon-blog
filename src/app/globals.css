@@ -70,3 +70,8 @@ body {
   @apply font-[family-name:var(--font-gmarket)] font-medium;
   @apply transition-colors duration-200;
 }
+
+/* Utterances comment widget */
+.utterances-wrapper .utterances {
+  max-width: 1200px !important;
+}
