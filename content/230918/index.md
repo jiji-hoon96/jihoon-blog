@@ -1,8 +1,9 @@
 ---
 emoji: 👂
-title: 'git rev-parse 명령어 들어본적 있니!?'
-date: '2023-09-18'
+title: "git rev-parse 명령어 들어본적 있니!?"
+date: "2023-09-18"
 categories: 소박한궁금증 DevOps
+draft: true
 ---
 
 ![1.jpeg](1.jpeg)

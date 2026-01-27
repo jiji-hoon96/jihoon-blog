@@ -12,6 +12,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@google-analytics/data": "^5.2.1",
     "@tailwindcss/typography": "^0.5.19",
     "contentlayer": "^0.3.4",
     "date-fns": "^4.1.0",

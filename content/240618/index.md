@@ -1,8 +1,9 @@
 ---
 emoji: 🫘
-title: 'Elastic Beanstalk를 이용해 귀여운 Docker 자동화 배포 실습해보자'
-date: '2024-06-18'
+title: "Elastic Beanstalk를 이용해 귀여운 Docker 자동화 배포 실습해보자"
+date: "2024-06-18"
 categories: 프론트엔드 DevOps 대외활동
+draft: true
 ---
 
 > 우선 해당 공부는 [docker-test](https://github.com/jiji-hoon96/docker-test) 레포를 이용했습니다.

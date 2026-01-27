@@ -1,8 +1,9 @@
 ---
 emoji: 🧑🏻‍💻
-title: 'JavaScript 동기와 비동기 완벽 가이드'
-date: '2023-08-16'
+title: "JavaScript 동기와 비동기 완벽 가이드"
+date: "2023-08-16"
 categories: 프론트엔드 자바스크립트
+draft: true
 ---
 
 ![메인이미지](메인이미지.png)
@@ -47,7 +48,7 @@ javascript 는 Single Thread 기반 언어 ⇒ 한 번에 하나의 작업만 �
 ```jsx
 // 사용벙 : setTimeout(function() { 코드 or 콜백함수 }, 지연시간);
 
-setTimeout(() => console.log('2초 후에 실행됨'), 2000);
+setTimeout(() => console.log("2초 후에 실행됨"), 2000);
 
 // 지연 시간은 밀리초 단위로 기입. 1초 -> 1000
 // 2초 후에 콘솔에 "2초 후에 실행됨" 출력
@@ -60,14 +61,14 @@ setTimeout(() => console.log('2초 후에 실행됨'), 2000);
 // 사용법 : clearTimeout( [식별자] );
 
 var timer;
-document.querySelector('#input').addEventListener('input', function (e) {
+document.querySelector("#input").addEventListener("input", function (e) {
   if (timer) {
     // input 될 때 마다 이벤트가 발생하지 않도록 n-1 번째 이벤트 취소
     clearTimeout(timer);
   }
   // n번째 이벤트만 남겨서 마지막 이벤트만 실행되게
   timer = setTimeout(function () {
-    console.log('여기에 ajax 요청', e.target.value);
+    console.log("여기에 ajax 요청", e.target.value);
   }, 200);
 });
 ```
@@ -131,7 +132,7 @@ new Promise(function (resolve, reject) {
 ```jsx
 function getData() {
   return new Promise(function (resolve, reject) {
-    var data = 'resolve';
+    var data = "resolve";
     resolve(data);
   });
 }
@@ -154,7 +155,7 @@ new Promise(function (resolve, reject) {
 ```jsx
 function getData() {
   return new Promise(function (resolve, reject) {
-    reject(new Error('Request is failed'));
+    reject(new Error("Request is failed"));
   });
 }
 
@@ -203,7 +204,7 @@ fetch(url, options) // url, options
   })
   // 두 번째 then에서는 데이터를 전달 받는다.
   .catch((error) => {
-    console.log('error');
+    console.log("error");
   });
 // catch에서 에러 요청이 발생했을 때, 에러를 받는다.
 ```
@@ -263,14 +264,14 @@ fetch("https://jsonplaceholder.typicode.com/posts", {
 method 옵션만 PUT으로 설정한다는 점 외에는 POST 방식과 비슷
 
 ```jsx
-fetch('https://jsonplaceholder.typicode.com/posts', {
-  method: 'PUT',
+fetch("https://jsonplaceholder.typicode.com/posts", {
+  method: "PUT",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    title: 'Test',
-    body: 'I am testing!',
+    title: "Test",
+    body: "I am testing!",
     userId: 1,
   }),
 })
@@ -283,8 +284,8 @@ fetch('https://jsonplaceholder.typicode.com/posts', {
 보내는 데이터가 없기 때문에 headers, body 옵션이 필요 없음
 
 ```jsx
-fetch('https://jsonplaceholder.typicode.com/posts/1', {
-  method: 'DELETE',
+fetch("https://jsonplaceholder.typicode.com/posts/1", {
+  method: "DELETE",
 })
   .then((response) => response.json())
   .then((data) => console.log(data));
@@ -302,7 +303,7 @@ await 키워드는, then을 대신해 then을 체이닝한 것처럼 순서대�
 
 ```jsx
 async function asyncFunc() {
-  let response = await fetch('#');
+  let response = await fetch("#");
   let data = await response.json();
   return data;
 }
@@ -418,15 +419,15 @@ Microtask 보다 우선순위가 낮고, Macrotask 보다는 높다.
 call stack 으로 이동한 함수는 실행됨
 
 ```jsx
-console.log('Start!');
+console.log("Start!");
 
 setTimeout(() => {
-  console.log('Timeout!');
+  console.log("Timeout!");
 }, 0);
 
-Promise.resolve('Promise!').then((res) => console.log(res));
+Promise.resolve("Promise!").then((res) => console.log(res));
 
-console.log('End!');
+console.log("End!");
 ```
 
 ![https://res.cloudinary.com/practicaldev/image/fetch/s---Bt6DKsn--/c_limit,f_auto,fl_progressive,q_66,w_880/https://dev-to-uploads.s3.amazonaws.com/i/6cbjuexvy6z9ltk0bi18.gif](https://res.cloudinary.com/practicaldev/image/fetch/s---Bt6DKsn--/c_limit,f_auto,fl_progressive,q_66,w_880/https://dev-to-uploads.s3.amazonaws.com/i/6cbjuexvy6z9ltk0bi18.gif)

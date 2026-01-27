@@ -1,8 +1,9 @@
 ---
 emoji: 🐛
-title: '효율적인 디버깅을 위한 팁: Next Step 이펙티브 디버깅 모임 참여 후기'
-date: '2024-05-27'
+title: "효율적인 디버깅을 위한 팁: Next Step 이펙티브 디버깅 모임 참여 후기"
+date: "2024-05-27"
 categories: 대외활동
+draft: true
 ---
 
 <br>

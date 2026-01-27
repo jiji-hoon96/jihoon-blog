@@ -1,8 +1,9 @@
 ---
 emoji: 1️⃣
-title: 'Singleton Pattern을 간단하게 알아보자!'
-date: '2023-10-10'
+title: "Singleton Pattern을 간단하게 알아보자!"
+date: "2023-10-10"
 categories: 소박한궁금증 자바스크립트
+draft: true
 ---
 
 ## Singleton Pattern
@@ -19,7 +20,7 @@ class Singleton {
     if (Singleton.instance) {
       return Singleton.instance;
     }
-    this.data = data || 'Initial data';
+    this.data = data || "Initial data";
     Singleton.instance = this;
   }
 
@@ -32,13 +33,13 @@ class Singleton {
   }
 }
 
-const singleton = new Singleton('First data');
+const singleton = new Singleton("First data");
 console.log(singleton.getData());
 
-const anotherSingleton = new Singleton('Second data');
+const anotherSingleton = new Singleton("Second data");
 console.log(anotherSingleton.getData());
 
-singleton.setData('Updated data');
+singleton.setData("Updated data");
 console.log(anotherSingleton.getData());
 ```
 
@@ -53,7 +54,7 @@ function Singleton(data) {
   if (Singleton.instance) {
     return Singleton.instance;
   }
-  this.data = data || 'Initial data';
+  this.data = data || "Initial data";
   Singleton.instance = this;
 }
 
@@ -65,13 +66,13 @@ Singleton.prototype.setData = function (data) {
   this.data = data;
 };
 
-const singleton = new Singleton('First data');
+const singleton = new Singleton("First data");
 console.log(singleton.getData());
 
-const anotherSingleton = new Singleton('Second data');
+const anotherSingleton = new Singleton("Second data");
 console.log(anotherSingleton.getData());
 
-singleton.setData('Updated data');
+singleton.setData("Updated data");
 console.log(anotherSingleton.getData());
 ```
 
@@ -85,7 +86,7 @@ const Singleton = (function () {
     if (SingletonClass.instance) {
       return SingletonClass.instance;
     }
-    this.data = data || 'Initial data';
+    this.data = data || "Initial data";
     SingletonClass.instance = this;
   }
 
@@ -100,13 +101,13 @@ const Singleton = (function () {
   return SingletonClass;
 })();
 
-const singleton = new Singleton('First data');
+const singleton = new Singleton("First data");
 console.log(singleton.getData());
 
-const anotherSingleton = new Singleton('Second data');
+const anotherSingleton = new Singleton("Second data");
 console.log(anotherSingleton.getData());
 
-singleton.setData('Updated data');
+singleton.setData("Updated data");
 console.log(anotherSingleton.getData());
 ```
 

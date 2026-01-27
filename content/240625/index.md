@@ -1,8 +1,9 @@
 ---
 emoji: 🧑🏻‍🏫
-title: '비전공 프론트엔드 2년차 개발자 멘티 일지: 8주차 - 진짜!! 너무 바쁘다~!'
-date: '2024-06-25'
+title: "비전공 프론트엔드 2년차 개발자 멘티 일지: 8주차 - 진짜!! 너무 바쁘다~!"
+date: "2024-06-25"
 categories: 멘토링 자바스크립트
+draft: true
 ---
 
 <br>
@@ -82,7 +83,7 @@ function merge<T, U>(a: T, b: U): T & U {
   return { ...a, ...b };
 }
 
-const result = merge({ name: 'John' }, { age: 30 });
+const result = merge({ name: "John" }, { age: 30 });
 // result는 { name: string; age: number; } 타입으로 추론
 ```
 
@@ -96,7 +97,7 @@ interface Props {
   age?: number;
 }
 
-function setup({ name = 'Unknown', age = 0 }: Props) {
+function setup({ name = "Unknown", age = 0 }: Props) {
   // 함수 내에서 name과 age의 타입이 string과 number로 추론
 }
 ```
@@ -106,10 +107,10 @@ function setup({ name = 'Unknown', age = 0 }: Props) {
 복잡한 로직에 따라 타입이 결정되어야 하는 경우, 조건부 타입을 사용하여 타입 추론을 개선할 수 있다.
 
 ```typescript
-type LoadingState<T> = T extends undefined ? 'loading' : T;
+type LoadingState<T> = T extends undefined ? "loading" : T;
 
 function fetchData<T>(data: T): LoadingState<T> {
-  return data !== undefined ? data : 'loading';
+  return data !== undefined ? data : "loading";
 }
 ```
 
@@ -118,7 +119,7 @@ function fetchData<T>(data: T): LoadingState<T> {
 타입스크립트의 타입 추론이 기대한 대로 작동하지 않을 수 있는 경우 타입 단언(type assertion)을 사용하여 컴파일러에게 명확한 타입 정보를 제공할 수 있다.
 
 ```typescript
-const myCanvas = document.getElementById('mainCanvas') as HTMLCanvasElement;
+const myCanvas = document.getElementById("mainCanvas") as HTMLCanvasElement;
 ```
 
 <br>
@@ -136,8 +137,8 @@ function logObject(obj: object) {
   console.log(obj);
 }
 
-logObject({ name: 'John' }); // 올바른 사용
-logObject('Hello, world!'); // 에러: "Hello, world!"는 원시 타입이기 때문에 object 타입과 호환되지 않음
+logObject({ name: "John" }); // 올바른 사용
+logObject("Hello, world!"); // 에러: "Hello, world!"는 원시 타입이기 때문에 object 타입과 호환되지 않음
 ```
 
 #### 덕 타이핑 (Duck Typing)
@@ -157,9 +158,9 @@ function makeItQuack(duck: Duck) {
 }
 
 const myBird = {
-  walk: () => console.log('Walking like a duck'),
-  quack: () => console.log('Quacking like a duck'),
-  swim: () => console.log('Swimming like a duck'),
+  walk: () => console.log("Walking like a duck"),
+  quack: () => console.log("Quacking like a duck"),
+  swim: () => console.log("Swimming like a duck"),
 };
 
 makeItQuack(myBird); // 정상 작동: myBird가 Duck 인터페이스를 충족

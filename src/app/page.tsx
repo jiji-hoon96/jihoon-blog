@@ -2,6 +2,8 @@ import Link from "next/link";
 import { allPosts } from "contentlayer/generated";
 import { siteMetadata } from "@/lib/site-metadata";
 import { getSortedPublishedPosts } from "@/lib/filter-posts";
+import { AnalyticsStats } from "@/components/AnalyticsStats";
+import { PopularPosts } from "@/components/PopularPosts";
 
 export default function HomePage() {
   const sortedPosts = getSortedPublishedPosts(allPosts);
@@ -9,9 +11,15 @@ export default function HomePage() {
   // 최근 작성한 글 3개
   const recentPosts = sortedPosts.slice(0, 3);
 
-  // 조회수 높은 글 3개 (임시: 중간에서 3개 선택)
-  // TODO: 실제 조회수 데이터 연동 시 수정 필요
-  const popularPosts = sortedPosts.slice(10, 13);
+  // PopularPosts 컴포넌트에 전달할 포스트 데이터
+  const postsForPopular = sortedPosts.map((post) => ({
+    slug: post.slug,
+    title: post.title,
+    emoji: post.emoji,
+    date: post.date,
+    readingTime: post.readingTime,
+    excerpt: post.excerpt,
+  }));
 
   // 고정 글 3개
   // site-metadata.pinnedPosts에서 slug로 찾거나, 없으면 임시로 특정 글 선택
@@ -52,6 +60,9 @@ export default function HomePage() {
         <p className="mt-2 text-sm text-light-gray60 dark:text-dark-gray60">
           {siteMetadata.author.name} - {siteMetadata.author.bio.email}
         </p>
+        <div className="mt-3">
+          <AnalyticsStats />
+        </div>
       </div>
 
       {/* 고정 글 */}
@@ -84,17 +95,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 조회수 높은 글 */}
-      <section className="mb-12">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">🔥 인기 글</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {popularPosts.map((post) => (
-            <PostCard key={post.slug} post={post} />
-          ))}
-        </div>
-      </section>
+      {/* 조회수 높은 글 (GA 데이터 기반) */}
+      <PopularPosts allPosts={postsForPopular} />
     </div>
   );
 }

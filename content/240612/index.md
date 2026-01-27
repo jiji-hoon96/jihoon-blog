@@ -1,8 +1,9 @@
 ---
 emoji: 🧑🏻‍🏫
-title: '비전공 프론트엔드 2년차 개발자 멘티 일지: 6주차 - 보기좋은 코드 만들기'
-date: '2024-06-12'
+title: "비전공 프론트엔드 2년차 개발자 멘티 일지: 6주차 - 보기좋은 코드 만들기"
+date: "2024-06-12"
 categories: 멘토링 자바스크립트
+draft: true
 ---
 
 <br>
@@ -84,7 +85,7 @@ export const decrementTaskCount = (taskType) => {
 첫 번째 해결 방법
 
 ```javascript
-import * as actionType from './taskManger';
+import * as actionType from "./taskManger";
 
 actionType.incrementTaskCount(taskType);
 actionType.decrementTaskCount(taskType);
