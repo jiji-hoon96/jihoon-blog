@@ -15,7 +15,6 @@ export type Post = {
   type: 'Post'
   title: string
   date: IsoDateTimeString
-  emoji: string
   categories: string
   draft?: boolean | undefined
   /** Markdown file body */

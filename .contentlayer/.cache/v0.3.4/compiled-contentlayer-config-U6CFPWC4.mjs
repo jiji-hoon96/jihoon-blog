@@ -55,7 +55,6 @@ var Post = defineDocumentType(() => ({
   fields: {
     title: { type: "string", required: true },
     date: { type: "date", required: true },
-    emoji: { type: "string", required: true },
     categories: { type: "string", required: true },
     draft: { type: "boolean", required: false }
   },
@@ -78,7 +77,10 @@ var Post = defineDocumentType(() => ({
     excerpt: {
       type: "string",
       resolve: (doc) => {
-        const text = doc.body.raw.replace(/```[\s\S]*?```/g, "").replace(/#/g, "").trim();
+        const text = doc.body.raw.replace(/```[\s\S]*?```/g, "").replace(/<[^>]*>/g, "").replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\[[^\]]*\]\([^)]*\)/g, (match) => {
+          const textMatch = match.match(/\[([^\]]*)\]/);
+          return textMatch ? textMatch[1] : "";
+        }).replace(/`[^`]+`/g, (match) => match.slice(1, -1)).replace(/\*\*([^*]+)\*\*/g, "$1").replace(/__([^_]+)__/g, "$1").replace(/\*([^*]+)\*/g, "$1").replace(/_([^_]+)_/g, "$1").replace(/~~([^~]+)~~/g, "$1").replace(/^#{1,6}\s+/gm, "").replace(/^>\s*/gm, "").replace(/^[-*+]\s+/gm, "").replace(/^\d+\.\s+/gm, "").replace(/^---+$/gm, "").replace(/[\u{1F600}-\u{1F64F}]/gu, "").replace(/[\u{1F300}-\u{1F5FF}]/gu, "").replace(/[\u{1F680}-\u{1F6FF}]/gu, "").replace(/[\u{2600}-\u{26FF}]/gu, "").replace(/[\u{2700}-\u{27BF}]/gu, "").replace(/[\u{1F900}-\u{1F9FF}]/gu, "").replace(/[\u{1FA00}-\u{1FA6F}]/gu, "").replace(/\n+/g, " ").replace(/\s+/g, " ").trim();
         return text.slice(0, 200) + (text.length > 200 ? "..." : "");
       }
     }
@@ -119,4 +121,4 @@ export {
   Post,
   contentlayer_config_default as default
 };
-//# sourceMappingURL=compiled-contentlayer-config-DH24EZIR.mjs.map
+//# sourceMappingURL=compiled-contentlayer-config-U6CFPWC4.mjs.map

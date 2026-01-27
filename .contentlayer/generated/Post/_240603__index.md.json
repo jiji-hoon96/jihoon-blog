@@ -1,7 +1,6 @@
 {
   "title": "이벤트 루프(Event Loop) 동작 원리 실습 with 자바스크립트로 만든 인터랙티브 사이트",
   "date": "2024-06-03T00:00:00.000Z",
-  "emoji": "🔄",
   "categories": "자바스크립트",
   "draft": true,
   "body": {
@@ -22,5 +21,5 @@
     "자바스크립트"
   ],
   "readingTime": "2 min read",
-  "excerpt": "> 화면 UI는 [yiseo0](https://github.com/yiseo0)님의 오픈소스를 참고했습니다. 감사합니다!\n\n<br>\n\n<br>\n\n<h3>이런게 더 있으면 좋겠다 하거나, 변경이 필요한 것들은 댓글로 적어주세요!!</h3>\n\n<br>\n\n![1.png](1.png)\n\n 왜 만들었어!?\n\nJavScript을 이용해 Event Loop를 동작해보는..."
+  "excerpt": "화면 UI는 yiseo0님의 오픈소스를 참고했습니다. 감사합니다! 이런게 더 있으면 좋겠다 하거나, 변경이 필요한 것들은 댓글로 적어주세요!! 왜 만들었어!? JavScript을 이용해 Event Loop를 동작해보는 사이트를 만들어보았다. 왜!? 그냥 내가 공부하려고!! 우선은 간단하게 만들어보았는데, 점차 리팩토링도 하면서 해당하는 것들에 관해서 공부하..."
 }

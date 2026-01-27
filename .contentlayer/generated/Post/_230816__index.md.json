@@ -1,7 +1,6 @@
 {
   "title": "JavaScript 동기와 비동기 완벽 가이드",
   "date": "2023-08-16T00:00:00.000Z",
-  "emoji": "🧑🏻‍💻",
   "categories": "프론트엔드 자바스크립트",
   "draft": true,
   "body": {
@@ -23,5 +22,5 @@
     "자바스크립트"
   ],
   "readingTime": "17 min read",
-  "excerpt": "![메인이미지](메인이미지.png)\n\n What is Single Thread?\n\njavascript 는 Single Thread 기반 언어 ⇒ 한 번에 하나의 작업만 수행 가능\n\n하지만! 동시에 병렬처리 해야 될 때가 있다\n\n그럴 때 javascript는 비동기 함수(setTimeout, ajax, Promise 객체 등)를 이용\n\n<br/>\n\n<asid..."
+  "excerpt": "What is Single Thread? javascript 는 Single Thread 기반 언어 ⇒ 한 번에 하나의 작업만 수행 가능 하지만! 동시에 병렬처리 해야 될 때가 있다 그럴 때 javascript는 비동기 함수(setTimeout, ajax, Promise 객체 등)를 이용 자바스크립트 엔진 자체는 Single Thread 지만 특정 API ..."
 }

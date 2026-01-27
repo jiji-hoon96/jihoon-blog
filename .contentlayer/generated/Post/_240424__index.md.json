@@ -1,7 +1,6 @@
 {
   "title": "LinkedList vs ArrayList : 어떤 것을 선택해야 할까요?",
   "date": "2024-04-24T00:00:00.000Z",
-  "emoji": "💡",
   "categories": "소박한궁금증 자료구조",
   "draft": true,
   "body": {
@@ -23,5 +22,5 @@
     "자료구조"
   ],
   "readingTime": "5 min read",
-  "excerpt": "![3.png](2.png)\n\n<br>\n\n<h4>링크드인을 접속할려고 했다.</h4>\n\n<br>\n\n![1.png](1.png)\n\n<br>\n\nLinked... 라고 치는데 밑에 LinkedList가 나왔다.. ~~(그 와중에 린다닷컴은 뭐지?)~~\n\n그 이후에 새로 알게된 내용이 많아 기록을 남겨볼려고한다.\n\n<br>\n\n LikedList\n\nLinkedLis..."
+  "excerpt": "링크드인을 접속할려고 했다. Linked... 라고 치는데 밑에 LinkedList가 나왔다.. (그 와중에 린다닷컴은 뭐지?) 그 이후에 새로 알게된 내용이 많아 기록을 남겨볼려고한다. LikedList LinkedList는 내부적으로 양방향의 연결 리스트로 구성되어 있어 참조하려는 원소에 따라 처음부터 정방향 또는 역순으로 순회할 수 있다. 적은 양의 ..."
 }

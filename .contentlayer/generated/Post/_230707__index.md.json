@@ -1,7 +1,6 @@
 {
   "title": "Convention List",
   "date": "2023-07-07T00:00:00.000Z",
-  "emoji": "📋",
   "categories": "프론트엔드 소박한궁금증",
   "draft": true,
   "body": {
@@ -23,5 +22,5 @@
     "소박한궁금증"
   ],
   "readingTime": "17 min read",
-  "excerpt": "Branch 구조와 전략을 세워보자!\n\n코드를 작성하다보면 엄청나게 많은 Branch를 만들어야한다. 어떻게 구조를 잡아야할지 알아보자!\n\n![1.png](1.png)\n\n<br>\n\n Branch Structure(Gitflow 전략)\n\n- **`master`**\n  - 제품의 안정된 버전을 유지하는 브랜치, 배포 가능한 코드만을 허용하며, 직접적인 작업은 ..."
+  "excerpt": "Branch 구조와 전략을 세워보자! 코드를 작성하다보면 엄청나게 많은 Branch를 만들어야한다. 어떻게 구조를 잡아야할지 알아보자! Branch Structure(Gitflow 전략) master - 제품의 안정된 버전을 유지하는 브랜치, 배포 가능한 코드만을 허용하며, 직접적인 작업은 X develop - 개발의 중심이 되는 브랜치, 다른 개발자들과의..."
 }
