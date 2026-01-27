@@ -87,7 +87,7 @@ export async function getPopularPages(limit: number = 10): Promise<PopularPage[]
   try {
     const [response] = await client.runReport({
       property: `properties/${propertyId}`,
-      dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
+      dateRanges: [{ startDate: "2020-01-01", endDate: "today" }],
       dimensions: [{ name: "pagePath" }],
       metrics: [{ name: "screenPageViews" }],
       orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
@@ -104,10 +104,15 @@ export async function getPopularPages(limit: number = 10): Promise<PopularPage[]
         views: parseInt(row.metricValues?.[0]?.value || "0", 10),
       }))
       .filter((page) => {
-        // 블로그 글 경로만 필터링 (6자리 날짜 형식: /YYMMDD)
-        const slugMatch = page.slug.match(/^\/(\d{6})$/);
+        // 블로그 글 경로만 필터링 (6자리 날짜 형식: /YYMMDD/ 또는 /YYMMDD)
+        const slugMatch = page.slug.match(/^\/(\d{6})\/?$/);
         return slugMatch !== null;
-      });
+      })
+      .map((page) => ({
+        ...page,
+        // 끝 슬래시 제거하여 일관된 형식으로 반환
+        slug: page.slug.replace(/\/$/, ""),
+      }));
   } catch (error) {
     console.error("Error fetching popular pages:", error);
     return [];

@@ -1,4 +1,4 @@
-import { siteMetadata } from '@/lib/site-metadata'
+import { siteMetadata } from "@/lib/site-metadata";
 
 export default function Footer() {
   return (
@@ -30,13 +30,11 @@ export default function Footer() {
             </a>
           </div>
           <div>
-            © {new Date().getFullYear()} {siteMetadata.author.name}. All rights reserved.
-          </div>
-          <div className="text-xs">
-            Built with Next.js 15 · Migrated from Gatsby
+            © {new Date().getFullYear()} {siteMetadata.author.name}. All rights
+            reserved.
           </div>
         </div>
       </div>
     </footer>
-  )
+  );
 }
