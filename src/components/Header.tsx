@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { siteMetadata } from "@/lib/site-metadata";
+import SearchModal from "./SearchModal";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -86,6 +87,9 @@ export default function Header() {
               </li>
             ))}
             <li>
+              <SearchModal />
+            </li>
+            <li>
               <button
                 onClick={toggleTheme}
                 className="p-2 hover:bg-light-gray10 dark:hover:bg-dark-gray10 rounded-lg transition-colors cursor-pointer"
@@ -100,8 +104,9 @@ export default function Header() {
             </li>
           </ul>
 
-          {/* Mobile: Theme Toggle + Hamburger */}
+          {/* Mobile: Search + Theme Toggle + Hamburger */}
           <div className="flex items-center gap-1 sm:hidden">
+            <SearchModal />
             <button
               onClick={toggleTheme}
               className="p-2 hover:bg-light-gray10 dark:hover:bg-dark-gray10 rounded-lg transition-colors cursor-pointer"

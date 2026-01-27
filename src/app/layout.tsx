@@ -3,6 +3,7 @@ import Script from "next/script";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ScrollToTop";
 import { siteMetadata } from "@/lib/site-metadata";
 import "./globals.css";
 
@@ -19,8 +20,8 @@ export const metadata: Metadata = {
     url: siteMetadata.siteUrl,
     siteName: siteMetadata.title,
     images: [{ url: siteMetadata.ogImage }],
-    locale: 'ko_KR',
-    type: 'website',
+    locale: "ko_KR",
+    type: "website",
   },
   robots: {
     index: true,
@@ -72,6 +73,7 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
+          <ScrollToTop />
         </ThemeProvider>
 
         {/* Google Analytics */}

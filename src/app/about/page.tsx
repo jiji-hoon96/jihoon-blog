@@ -14,9 +14,9 @@ export default function AboutPage() {
       <section className="mb-10 sm:mb-14">
         <div className="flex flex-col sm:flex-row gap-6 sm:gap-10">
           {/* Profile Image */}
-          <div className="flex-shrink-0 order-first w-full sm:w-auto">
+          <div className="flex-shrink-0 order-first w-full sm:w-auto border border-light-gray20 dark:border-dark-gray20 rounded-xl">
             <Image
-              src="/images/지훈.jpeg"
+              src="/images/jihoon.jpeg"
               alt={siteMetadata.author.name}
               width={300}
               height={400}

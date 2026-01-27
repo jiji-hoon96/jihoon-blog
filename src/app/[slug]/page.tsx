@@ -4,6 +4,7 @@ import { getAdjacentPosts } from '@/lib/post-navigation'
 import { siteMetadata } from '@/lib/site-metadata'
 import Utterances from '@/components/Utterances'
 import TableOfContents from '@/components/TableOfContents'
+import ReadingProgress from '@/components/ReadingProgress'
 import type { Metadata } from 'next'
 
 type Props = {
@@ -54,21 +55,23 @@ export default async function PostPage({ params }: Props) {
   const { prev, next } = getAdjacentPosts(post.slug)
 
   return (
-    <article className="py-8 sm:py-12">
-      {/* Post Header */}
-      <header className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-4xl font-bold mb-4">{post.title}</h1>
-        <div className="flex flex-wrap items-center gap-3 text-sm text-light-gray60 dark:text-dark-gray60">
-          <time dateTime={post.date}>
-            {new Date(post.date).toLocaleDateString('ko-KR', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
-          </time>
-          <span>·</span>
-          <span>{post.readingTime}</span>
-        </div>
+    <>
+      <ReadingProgress />
+      <article className="py-8 sm:py-12">
+        {/* Post Header */}
+        <header className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-bold mb-4">{post.title}</h1>
+          <div className="flex flex-wrap items-center gap-3 text-sm text-light-gray60 dark:text-dark-gray60">
+            <time dateTime={post.date}>
+              {new Date(post.date).toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </time>
+            <span>·</span>
+            <span>{post.readingTime}</span>
+          </div>
         <div className="flex flex-wrap gap-2 mt-4">
           {post.categoryArray.map((category: string) => (
             <a
@@ -150,5 +153,6 @@ export default async function PostPage({ params }: Props) {
         </div>
       </div>
     </article>
+    </>
   )
 }

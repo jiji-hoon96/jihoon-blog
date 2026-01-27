@@ -52,11 +52,8 @@ export default function HomePage() {
         <h1 className="text-2xl sm:text-4xl font-bold mb-3 sm:mb-4">
           {`안녕하세요 ${siteMetadata.author.name}입니다`}
         </h1>
-        <p className="text-base sm:text-lg text-light-gray80 dark:text-dark-gray80">
-          {siteMetadata.description}
-        </p>
         <p className="mt-2 text-sm text-light-gray60 dark:text-dark-gray60">
-          {siteMetadata.author.name} - {siteMetadata.author.bio.email}
+          {siteMetadata.author.bio.email}
         </p>
         <div className="mt-3">
           <AnalyticsStats />
