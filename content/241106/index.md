@@ -1,5 +1,4 @@
 ---
-emoji: 📦
 title: '어디까지 알고 있으세요. package.json'
 date: '2024-11-06'
 categories: 프론트엔드 소박한궁금증 자바스크립트

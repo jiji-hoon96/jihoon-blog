@@ -1,5 +1,4 @@
 ---
-emoji: 📚
 title: 'IT동아리 SIPE 전반기 회고 & SIPE 1차 미션 YouDontKnowJsYet팀 활동 후기'
 date: '2024-05-09'
 categories: 대외활동

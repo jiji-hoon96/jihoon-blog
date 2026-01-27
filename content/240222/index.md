@@ -1,5 +1,4 @@
 ---
-emoji: 🙋🏻‍♂️
 title: '넌 상태관리를 어떻게 해? 난 Zustand를 활용하고 있어!'
 date: '2024-02-22'
 categories: 프론트엔드

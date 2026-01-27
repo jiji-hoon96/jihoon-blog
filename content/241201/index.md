@@ -1,5 +1,4 @@
 ---
-emoji: 🧐
 title: 'Biome 가 EsLint와 Prettier를 대체할 수 있을까?'
 date: '2024-12-01'
 categories: 프론트엔드 자바스크립트

@@ -57,10 +57,7 @@ export default async function PostPage({ params }: Props) {
     <article className="py-12">
       {/* Post Header */}
       <header className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-4xl">{post.emoji}</span>
-          <h1 className="text-4xl font-bold">{post.title}</h1>
-        </div>
+        <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
         <div className="flex flex-wrap items-center gap-3 text-sm text-light-gray60 dark:text-dark-gray60">
           <time dateTime={post.date}>
             {new Date(post.date).toLocaleDateString('ko-KR', {
@@ -105,7 +102,7 @@ export default async function PostPage({ params }: Props) {
               ← 이전 글
             </div>
             <div className="font-medium group-hover:text-light-gray80 dark:group-hover:text-dark-gray80 transition-colors">
-              {prev.emoji} {prev.title}
+              {prev.title}
             </div>
           </a>
         ) : (
@@ -121,7 +118,7 @@ export default async function PostPage({ params }: Props) {
               다음 글 →
             </div>
             <div className="font-medium group-hover:text-light-gray80 dark:group-hover:text-dark-gray80 transition-colors">
-              {next.emoji} {next.title}
+              {next.title}
             </div>
           </a>
         ) : (

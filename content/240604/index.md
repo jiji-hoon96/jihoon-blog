@@ -1,5 +1,4 @@
 ---
-emoji: 🧑🏻‍🏫
 title: "비전공 프론트엔드 2년차 개발자 멘티 일지: 5주차 - 회사 & 지구런 & History API"
 date: "2024-06-04"
 categories: 멘토링 자바스크립트

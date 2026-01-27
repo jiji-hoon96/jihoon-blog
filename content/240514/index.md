@@ -1,5 +1,4 @@
 ---
-emoji: 🤙
 title: '자바스크립트 Promise를 퀴즈로 쉽게 익히기 with 예제 코드'
 date: '2024-05-14'
 categories: 소박한궁금증 자바스크립트

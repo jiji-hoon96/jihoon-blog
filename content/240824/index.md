@@ -1,5 +1,4 @@
 ---
-emoji: 🙏
 title: 'Concurrent Mode'
 date: '2024-08-24'
 categories: 프론트엔드 React

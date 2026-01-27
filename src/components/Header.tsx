@@ -1,28 +1,28 @@
-"use client"
+"use client";
 
-import Link from 'next/link'
-import { useState, useEffect } from 'react'
-import { useTheme } from 'next-themes'
-import { siteMetadata } from '@/lib/site-metadata'
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
+import { siteMetadata } from "@/lib/site-metadata";
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { resolvedTheme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   const navLinks = [
-    { href: '/posts', label: 'Posts' },
-    { href: '/guestbook', label: 'Guestbook' },
-    { href: '/about', label: 'About' },
-  ]
+    { href: "/posts", label: "Posts" },
+    { href: "/guestbook", label: "Guestbook" },
+    { href: "/about", label: "About" },
+  ];
 
   const toggleTheme = () => {
-    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
-  }
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
 
   return (
     <header className="border-b border-light-gray20 dark:border-dark-gray20 mb-8">
@@ -50,11 +50,11 @@ export default function Header() {
             <li>
               <button
                 onClick={toggleTheme}
-                className="p-1 hover:scale-110 transition-transform"
+                className="p-1 hover:scale-110 transition-transform cursor-pointer"
                 aria-label="테마 변경"
               >
                 <span className="text-xl">
-                  {mounted ? (resolvedTheme === 'dark' ? '🌞' : '🌙') : '🌓'}
+                  {mounted ? (resolvedTheme === "dark" ? "🌞" : "🌙") : "🌓"}
                 </span>
               </button>
             </li>
@@ -64,11 +64,11 @@ export default function Header() {
           <div className="flex items-center gap-2 sm:hidden">
             <button
               onClick={toggleTheme}
-              className="p-2 hover:scale-110 transition-transform"
+              className="p-2 hover:scale-110 transition-transform cursor-pointer"
               aria-label="테마 변경"
             >
               <span className="text-lg">
-                {mounted ? (resolvedTheme === 'dark' ? '🌞' : '🌙') : '🌓'}
+                {mounted ? (resolvedTheme === "dark" ? "🌞" : "🌙") : "🌓"}
               </span>
             </button>
             <button
@@ -79,17 +79,17 @@ export default function Header() {
               <div className="w-5 h-4 flex flex-col justify-between">
                 <span
                   className={`block h-0.5 bg-current transition-transform duration-200 ${
-                    isMenuOpen ? 'rotate-45 translate-y-1.5' : ''
+                    isMenuOpen ? "rotate-45 translate-y-1.5" : ""
                   }`}
                 />
                 <span
                   className={`block h-0.5 bg-current transition-opacity duration-200 ${
-                    isMenuOpen ? 'opacity-0' : ''
+                    isMenuOpen ? "opacity-0" : ""
                   }`}
                 />
                 <span
                   className={`block h-0.5 bg-current transition-transform duration-200 ${
-                    isMenuOpen ? '-rotate-45 -translate-y-2' : ''
+                    isMenuOpen ? "-rotate-45 -translate-y-2" : ""
                   }`}
                 />
               </div>
@@ -115,5 +115,5 @@ export default function Header() {
         )}
       </nav>
     </header>
-  )
+  );
 }

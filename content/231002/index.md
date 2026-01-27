@@ -1,5 +1,4 @@
 ---
-emoji: 🧐
 title: "Dependencies vs DevDependencies vs PeerDependencies"
 date: "2023-10-02"
 categories: 소박한궁금증 자바스크립트

@@ -1,5 +1,4 @@
 ---
-emoji: 👣
 title: '프론트엔드 개발자의 고난했던 DevOps 경험 : "행군보다 힘들었던 반자동화 배포"'
 date: '2024-02-27'
 categories: 프론트엔드 DevOps

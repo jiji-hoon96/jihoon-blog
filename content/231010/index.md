@@ -1,5 +1,4 @@
 ---
-emoji: 1️⃣
 title: "Singleton Pattern을 간단하게 알아보자!"
 date: "2023-10-10"
 categories: 소박한궁금증 자바스크립트

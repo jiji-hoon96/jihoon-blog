@@ -1,5 +1,4 @@
 ---
-emoji: 🫘
 title: "Elastic Beanstalk를 이용해 귀여운 Docker 자동화 배포 실습해보자"
 date: "2024-06-18"
 categories: 프론트엔드 DevOps 대외활동

@@ -15,7 +15,6 @@ export default function HomePage() {
   const postsForPopular = sortedPosts.map((post) => ({
     slug: post.slug,
     title: post.title,
-    emoji: post.emoji,
     date: post.date,
     readingTime: post.readingTime,
     excerpt: post.excerpt,
@@ -31,15 +30,12 @@ export default function HomePage() {
           .slice(0, 3)
       : sortedPosts.slice(5, 8);
 
-  const PostCard = ({ post }: { post: typeof allPosts[0] }) => (
+  const PostCard = ({ post }: { post: (typeof allPosts)[0] }) => (
     <Link
       href={post.slug}
       className="block p-3 sm:p-4 border border-light-gray20 dark:border-dark-gray20 rounded-lg hover:border-light-gray40 dark:hover:border-dark-gray40 transition-colors"
     >
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-xl">{post.emoji}</span>
-        <h3 className="text-base font-bold line-clamp-2">{post.title}</h3>
-      </div>
+      <h3 className="text-base font-bold line-clamp-2 mb-2">{post.title}</h3>
       <p className="text-xs text-light-gray60 dark:text-dark-gray60 mb-2">
         {new Date(post.date).toLocaleDateString("ko-KR")} · {post.readingTime}
       </p>
@@ -53,7 +49,9 @@ export default function HomePage() {
     <div className="py-8 sm:py-12">
       {/* Hero Section */}
       <div className="mb-8 sm:mb-12">
-        <h1 className="text-2xl sm:text-4xl font-bold mb-3 sm:mb-4">{siteMetadata.title}</h1>
+        <h1 className="text-2xl sm:text-4xl font-bold mb-3 sm:mb-4">
+          {siteMetadata.title}
+        </h1>
         <p className="text-base sm:text-lg text-light-gray80 dark:text-dark-gray80">
           {siteMetadata.description}
         </p>
@@ -65,22 +63,13 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 고정 글 */}
-      <section className="mb-8 sm:mb-12">
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h2 className="text-xl sm:text-2xl font-bold">📌 고정 글</h2>
-        </div>
-        <div className="flex flex-col gap-4">
-          {pinnedPosts.map((post) => (
-            <PostCard key={post.slug} post={post} />
-          ))}
-        </div>
-      </section>
-
       {/* 최근 작성한 글 */}
       <section className="mb-8 sm:mb-12">
         <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h2 className="text-xl sm:text-2xl font-bold">🆕 최근 작성한 글</h2>
+          <h2 className="text-xl sm:text-2xl font-bold">
+            <span className="mr-3">🆕</span>
+            최근 작성한 글
+          </h2>
           <Link
             href="/posts"
             className="text-sm text-light-gray60 dark:text-dark-gray60 hover:text-light-black100 dark:hover:text-dark-black100"
@@ -97,6 +86,21 @@ export default function HomePage() {
 
       {/* 조회수 높은 글 (GA 데이터 기반) */}
       <PopularPosts allPosts={postsForPopular} />
+
+      {/* 고정 글 */}
+      <section className="mb-8 sm:mb-12">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold">
+            <span className="mr-3">📌</span>
+            고정 글
+          </h2>
+        </div>
+        <div className="flex flex-col gap-4">
+          {pinnedPosts.map((post) => (
+            <PostCard key={post.slug} post={post} />
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

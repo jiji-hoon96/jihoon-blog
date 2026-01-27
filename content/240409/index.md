@@ -1,5 +1,4 @@
 ---
-emoji: 🧐
 title: '웹 렌더링 방식: CSR vs SSR vs SSG vs ISR 등 모든 것 알아보기'
 date: '2024-04-09'
 categories: 프론트엔드

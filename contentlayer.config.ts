@@ -13,7 +13,6 @@ export const Post = defineDocumentType(() => ({
   fields: {
     title: { type: 'string', required: true },
     date: { type: 'date', required: true },
-    emoji: { type: 'string', required: true },
     categories: { type: 'string', required: true },
     draft: { type: 'boolean', required: false },
   },

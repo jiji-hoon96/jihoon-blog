@@ -1,5 +1,4 @@
 ---
-emoji: 🦵
 title: 'zip, gzip, zstd, bzip2, xz 등 소프트웨어의 압축 알고리즘에 대해 공부해보자!'
 date: '2024-07-06'
 categories: 소박한궁금증 소프트웨어

@@ -75,10 +75,7 @@ export default async function CategoryPage({ params }: Props) {
             href={post.slug}
             className="block p-6 border border-light-gray20 dark:border-dark-gray20 rounded-lg hover:border-light-gray40 dark:hover:border-dark-gray40 transition-colors"
           >
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl">{post.emoji}</span>
-              <h3 className="text-xl font-bold">{post.title}</h3>
-            </div>
+            <h3 className="text-xl font-bold mb-2">{post.title}</h3>
             <p className="text-sm text-light-gray60 dark:text-dark-gray60 mb-2">
               {new Date(post.date).toLocaleDateString('ko-KR')} · {post.readingTime}
             </p>

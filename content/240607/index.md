@@ -1,5 +1,4 @@
 ---
-emoji: 🐳
 title: "DevOps의 D도 어려운 아기 개발자의 험난한 Docker 스터디"
 date: "2024-06-07"
 categories: 프론트엔드 DevOps 대외활동

@@ -1,5 +1,4 @@
 ---
-emoji: 🆚
 title: 'Import (정적) vs Dynamic Import (동적)'
 date: '2024-07-11'
 categories: 소박한궁금증

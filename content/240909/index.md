@@ -1,5 +1,4 @@
 ---
-emoji: 😵‍💫
 title: 'React 상태가 변화는 과정에 대해서!'
 date: '2024-09-09'
 categories: 프론트엔드 자바스크립트

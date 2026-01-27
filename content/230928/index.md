@@ -1,5 +1,4 @@
 ---
-emoji: 🆚
 title: 'Ecmascript에서 Modules랑 CommonJs를 비교해보자!'
 date: '2023-09-28'
 categories: 소박한궁금증 자바스크립트

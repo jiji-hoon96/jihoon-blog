@@ -1,5 +1,4 @@
 ---
-emoji: 🥊
 title: 'WebAssembly가 뭐야? 너가 JavaScript를 대체한다고!?!?'
 date: '2024-05-22'
 categories: 소박한궁금증

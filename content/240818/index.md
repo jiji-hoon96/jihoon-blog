@@ -1,5 +1,4 @@
 ---
-emoji: 🤯
 title: 'Zustand, 너 뭔데 ProviderLess 인 거야?'
 date: '2024-08-18'
 categories: 프론트엔드 React
