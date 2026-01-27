@@ -8,6 +8,20 @@ import { PopularPosts } from "@/components/PopularPosts";
 export default function HomePage() {
   const sortedPosts = getSortedPublishedPosts(allPosts);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: siteMetadata.title,
+    url: siteMetadata.siteUrl,
+    description: siteMetadata.description,
+    author: {
+      "@type": "Person",
+      name: siteMetadata.author.name,
+      email: siteMetadata.author.bio.email,
+      url: siteMetadata.siteUrl,
+    },
+  };
+
   // 최근 작성한 글 3개
   const recentPosts = sortedPosts.slice(0, 3);
 
@@ -46,9 +60,14 @@ export default function HomePage() {
   );
 
   return (
-    <div className="py-8 sm:py-12">
-      {/* Hero Section */}
-      <div className="mb-8 sm:mb-12">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="py-8 sm:py-12">
+        {/* Hero Section */}
+        <div className="mb-8 sm:mb-12">
         <h1 className="text-2xl sm:text-4xl font-bold mb-3 sm:mb-4">
           {`안녕하세요 ${siteMetadata.author.name}입니다`}
         </h1>
@@ -98,6 +117,7 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

@@ -7,7 +7,7 @@ export async function GET() {
     slug: post.slug,
     title: post.title,
     excerpt: post.excerpt || "",
-    category: post.category,
+    category: post.categories,
   }));
 
   return NextResponse.json({ posts });

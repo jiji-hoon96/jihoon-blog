@@ -25,21 +25,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {}
   }
 
+  const url = `${siteMetadata.siteUrl}${post.slug}`
+
   return {
     title: post.title,
     description: post.excerpt,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt,
+      url: url,
       type: 'article',
       publishedTime: post.date,
       authors: [siteMetadata.author.name],
       tags: post.categoryArray,
+      images: [{ url: siteMetadata.ogImage }],
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.excerpt,
+      images: [siteMetadata.ogImage],
     },
   }
 }
@@ -54,8 +62,36 @@ export default async function PostPage({ params }: Props) {
 
   const { prev, next } = getAdjacentPosts(post.slug)
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.excerpt,
+    author: {
+      '@type': 'Person',
+      name: siteMetadata.author.name,
+      url: siteMetadata.siteUrl,
+    },
+    datePublished: post.date,
+    dateModified: post.date,
+    url: `${siteMetadata.siteUrl}${post.slug}`,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `${siteMetadata.siteUrl}${post.slug}`,
+    },
+    publisher: {
+      '@type': 'Person',
+      name: siteMetadata.author.name,
+    },
+    keywords: post.categoryArray.join(', '),
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ReadingProgress />
       <article className="py-8 sm:py-12">
         {/* Post Header */}

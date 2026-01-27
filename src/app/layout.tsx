@@ -14,6 +14,19 @@ export const metadata: Metadata = {
     template: `%s | ${siteMetadata.title}`,
   },
   description: siteMetadata.description,
+  keywords: [
+    "개발 블로그",
+    "프론트엔드",
+    "React",
+    "TypeScript",
+    "JavaScript",
+    siteMetadata.author.name,
+  ],
+  authors: [{ name: siteMetadata.author.name }],
+  creator: siteMetadata.author.name,
+  alternates: {
+    canonical: siteMetadata.siteUrl,
+  },
   openGraph: {
     title: siteMetadata.title,
     description: siteMetadata.description,
@@ -23,13 +36,25 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: siteMetadata.title,
+    description: siteMetadata.description,
+    images: [siteMetadata.ogImage],
+  },
   robots: {
     index: true,
     follow: true,
     googleBot: {
       index: true,
       follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
+  },
+  verification: {
+    google: "H_Kznnz38Boo3HJm1zCQjpG8Pxo3EZqhjkGd6Gdm-qU",
   },
 };
 
