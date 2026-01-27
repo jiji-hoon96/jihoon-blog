@@ -54,15 +54,15 @@ export function PopularPosts({ allPosts }: PopularPostsProps) {
 
   if (loading) {
     return (
-      <section className="mb-12">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">🔥 인기 글</h2>
+      <section className="mb-8 sm:mb-12">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold">🔥 인기 글</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex flex-col gap-4">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="p-4 border border-light-gray20 dark:border-dark-gray20 rounded-lg animate-pulse"
+              className="p-3 sm:p-4 border border-light-gray20 dark:border-dark-gray20 rounded-lg animate-pulse"
             >
               <div className="h-6 bg-light-gray20 dark:bg-dark-gray20 rounded mb-2"></div>
               <div className="h-4 bg-light-gray20 dark:bg-dark-gray20 rounded w-1/2 mb-2"></div>
@@ -80,16 +80,16 @@ export function PopularPosts({ allPosts }: PopularPostsProps) {
   }
 
   return (
-    <section className="mb-12">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold">🔥 인기 글</h2>
+    <section className="mb-8 sm:mb-12">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <h2 className="text-xl sm:text-2xl font-bold">🔥 인기 글</h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="flex flex-col gap-4">
         {popularPosts.map((post) => (
           <Link
             key={post.slug}
             href={post.slug}
-            className="block p-4 border border-light-gray20 dark:border-dark-gray20 rounded-lg hover:border-light-gray40 dark:hover:border-dark-gray40 transition-colors"
+            className="block p-3 sm:p-4 border border-light-gray20 dark:border-dark-gray20 rounded-lg hover:border-light-gray40 dark:hover:border-dark-gray40 transition-colors"
           >
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xl">{post.emoji}</span>

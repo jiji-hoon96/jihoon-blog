@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import ThemeToggle from "@/components/ThemeToggle";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { siteMetadata } from "@/lib/site-metadata";
@@ -66,7 +65,6 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="light">
-          <ThemeToggle />
           <div className="flex min-h-screen flex-col">
             <Header />
             <main className="mx-auto w-full max-w-[720px] px-4 flex-1">
