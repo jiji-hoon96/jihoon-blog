@@ -21,24 +21,23 @@ export default function TableOfContents({ content, variant = "default" }: TableO
     // HTML 문자열을 파싱하여 h2, h3 태그 추출
     const parser = new DOMParser();
     const doc = parser.parseFromString(content, "text/html");
-    const headings = doc.querySelectorAll("h2, h3");
+    const parsedHeadings = doc.querySelectorAll("h2, h3");
 
-    const items: TocItem[] = Array.from(headings).map((heading) => {
+    const items: TocItem[] = Array.from(parsedHeadings).map((heading) => {
       const id = heading.id || heading.textContent?.trim().toLowerCase().replace(/\s+/g, "-") || "";
       const text = heading.textContent || "";
       const level = parseInt(heading.tagName.charAt(1));
-
-      // heading에 id가 없으면 추가 (rehype-slug가 이미 처리했을 것임)
-      if (!heading.id && id) {
-        heading.id = id;
-      }
 
       return { id, text, level };
     });
 
     setToc(items);
+  }, [content]);
 
-    // Intersection Observer로 현재 보이는 섹션 추적
+  useEffect(() => {
+    if (toc.length === 0) return;
+
+    // 실제 DOM에서 heading 요소들을 찾아서 관찰
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -52,20 +51,16 @@ export default function TableOfContents({ content, variant = "default" }: TableO
       }
     );
 
-    headings.forEach((heading) => {
-      if (heading.id) {
-        observer.observe(heading);
-      }
-    });
+    const headingElements = toc
+      .map((item) => document.getElementById(item.id))
+      .filter((el): el is HTMLElement => el !== null);
+
+    headingElements.forEach((el) => observer.observe(el));
 
     return () => {
-      headings.forEach((heading) => {
-        if (heading.id) {
-          observer.unobserve(heading);
-        }
-      });
+      headingElements.forEach((el) => observer.unobserve(el));
     };
-  }, [content]);
+  }, [toc]);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();

@@ -5,6 +5,7 @@ import { siteMetadata } from '@/lib/site-metadata'
 import Utterances from '@/components/Utterances'
 import TableOfContents from '@/components/TableOfContents'
 import ReadingProgress from '@/components/ReadingProgress'
+import CodeCopyButton from '@/components/CodeCopyButton'
 import type { Metadata } from 'next'
 
 type Props = {
@@ -142,6 +143,7 @@ export default async function PostPage({ params }: Props) {
             className="prose prose-lg dark:prose-invert max-w-none mb-12"
             dangerouslySetInnerHTML={{ __html: post.body.html }}
           />
+          <CodeCopyButton />
 
           {/* Post Navigation */}
           <nav className="flex justify-between items-center py-8 border-t border-light-gray20 dark:border-dark-gray20">

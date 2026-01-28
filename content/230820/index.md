@@ -1,6 +1,6 @@
 ---
-title: 'React useState 완벽 가이드 모든 것을 한눈에 이해해보자'
-date: '2023-08-20'
+title: "React useState 완벽 가이드 모든 것을 한눈에 이해해보자"
+date: "2023-08-20"
 categories: 프론트엔드 React
 ---
 
@@ -131,42 +131,41 @@ const [count, setCount] = useState(0) // 일반적인 사용 예시
 - state
   - 새값과 이전값을 비교해서 동일하면 렌더링을 건너뜀 ⇒ react 최적화
 - set 함수
-
   - return 이 없음
   - 다음 렌더링에 대한 상태 변수만 업데이트
   - 이미 실행중인 코드의 현재 상태는 변경되지 않음
 
-    ```jsx
-    import React from 'react';
-    import { useState } from 'react';
+```jsx
+import React from "react";
+import { useState } from "react";
 
-    export function App(props) {
-      const [data, setData] = useState('지훈이');
-      function handleClick() {
-        setData('아님');
-        console.log('set 다음 : ', data);
-      }
+export function App(props) {
+  const [data, setData] = useState("지훈이");
+  function handleClick() {
+    setData("아님");
+    console.log("set 다음 : ", data);
+  }
 
-      return (
-        <div className='App'>
-          <button onClick={handleClick}>이름바꾸기</button>
-        </div>
-      );
-    }
-    ```
+  return (
+    <div className="App">
+      <button onClick={handleClick}>이름바꾸기</button>
+    </div>
+  );
+}
+```
 
 ### useState 의 중첩된 객체
 
 ```jsx
-import { useState } from 'react';
+import { useState } from "react";
 
 export default function Form() {
   const [person, setPerson] = useState({
-    name: 'Niki de Saint Phalle',
+    name: "Niki de Saint Phalle",
     artwork: {
-      title: 'Blue Nana',
-      city: 'Hamburg',
-      image: 'https://i.imgur.com/Sd1AgUOm.jpg',
+      title: "Blue Nana",
+      city: "Hamburg",
+      image: "https://i.imgur.com/Sd1AgUOm.jpg",
     },
   });
 
@@ -198,7 +197,7 @@ export default function Form() {
       </label>
       <p>
         <i>{person.artwork.title}</i>
-        {' by '}
+        {" by "}
         {person.name}
         <br />
         (located in {person.artwork.city})
@@ -212,14 +211,14 @@ export default function Form() {
 ### useState 의 initializer function
 
 ```jsx
-import { useState } from 'react';
+import { useState } from "react";
 
 function createInitialTodos() {
   const initialTodos = [];
   for (let i = 0; i < 50; i++) {
     initialTodos.push({
       id: i,
-      text: 'Item ' + (i + 1),
+      text: "Item " + (i + 1),
     });
   }
   return initialTodos;
@@ -229,14 +228,14 @@ export default function TodoList() {
   // const [todos, setTodos] = useState(createInitialTodos());
   // const [todos, setTodos] = useState(createInitialTodos);
   // const [todos, setTodos] = useState(()=> createInitialTodos());
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
 
   return (
     <>
       <input value={text} onChange={(e) => setText(e.target.value)} />
       <button
         onClick={() => {
-          setText('');
+          setText("");
           setTodos([
             {
               id: todos.length,

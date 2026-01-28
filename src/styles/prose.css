@@ -76,12 +76,58 @@
 }
 
 .prose code {
-  @apply rounded px-1.5 py-0.5 text-sm bg-light-gray10 dark:bg-dark-gray10;
-  font-family: 'Courier New', Courier, monospace;
+  @apply rounded px-1.5 py-0.5 text-sm bg-light-gray10 dark:bg-dark-gray10 text-light-black100 dark:text-dark-black100;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 .prose pre code {
   @apply bg-transparent p-0;
+}
+
+/* rehype-pretty-code shiki theme support */
+.prose pre code span {
+  color: var(--shiki-light);
+}
+
+.dark .prose pre code span,
+:root.dark .prose pre code span {
+  color: var(--shiki-dark);
+}
+
+/* Code copy button */
+.prose pre .copy-button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, background-color 0.2s;
+  color: var(--color-light-gray60);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.dark .prose pre .copy-button {
+  color: var(--color-dark-gray60);
+}
+
+.prose pre:hover .copy-button {
+  opacity: 1;
+}
+
+.prose pre .copy-button:hover {
+  background: var(--color-light-gray20);
+  color: var(--color-light-black100);
+}
+
+.dark .prose pre .copy-button:hover {
+  background: var(--color-dark-gray20);
+  color: var(--color-dark-black100);
 }
 
 /* Images */

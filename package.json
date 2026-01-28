@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "contentlayer dev & next dev",
     "dev:clean": "rm -rf .contentlayer .next && node scripts/copy-content-images.js && (npx contentlayer build || true) && next dev",
     "rebuild": "rm -rf .contentlayer .next && node scripts/copy-content-images.js && (npx contentlayer build || true)",
     "content:sync": "node scripts/copy-content-images.js && (npx contentlayer build || true)",
