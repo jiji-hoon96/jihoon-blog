@@ -42,6 +42,8 @@ function rehypeImagePath() {
           console.log(`[rehype-image-path] Converting: ${src} -> ${newSrc}`);
           node.properties.src = newSrc;
         }
+        node.properties.loading = "lazy";
+        node.properties.decoding = "async";
       }
     });
   };
@@ -121,4 +123,4 @@ export {
   Post,
   contentlayer_config_default as default
 };
-//# sourceMappingURL=compiled-contentlayer-config-U6CFPWC4.mjs.map
+//# sourceMappingURL=compiled-contentlayer-config-YFNVJDDT.mjs.map

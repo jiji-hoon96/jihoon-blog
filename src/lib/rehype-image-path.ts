@@ -54,6 +54,10 @@ export function rehypeImagePath() {
           console.log(`[rehype-image-path] Converting: ${src} -> ${newSrc}`)
           node.properties.src = newSrc
         }
+
+        // 이미지 로딩 최적화: lazy loading + async decoding
+        node.properties.loading = 'lazy'
+        node.properties.decoding = 'async'
       }
     })
   }
