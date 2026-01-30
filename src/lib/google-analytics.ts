@@ -1,4 +1,5 @@
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
+import { unstable_cache } from "next/cache";
 
 const propertyId = process.env.GA_PROPERTY_ID;
 const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -24,6 +25,9 @@ function getClient(): BetaAnalyticsDataClient | null {
   return analyticsDataClient;
 }
 
+// 캐시 재검증 시간 (초)
+const REVALIDATE_TIME = 3600; // 1시간
+
 export interface AnalyticsStats {
   totalPageViews: number;
   todayVisitors: number;
@@ -35,36 +39,36 @@ export interface PopularPage {
 }
 
 /**
- * 전체 조회수와 오늘 방문자 수 조회
+ * 전체 조회수와 오늘 방문자 수 조회 (내부 함수)
  */
-export async function getAnalyticsStats(): Promise<AnalyticsStats> {
+async function fetchAnalyticsStats(): Promise<AnalyticsStats> {
   const client = getClient();
   if (!client) {
     return { totalPageViews: 0, todayVisitors: 0 };
   }
 
   try {
-    // 전체 조회수 (전체 기간)
-    const [totalResponse] = await client.runReport({
-      property: `properties/${propertyId}`,
-      dateRanges: [{ startDate: "2020-01-01", endDate: "today" }],
-      metrics: [{ name: "screenPageViews" }],
-    });
+    // 병렬로 두 API 호출
+    const [totalResponse, todayResponse] = await Promise.all([
+      client.runReport({
+        property: `properties/${propertyId}`,
+        dateRanges: [{ startDate: "2020-01-01", endDate: "today" }],
+        metrics: [{ name: "screenPageViews" }],
+      }),
+      client.runReport({
+        property: `properties/${propertyId}`,
+        dateRanges: [{ startDate: "today", endDate: "today" }],
+        metrics: [{ name: "activeUsers" }],
+      }),
+    ]);
 
     const totalPageViews = parseInt(
-      totalResponse.rows?.[0]?.metricValues?.[0]?.value || "0",
+      totalResponse[0].rows?.[0]?.metricValues?.[0]?.value || "0",
       10
     );
 
-    // 오늘 방문자 수 (고유 사용자)
-    const [todayResponse] = await client.runReport({
-      property: `properties/${propertyId}`,
-      dateRanges: [{ startDate: "today", endDate: "today" }],
-      metrics: [{ name: "activeUsers" }],
-    });
-
     const todayVisitors = parseInt(
-      todayResponse.rows?.[0]?.metricValues?.[0]?.value || "0",
+      todayResponse[0].rows?.[0]?.metricValues?.[0]?.value || "0",
       10
     );
 
@@ -76,9 +80,18 @@ export async function getAnalyticsStats(): Promise<AnalyticsStats> {
 }
 
 /**
- * 인기 페이지 목록 조회 (조회수 기준 상위 N개)
+ * 전체 조회수와 오늘 방문자 수 조회 (캐시 적용)
  */
-export async function getPopularPages(limit: number = 10): Promise<PopularPage[]> {
+export const getAnalyticsStats = unstable_cache(
+  fetchAnalyticsStats,
+  ["analytics-stats"],
+  { revalidate: REVALIDATE_TIME }
+);
+
+/**
+ * 인기 페이지 목록 조회 (내부 함수)
+ */
+async function fetchPopularPages(limit: number = 10): Promise<PopularPage[]> {
   const client = getClient();
   if (!client) {
     return [];
@@ -118,6 +131,15 @@ export async function getPopularPages(limit: number = 10): Promise<PopularPage[]
     return [];
   }
 }
+
+/**
+ * 인기 페이지 목록 조회 (캐시 적용)
+ */
+export const getPopularPages = unstable_cache(
+  fetchPopularPages,
+  ["analytics-popular"],
+  { revalidate: REVALIDATE_TIME }
+);
 
 /**
  * 특정 페이지의 조회수 조회

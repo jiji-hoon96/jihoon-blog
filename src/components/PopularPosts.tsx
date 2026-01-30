@@ -1,12 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
-
-interface PopularPage {
-  slug: string;
-  views: number;
-}
+import { getPopularPages } from "@/lib/google-analytics";
 
 interface Post {
   slug: string;
@@ -20,27 +13,8 @@ interface PopularPostsProps {
   allPosts: Post[];
 }
 
-export function PopularPosts({ allPosts }: PopularPostsProps) {
-  const [popularPages, setPopularPages] = useState<PopularPage[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchPopularPages() {
-      try {
-        const response = await fetch("/api/analytics?type=popular&limit=20");
-        if (response.ok) {
-          const data = await response.json();
-          setPopularPages(data.popularPages || []);
-        }
-      } catch (error) {
-        console.error("Failed to fetch popular pages:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchPopularPages();
-  }, []);
+export async function PopularPosts({ allPosts }: PopularPostsProps) {
+  const popularPages = await getPopularPages(20);
 
   // 인기 페이지와 포스트 매칭
   const popularPosts = popularPages
@@ -50,31 +24,6 @@ export function PopularPosts({ allPosts }: PopularPostsProps) {
     })
     .filter((post): post is Post & { views: number } => post !== null)
     .slice(0, 3);
-
-  if (loading) {
-    return (
-      <section className="mb-8 sm:mb-12">
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h2 className="text-xl sm:text-2xl font-bold">
-            <span className="mr-3">🔥</span>
-            인기 글
-          </h2>
-        </div>
-        <div className="flex flex-col gap-4">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="p-3 sm:p-4 border border-light-gray20 dark:border-dark-gray20 rounded-lg animate-pulse"
-            >
-              <div className="h-6 bg-light-gray20 dark:bg-dark-gray20 rounded mb-2"></div>
-              <div className="h-4 bg-light-gray20 dark:bg-dark-gray20 rounded w-1/2 mb-2"></div>
-              <div className="h-4 bg-light-gray20 dark:bg-dark-gray20 rounded"></div>
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-  }
 
   // 인기글이 없으면 섹션을 표시하지 않음
   if (popularPosts.length === 0) {

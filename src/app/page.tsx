@@ -1,9 +1,44 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { allPosts } from "contentlayer/generated";
 import { siteMetadata } from "@/lib/site-metadata";
 import { getSortedPublishedPosts } from "@/lib/filter-posts";
 import { AnalyticsStats } from "@/components/AnalyticsStats";
 import { PopularPosts } from "@/components/PopularPosts";
+
+// ISR: 1시간마다 재검증
+export const revalidate = 3600;
+
+// 로딩 스켈레톤 컴포넌트들
+function AnalyticsStatsSkeleton() {
+  return (
+    <div className="flex gap-4 text-sm text-light-gray60 dark:text-dark-gray60">
+      <span className="animate-pulse">통계 로딩 중...</span>
+    </div>
+  );
+}
+
+function PopularPostsSkeleton() {
+  return (
+    <section className="mb-8 sm:mb-12">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <h2 className="text-xl sm:text-2xl font-bold">🔥 인기 글</h2>
+      </div>
+      <div className="flex flex-col gap-4">
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="p-3 sm:p-4 border border-light-gray20 dark:border-dark-gray20 rounded-lg animate-pulse"
+          >
+            <div className="h-6 bg-light-gray20 dark:bg-dark-gray20 rounded mb-2"></div>
+            <div className="h-4 bg-light-gray20 dark:bg-dark-gray20 rounded w-1/2 mb-2"></div>
+            <div className="h-4 bg-light-gray20 dark:bg-dark-gray20 rounded"></div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function HomePage() {
   const sortedPosts = getSortedPublishedPosts(allPosts);
@@ -68,55 +103,59 @@ export default function HomePage() {
       <div className="py-8 sm:py-12">
         {/* Hero Section */}
         <div className="mb-8 sm:mb-12">
-        <h1 className="text-2xl sm:text-4xl font-bold mb-3 sm:mb-4">
-          {`안녕하세요 ${siteMetadata.author.name}입니다`}
-        </h1>
-        <p className="mt-2 text-sm text-light-gray60 dark:text-dark-gray60">
-          {siteMetadata.author.bio.email}
-        </p>
-        <div className="mt-3">
-          <AnalyticsStats />
+          <h1 className="text-2xl sm:text-4xl font-bold mb-3 sm:mb-4">
+            {`안녕하세요 ${siteMetadata.author.name}입니다`}
+          </h1>
+          <p className="mt-2 text-sm text-light-gray60 dark:text-dark-gray60">
+            {siteMetadata.author.bio.email}
+          </p>
+          <div className="mt-3">
+            <Suspense fallback={<AnalyticsStatsSkeleton />}>
+              <AnalyticsStats />
+            </Suspense>
+          </div>
         </div>
-      </div>
 
-      {/* 최근 작성한 글 */}
-      <section className="mb-8 sm:mb-12">
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h2 className="text-xl sm:text-2xl font-bold">
-            <span className="mr-3">🆕</span>
-            최근 작성한 글
-          </h2>
-          <Link
-            href="/posts"
-            className="text-sm text-light-gray60 dark:text-dark-gray60 hover:text-light-black100 dark:hover:text-dark-black100"
-          >
-            전체보기 →
-          </Link>
-        </div>
-        <div className="flex flex-col gap-4">
-          {recentPosts.map((post) => (
-            <PostCard key={post.slug} post={post} />
-          ))}
-        </div>
-      </section>
+        {/* 최근 작성한 글 */}
+        <section className="mb-8 sm:mb-12">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold">
+              <span className="mr-3">🆕</span>
+              최근 작성한 글
+            </h2>
+            <Link
+              href="/posts"
+              className="text-sm text-light-gray60 dark:text-dark-gray60 hover:text-light-black100 dark:hover:text-dark-black100"
+            >
+              전체보기 →
+            </Link>
+          </div>
+          <div className="flex flex-col gap-4">
+            {recentPosts.map((post) => (
+              <PostCard key={post.slug} post={post} />
+            ))}
+          </div>
+        </section>
 
-      {/* 조회수 높은 글 (GA 데이터 기반) */}
-      <PopularPosts allPosts={postsForPopular} />
+        {/* 조회수 높은 글 (GA 데이터 기반) */}
+        <Suspense fallback={<PopularPostsSkeleton />}>
+          <PopularPosts allPosts={postsForPopular} />
+        </Suspense>
 
-      {/* 고정 글 */}
-      <section className="mb-8 sm:mb-12">
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h2 className="text-xl sm:text-2xl font-bold">
-            <span className="mr-3">📌</span>
-            고정 글
-          </h2>
-        </div>
-        <div className="flex flex-col gap-4">
-          {pinnedPosts.map((post) => (
-            <PostCard key={post.slug} post={post} />
-          ))}
-        </div>
-      </section>
+        {/* 고정 글 */}
+        <section className="mb-8 sm:mb-12">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold">
+              <span className="mr-3">📌</span>
+              고정 글
+            </h2>
+          </div>
+          <div className="flex flex-col gap-4">
+            {pinnedPosts.map((post) => (
+              <PostCard key={post.slug} post={post} />
+            ))}
+          </div>
+        </section>
       </div>
     </>
   );
