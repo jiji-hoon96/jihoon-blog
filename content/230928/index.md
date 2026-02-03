@@ -1,7 +1,8 @@
 ---
-title: 'Ecmascript에서 Modules랑 CommonJs를 비교해보자!'
-date: '2023-09-28'
+title: "Ecmascript에서 Modules랑 CommonJs를 비교해보자!"
+date: "2023-09-28"
 categories: 소박한궁금증 자바스크립트
+draft: true
 ---
 
 모듈은 현대 소프트웨어 개발에서 코드의 재사용성과 유지보수를 높이기 위해 필수적인 요소다. 그리고 자바스크립트에는 CommonJS와 ES 모듈이 있다. 두개가 어떤 차이가 있는지 비교해보자!
@@ -22,7 +23,7 @@ categories: 소박한궁금증 자바스크립트
     return a - b;
   };
 
-  const { add, subtract } = require('./util');
+  const { add, subtract } = require("./util");
   console.log(add(5, 5));
   console.log(subtract(10, 5));
   ```
@@ -46,7 +47,7 @@ categories: 소박한궁금증 자바스크립트
     return a - b;
   }
 
-  import { add, subtract } from './util.mjs';
+  import { add, subtract } from "./util.mjs";
   console.log(add(5, 5));
   console.log(subtract(10, 5));
   ```
