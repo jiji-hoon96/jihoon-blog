@@ -2,9 +2,10 @@ import { defineDocumentType, makeSource } from 'contentlayer/source-files'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypePrettyCode from 'rehype-pretty-code'
 import rehypeSlug from 'rehype-slug'
-import remarkGfm from 'remark-gfm'
+import remarkDirective from 'remark-directive'
 import readingTime from 'reading-time'
 import { rehypeImagePath } from './src/lib/rehype-image-path'
+import { remarkDetails } from './src/lib/remark-details'
 
 export const Post = defineDocumentType(() => ({
   name: 'Post',
@@ -76,7 +77,7 @@ export default makeSource({
   documentTypes: [Post],
   disableImportAliasWarning: true,
   markdown: {
-    remarkPlugins: [],
+    remarkPlugins: [remarkDirective, remarkDetails],
     rehypePlugins: [
       rehypeSlug,
       [

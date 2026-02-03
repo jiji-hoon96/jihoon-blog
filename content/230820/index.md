@@ -1,335 +1,184 @@
 ---
-title: "React useState 완벽 가이드 모든 것을 한눈에 이해해보자"
+title: "What is useState?"
 date: "2023-08-20"
 categories: 프론트엔드 React
 ---
 
-## 함수형 컴포넌트의 상태 관리
+함수형 컴포넌트는 **렌더링**이 일어날 때마다 컴포넌트 함수가 다시 호출됩니다. 그래서 함수 내부의 일반변수는 호출이 끝나면 사라지고, 다음 렌더에서 처음부터 다시 만들어집니다. 그렇기에 **렌더 사이에 유지되어야 하는 값**을 일반 변수로 들고 있으면 값이 유지되지 않습니다.
 
-[pjqnl16lm7 - CodeSandbox](https://codesandbox.io/s/pjqnl16lm7?file=/src/ProfilePageFunction.js)
+반대로 `useState`는 값이 컴포넌트 함수 안에 저장되는 게 아니라, React가 렌더 사이에 따로 보관하고 있다가, 해당 렌더 시점에 스냅샷처럼 꺼내서 컴포넌트에 제공합니다. 그래서 상태값은 **변수처럼 바로 바뀌는 것**이 아니라, `setState`를 호출하면 다음 렌더를 예약하고, 다음 렌더에서 바뀐 상태 스냅샷을 받게 됩니다.
 
-클래스형 컴포넌트는 render() 메서드를 통해 상태 변경을 감지
+여기서 중요한 점은, props도 마찬가지로 **그 렌더의 입력값**입니다. 함수형 컴포넌트의 관점에서 props는 읽기 전용 입력이고, 컴포넌트는 props와 state로 UI를 계산해 내는 구조입니다. 상태를 바꾸고 싶다면 props를 건드리는 게 아니라 `setState`를 활용해 다음 렌더의 상태를 바꾸는 방식으로 접근해야 합니다.
 
-- Props 는 react 에서 불변 / this 는 변경가능, 조작가능
+```jsx
+function Counter() {
+  let local = 0;
+  const [count, setCount] = useState(0);
 
-함수형 컴포넌트는 렌더링이 발생하면 함수 자체가 다시 호출
+  const onClick = () => {
+    local += 1;
+    setCount(count + 1);
+    console.log(local, count);
+  };
 
-- render 될 때의 값을 유지
-  ⇒ 상태를 관리하려면 함수가 다시 호출되었을 때 이전 상태를 기억해야 함
-  ⇒ useState 는 클로저를 통해 이 문제를 해결
-  > 클로저 : 내부 함수에서 상위 함수 스코프의 변수에 접근할수 있는 것을 의미
+  return <button onClick={onClick}>{count}</button>;
+}
+```
 
-## 왜 hooks 를 사용해야 될까?
+여기서 `local` 변수는 렌더 사이에 유지되지 않기 때문에, 클릭할 때마다 `0`으로 초기화됩니다. 하지만 `count`는 `useState`를 통해 렌더 사이에 유지되므로, 클릭할 때마다 증가합니다. 하지만 `count`는 클릭하게되면 `setCount`가 현재 실행 중인 코드의 변수를 바꾸는게 아니라 다음 렌더를 트리거하기 때문에 클릭 즉시 바뀌지 않습니다.
 
-- UI 의 상태 관련 동작 및 부수 작용을 캡슐화하는 가장 간단한 방법
-- 고차 컴포넌트(HOC)의 복잡성을 피할 수 있음
-  ```jsx
-  widthLogined(withHover(withStyles(ImageBox))); // Bad Wrapper
-  ```
-- props 로 전달되는 속성들이 명확하지 않고 중복됨
-- 컴포넌트 구조의 복잡성을 유발
-- 계층의 변화없이 상태 관련 로직을 재사용할 수 있음
+이 글에서 useState에 대해서 공식문서를 기준으로 값들이 어떻게 유지되고, 이어지는지에 대해서 이야기해보려합니다.
 
 ## useState 란 무엇인가
 
-**React 공식 문서**
+`useState`는 **함수형 컴포넌트에 상태(state)를 추가**하기 위한 Hook입니다. React는 상태를 컴포넌트 함수 내부 변수로 두는 게 아니라 **렌더 사이에 별도로 보관**해두고, 각 렌더마다 그 시점의 상태 **스냅샷**을 컴포넌트에 제공합니다. 그래서 상태를 바꾸는 행위는 **현재 변수 값을 즉시 바꾸는 것**이 아니라, **다음 렌더에서 사용할 상태를 예약**하는 방식으로 동작합니다.
 
-[](https://github.com/facebook/react/blob/main/packages/react/src/ReactHooks.js)
+`useState`는 길이가 2개인 배열을 반환합니다. `state`는 현재 렌더에서의 상태 값(첫 렌더에서는 `initialState`), `setState`는 상태를 업데이트하고 리렌더를 트리거하는 함수입니다.
 
 ```jsx
-useState : function (intitialState){
-    currentHookNameInDev = 'useState'; // 변수를 받아와서 초기 상태값을 설정
-    mountHookTypesDev(); // 현재 사용중인 hook의 이름을 추적 및 타입 저장
-    var prevDispatcher = ReactCurrentDispatcher$1.current; // Dispatcher 을 가리킴, 디버깅에 사용됨
-    ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnMountInDEV;
-
-    try{
-        return mountState(initialState); // useState 함수는 실제로 상태를 return 받아 설정됨
-    }finally{
-        ReactCurrentDispatcher$1.current = prevDispatcher;
-    }
-}
-
-function mountHookTypesDev(){
-    {
-        var hookName = currentHookNameInDev;
-        if(hookTypesDev === null){ // hook의 값과 타입을 저장
-            hookTypesDev = [hookName];
-
-        }else{
-            hookTypesDev.push(hookName)
-        }
-    }
-}
-
-function mountState(initialState){
-    var hook = mountWorkInProgressHook(); // mountWorkInProgressHook 함수는 현재 hook 을 가져옴
-    if(typeof initialState === "function"){
-        initialState = initialState(); // initialState 가 함수이면 초기값 상태로 값을 가져옴
-    }
-
-    hook.memoizedState = hook.baseState = initialState;
-    var queue = { // queue 객체는 상태 업데이트 큐와 관련된 정보를 가짐
-        pending : null,
-        interleaved: null,
-        lanes : NoLanes,
-        dispatch: null,
-        lastRenderedReducer : basicStateReducer,
-        lastRenderedState : initialState
-    };
-
-    hook.queue = queue;
-    var dispatch = queue.dispatch = dispatchSetState.bind(null, currentlyRenderingFiber$1, queue); // dispatch함수는 상태를 업데이트 하는 함수
-    return [hook.memoizedState, dispatch] // 최종적으로 반환되는 값
-}
+const [state, setState] = useState(initialState);
 ```
 
-- React 내부에서 상태를 관리하는 방식을 추상화한 함수
-- 이 함수는 내부적으로 React의 상태 관리 로직을 사용하여 상태를 관리하며, 컴포넌트가 렌더링될 때마다 상태가 올바르게 업데이트되고 관리
-- TypeScript를 사용하여 타입 선언이 추가된 형태로 작성
+`initialState`는 `useState`가 처음 렌더링 될 때 반환하는 `state`의 초기값입니다. 초기 렌더 이후에는 무시됩니다. 그리고 `initialState`로 함수를 넘기면 그 함수는 **initializer function**으로 취급되어, React가 **초기화 시점에 호출한 반환값을 초기 상태로 저장**합니다. 이 방식은 초기값 계산이 비싼 경우에 유용합니다.
 
-**자바스크립트로 구현한 간단한 상태 관리 함수**
+아래 코드가 어떤 차이점을 보이는지 살펴보겠습니다.
+
+```jsx
+useState(createInitialTodos());
+useState(createInitialTodos);
+```
+
+두 함수 `initialState`의 차이점은 언제 호출되어 초기값이 설정되는지에 있습니다.
+
+첫 번째 코드는 매 렌더마다 `createInitialTodos()`가 호출되어 초기값이 설정됩니다. 하지만 두 번째 코드는 초기화 시점에만 `createInitialTodos`를 호출하여 초기값을 만듭니다. (Lazy Initialization)
+
+:::details
+Lazy Initialization
+
+Lazy Initialization 은 **useState의 초기값으로 값 대신 함수를 전달하여, 초기 로직이 첫 렌더링 시에만 실행되도록 하는 최적화 기법입니다.**
+
+`useState(heavyCalculation())`은 렌더링 될 때마다 heavyCalculation이 호출되어 낭비됩니다. 그래서 `useState(() => heavyCalculation())`로 최초 마운트 시에만 함수가 실행되고, 이후 리렌더링 때는 실행되지 않고 무시됩니다.
+:::
+
+`setState`는 **현재 실행 중인 코드의 state 변수를 즉시 바꾸지 않습니다.** 따라서 `setState` 직후에 `state`를 읽으면 이전 렌더의 값이 그대로 나올 수 있습니다.
+
+또한 `nextState`로 함수를 넘기면 React는 그 함수를 Queue에 쌓아두고, 다음 렌더에서 쌓인 업데이터들을 순서대로 적용해 최종 상태를 계산합니다.
+
+그렇게되면 setState가 여러번 호출되어도 실제로는 한 번만 렌더링되는데, 이것을 성능 향상을 위해 여러 개의 상태 업데이트(setState)를 하나의 그룹으로 묶어서 한 번만 렌더링하는 React의 처리 방식인 **배칭(batch)** 이라고 합니다.
+
+> [React 18](https://react.dev/blog/2022/03/29/react-v18)부터는 기본적으로 배칭 범위가 더 넓어져서, React 이벤트 핸들러뿐 아니라 setTimeout, Promise 등에서도 자동 배칭이 적용될 수 있습니다
+
+새로 넣은 값이 현재 state와 동일한지 `Object.is`로 비교하고 판단되면, React는 리렌더를 스킵할 수 있습니다.
+
+여기서 중요한 포인트는 **원시값(number,string,boolean)은 값 자체 비교**라는 것 입니다, 하지만 **객체/배열은 값이 아니라 참조(reference)가 같아야 동일한 값**으로 취급됩니다. 객체를 직접 수정(mutation)하면 참조가 유지되기 때문에 바뀐 것처럼 보이는데 리렌더가 안되거나/반대로 상태 불변성이 깨져 디버깅이 어려워지는 문제가 발생합니다.
+
+## 내부 동작
+
+React를 사용하면 가장 쉽게 접하는 Hook 중 하나인 `useState`의 내부 코드를 살펴보면 수많은 자바스크립트 로직이 서로 얽혀져 있는 모습을 볼 수 있습니다. 내부 코드를 통해 `useState`가 상태를 어떻게 관리하고 있는지 살펴봅시다.
+
+`useState`를 이해하기 위해서는 **클로저(Closure)를** 이해해야 합니다.
+
+함수형 컴포넌트는 렌더링될 때마다 다시 호출됩니다. 그럼에도 부구하고 이전 상태값을 기억하는 이유는 무엇일까요? 아래 자바스크립트로 `useState`를 구현한 코드를 살펴보겠습니다.
 
 ```jsx
 function useState(initialValue) {
-  var _val = initialValue; // _val은 useState에 의해 만들어진 지역 변수
+  var _val = initialValue; // 1. _val은 지역 변수이지만 클로저에 의해 캡처됨
+
   function state() {
     // state는 내부 함수이자 클로저
-    return _val; // state()는 부모 함수에 정의된 _val을 참조
+    return _val; // 부모 함수의 _val을 참조
   }
+
   function setState(newVal) {
-    // setState는 내부 함수이자 클로저
-    _val = newVal; // _val를 노출하지 않고 _val를 변경
+    // _val 값을 직접 수정 (이 변수는 외부에서 접근 불가)
+    _val = newVal;
   }
-  return [state, setState]; // 외부에서 사용하기 위해 함수들을 노출
+
+  return [state, setState]; // 외부로 함수 노출
 }
 
-var [foo, setFoo] = useState(0); // 배열 구조분해 사용
-console.log(foo()); // 0 출력 - 위에서 넘긴 initialValue
-setFoo(1); // useState의 스코프 내부에 있는 _val를 변경합니다.
-console.log(foo()); // 1 출력 - 동일한 호출하지만 새로운 initialValue
+var [foo, setFoo] = useState(0);
+console.log(foo()); // 0
+setFoo(1);
+console.log(foo()); // 1
 ```
 
-## useState 활용 & 응용법
+`useState`는 함수가 호출되고 종료되어도, 반환된 state, setState 함수는 **자신이 생성될 당시의 스코프(Lexical Environment)를 기억**합니다. 따라서 `_val`이라는 변수는 메모리 어딘가에 살아남아 값을 유지하게 됩니다.
+
+### ReactHooks.js
+
+실제 React에서는 수많은 컴포넌트의 수많은 Hook들을 순서대로 관리해야하기에 내부 구조가 많이 복잡합니다. 그래서 [모든 내부 구조](https://github.com/facebook/react/blob/main/packages/react/src/ReactHooks.js)를 살펴보는 것 보다는 필요한 부분만 살펴보도록 하겠습니다.
+
+React는 컴포넌트가 **처음 렌더링될 때(Mount)와 업데이트 될 때(Update) 서로 다른 Dispatcher를 사용**합니다.
+
+아래 코드는 컴포넌트가 처음 마운트될 때 실행되는 `useState`의 진입점입니다
 
 ```jsx
-const [<상태 값 저장 변수>, <상태 값 갱신 함수>] = useState(initialState);
+useState: function (initialState) {
+    currentHookNameInDev = 'useState';
+    mountHookTypesDev(); // DevTools를 위한 타입 추적
 
-const [count, setCount] = useState(0) // 일반적인 사용 예시
-```
+    // 현재의 Dispatcher를 가져옴
+    var prevDispatcher = ReactCurrentDispatcher$1.current;
+    ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnMountInDEV;
 
-### useState
-
-- 함수형 컴포넌트에서 상태(state)를 관리하기 위해 사용
-- useState 는 hook 이여서 최상위 수준에서만 호출 가능
-- Strict 모드에서는 초기화 함수를 두번 호출(dev 전용, production 에 영향 x)
-- initialState 는 초기 상태값, 렌더링 이후 무시
-- useState 함수는 배열을 리턴
-- 첫 번째 원소는 상태 값을 저장할 변수
-- 두번 째 원소는 해당 상태 값을 갱신할 때 사용할 수 있는 함수
-- 그리고 useState() 함수에 인자로 해당 상태의 초기 값을 넘길 수 있음
-- state
-  - 새값과 이전값을 비교해서 동일하면 렌더링을 건너뜀 ⇒ react 최적화
-- set 함수
-  - return 이 없음
-  - 다음 렌더링에 대한 상태 변수만 업데이트
-  - 이미 실행중인 코드의 현재 상태는 변경되지 않음
-
-```jsx
-import React from "react";
-import { useState } from "react";
-
-export function App(props) {
-  const [data, setData] = useState("지훈이");
-  function handleClick() {
-    setData("아님");
-    console.log("set 다음 : ", data);
-  }
-
-  return (
-    <div className="App">
-      <button onClick={handleClick}>이름바꾸기</button>
-    </div>
-  );
+    try {
+        // 실제 상태 생성 로직인 mountState 호출
+        return mountState(initialState);
+    } finally {
+        ReactCurrentDispatcher$1.current = prevDispatcher;
+    }
 }
 ```
 
-### useState 의 중첩된 객체
+여기서 주목할 점은 `useState` 자체가 로직을 다 갖는게 아니라, 상황에 맞는 `Dispatcher(mountState)`를 호출한다는 점입니다. 그럼 Hook 객체를 생성하고 초기화하는 역할을 하는 `mountState` 로직의 중요한 부분만 살펴보겠습니다.
 
 ```jsx
-import { useState } from "react";
+function mountState(initialState) {
+  // 1. 현재 작업 중인 Hook 객체를 가져옴 (Fiber와 연결됨)
+  var hook = mountWorkInProgressHook();
 
-export default function Form() {
-  const [person, setPerson] = useState({
-    name: "Niki de Saint Phalle",
-    artwork: {
-      title: "Blue Nana",
-      city: "Hamburg",
-      image: "https://i.imgur.com/Sd1AgUOm.jpg",
-    },
-  });
-
-  function handleNameChange(e) {
-    setPerson({
-      ...person,
-      name: e.target.value,
-    });
+  // 2. 초기값 설정 (함수형 초기화 지원 - Lazy Initialization)
+  if (typeof initialState === "function") {
+    initialState = initialState();
   }
 
-  function handleTitleChange(e) {
-    setPerson({
-      ...person,
-      artwork: {
-        ...person.artwork,
-        title: e.target.value,
-      },
-    });
-  }
-  return (
-    <>
-      <label>
-        Name:
-        <input value={person.name} onChange={handleNameChange} />
-      </label>
-      <label>
-        Title:
-        <input value={person.artwork.title} onChange={handleTitleChange} />
-      </label>
-      <p>
-        <i>{person.artwork.title}</i>
-        {" by "}
-        {person.name}
-        <br />
-        (located in {person.artwork.city})
-      </p>
-      <img src={person.artwork.image} alt={person.artwork.title} />
-    </>
-  );
-}
-```
+  // 3. Hook 객체에 상태 저장
+  hook.memoizedState = hook.baseState = initialState;
 
-### useState 의 initializer function
-
-```jsx
-import { useState } from "react";
-
-function createInitialTodos() {
-  const initialTodos = [];
-  for (let i = 0; i < 50; i++) {
-    initialTodos.push({
-      id: i,
-      text: "Item " + (i + 1),
-    });
-  }
-  return initialTodos;
-}
-
-export default function TodoList() {
-  // const [todos, setTodos] = useState(createInitialTodos());
-  // const [todos, setTodos] = useState(createInitialTodos);
-  // const [todos, setTodos] = useState(()=> createInitialTodos());
-  const [text, setText] = useState("");
-
-  return (
-    <>
-      <input value={text} onChange={(e) => setText(e.target.value)} />
-      <button
-        onClick={() => {
-          setText("");
-          setTodos([
-            {
-              id: todos.length,
-              text: text,
-            },
-            ...todos,
-          ]);
-        }}
-      >
-        Add
-      </button>
-      <ul>
-        {todos.map((item) => (
-          <li key={item.id}>{item.text}</li>
-        ))}
-      </ul>
-    </>
-  );
-}
-```
-
-initialState 에 함수를 호출하게 되면 반환된 배열이 초기값으로 사용됨 ⇒ 랜더링마다 새로운 배열 계산 방지
-
-initialState 에 인자를 전달하게 되면 랜더링 될때마다 함수가 호출됨 ⇒ 랜더링마다 새로운 초기 값이 계산됨
-
-initialState 콜백함수를 사용하면 초기값이 설정됨 ⇒ 렌더링마다 재실행 방지
-
-### 하나의 handle 에서 두번의 setState 를 사용
-
-```jsx
-export default function UseState1() {
-  const [count, setCount] = useState(() => initialData());
-
-  function initialData(): number {
-    return 0;
-  }
-
-  const dualCal = () => {
-    console.log(count);
-    setCount(count * 2);
-    console.log(count);
-    setCount(count + 1);
+  // 4. 업데이트 대기열(Queue) 생성
+  var queue = {
+    pending: null,
+    interleaved: null,
+    lanes: NoLanes,
+    dispatch: null,
+    lastRenderedReducer: basicStateReducer,
+    lastRenderedState: initialState,
   };
-  return (
-    <Container>
-      <P>count : {count}</P>
-      <Button onClick={() => setCount(count + 1)}>Count+</Button>
-      <code>setCount(count+1)</code>
-      <br />
-      <Button onClick={dualCal}>Count *2 +1 </Button>
-      <code>
-        setCount(count * 2) <br />
-        setCount(count + 1)
-      </code>
-    </Container>
-  );
+  hook.queue = queue;
+
+  // 5. dispatch 함수 생성 (우리가 아는 setState)
+  // dispatchSetState에 현재 Fiber와 Queue를 바인딩함
+  var dispatch = (queue.dispatch = dispatchSetState.bind(
+    null,
+    currentlyRenderingFiber$1,
+    queue,
+  ));
+
+  // 6. [상태값, setState함수] 반환
+  return [hook.memoizedState, dispatch];
 }
 ```
 
-```jsx
-export default function UseState1() {
-  const [count, setCount] = useState(() => initialData());
+React는 컴포넌트 내의 여러 Hook들을 **Linked List(연결 리스트)** 형태로 관리합니다.
 
-  function initialData(): number {
-    return 0;
-  }
+`mountWorkInProgressHook()`은 새로운 Hook 객체를 생성하고, 현재 Fiber 노드의 Hook 리스트 끝에 추가합니다. 이것이 바로 **"Hook은 최상위에서, 순서대로 호출되어야 한다"** 이라는 규칙입니다.
 
-  const dualCal = () => {
-    setCount((pre) => {
-      // setState에 Callback 함수를 사용하면 첫번째 인자로 이전 state 값을 전달받는다.
-      console.log(pre);
-      return pre * 2;
-    });
-    setCount((pre) => {
-      console.log(pre);
-      return pre + 1;
-    });
-  };
-  return (
-    <Container>
-      <P>count : {count}</P>
-      <Button onClick={() => setCount(count + 1)}>Count+</Button>
-      <code>setCount(count+1)</code>
-      <br />
-      <Button onClick={dualCal}>Count *2 +1 </Button>
-      <code>
-        setCount((pre) =&gt; pre * 2) <br />
-        setCount((pre) =&gt; pre + 1)
-      </code>
-    </Container>
-  );
-}
-```
+우리가 사용하는 실제 state 값은 `hook.memoizedState`에 저장됩니다. 컴포넌트가 다시 렌더링될 때 React는 이 값을 가져옵니다. setState 함수(여기서는 dispatch)는 생성될 때 현재 컴포넌트의 Fiber(currentlyRenderingFiber$1)와 자신의 Queue 정보를 미리 바인딩해둡니다.
 
-```toc
+덕분에 우리가 setState(3)처럼 값만 넘겨도, React의 내부적으로 **어떤 컴포넌트의 어떤 Hook을 업데이트해야 하는지** 정확히 알 수 있습니다.
 
-```
+## 마치며
+
+단순해 보이는 `const [state,setState] = useState(initialState)` 한 줄 뒤에는 Fiber 아키텍처, 연결 리스트, 그리고 클로저의 개념을 활용하고 있습니다.
+이러한 내부 원리를 이해하면, 불필요한 렌더링을 막거나 복잡한 상태 관리 이슈를 디버깅할 때 훨씬 더 명확한 시야를 가질 수 있습니다. 앞으로 작성될 내용에서 지금은 가볍게 넘겼던 개념들을 깊게 다뤄보도록 하겠습니다.

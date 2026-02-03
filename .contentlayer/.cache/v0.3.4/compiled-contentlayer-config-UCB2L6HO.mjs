@@ -3,6 +3,7 @@ import { defineDocumentType, makeSource } from "contentlayer/source-files";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
+import remarkDirective from "remark-directive";
 import readingTime from "reading-time";
 
 // src/lib/rehype-image-path.ts
@@ -44,6 +45,25 @@ function rehypeImagePath() {
         }
         node.properties.loading = "lazy";
         node.properties.decoding = "async";
+      }
+    });
+  };
+}
+
+// src/lib/remark-details.ts
+import { visit as visit2 } from "unist-util-visit";
+function remarkDetails() {
+  return (tree) => {
+    visit2(tree, (node) => {
+      if (node.type === "containerDirective" && node.name === "details") {
+        const data = node.data || (node.data = {});
+        const title = node.children?.[0]?.type === "paragraph" ? node.children[0] : null;
+        data.hName = "details";
+        data.hProperties = {};
+        if (title) {
+          const titleData = title.data || (title.data = {});
+          titleData.hName = "summary";
+        }
       }
     });
   };
@@ -93,7 +113,7 @@ var contentlayer_config_default = makeSource({
   documentTypes: [Post],
   disableImportAliasWarning: true,
   markdown: {
-    remarkPlugins: [],
+    remarkPlugins: [remarkDirective, remarkDetails],
     rehypePlugins: [
       rehypeSlug,
       [
@@ -123,4 +143,4 @@ export {
   Post,
   contentlayer_config_default as default
 };
-//# sourceMappingURL=compiled-contentlayer-config-YFNVJDDT.mjs.map
+//# sourceMappingURL=compiled-contentlayer-config-UCB2L6HO.mjs.map

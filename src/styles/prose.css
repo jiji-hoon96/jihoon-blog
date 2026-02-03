@@ -1,31 +1,39 @@
 /* Prose styles for markdown content */
 .prose {
-  @apply text-light-black100 dark:text-dark-black100;
+  @apply text-light-black100 dark:text-dark-black100 font-normal;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
 }
 
 /* Headings */
 .prose h1 {
-  @apply text-4xl font-bold mb-4 mt-8;
+  @apply text-4xl font-extrabold mb-6 mt-12;
 }
 
 .prose h2 {
-  @apply text-3xl font-bold mb-3 mt-8;
+  @apply text-3xl font-extrabold mb-5 mt-10;
 }
 
 .prose h3 {
-  @apply text-2xl font-bold mb-2 mt-6;
+  @apply text-2xl font-extrabold mb-4 mt-8;
 }
 
 .prose h4 {
-  @apply text-xl font-bold mb-2 mt-4;
+  @apply text-xl font-extrabold mb-4 mt-6;
 }
 
 .prose h5 {
-  @apply text-lg font-bold mb-2 mt-4;
+  @apply text-lg font-extrabold mb-3 mt-5;
 }
 
 .prose h6 {
-  @apply text-base font-bold mb-2 mt-4;
+  @apply text-base font-extrabold mb-3 mt-5;
+}
+
+/* 헤딩 다음 첫 번째 요소에 추가 여백 */
+.prose h1 + *,
+.prose h2 + *,
+.prose h3 + * {
+  @apply mt-6;
 }
 
 /* Paragraphs */
@@ -78,6 +86,12 @@
 .prose code {
   @apply rounded px-1.5 py-0.5 text-sm bg-light-gray10 dark:bg-dark-gray10 text-light-black100 dark:text-dark-black100;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Tailwind Typography가 추가하는 백틱 제거 */
+.prose code::before,
+.prose code::after {
+  content: none;
 }
 
 .prose pre code {
@@ -193,4 +207,35 @@
 
 .prose figcaption {
   @apply text-center text-sm text-light-gray60 dark:text-dark-gray60 mt-2;
+}
+
+/* Details/Summary (펼치기/접기) */
+.prose details {
+  @apply my-4 rounded-lg border border-light-gray20 dark:border-dark-gray20 overflow-hidden;
+}
+
+.prose details summary {
+  @apply px-4 py-3 cursor-pointer font-medium bg-light-gray10 dark:bg-dark-gray10 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors;
+  list-style: none;
+}
+
+.prose details summary::-webkit-details-marker {
+  display: none;
+}
+
+.prose details summary::before {
+  content: '▶';
+  @apply inline-block mr-2 text-xs transition-transform;
+}
+
+.prose details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.prose details > *:not(summary) {
+  @apply px-4;
+}
+
+.prose details > *:last-child {
+  @apply pb-4;
 }
