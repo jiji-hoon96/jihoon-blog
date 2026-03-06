@@ -1,8 +1,7 @@
 import { visit } from 'unist-util-visit'
-import type { Root } from 'mdast'
 
 export function remarkDetails() {
-  return (tree: Root) => {
+  return (tree: any) => {
     visit(tree, (node: any) => {
       if (
         node.type === 'containerDirective' &&

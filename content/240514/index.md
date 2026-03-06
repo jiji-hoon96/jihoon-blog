@@ -1,7 +1,8 @@
 ---
-title: '자바스크립트 Promise를 퀴즈로 쉽게 익히기 with 예제 코드'
-date: '2024-05-14'
+title: "자바스크립트 Promise를 퀴즈로 쉽게 익히기 with 예제 코드"
+date: "2024-05-14"
 categories: 소박한궁금증 자바스크립트
+draft: true
 ---
 
 ![1.jpeg](1.jpeg)
@@ -40,7 +41,7 @@ categories: 소박한궁금증 자바스크립트
     },
   );
 
-  await Promise.all([1, 2, Promise.resolve(3), Promise.reject('error')]).then(
+  await Promise.all([1, 2, Promise.resolve(3), Promise.reject("error")]).then(
     (value) => {
       console.log(value);
     },
@@ -128,11 +129,11 @@ console.log(13);
 Promise.resolve(1)
   .finally((data) => {
     console.log(data);
-    return Promise.reject('error');
+    return Promise.reject("error");
   })
   .catch((error) => {
     console.log(error);
-    throw 'error2';
+    throw "error2";
   })
   .finally((data) => {
     console.log(data);

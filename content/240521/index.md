@@ -1,7 +1,8 @@
 ---
-title: '비전공 프론트엔드 2년차 개발자 멘티 일지: 3주차 - 기초를 위한 과제 폭탄'
-date: '2024-05-21'
+title: "비전공 프론트엔드 2년차 개발자 멘티 일지: 3주차 - 기초를 위한 과제 폭탄"
+date: "2024-05-21"
 categories: 멘토링 자바스크립트
+draft: true
 ---
 
 <br>
@@ -21,7 +22,6 @@ categories: 멘토링 자바스크립트
 - useState를 직접 구현해보자!
 - 자바스크립트 이벤트루프 시뮬레이션 도구를 직접 구현해보자! **(추후 링크 참조)**
 - 브라우저 렌더링에 관한 아티클들 읽어보자
-
   - [Naver D2 - 브라우저는 어떻게 동작하는가?](https://d2.naver.com/helloworld/59361)
   - [Toast UI - 성능 최적화](https://ui.toast.com/fe-guide/ko_PERFORMANCE)
   - [웹 성능 최적화에 필요한 브라우저의 모든 것](https://www.slideshare.net/deview/125-119068291)
@@ -44,7 +44,7 @@ categories: 멘토링 자바스크립트
 
 ```javascript
 console.log(a);
-const a = '1000';
+const a = "1000";
 ```
 
 const와 호이스팅에 대한 내용은 위 코드를 예시로 확인해보겠다.

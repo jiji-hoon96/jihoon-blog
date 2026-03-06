@@ -25,16 +25,12 @@ export async function PopularPosts({ allPosts }: PopularPostsProps) {
     .filter((post): post is Post & { views: number } => post !== null)
     .slice(0, 3);
 
-  // 인기글이 없으면 섹션을 표시하지 않음
-  if (popularPosts.length === 0) {
-    return null;
-  }
-
   return (
     <section className="mb-8 sm:mb-12">
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <h2 className="text-xl sm:text-2xl font-bold">🔥 인기 글</h2>
       </div>
+      {popularPosts.length > 0 ? (
       <div className="flex flex-col gap-4">
         {popularPosts.map((post) => (
           <Link
@@ -58,6 +54,13 @@ export async function PopularPosts({ allPosts }: PopularPostsProps) {
           </Link>
         ))}
       </div>
+      ) : (
+        <div className="p-6 border border-light-gray20 dark:border-dark-gray20 rounded-lg text-center">
+          <p className="text-sm text-light-gray60 dark:text-dark-gray60">
+            아직 인기 글이 없습니다.
+          </p>
+        </div>
+      )}
     </section>
   );
 }

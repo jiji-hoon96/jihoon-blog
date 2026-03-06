@@ -1,7 +1,8 @@
 ---
-title: 'VITE의 HMR에 대해서'
-date: '2024-07-10'
+title: "VITE의 HMR에 대해서"
+date: "2024-07-10"
 categories: 소박한궁금증 프론트엔드
+draft: true
 ---
 
 ![1.png](1.png)

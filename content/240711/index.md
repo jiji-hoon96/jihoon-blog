@@ -1,7 +1,8 @@
 ---
-title: 'Import (정적) vs Dynamic Import (동적)'
-date: '2024-07-11'
+title: "Import (정적) vs Dynamic Import (동적)"
+date: "2024-07-11"
 categories: 소박한궁금증
+draft: true
 ---
 
 ![1.png](1.png)
@@ -17,13 +18,13 @@ React와 JavaScript를 사용하는 개발자에게 있어서 import와 dynamic 
 import는 JavaScript ES6에서 도입된 정적(Static) 모듈 가져오기 방식이다. 코드 작성 시, 모듈을 상단에 명시적으로 선언하고, 모듈을 로드한다.
 
 ```javascript
-import React from 'react';
-import MyComponent from './MyComponent';
+import React from "react";
+import MyComponent from "./MyComponent";
 ```
 
 ```javascript
-import React, { useState } from 'react';
-import MyComponent from './MyComponent';
+import React, { useState } from "react";
+import MyComponent from "./MyComponent";
 
 const App = () => {
   return (
@@ -50,19 +51,19 @@ dynamic import는 ES2020에서 도입된 동적(Dynamic) 모듈 가져오기 방
 
 ```javascript
 const loadMyComponent = async () => {
-  const { default: MyComponent } = await import('./MyComponent');
+  const { default: MyComponent } = await import("./MyComponent");
 };
 ```
 
 ```javascript
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const App = () => {
   const [MyComponent, setMyComponent] = useState(null);
 
   useEffect(() => {
     const loadComponent = async () => {
-      const { default: loadedComponent } = await import('./MyComponent');
+      const { default: loadedComponent } = await import("./MyComponent");
       setMyComponent(() => loadedComponent);
     };
 

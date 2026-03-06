@@ -5,6 +5,9 @@ const propertyId = process.env.GA_PROPERTY_ID;
 const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
+const totalCalibration = parseInt(process.env.ANALYTICS_TOTAL_CALIBRATION || "0", 10);
+const dailyCalibration = parseInt(process.env.ANALYTICS_DAILY_CALIBRATION || "0", 10);
+
 let analyticsDataClient: BetaAnalyticsDataClient | null = null;
 
 function getClient(): BetaAnalyticsDataClient | null {
@@ -54,11 +57,29 @@ async function fetchAnalyticsStats(): Promise<AnalyticsStats> {
         property: `properties/${propertyId}`,
         dateRanges: [{ startDate: "2020-01-01", endDate: "today" }],
         metrics: [{ name: "screenPageViews" }],
+        dimensionFilter: {
+          filter: {
+            fieldName: "hostName",
+            stringFilter: {
+              matchType: "EXACT",
+              value: "hooninedev.com",
+            },
+          },
+        },
       }),
       client.runReport({
         property: `properties/${propertyId}`,
         dateRanges: [{ startDate: "today", endDate: "today" }],
         metrics: [{ name: "activeUsers" }],
+        dimensionFilter: {
+          filter: {
+            fieldName: "hostName",
+            stringFilter: {
+              matchType: "EXACT",
+              value: "hooninedev.com",
+            },
+          },
+        },
       }),
     ]);
 
@@ -72,7 +93,10 @@ async function fetchAnalyticsStats(): Promise<AnalyticsStats> {
       10
     );
 
-    return { totalPageViews, todayVisitors };
+    return {
+      totalPageViews: totalPageViews + totalCalibration,
+      todayVisitors: todayVisitors + dailyCalibration,
+    };
   } catch (error) {
     console.error("Error fetching analytics stats:", error);
     return { totalPageViews: 0, todayVisitors: 0 };

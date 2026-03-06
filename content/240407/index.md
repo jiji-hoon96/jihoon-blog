@@ -1,7 +1,8 @@
 ---
-title: '[IT 커뮤니티 연합 해커톤] 유니톤 11회에 프론트엔드 개발자로..'
-date: '2024-04-07'
+title: "UNITHON 11기"
+date: "2024-04-07"
 categories: 대외활동
+draft: true
 ---
 
 ## ✋ Welcome Unithon

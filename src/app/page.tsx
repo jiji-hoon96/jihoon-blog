@@ -130,11 +130,19 @@ export default function HomePage() {
               전체보기 →
             </Link>
           </div>
-          <div className="flex flex-col gap-4">
-            {recentPosts.map((post) => (
-              <PostCard key={post.slug} post={post} />
-            ))}
-          </div>
+          {recentPosts.length > 0 ? (
+            <div className="flex flex-col gap-4">
+              {recentPosts.map((post) => (
+                <PostCard key={post.slug} post={post} />
+              ))}
+            </div>
+          ) : (
+            <div className="p-6 border border-light-gray20 dark:border-dark-gray20 rounded-lg text-center">
+              <p className="text-sm text-light-gray60 dark:text-dark-gray60">
+                아직 작성된 글이 없습니다.
+              </p>
+            </div>
+          )}
         </section>
 
         {/* 조회수 높은 글 (GA 데이터 기반) */}
@@ -150,11 +158,19 @@ export default function HomePage() {
               고정 글
             </h2>
           </div>
-          <div className="flex flex-col gap-4">
-            {pinnedPosts.map((post) => (
-              <PostCard key={post.slug} post={post} />
-            ))}
-          </div>
+          {pinnedPosts.length > 0 ? (
+            <div className="flex flex-col gap-4">
+              {pinnedPosts.map((post) => (
+                <PostCard key={post.slug} post={post} />
+              ))}
+            </div>
+          ) : (
+            <div className="p-6 border border-light-gray20 dark:border-dark-gray20 rounded-lg text-center">
+              <p className="text-sm text-light-gray60 dark:text-dark-gray60">
+                고정된 글이 없습니다.
+              </p>
+            </div>
+          )}
         </section>
       </div>
     </>

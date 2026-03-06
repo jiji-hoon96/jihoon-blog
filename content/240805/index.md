@@ -1,7 +1,8 @@
 ---
-title: '2024 인프콘 후기 with SIPE'
-date: '2024-08-05'
+title: "2024 인프콘 후기 with SIPE"
+date: "2024-08-05"
 categories: 대외활동
+draft: true
 ---
 
 ![26.png](26.png)

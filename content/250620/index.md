@@ -1,7 +1,8 @@
 ---
-title: 'as const 한 줄로 만드는 타입 안정성'
-date: '2025-06-20'
+title: "as const 한 줄로 만드는 타입 안정성"
+date: "2025-06-20"
 categories: 프론트엔드 TypeScript
+draft: true
 ---
 
 프론트엔드 실무에서 `as const`를 단순히 타입 추론을 돕는 보조 수단이 아니라, **불변성 선언과 동시에 타입의 리터럴화를 통해 안정성과 자동완성을 극대화**할 수 있는 툴로 유용하게 사용하고 있다.
@@ -15,7 +16,7 @@ categories: 프론트엔드 TypeScript
 `as const`는 TypeScript에서 **값을 리터럴 타입으로 고정(literal narrowing)** 하기 위한 단언문이다.
 
 ```ts
-const button = "primary";         // 타입: string
+const button = "primary"; // 타입: string
 const button = "primary" as const; // 타입: "primary"
 ```
 
@@ -68,7 +69,7 @@ let status = "idle" as const;
 
 이렇게 하면 `status`는 절대 다른 문자열을 가질 수 없기 때문에, 동적으로 상태를 변경해야 하는 경우엔 적절치 않다.
 
---- 
+---
 
 ```ts
 function update(type: "create" | "delete") {}
@@ -119,13 +120,12 @@ type Key = typeof key; // readonly ["user", 1]
 
 ---
 
-| 항목           | `as const`  | `enum`        |
-| ------------ | ----------- | ------------- |
-| 런타임 존재 여부    | 값 그 자체      | 객체 생성됨        |
-| 타입 유추 방식     | 리터럴 타입으로 추론 | 명시적 타입 선언 필요  |
-| Tree-shaking | 가능          | 어려움           |
-| JS 출력 코드     | 없음          | 존재 (실제 객체 생성) |
-
+| 항목             | `as const`           | `enum`                |
+| ---------------- | -------------------- | --------------------- |
+| 런타임 존재 여부 | 값 그 자체           | 객체 생성됨           |
+| 타입 유추 방식   | 리터럴 타입으로 추론 | 명시적 타입 선언 필요 |
+| Tree-shaking     | 가능                 | 어려움                |
+| JS 출력 코드     | 없음                 | 존재 (실제 객체 생성) |
 
 ```ts
 type Mode = (typeof MODES)[number];
@@ -134,13 +134,12 @@ const MODES = ["light", "dark"] as const;
 
 enum ModeEnum {
   Light = "light",
-  Dark = "dark"
+  Dark = "dark",
 }
 ```
 
 대부분의 경우 **불필요한 런타임 비용 없이 타입만 고정하고 싶을 때는 `as const`가 더 효율적**이다.
 
-
-
 ```toc
+
 ```

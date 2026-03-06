@@ -1,7 +1,8 @@
 ---
-title: 'Zustand, 너 뭔데 ProviderLess 인 거야?'
-date: '2024-08-18'
+title: "Zustand, 너 뭔데 ProviderLess 인 거야?"
+date: "2024-08-18"
 categories: 프론트엔드 React
+draft: true
 ---
 
 나는 Zustand가 Provider이 필요하지 않는 상태관리 라이브러리라는 것을 알고 있었다.
@@ -45,7 +46,7 @@ Zustand는 flux 패턴으로 동작한다.
 <br>
 
 ```typescript
-import create from 'zustand';
+import create from "zustand";
 
 const useStore = create((set) => ({
   count: 0,
@@ -62,7 +63,6 @@ const useStore = create((set) => ({
 > <h3>🙋🏻‍♂️ 컴포넌트 트리 외부</h3>
 >
 > - React 내부의 상태관리와 다르게 Zustand에서 자주 언급되는 **"컴포넌트 트리 외부"** 라는 표현은 상태 관리의 새로운 패러다임을 나타낸다.
->
 > - Zustand를 이용해 컴포넌트 트리 외부에서 **독립적**으로 **필요할 때마다** 컴포넌트에 상태를 공급하고, 조합하고, 재사용할 수 있다. 또한 **어디서든지 접근 가능한** 전역 상태로 Provider로 앱을 감싸는 번거로움 없이 사용할 수 있다.
 
 <br>
@@ -143,7 +143,8 @@ const useStore = create((set) => {
   return {
     getState: () => state,
     setState: (partial, replace) => {
-      const nextState = typeof partial === 'function' ? partial(state) : partial;
+      const nextState =
+        typeof partial === "function" ? partial(state) : partial;
       state = replace ? nextState : { ...state, ...nextState };
       listeners.forEach((listener) => listener(state));
     },
@@ -174,7 +175,7 @@ const useStore = create((set) => {
 ### React Hooks와의 통합
 
 ```typescript
-import ReactExports from 'react';
+import ReactExports from "react";
 const { useDebugValue, useSyncExternalStore } = ReactExports;
 ```
 

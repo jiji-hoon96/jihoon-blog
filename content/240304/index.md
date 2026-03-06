@@ -1,7 +1,8 @@
 ---
-title: 'Good bye CRA, Hello Vite For Migration'
-date: '2024-03-04'
+title: "Good bye CRA, Hello Vite For Migration"
+date: "2024-03-04"
 categories: 프론트엔드 React
+draft: true
 ---
 
 ## CRA(Create React App)

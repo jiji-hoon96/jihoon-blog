@@ -143,4 +143,4 @@ export {
   Post,
   contentlayer_config_default as default
 };
-//# sourceMappingURL=compiled-contentlayer-config-UCB2L6HO.mjs.map
+//# sourceMappingURL=compiled-contentlayer-config-ALQHJCDO.mjs.map

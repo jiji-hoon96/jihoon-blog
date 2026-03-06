@@ -1,7 +1,8 @@
 ---
-title: '비전공 프론트엔드 2년차 개발자 멘티 일지: 1주차 - 으아 떨려...'
-date: '2024-05-07'
+title: "비전공 프론트엔드 2년차 개발자 멘티 일지: 1주차 - 으아 떨려..."
+date: "2024-05-07"
 categories: 멘토링 자바스크립트
+draft: true
 ---
 
 독학으로 공부를 계속하다 회사에 다닌 지 1년이 넘은 현시점에서, 스스로를 객관적으로 돌이켜보기 위해서 멘토링을 신청하게 되었다!
@@ -28,15 +29,15 @@ categories: 멘토링 자바스크립트
 
 ```javascript
 const item = {
-  a: '메론',
+  a: "메론",
   price: {
-    small: '20000',
-    large: '30000',
+    small: "20000",
+    large: "30000",
   },
 };
 
 const copyItem = Object.assign({}, item);
-copyItem.price.small = '22000';
+copyItem.price.small = "22000";
 
 console.log(item === copyItem); // false
 console.log(item.price.small === copyItem.price.small); //true
@@ -46,10 +47,10 @@ console.log(item.price.small === copyItem.price.small); //true
 
 ```javascript
 const item = {
-  a: '메론',
+  a: "메론",
   price: {
-    small: '20000',
-    large: '30000',
+    small: "20000",
+    large: "30000",
   },
 };
 
@@ -67,18 +68,18 @@ console.log(item.price.small === copyItem.price.small); //true
 
 ```javascript
 const item = {
-  a: '메론',
+  a: "메론",
   price: {
-    small: '20000',
-    large: '30000',
+    small: "20000",
+    large: "30000",
   },
-  place: ['강남점', '역삼점', '송파점'],
+  place: ["강남점", "역삼점", "송파점"],
 };
 
 const copyItem = JSON.parse(JSON.stringify(item));
 
-copyItem.price.small = '24000';
-copyItem.place.push('잠실점');
+copyItem.price.small = "24000";
+copyItem.place.push("잠실점");
 
 console.log(item === copyItem); //false
 console.log(item.price.small === copyItem.price.small); //false
@@ -195,9 +196,9 @@ console.log(copyItem); // {"a": "메론","price": {"small": "24000","large": "30
 
 ```javascript
 const obj = {
-  name: 'Jihoon',
+  name: "Jihoon",
   greet: function () {
-    console.log('Hello, ' + this.name);
+    console.log("Hello, " + this.name);
   },
 };
 obj.greet(); // 출력: "Hello, Jihoon"
@@ -209,10 +210,10 @@ obj.greet(); // 출력: "Hello, Jihoon"
 function Person(name) {
   this.name = name;
   this.greet = function () {
-    console.log('Hello, ' + this.name);
+    console.log("Hello, " + this.name);
   };
 }
-const Jihoon = new Person('Jihoon');
+const Jihoon = new Person("Jihoon");
 Jihoon.greet(); // 출력: "Hello, Jihoon"
 ```
 
@@ -228,7 +229,7 @@ Jihoon.greet(); // 출력: "Hello, Jihoon"
 
 ```javascript
 const myFunc = function () {
-  console.log('Hello, world!');
+  console.log("Hello, world!");
 };
 myFunc(); // 출력: "Hello, world!"
 ```
@@ -240,7 +241,7 @@ function greet(func) {
   func();
 }
 greet(function () {
-  console.log('Hello, world!');
+  console.log("Hello, world!");
 }); // 출력: "Hello, world!"
 ```
 
@@ -249,7 +250,7 @@ greet(function () {
 ```javascript
 function createFunc() {
   return function () {
-    console.log('Hello, world!');
+    console.log("Hello, world!");
   };
 }
 const myFunc = createFunc();

@@ -70,6 +70,12 @@ export default function AllPostsPage() {
               </p>
             </Link>
           ))}
+
+          {sortedPosts.length === 0 && (
+            <div className="text-center py-12 text-light-gray60 dark:text-dark-gray60">
+              아직 작성된 글이 없습니다.
+            </div>
+          )}
         </div>
       </div>
 
@@ -90,6 +96,12 @@ export default function AllPostsPage() {
             </p>
           </Link>
         ))}
+
+        {sortedPosts.length === 0 && (
+          <div className="text-center py-12 text-light-gray60 dark:text-dark-gray60">
+            아직 작성된 글이 없습니다.
+          </div>
+        )}
       </div>
     </div>
   )
