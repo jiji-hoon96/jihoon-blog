@@ -2,7 +2,6 @@
 title: 'React Fiber 완전 정복'
 date: '2025-05-20'
 categories: 프론트엔드 React
-draft: true
 ---
 
 이번 포스팅에서는 React의 심장이라 할 수 있는 **Fiber 아키텍처**에 대한 이야기를 해보려고 한다.
