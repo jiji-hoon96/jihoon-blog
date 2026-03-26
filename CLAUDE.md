@@ -4,7 +4,7 @@
 
 ## 블로그 글 작성 가이드
 
-이 블로그의 글은 evan-moon 스타일의 문체를 따릅니다. 글 작성/정리 시 `.claude/commands/write-post.md`의 문체 가이드를 참고하세요.
+이 블로그의 글은 jihoon 스타일의 문체를 따릅니다. 글 작성/정리 시 `.claude/commands/write-post.md`의 문체 가이드를 참고하세요.
 
 ### 핵심 문체 요약
 
@@ -23,5 +23,5 @@
 
 ### 커스텀 명령어
 
-- `/write-post [초안]` - 초안을 evan-moon 스타일로 정리하여 블로그 글 작성
-- `/refine-post [파일경로]` - 기존 글을 evan-moon 스타일로 리파인
+- `/write-post [초안]` - 초안을 블로그 글 작성
+- `/refine-post [파일경로]` - 기존 글을 jihoon 스타일로 리파인

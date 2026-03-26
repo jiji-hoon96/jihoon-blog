@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@contentlayer/core@0.3.4':
+    hash: 283cc991bd2378acd44ae81a0d2cfc042613a137fa9c1b54dd10c629cead5e7a
+    path: patches/@contentlayer__core@0.3.4.patch
+
 importers:
 
   .:
@@ -3645,7 +3650,7 @@ snapshots:
 
   '@contentlayer/cli@0.3.4(esbuild@0.18.20)':
     dependencies:
-      '@contentlayer/core': 0.3.4(esbuild@0.18.20)
+      '@contentlayer/core': 0.3.4(patch_hash=283cc991bd2378acd44ae81a0d2cfc042613a137fa9c1b54dd10c629cead5e7a)(esbuild@0.18.20)
       '@contentlayer/utils': 0.3.4
       clipanion: 3.2.1(typanion@3.14.0)
       typanion: 3.14.0
@@ -3657,14 +3662,14 @@ snapshots:
 
   '@contentlayer/client@0.3.4(esbuild@0.18.20)':
     dependencies:
-      '@contentlayer/core': 0.3.4(esbuild@0.18.20)
+      '@contentlayer/core': 0.3.4(patch_hash=283cc991bd2378acd44ae81a0d2cfc042613a137fa9c1b54dd10c629cead5e7a)(esbuild@0.18.20)
     transitivePeerDependencies:
       - '@effect-ts/otel-node'
       - esbuild
       - markdown-wasm
       - supports-color
 
-  '@contentlayer/core@0.3.4(esbuild@0.18.20)':
+  '@contentlayer/core@0.3.4(patch_hash=283cc991bd2378acd44ae81a0d2cfc042613a137fa9c1b54dd10c629cead5e7a)(esbuild@0.18.20)':
     dependencies:
       '@contentlayer/utils': 0.3.4
       camel-case: 4.1.2
@@ -3686,7 +3691,7 @@ snapshots:
 
   '@contentlayer/source-files@0.3.4(esbuild@0.18.20)':
     dependencies:
-      '@contentlayer/core': 0.3.4(esbuild@0.18.20)
+      '@contentlayer/core': 0.3.4(patch_hash=283cc991bd2378acd44ae81a0d2cfc042613a137fa9c1b54dd10c629cead5e7a)(esbuild@0.18.20)
       '@contentlayer/utils': 0.3.4
       chokidar: 3.6.0
       fast-glob: 3.3.1
@@ -3705,7 +3710,7 @@ snapshots:
 
   '@contentlayer/source-remote-files@0.3.4(esbuild@0.18.20)':
     dependencies:
-      '@contentlayer/core': 0.3.4(esbuild@0.18.20)
+      '@contentlayer/core': 0.3.4(patch_hash=283cc991bd2378acd44ae81a0d2cfc042613a137fa9c1b54dd10c629cead5e7a)(esbuild@0.18.20)
       '@contentlayer/source-files': 0.3.4(esbuild@0.18.20)
       '@contentlayer/utils': 0.3.4
     transitivePeerDependencies:
@@ -4874,7 +4879,7 @@ snapshots:
     dependencies:
       '@contentlayer/cli': 0.3.4(esbuild@0.18.20)
       '@contentlayer/client': 0.3.4(esbuild@0.18.20)
-      '@contentlayer/core': 0.3.4(esbuild@0.18.20)
+      '@contentlayer/core': 0.3.4(patch_hash=283cc991bd2378acd44ae81a0d2cfc042613a137fa9c1b54dd10c629cead5e7a)(esbuild@0.18.20)
       '@contentlayer/source-files': 0.3.4(esbuild@0.18.20)
       '@contentlayer/source-remote-files': 0.3.4(esbuild@0.18.20)
       '@contentlayer/utils': 0.3.4
@@ -6865,7 +6870,7 @@ snapshots:
 
   next-contentlayer@0.3.4(contentlayer@0.3.4(esbuild@0.18.20))(esbuild@0.18.20)(next@16.1.4(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
-      '@contentlayer/core': 0.3.4(esbuild@0.18.20)
+      '@contentlayer/core': 0.3.4(patch_hash=283cc991bd2378acd44ae81a0d2cfc042613a137fa9c1b54dd10c629cead5e7a)(esbuild@0.18.20)
       '@contentlayer/utils': 0.3.4
       contentlayer: 0.3.4(esbuild@0.18.20)
       next: 16.1.4(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)

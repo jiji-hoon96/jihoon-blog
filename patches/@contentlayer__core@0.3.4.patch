@@ -1,0 +1,19 @@
+diff --git a/dist/markdown/markdown.js b/dist/markdown/markdown.js
+index 3647f8bdbfc90756c79f8f72df6adce28f6d6852..81548c914588bef19b3f1a47019ab5766d100885 100644
+--- a/dist/markdown/markdown.js
++++ b/dist/markdown/markdown.js
+@@ -31,12 +31,12 @@ export const markdownToHtml = ({ mdString, options, rawDocumentData, }) => pipe(
+         if (options?.remarkPlugins) {
+             builder.use(options.remarkPlugins);
+         }
+-        builder.use(remark2rehype);
++        builder.use(remark2rehype, { allowDangerousHtml: true });
+         if (options?.rehypePlugins) {
+             builder.use(options.rehypePlugins);
+         }
+         // rehype to html
+-        builder.use(rehypeStringify);
++        builder.use(rehypeStringify, { allowDangerousHtml: true });
+     }
+     const res = yield* $(T.tryPromise(() => builder.process(mdString)));
+     return res.toString();

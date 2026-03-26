@@ -3,3 +3,5 @@ packages:
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
+patchedDependencies:
+  '@contentlayer/core@0.3.4': patches/@contentlayer__core@0.3.4.patch
