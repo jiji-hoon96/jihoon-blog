@@ -22,7 +22,7 @@ async function copyImages() {
         }
 
         // Include only image files
-        const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg|heic|avif|bmp|ico)$/i
+        const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg|heic|avif|bmp|ico|mov|mp4|webm)$/i
         return imageExtensions.test(src)
       },
     })
