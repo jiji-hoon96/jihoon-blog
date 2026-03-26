@@ -92,7 +92,7 @@ export default function TableOfContents({ content, variant = "default" }: TableO
                 href={`#${item.id}`}
                 onClick={(e) => handleClick(e, item.id)}
                 className={`
-                  block py-1 pl-3 -ml-[2px] border-l-2 transition-colors
+                  block py-1 pl-3 -ml-[2px] border-l-2 transition-colors overflow-hidden text-ellipsis whitespace-nowrap
                   ${
                     activeId === item.id
                       ? "border-light-black100 dark:border-dark-black100 text-light-black100 dark:text-dark-black100 font-medium"

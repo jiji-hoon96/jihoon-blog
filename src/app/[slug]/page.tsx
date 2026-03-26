@@ -122,23 +122,11 @@ export default async function PostPage({ params }: Props) {
         </div>
       </header>
 
-      {/* Mobile: 목차 (본문 위) */}
-      <div className="lg:hidden">
-        <TableOfContents content={post.body.html} />
-      </div>
+      {/* 목차 (본문 위) */}
+      <TableOfContents content={post.body.html} />
 
-      {/* Desktop: 사이드바 목차 + 본문 */}
-      <div className="lg:flex lg:gap-8">
-        {/* 왼쪽 목차 사이드바 (Desktop) */}
-        <aside className="hidden lg:block w-56 flex-shrink-0">
-          <div className="sticky top-8">
-            <TableOfContents content={post.body.html} variant="sidebar" />
-          </div>
-        </aside>
-
-        {/* 본문 */}
-        <div className="flex-1 min-w-0">
-          {/* Post Content */}
+      {/* 본문 */}
+      <div>
           <div
             className="prose prose-lg dark:prose-invert max-w-none mb-12"
             dangerouslySetInnerHTML={{ __html: post.body.html }}
@@ -188,7 +176,6 @@ export default async function PostPage({ params }: Props) {
               path={post.slug}
             />
           </div>
-        </div>
       </div>
     </article>
     </>
