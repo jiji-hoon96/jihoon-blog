@@ -70,7 +70,7 @@
 
 .prose li > ul,
 .prose li > ol {
-  @apply mt-2 ml-4;
+  @apply mt-2 ml-2;
 }
 
 /* Blockquotes */
