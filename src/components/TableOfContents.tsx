@@ -35,32 +35,37 @@ export default function TableOfContents({ content, variant = "default" }: TableO
   }, [content]);
 
   useEffect(() => {
-    if (toc.length === 0) return;
-
-    // 실제 DOM에서 heading 요소들을 찾아서 관찰
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
-        });
-      },
-      {
-        rootMargin: "-100px 0px -80% 0px",
-      }
-    );
+    if (toc.length === 0 || variant !== "sidebar") return;
 
     const headingElements = toc
       .map((item) => document.getElementById(item.id))
       .filter((el): el is HTMLElement => el !== null);
 
-    headingElements.forEach((el) => observer.observe(el));
+    if (headingElements.length === 0) return;
+
+    // 스크롤 기반으로 현재 활성 heading 추적
+    const handleScroll = () => {
+      const scrollY = window.scrollY + 120;
+      let current = "";
+
+      for (const el of headingElements) {
+        if (el.offsetTop <= scrollY) {
+          current = el.id;
+        }
+      }
+
+      if (current) {
+        setActiveId(current);
+      }
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
-      headingElements.forEach((el) => observer.unobserve(el));
+      window.removeEventListener("scroll", handleScroll);
     };
-  }, [toc]);
+  }, [toc, variant]);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
@@ -86,13 +91,13 @@ export default function TableOfContents({ content, variant = "default" }: TableO
           {toc.map((item) => (
             <li
               key={item.id}
-              className={item.level === 3 ? "ml-3" : ""}
             >
               <a
                 href={`#${item.id}`}
                 onClick={(e) => handleClick(e, item.id)}
                 className={`
-                  block py-1 pl-3 -ml-[2px] border-l-2 transition-colors overflow-hidden text-ellipsis whitespace-nowrap
+                  block py-1 -ml-[2px] border-l-2 transition-colors overflow-hidden text-ellipsis whitespace-nowrap
+                  ${item.level === 3 ? "pl-6" : "pl-3"}
                   ${
                     activeId === item.id
                       ? "border-light-black100 dark:border-dark-black100 text-light-black100 dark:text-dark-black100 font-medium"
@@ -110,11 +115,11 @@ export default function TableOfContents({ content, variant = "default" }: TableO
   }
 
   return (
-    <nav className="mb-8 p-4 sm:p-6 rounded-lg bg-light-gray10 dark:bg-dark-gray10 border border-light-gray20 dark:border-dark-gray20">
-      <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-light-black100 dark:text-dark-black100">
+    <nav className="mb-8 p-3 sm:p-4 rounded-lg bg-light-gray10 dark:bg-dark-gray10 border border-light-gray20 dark:border-dark-gray20">
+      <h2 className="text-sm sm:text-base font-bold mb-2 sm:mb-3 text-light-black100 dark:text-dark-black100">
         목차
       </h2>
-      <ul className="space-y-2 text-sm sm:text-base">
+      <ul className="space-y-1 text-xs sm:text-sm">
         {toc.map((item) => (
           <li
             key={item.id}

@@ -3,6 +3,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypePrettyCode from 'rehype-pretty-code'
 import rehypeSlug from 'rehype-slug'
 import remarkDirective from 'remark-directive'
+import remarkGfm from 'remark-gfm'
 import readingTime from 'reading-time'
 import { rehypeImagePath } from './src/lib/rehype-image-path'
 import { remarkDetails } from './src/lib/remark-details'
@@ -77,7 +78,7 @@ export default makeSource({
   documentTypes: [Post],
   disableImportAliasWarning: true,
   markdown: {
-    remarkPlugins: [remarkDirective, remarkDetails],
+    remarkPlugins: [[remarkGfm, { singleTilde: false }], remarkDirective, remarkDetails],
     rehypePlugins: [
       rehypeSlug,
       [

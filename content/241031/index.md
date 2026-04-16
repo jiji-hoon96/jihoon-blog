@@ -3,6 +3,7 @@ emoji: 🤿
 title: 'useSyncExternalStore Deep Dive'
 date: '2024-10-31'
 categories: 프론트엔드 자바스크립트
+draft: true
 ---
 
 이번 포스팅에서는 React 18에서 도입된 `useSyncExternalStore` 훅에 대한 이야기를 해보려고 한다.

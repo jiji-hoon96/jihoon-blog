@@ -3,6 +3,7 @@ emoji: 🔥
 title: 'Zustand 불변성 관리와 immer 미들웨어 동작 원리(valtio를 곁들인)'
 date: '2024-11-16'
 categories: 프론트엔드 자바스크립트
+draft: true
 ---
 
 이번 포스팅에서는 Zustand의 immer 미들웨어가 내부적으로 어떻게 동작하는지, 그리고 불변성이라는 개념이 왜 프론트엔드 상태 관리에서 그토록 중요한지에 대한 이야기를 해보려고 한다.

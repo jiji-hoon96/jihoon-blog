@@ -7,11 +7,42 @@ export default function CodeCopyButton() {
     const codeBlocks = document.querySelectorAll(".prose pre");
 
     codeBlocks.forEach((pre) => {
-      // 이미 버튼이 있으면 스킵
-      if (pre.querySelector(".copy-button")) return;
+      // 이미 처리된 블록은 스킵
+      if (pre.closest(".code-collapse")) return;
 
-      // pre를 relative로 설정
-      (pre as HTMLElement).style.position = "relative";
+      const preEl = pre as HTMLElement;
+
+      // 코드 언어 감지
+      const code = pre.querySelector("code");
+      const langClass = code?.className.match(/language-(\w+)/);
+      const lang = langClass ? langClass[1] : "Code";
+
+      // 줄 수 계산
+      const lineCount = (code?.textContent || "").split("\n").length;
+
+      // details/summary로 감싸기
+      const details = document.createElement("details");
+      details.className = "code-collapse";
+
+      // 15줄 미만이면 기본 열림
+      if (lineCount < 15) {
+        details.open = true;
+      }
+
+      const summary = document.createElement("summary");
+      summary.className = "code-collapse-summary";
+      summary.textContent = lang;
+
+      // pre를 details 안으로 이동
+      preEl.parentNode?.insertBefore(details, preEl);
+      details.appendChild(summary);
+      details.appendChild(preEl);
+
+      // copy 버튼 추가
+      preEl.style.position = "relative";
+      preEl.style.marginTop = "0";
+      preEl.style.borderTopLeftRadius = "0";
+      preEl.style.borderTopRightRadius = "0";
 
       const button = document.createElement("button");
       button.className = "copy-button";
@@ -19,7 +50,6 @@ export default function CodeCopyButton() {
       button.title = "코드 복사";
 
       button.addEventListener("click", async () => {
-        const code = pre.querySelector("code");
         if (code) {
           await navigator.clipboard.writeText(code.textContent || "");
           button.textContent = "DONE";
@@ -29,7 +59,7 @@ export default function CodeCopyButton() {
         }
       });
 
-      pre.appendChild(button);
+      preEl.appendChild(button);
     });
 
     return () => {

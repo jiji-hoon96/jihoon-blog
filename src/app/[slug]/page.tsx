@@ -97,7 +97,7 @@ export default async function PostPage({ params }: Props) {
       <article className="py-8 sm:py-12">
         {/* Post Header */}
         <header className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-4xl font-bold mb-4">{post.title}</h1>
+          <h1 className="text-xl sm:text-4xl font-bold mb-4">{post.title}</h1>
           <div className="flex flex-wrap items-center gap-3 text-sm text-light-gray60 dark:text-dark-gray60">
             <time dateTime={post.date}>
               {new Date(post.date).toLocaleDateString('ko-KR', {
@@ -122,13 +122,15 @@ export default async function PostPage({ params }: Props) {
         </div>
       </header>
 
-      {/* 목차 (본문 위) */}
-      <TableOfContents content={post.body.html} />
-
-      {/* 본문 */}
-      <div>
+      {/* 본문 + 사이드바 목차 */}
+      <div className="relative lg:flex lg:gap-10">
+        <div className="min-w-0 flex-1 lg:max-w-[calc(100%-240px-2.5rem)]">
+          {/* 모바일 목차 */}
+          <div className="lg:hidden">
+            <TableOfContents content={post.body.html} />
+          </div>
           <div
-            className="prose prose-lg dark:prose-invert max-w-none mb-12"
+            className="prose sm:prose-lg dark:prose-invert max-w-none mb-12"
             dangerouslySetInnerHTML={{ __html: post.body.html }}
           />
           <CodeCopyButton />
@@ -176,6 +178,14 @@ export default async function PostPage({ params }: Props) {
               path={post.slug}
             />
           </div>
+        </div>
+
+        {/* 데스크탑 사이드바 목차 */}
+        <aside className="hidden lg:block w-60 shrink-0">
+          <div className="sticky top-24">
+            <TableOfContents content={post.body.html} variant="sidebar" />
+          </div>
+        </aside>
       </div>
     </article>
     </>
