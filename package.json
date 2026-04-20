@@ -7,7 +7,7 @@
     "dev:clean": "rm -rf .contentlayer .next && node scripts/copy-content-images.js && (npx contentlayer build || true) && contentlayer dev & next dev",
     "rebuild": "rm -rf .contentlayer .next && node scripts/copy-content-images.js && (npx contentlayer build || true)",
     "content:sync": "node scripts/copy-content-images.js && (npx contentlayer build || true)",
-    "build": "node scripts/copy-content-images.js && next build",
+    "build": "node scripts/copy-content-images.js && (npx contentlayer build || true) && next build",
     "start": "next start",
     "lint": "eslint"
   },
