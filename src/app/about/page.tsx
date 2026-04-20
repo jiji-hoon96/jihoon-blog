@@ -4,12 +4,47 @@ import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "About",
-  description: `${siteMetadata.author.name}에 대해`,
+  description: `프론트엔드 개발자 ${siteMetadata.author.name}의 소개 페이지입니다. 커리어와 활동 이력, 사용하는 기술 스택을 확인하세요.`,
+  alternates: {
+    canonical: `${siteMetadata.siteUrl}/about`,
+  },
 };
 
 export default function AboutPage() {
+  const profileLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    mainEntity: {
+      "@type": "Person",
+      name: siteMetadata.author.name,
+      alternateName: siteMetadata.author.nickname,
+      email: siteMetadata.author.bio.email,
+      url: `${siteMetadata.siteUrl}/about`,
+      image: `${siteMetadata.siteUrl}/images/jihoon.jpeg`,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: siteMetadata.author.bio.residence,
+      },
+      knowsAbout: siteMetadata.author.stack,
+      sameAs: [
+        siteMetadata.author.social.github,
+        siteMetadata.author.social.linkedIn,
+      ],
+      worksFor: siteMetadata.timestamps
+        .filter(item => item.category === "Career" && item.date.includes("NOW"))
+        .map(item => ({
+          "@type": "Organization",
+          name: item.en,
+        })),
+    },
+  };
+
   return (
     <div className="py-8 sm:py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(profileLd) }}
+      />
       {/* Profile Section */}
       <section className="mb-10 sm:mb-14">
         <div className="flex flex-col sm:flex-row gap-6 sm:gap-10">

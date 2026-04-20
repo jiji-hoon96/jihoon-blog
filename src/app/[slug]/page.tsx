@@ -31,6 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: post.title,
     description: post.excerpt,
+    keywords: post.categoryArray,
     alternates: {
       canonical: url,
     },
@@ -40,15 +41,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: url,
       type: 'article',
       publishedTime: post.date,
+      modifiedTime: post.date,
       authors: [siteMetadata.author.name],
       tags: post.categoryArray,
-      images: [{ url: siteMetadata.ogImage }],
+      locale: 'ko_KR',
+      siteName: siteMetadata.title,
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.excerpt,
-      images: [siteMetadata.ogImage],
     },
   }
 }
@@ -63,35 +65,87 @@ export default async function PostPage({ params }: Props) {
 
   const { prev, next } = getAdjacentPosts(post.slug)
 
-  const jsonLd = {
+  const postUrl = `${siteMetadata.siteUrl}${post.slug}`
+  const ogImageUrl = `${postUrl}/opengraph-image`
+  const primaryCategory = post.categoryArray[0]
+
+  const blogPostingLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: post.title,
     description: post.excerpt,
+    image: [ogImageUrl],
     author: {
       '@type': 'Person',
       name: siteMetadata.author.name,
       url: siteMetadata.siteUrl,
+      sameAs: [
+        siteMetadata.author.social.github,
+        siteMetadata.author.social.linkedIn,
+      ],
     },
     datePublished: post.date,
     dateModified: post.date,
-    url: `${siteMetadata.siteUrl}${post.slug}`,
+    url: postUrl,
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `${siteMetadata.siteUrl}${post.slug}`,
+      '@id': postUrl,
     },
     publisher: {
       '@type': 'Person',
       name: siteMetadata.author.name,
+      url: siteMetadata.siteUrl,
     },
+    inLanguage: 'ko-KR',
     keywords: post.categoryArray.join(', '),
+    ...(primaryCategory ? { articleSection: primaryCategory } : {}),
+  }
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: siteMetadata.siteUrl,
+      },
+      ...(primaryCategory
+        ? [
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: primaryCategory,
+              item: `${siteMetadata.siteUrl}/posts/${encodeURIComponent(primaryCategory)}`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: post.title,
+              item: postUrl,
+            },
+          ]
+        : [
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: post.title,
+              item: postUrl,
+            },
+          ]),
+    ],
   }
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       <ReadingProgress />
       <article className="py-8 sm:py-12">
