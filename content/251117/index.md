@@ -1,6 +1,6 @@
 ---
 emoji: 🛡️
-title: '프론트엔드에서 에러를 어떻게 잡을 것인가'
+title: '에러 핸들링'
 date: '2025-11-17'
 categories: 프론트엔드 React TanStack-Query 에러핸들링
 ---
@@ -690,7 +690,7 @@ export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 
 ---
 
-### 참고 자료
+## 참고 자료
 
 - Component (Error Boundaries)](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
 - [react-error-boundary GitHub](https://github.com/bvaughn/react-error-boundary)
