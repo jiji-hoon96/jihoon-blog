@@ -24,8 +24,8 @@ export default function CodeCopyButton() {
       const details = document.createElement("details");
       details.className = "code-collapse";
 
-      // 15줄 미만이면 기본 열림
-      if (lineCount < 15) {
+      // 30줄 미만이면 기본 열림
+      if (lineCount < 30) {
         details.open = true;
       }
 

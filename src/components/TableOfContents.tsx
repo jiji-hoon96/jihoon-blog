@@ -16,7 +16,9 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
+  const [proximity, setProximity] = useState(0);
   const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map());
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const parser = new DOMParser();
@@ -83,6 +85,26 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isOpen) return;
+    const NEAR = 80;
+    const FAR = 240;
+    const handleMove = (e: MouseEvent) => {
+      const btn = buttonRef.current;
+      if (!btn) return;
+      const rect = btn.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = e.clientX - cx;
+      const dy = e.clientY - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const t = 1 - Math.min(1, Math.max(0, (dist - NEAR) / (FAR - NEAR)));
+      setProximity(t);
+    };
+    window.addEventListener("mousemove", handleMove, { passive: true });
+    return () => window.removeEventListener("mousemove", handleMove);
+  }, [isOpen]);
+
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
     const element = document.getElementById(id);
@@ -100,11 +122,13 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
   return (
     <>
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setIsOpen((v) => !v)}
         aria-label={isOpen ? "목차 닫기" : "목차 열기"}
         aria-expanded={isOpen}
-        className="fixed right-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full shadow-lg bg-light-gray10 dark:bg-dark-gray10 border border-light-gray20 dark:border-dark-gray20 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors cursor-pointer"
+        style={{ opacity: isOpen ? 1 : 0.3 + 0.7 * proximity }}
+        className="fixed right-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full shadow-lg bg-light-gray10 dark:bg-dark-gray10 border border-light-gray20 dark:border-dark-gray20 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-[opacity,background-color] duration-200 cursor-pointer"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
