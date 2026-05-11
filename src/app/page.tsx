@@ -116,6 +116,34 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* 고정 글 */}
+        <section className="mb-8 sm:mb-12">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold">
+              <span className="mr-3">📌</span>
+              고정 글
+            </h2>
+          </div>
+          {pinnedPosts.length > 0 ? (
+            <div className="flex flex-col gap-4">
+              {pinnedPosts.map((post) => (
+                <PostCard key={post.slug} post={post} />
+              ))}
+            </div>
+          ) : (
+            <div className="p-6 border border-light-gray20 dark:border-dark-gray20 rounded-lg text-center">
+              <p className="text-sm text-light-gray60 dark:text-dark-gray60">
+                고정된 글이 없습니다.
+              </p>
+            </div>
+          )}
+        </section>
+
+        {/* 조회수 높은 글 (GA 데이터 기반) */}
+        <Suspense fallback={<PopularPostsSkeleton />}>
+          <PopularPosts allPosts={postsForPopular} />
+        </Suspense>
+
         {/* 최근 작성한 글 */}
         <section className="mb-8 sm:mb-12">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
@@ -140,34 +168,6 @@ export default function HomePage() {
             <div className="p-6 border border-light-gray20 dark:border-dark-gray20 rounded-lg text-center">
               <p className="text-sm text-light-gray60 dark:text-dark-gray60">
                 아직 작성된 글이 없습니다.
-              </p>
-            </div>
-          )}
-        </section>
-
-        {/* 조회수 높은 글 (GA 데이터 기반) */}
-        <Suspense fallback={<PopularPostsSkeleton />}>
-          <PopularPosts allPosts={postsForPopular} />
-        </Suspense>
-
-        {/* 고정 글 */}
-        <section className="mb-8 sm:mb-12">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h2 className="text-xl sm:text-2xl font-bold">
-              <span className="mr-3">📌</span>
-              고정 글
-            </h2>
-          </div>
-          {pinnedPosts.length > 0 ? (
-            <div className="flex flex-col gap-4">
-              {pinnedPosts.map((post) => (
-                <PostCard key={post.slug} post={post} />
-              ))}
-            </div>
-          ) : (
-            <div className="p-6 border border-light-gray20 dark:border-dark-gray20 rounded-lg text-center">
-              <p className="text-sm text-light-gray60 dark:text-dark-gray60">
-                고정된 글이 없습니다.
               </p>
             </div>
           )}

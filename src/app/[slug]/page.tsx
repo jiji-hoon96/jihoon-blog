@@ -27,17 +27,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const url = `${siteMetadata.siteUrl}${post.slug}`
+  const description = post.description || post.excerpt
+  const keywords = post.keywords
+    ? post.keywords.split(',').map((k: string) => k.trim())
+    : post.categoryArray
 
   return {
     title: post.title,
-    description: post.excerpt,
-    keywords: post.categoryArray,
+    description,
+    keywords,
     alternates: {
       canonical: url,
     },
     openGraph: {
       title: post.title,
-      description: post.excerpt,
+      description,
       url: url,
       type: 'article',
       publishedTime: post.date,
@@ -50,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
       title: post.title,
-      description: post.excerpt,
+      description,
     },
   }
 }
@@ -73,7 +77,7 @@ export default async function PostPage({ params }: Props) {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: post.title,
-    description: post.excerpt,
+    description: post.description || post.excerpt,
     image: [ogImageUrl],
     author: {
       '@type': 'Person',
@@ -97,7 +101,7 @@ export default async function PostPage({ params }: Props) {
       url: siteMetadata.siteUrl,
     },
     inLanguage: 'ko-KR',
-    keywords: post.categoryArray.join(', '),
+    keywords: post.keywords || post.categoryArray.join(', '),
     ...(primaryCategory ? { articleSection: primaryCategory } : {}),
   }
 

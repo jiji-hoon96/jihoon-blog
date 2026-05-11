@@ -24,10 +24,23 @@
 - 전문가 발언, 공식 문서, 벤치마크 등 **레퍼런스 기반 서술**에 활용할 자료 수집
 - 리서치 결과 중 초안에 없더라도 주제의 깊이를 더하는 내용은 적극 반영
 
+### SEO 가이드
+
+블로그 글 작성 시 SEO를 위해 프론트매터에 `description`과 `keywords` 필드를 반드시 포함합니다.
+
+- **description**: 검색 결과 스니펫에 노출되는 메타 디스크립션 (120~160자)
+  - 글의 핵심 내용과 독자가 얻을 수 있는 가치를 명확하게 전달
+  - 주요 검색 키워드를 자연스럽게 포함
+- **keywords**: 쉼표로 구분된 검색 타겟 키워드 (5~8개)
+  - 구체적이고 검색량이 있는 롱테일 키워드 위주로 작성
+  - 한글/영문 혼용 가능 (예: "React Fiber, React 렌더링 원리")
+
+프론트매터에 `description`/`keywords`가 없으면 자동 생성된 excerpt/categories로 대체되지만, 직접 작성하는 것이 SEO에 훨씬 효과적입니다.
+
 ### 콘텐츠 구조
 
 - 블로그 포스트: `content/YYMMDD/index.md`
-- 프론트매터: emoji, title, date, categories 필드 사용
+- 프론트매터: emoji, title, date, categories, description, keywords 필드 사용
 - categories에 "ignore"가 포함되면 비공개 처리
 
 ### 커스텀 명령어

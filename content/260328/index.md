@@ -3,6 +3,8 @@ emoji: 🛠️
 title: 'Toss Frontend Fundamentals 모의고사 2회차 리팩토링 후기'
 date: '2026-03-28'
 categories: 프론트엔드 React 리팩토링
+description: "Toss Frontend Fundamentals 모의고사 2회차 회의실 예약 앱 리팩토링 경험을 공유한다. 모놀리식 컴포넌트 분리, 도메인 로직 추출, 테스트 기반 리팩토링 과정을 정리했다."
+keywords: "Toss Frontend Fundamentals, 프론트엔드 리팩토링, React 컴포넌트 분리, 코드 리뷰, 토스 모의고사, 프론트엔드 설계"
 ---
 
 이번 포스팅에서는 Toss Frontend Fundamentals 모의고사 2회차에 참여하며 진행한 리팩토링 경험에 대한 이야기를 해보려고 한다.

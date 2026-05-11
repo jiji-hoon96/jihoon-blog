@@ -3,6 +3,8 @@ emoji: 🤯
 title: 'Zustand, 너 뭔데 ProviderLess 인 거야?'
 date: '2024-08-18'
 categories: 프론트엔드 React
+description: "Zustand가 Provider 없이 상태관리를 해내는 원리를 소스코드 분석을 통해 파헤친다. React Context API와의 차이점과 모듈 스코프 기반 설계를 알아보자."
+keywords: "Zustand 원리, Zustand Provider 없는 이유, React 상태관리 라이브러리, Zustand 소스코드 분석, useSyncExternalStore, React Context API"
 ---
 
 이번 포스팅에서는 Zustand가 어떻게 Provider 없이 상태관리를 해내는지에 대한 이야기를 해보려고 한다.

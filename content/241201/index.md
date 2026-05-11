@@ -3,6 +3,8 @@ emoji: 🔧
 title: 'Biome이 ESLint와 Prettier를 대체할 수 있을까?'
 date: '2024-12-01'
 categories: 프론트엔드 자바스크립트
+description: "Biome의 린팅과 포매팅 성능을 ESLint, Prettier와 비교한다. Rust 기반 올인원 툴체인의 실무 도입 경험과 마이그레이션 가이드를 정리했다."
+keywords: "Biome vs ESLint, Biome vs Prettier, Biome 마이그레이션, JavaScript 린터 비교, Rust 기반 린터, 프론트엔드 개발도구"
 ---
 
 이번 포스팅에서는 Biome이라는 도구에 대한 이야기를 해보려고 한다.
