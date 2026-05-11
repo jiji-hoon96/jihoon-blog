@@ -180,70 +180,56 @@ export default async function PostPage({ params }: Props) {
         </div>
       </header>
 
-      {/* 본문 + 사이드바 목차 */}
-      <div className="relative lg:flex lg:gap-10">
-        <div className="min-w-0 flex-1 lg:max-w-[calc(100%-240px-2.5rem)]">
-          {/* 모바일 목차 */}
-          <div className="lg:hidden">
-            <TableOfContents content={post.body.html} />
-          </div>
-          <div
-            className="prose sm:prose-lg dark:prose-invert max-w-none mb-12"
-            dangerouslySetInnerHTML={{ __html: post.body.html }}
-          />
-          <CodeCopyButton />
+      <TableOfContents content={post.body.html} />
 
-          {/* Post Navigation */}
-          <nav className="flex justify-between items-center py-8 border-t border-light-gray20 dark:border-dark-gray20">
-            {prev ? (
-              <a
-                href={prev.slug}
-                className="flex-1 group text-left"
-              >
-                <div className="text-sm text-light-gray60 dark:text-dark-gray60 mb-1">
-                  ← 이전 글
-                </div>
-                <div className="font-medium group-hover:text-light-gray80 dark:group-hover:text-dark-gray80 transition-colors">
-                  {prev.title}
-                </div>
-              </a>
-            ) : (
-              <div className="flex-1" />
-            )}
+      <div
+        className="prose sm:prose-lg dark:prose-invert max-w-none mb-12"
+        dangerouslySetInnerHTML={{ __html: post.body.html }}
+      />
+      <CodeCopyButton />
 
-            {next ? (
-              <a
-                href={next.slug}
-                className="flex-1 group text-right"
-              >
-                <div className="text-sm text-light-gray60 dark:text-dark-gray60 mb-1">
-                  다음 글 →
-                </div>
-                <div className="font-medium group-hover:text-light-gray80 dark:group-hover:text-dark-gray80 transition-colors">
-                  {next.title}
-                </div>
-              </a>
-            ) : (
-              <div className="flex-1" />
-            )}
-          </nav>
+      {/* Post Navigation */}
+      <nav className="flex justify-between items-center py-8 border-t border-light-gray20 dark:border-dark-gray20">
+        {prev ? (
+          <a
+            href={prev.slug}
+            className="flex-1 group text-left"
+          >
+            <div className="text-sm text-light-gray60 dark:text-dark-gray60 mb-1">
+              ← 이전 글
+            </div>
+            <div className="font-medium group-hover:text-light-gray80 dark:group-hover:text-dark-gray80 transition-colors">
+              {prev.title}
+            </div>
+          </a>
+        ) : (
+          <div className="flex-1" />
+        )}
 
-          {/* Comments */}
-          <div className="mt-12">
-            <h3 className="text-xl font-bold mb-4">댓글</h3>
-            <Utterances
-              repo={siteMetadata.comments.utterances.repo}
-              path={post.slug}
-            />
-          </div>
-        </div>
+        {next ? (
+          <a
+            href={next.slug}
+            className="flex-1 group text-right"
+          >
+            <div className="text-sm text-light-gray60 dark:text-dark-gray60 mb-1">
+              다음 글 →
+            </div>
+            <div className="font-medium group-hover:text-light-gray80 dark:group-hover:text-dark-gray80 transition-colors">
+              {next.title}
+            </div>
+          </a>
+        ) : (
+          <div className="flex-1" />
+        )}
+      </nav>
 
-        {/* 데스크탑 사이드바 목차 */}
-        <aside className="hidden lg:block w-60 shrink-0">
-          <div className="sticky top-24">
-            <TableOfContents content={post.body.html} variant="sidebar" />
-          </div>
-        </aside>
+      {/* Comments */}
+      <div className="mt-12">
+        <h3 className="text-xl font-bold mb-4">댓글</h3>
+        <Utterances
+          repo={siteMetadata.comments.utterances.repo}
+          path={post.slug}
+        />
       </div>
     </article>
     </>
