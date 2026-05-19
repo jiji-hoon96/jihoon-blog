@@ -4,9 +4,22 @@ import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "About",
-  description: `프론트엔드 개발자 ${siteMetadata.author.name}의 소개 페이지입니다. 커리어와 활동 이력, 사용하는 기술 스택을 확인하세요.`,
+  description: `프론트엔드 개발자 ${siteMetadata.author.name}(${siteMetadata.author.nickname})의 소개 페이지. 커리어, 활동 이력, 기술 스택(${siteMetadata.author.stack.join(", ")})을 확인하세요.`,
   alternates: {
     canonical: `${siteMetadata.siteUrl}/about`,
+  },
+  openGraph: {
+    title: `About | ${siteMetadata.title}`,
+    description: `프론트엔드 개발자 ${siteMetadata.author.name}의 소개`,
+    url: `${siteMetadata.siteUrl}/about`,
+    type: "profile",
+    locale: "ko_KR",
+    siteName: siteMetadata.title,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `About ${siteMetadata.author.name}`,
+    description: `프론트엔드 개발자 ${siteMetadata.author.name}의 소개`,
   },
 };
 
@@ -14,16 +27,22 @@ export default function AboutPage() {
   const profileLd = {
     "@context": "https://schema.org",
     "@type": "ProfilePage",
+    inLanguage: "ko-KR",
+    url: `${siteMetadata.siteUrl}/about`,
     mainEntity: {
       "@type": "Person",
+      "@id": `${siteMetadata.siteUrl}/about#person`,
       name: siteMetadata.author.name,
       alternateName: siteMetadata.author.nickname,
+      description: `프론트엔드 개발자. ${siteMetadata.author.stack.join(", ")} 등의 스택으로 웹 개발 중.`,
+      jobTitle: "Frontend Developer",
       email: siteMetadata.author.bio.email,
       url: `${siteMetadata.siteUrl}/about`,
       image: `${siteMetadata.siteUrl}/images/jihoon.jpeg`,
       address: {
         "@type": "PostalAddress",
         addressLocality: siteMetadata.author.bio.residence,
+        addressCountry: "KR",
       },
       knowsAbout: siteMetadata.author.stack,
       sameAs: [
@@ -35,6 +54,17 @@ export default function AboutPage() {
         .map(item => ({
           "@type": "Organization",
           name: item.en,
+          alternateName: item.kr,
+        })),
+      alumniOf: siteMetadata.timestamps
+        .filter(
+          item =>
+            item.category === "Career" && !item.date.includes("NOW"),
+        )
+        .map(item => ({
+          "@type": "Organization",
+          name: item.en,
+          alternateName: item.kr,
         })),
     },
   };

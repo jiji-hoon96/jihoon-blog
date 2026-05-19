@@ -1,63 +1,117 @@
 import { visit } from 'unist-util-visit'
 import { Root } from 'hast'
 import path from 'path'
+import fs from 'fs'
+import { imageSize } from 'image-size'
 
 /**
- * Rehype plugin to convert relative image paths to absolute paths
- * Converts: ![alt](image.jpg) -> ![alt](/content/240909/image.jpg)
+ * Markdown 이미지/비디오 후처리:
+ *  - 상대 경로 -> /content/{folder}/{src} 절대 경로 변환
+ *  - 이미지에 width/height 주입 (CLS 방지)
+ *  - 첫 이미지에 fetchpriority="high" (LCP 부스트), 이후는 loading="lazy"
+ *  - 모든 이미지 decoding="async"
+ *  - 비디오에 preload="metadata", playsInline 주입 (대역폭 절감 + LCP)
  */
 export function rehypeImagePath() {
   return (tree: Root, file: any) => {
-    // Extract folder name from multiple possible sources
     let folderName = ''
-    
-    // Try file.history first
+
     if (file.history && file.history.length > 0) {
       const filePath = file.history[0]
       const match = filePath.match(/content\/([^\/]+)\//)
-      if (match) {
-        folderName = match[1]
-      }
+      if (match) folderName = match[1]
     }
-    
-    // Fallback to file.path
+
     if (!folderName && file.path) {
       const match = file.path.match(/content\/([^\/]+)\//)
-      if (match) {
-        folderName = match[1]
-      }
+      if (match) folderName = match[1]
     }
-    
-    // Fallback to file.dirname (used by contentlayer)
+
     if (!folderName && file.dirname) {
       folderName = path.basename(file.dirname)
     }
 
-    // Fallback to _raw.sourceFileDir (contentlayer specific)
     if (!folderName && file.data?.rawDocumentData?.sourceFileDir) {
       folderName = file.data.rawDocumentData.sourceFileDir
     }
 
     if (!folderName) {
-      console.warn('[rehype-image-path] Could not determine folder name for:', file.path || file.history?.[0] || 'unknown')
+      console.warn(
+        '[rehype-image-path] Could not determine folder name for:',
+        file.path || file.history?.[0] || 'unknown',
+      )
       return
     }
 
-    visit(tree, 'element', (node: any) => {
-      // Process img tags
-      if (node.tagName === 'img' && node.properties?.src) {
-        const src = node.properties.src as string
+    let imageIndex = 0
 
-        // Only process relative paths (not starting with http, https, or /)
-        if (!src.startsWith('http') && !src.startsWith('https') && !src.startsWith('/')) {
-          const newSrc = `/content/${folderName}/${src}`
-          console.log(`[rehype-image-path] Converting: ${src} -> ${newSrc}`)
-          node.properties.src = newSrc
+    visit(tree, 'element', (node: any) => {
+      if (node.tagName === 'img' && node.properties?.src) {
+        const rawSrc = node.properties.src as string
+
+        let resolvedSrc = rawSrc
+        if (
+          !rawSrc.startsWith('http') &&
+          !rawSrc.startsWith('https') &&
+          !rawSrc.startsWith('/')
+        ) {
+          resolvedSrc = `/content/${folderName}/${rawSrc}`
+          node.properties.src = resolvedSrc
         }
 
-        // 이미지 로딩 최적화: lazy loading + async decoding
-        node.properties.loading = 'lazy'
+        // width/height 자동 주입 (CLS 방지)
+        if (!node.properties.width || !node.properties.height) {
+          try {
+            const localPath = resolvedSrc.startsWith('/')
+              ? path.join(process.cwd(), 'public', resolvedSrc)
+              : null
+            if (localPath && fs.existsSync(localPath)) {
+              const buffer = fs.readFileSync(localPath)
+              const dimensions = imageSize(buffer)
+              if (dimensions.width && dimensions.height) {
+                node.properties.width = dimensions.width
+                node.properties.height = dimensions.height
+              }
+            }
+          } catch (err) {
+            // dimensions 못 읽어도 빌드 막지 않음
+          }
+        }
+
+        // 첫 이미지는 LCP 후보 -> eager + high priority
+        // 이후는 lazy + low priority
+        if (imageIndex === 0) {
+          node.properties.loading = 'eager'
+          node.properties.fetchpriority = 'high'
+        } else {
+          node.properties.loading = 'lazy'
+          node.properties.fetchpriority = 'low'
+        }
         node.properties.decoding = 'async'
+
+        imageIndex += 1
+        return
+      }
+
+      if (node.tagName === 'video') {
+        // 자동재생 미설정 비디오는 metadata만 미리 받기
+        if (!node.properties.preload) {
+          node.properties.preload = 'metadata'
+        }
+        if (node.properties.playsInline === undefined) {
+          node.properties.playsInline = true
+        }
+      }
+
+      if (node.tagName === 'source' && node.properties?.src) {
+        const src = node.properties.src as string
+        if (
+          !src.startsWith('http') &&
+          !src.startsWith('https') &&
+          !src.startsWith('/')
+        ) {
+          node.properties.src = `/content/${folderName}/${src}`
+        }
       }
     })
   }

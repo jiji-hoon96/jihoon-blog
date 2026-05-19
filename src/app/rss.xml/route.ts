@@ -3,6 +3,7 @@ import { allPosts } from 'contentlayer/generated'
 import { siteMetadata } from '@/lib/site-metadata'
 
 export async function GET() {
+  const feedUrl = `${siteMetadata.siteUrl}/rss.xml`
   const feed = new Feed({
     title: siteMetadata.title,
     description: siteMetadata.description,
@@ -11,6 +12,10 @@ export async function GET() {
     language: siteMetadata.language,
     favicon: `${siteMetadata.siteUrl}/favicon.ico`,
     copyright: `All rights reserved ${new Date().getFullYear()}, ${siteMetadata.author.name}`,
+    feedLinks: {
+      rss2: feedUrl,
+      atom: feedUrl,
+    },
     author: {
       name: siteMetadata.author.name,
       email: siteMetadata.author.bio.email,

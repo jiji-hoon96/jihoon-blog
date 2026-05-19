@@ -1,9 +1,11 @@
 ---
+emoji: ⚛️
 title: 'React Fiber 완전 정복'
+seoTitle: 'React Fiber 완전 정복 — 아키텍처와 동시성 렌더링 원리 분석'
 date: '2025-05-20'
 categories: 프론트엔드 React
-description: "React Fiber 아키텍처의 탄생 배경부터 내부 구조, Concurrent Features를 가능하게 만드는 원리까지 소스코드 기반으로 깊이 있게 분석한다."
-keywords: "React Fiber, React Fiber 아키텍처, Stack Reconciler, Concurrent Mode, React 렌더링 원리, React 소스코드 분석, Virtual DOM"
+description: "React Fiber 아키텍처를 Stack Reconciler부터 Lane 우선순위, 더블 버퍼링, MessageChannel 스케줄러, Concurrent Features까지 React 소스코드 기반으로 깊이 분석한다. 프론트엔드 면접 단골 주제."
+keywords: "React Fiber, 리액트 파이버, React Fiber 아키텍처, Stack Reconciler, Concurrent Mode, React 18 동시성, useTransition, useDeferredValue, Suspense, React 렌더링 원리, React 소스코드 분석, Virtual DOM, Reconciliation, Lane 우선순위, 프론트엔드 면접"
 ---
 
 이번 포스팅에서는 React의 심장이라 할 수 있는 **Fiber 아키텍처**에 대한 이야기를 해보려고 한다.

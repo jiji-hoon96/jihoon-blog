@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getAllCategories, getPostsByCategory } from '@/lib/categories'
+import { siteMetadata } from '@/lib/site-metadata'
 import type { Metadata } from 'next'
 
 type Props = {
@@ -17,10 +18,27 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category } = await params
   const decodedCategory = decodeURIComponent(category)
+  const posts = getPostsByCategory(decodedCategory)
+  const url = `${siteMetadata.siteUrl}/posts/${encodeURIComponent(decodedCategory)}`
+  const description = `${siteMetadata.author.name}이(가) 작성한 ${decodedCategory} 카테고리의 글 ${posts.length}개. 프론트엔드/React/TypeScript 등 웹 개발 기록을 모아 봅니다.`
 
   return {
     title: `${decodedCategory} 카테고리`,
-    description: `${decodedCategory} 카테고리의 모든 글`,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${decodedCategory} 카테고리 | ${siteMetadata.title}`,
+      description,
+      url,
+      type: 'website',
+      locale: 'ko_KR',
+      siteName: siteMetadata.title,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${decodedCategory} 카테고리`,
+      description,
+    },
   }
 }
 
@@ -34,8 +52,66 @@ export default async function CategoryPage({ params }: Props) {
     notFound()
   }
 
+  const categoryUrl = `${siteMetadata.siteUrl}/posts/${encodeURIComponent(decodedCategory)}`
+  const collectionLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${decodedCategory} 카테고리`,
+    description: `${decodedCategory} 카테고리의 글 ${posts.length}개`,
+    url: categoryUrl,
+    inLanguage: 'ko-KR',
+    isPartOf: {
+      '@type': 'WebSite',
+      name: siteMetadata.title,
+      url: siteMetadata.siteUrl,
+    },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: posts.length,
+      itemListElement: posts.slice(0, 20).map((post, idx) => ({
+        '@type': 'ListItem',
+        position: idx + 1,
+        url: `${siteMetadata.siteUrl}${post.slug}`,
+        name: post.title,
+      })),
+    },
+  }
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: siteMetadata.siteUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: '카테고리',
+        item: `${siteMetadata.siteUrl}/posts`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: decodedCategory,
+        item: categoryUrl,
+      },
+    ],
+  }
+
   return (
     <div className="py-8 sm:py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       {/* Category Header */}
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-4xl font-bold mb-2">{decodedCategory}</h1>

@@ -10,12 +10,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const latestPostDate =
     publishedPosts.length > 0 ? new Date(publishedPosts[0].date) : new Date()
 
-  const posts = publishedPosts.map(post => ({
-    url: `${siteMetadata.siteUrl}${post.slug}`,
-    lastModified: new Date(post.date),
-    changeFrequency: 'yearly' as const,
-    priority: 0.7,
-  }))
+  const pinnedSet = new Set(siteMetadata.pinnedPosts)
+
+  const posts = publishedPosts.map(post => {
+    const isPinned = pinnedSet.has(post.slug)
+    return {
+      url: `${siteMetadata.siteUrl}${post.slug}`,
+      lastModified: isPinned ? new Date() : new Date(post.date),
+      changeFrequency: (isPinned ? 'weekly' : 'monthly') as
+        | 'weekly'
+        | 'monthly',
+      priority: isPinned ? 0.95 : 0.7,
+    }
+  })
 
   const categories = getAllCategories()
     .filter(category => category !== 'All')

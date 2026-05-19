@@ -1,11 +1,23 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
+import WebVitalsReporter from "@/components/WebVitalsReporter";
 import { siteMetadata } from "@/lib/site-metadata";
 import "./globals.css";
+
+export const viewport: Viewport = {
+	width: "device-width",
+	initialScale: 1,
+	maximumScale: 5,
+	colorScheme: "light dark",
+	themeColor: [
+		{ media: "(prefers-color-scheme: light)", color: "#ffffff" },
+		{ media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+	],
+};
 
 export const metadata: Metadata = {
 	metadataBase: new URL(siteMetadata.siteUrl),
@@ -123,6 +135,7 @@ export default function RootLayout({
             gtag('config', 'G-GSVYLL0LV0');
           `}
 				</Script>
+				<WebVitalsReporter />
 			</body>
 		</html>
 	);

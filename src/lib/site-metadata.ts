@@ -64,7 +64,7 @@ export const siteMetadata = {
 	 * pinned posts on homepage (use post slug)
 	 * Example: ['/240101', '/230816', '/240909']
 	 */
-	pinnedPosts: ['/260418', '/260201'],
+	pinnedPosts: ['/260418', '/260201', '/250520'],
 
 	/**
 	 * metadata for About Page

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { allPosts } from 'contentlayer/generated'
-import { getAdjacentPosts } from '@/lib/post-navigation'
+import { getAdjacentPosts, getRelatedPosts } from '@/lib/post-navigation'
 import { siteMetadata } from '@/lib/site-metadata'
 import Utterances from '@/components/Utterances'
 import TableOfContents from '@/components/TableOfContents'
@@ -31,16 +31,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const keywords = post.keywords
     ? post.keywords.split(',').map((k: string) => k.trim())
     : post.categoryArray
+  const metaTitle = post.seoTitle || post.title
 
   return {
-    title: post.title,
+    title: metaTitle,
     description,
     keywords,
     alternates: {
       canonical: url,
     },
     openGraph: {
-      title: post.title,
+      title: metaTitle,
       description,
       url: url,
       type: 'article',
@@ -53,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: post.title,
+      title: metaTitle,
       description,
     },
   }
@@ -68,25 +69,34 @@ export default async function PostPage({ params }: Props) {
   }
 
   const { prev, next } = getAdjacentPosts(post.slug)
+  const relatedPosts = getRelatedPosts(post.slug, 3)
 
   const postUrl = `${siteMetadata.siteUrl}${post.slug}`
   const ogImageUrl = `${postUrl}/opengraph-image`
   const primaryCategory = post.categoryArray[0]
 
+  const siteIconUrl = `${siteMetadata.siteUrl}/icon.svg`
+
   const blogPostingLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: post.title,
+    ...(post.seoTitle ? { alternativeHeadline: post.seoTitle } : {}),
+    name: post.seoTitle || post.title,
     description: post.description || post.excerpt,
     image: [ogImageUrl],
     author: {
       '@type': 'Person',
       name: siteMetadata.author.name,
-      url: siteMetadata.siteUrl,
+      alternateName: siteMetadata.author.nickname,
+      email: siteMetadata.author.bio.email,
+      jobTitle: 'Frontend Developer',
+      url: `${siteMetadata.siteUrl}/about`,
       sameAs: [
         siteMetadata.author.social.github,
         siteMetadata.author.social.linkedIn,
       ],
+      knowsAbout: siteMetadata.author.stack,
     },
     datePublished: post.date,
     dateModified: post.date,
@@ -99,10 +109,22 @@ export default async function PostPage({ params }: Props) {
       '@type': 'Person',
       name: siteMetadata.author.name,
       url: siteMetadata.siteUrl,
+      logo: {
+        '@type': 'ImageObject',
+        url: siteIconUrl,
+      },
     },
     inLanguage: 'ko-KR',
     keywords: post.keywords || post.categoryArray.join(', '),
+    ...(typeof post.wordCount === 'number'
+      ? { wordCount: post.wordCount }
+      : {}),
     ...(primaryCategory ? { articleSection: primaryCategory } : {}),
+    isPartOf: {
+      '@type': 'Blog',
+      '@id': siteMetadata.siteUrl,
+      name: siteMetadata.title,
+    },
   }
 
   const breadcrumbLd = {
@@ -187,6 +209,36 @@ export default async function PostPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: post.body.html }}
       />
       <CodeCopyButton />
+
+      {/* Related Posts */}
+      {relatedPosts.length > 0 && (
+        <section className="mt-12 pt-8 border-t border-light-gray20 dark:border-dark-gray20">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4">
+            <span className="mr-2">📚</span>
+            함께 읽으면 좋은 글
+          </h2>
+          <div className="flex flex-col gap-4">
+            {relatedPosts.map(related => (
+              <a
+                key={related.slug}
+                href={related.slug}
+                className="block p-3 sm:p-4 border border-light-gray20 dark:border-dark-gray20 rounded-lg hover:border-light-gray40 dark:hover:border-dark-gray40 transition-colors"
+              >
+                <h3 className="text-base font-bold line-clamp-2 mb-2">
+                  {related.title}
+                </h3>
+                <p className="text-xs text-light-gray60 dark:text-dark-gray60 mb-2">
+                  {new Date(related.date).toLocaleDateString('ko-KR')} ·{' '}
+                  {related.readingTime}
+                </p>
+                <p className="text-sm text-light-gray80 dark:text-dark-gray80 line-clamp-2">
+                  {related.excerpt}
+                </p>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Post Navigation */}
       <nav className="flex justify-between items-center py-8 border-t border-light-gray20 dark:border-dark-gray20">

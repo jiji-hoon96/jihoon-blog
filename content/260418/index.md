@@ -1,10 +1,11 @@
 ---
 emoji: 🧩
 title: "도메인 모델"
+seoTitle: "프론트엔드 도메인 모델 설계 가이드 — DDD 적용기"
 date: "2026-04-18"
 categories: 프론트엔드 아키텍처 DDD
-description: "프론트엔드 관점에서 도메인, 도메인 모델, 도메인 오브젝트의 개념을 정리한다. 세금 도메인 예시를 통해 프론트엔드에서 도메인 로직을 분리하고 설계하는 방법을 알아보자."
-keywords: "도메인 모델, 도메인 주도 설계, DDD 프론트엔드, 도메인 오브젝트, 프론트엔드 아키텍처, 도메인 로직 분리, React 설계 패턴"
+description: "프론트엔드 관점에서 도메인, 도메인 모델, 도메인 오브젝트의 개념을 정리하고, Entity와 Value Object, 빈약한 도메인 모델, ViewModel 분리까지 다룬다. 종합소득세 도메인 예시로 React에서 도메인 로직을 분리하는 실전 방법을 알아보자."
+keywords: "프론트엔드 도메인 모델, 도메인 주도 설계, DDD 프론트엔드, Frontend DDD, 도메인 오브젝트, Entity Value Object, Anemic Domain Model, 빈약한 도메인 모델, Clean Architecture 프론트엔드, Eric Evans, Martin Fowler, 도메인 로직 분리, React 설계 패턴, 프론트엔드 아키텍처, ViewModel 분리, Bounded Context"
 ---
 
 이번 포스팅에서는 **도메인(Domain)**, **도메인 모델(Domain Model)**, **도메인 오브젝트 모델(Domain Object Model)**, **도메인 오브젝트(Domain Object)** 에 대한 이야기를 해보려고 한다.
