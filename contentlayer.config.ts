@@ -19,6 +19,7 @@ export const Post = defineDocumentType(() => ({
     draft: { type: 'boolean', required: false },
     description: { type: 'string', required: false },
     keywords: { type: 'string', required: false },
+    seoTitle: { type: 'string', required: false },
   },
   computedFields: {
     slug: {
@@ -36,6 +37,10 @@ export const Post = defineDocumentType(() => ({
     readingTime: {
       type: 'string',
       resolve: (doc) => readingTime(doc.body.raw).text,
+    },
+    wordCount: {
+      type: 'number',
+      resolve: (doc) => readingTime(doc.body.raw).words,
     },
     excerpt: {
       type: 'string',
