@@ -61,7 +61,7 @@
 }
 
 .prose ol {
-  @apply list-none mb-4 pl-6;
+  @apply list-none mb-4 pl-0;
   counter-reset: ol-counter;
 }
 
@@ -69,41 +69,95 @@
   @apply text-sm sm:text-base leading-7;
 }
 
+/* Ordered list — editorial step style:
+   muted large number + thin left accent bar, generous spacing.
+   Dark mode written explicitly to avoid the @apply dark:* on ::before bug. */
 .prose ol > li {
-  @apply relative pl-8 py-1.5;
+  position: relative;
   counter-increment: ol-counter;
+  padding-left: 2.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.prose ol > li:last-child {
+  margin-bottom: 0;
 }
 
 .prose ol > li::before {
-  content: counter(ol-counter);
-  @apply absolute left-0 top-2 w-5 h-5 rounded-full bg-light-black100 dark:bg-dark-black100 text-light-white100 dark:text-dark-white100 font-semibold flex items-center justify-center;
-  font-size: 11px;
+  content: counter(ol-counter) ".";
+  position: absolute;
+  left: 0.75rem;
+  top: 0;
+  font-size: 1rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  color: var(--color-light-black100);
+  font-variant-numeric: tabular-nums;
 }
 
-.prose ol > li:not(:last-child)::after {
+.dark .prose ol > li::before {
+  color: var(--color-dark-black100);
+}
+
+.prose ol > li::after {
   content: '';
-  @apply absolute top-8 bg-light-gray40 dark:bg-dark-gray60;
-  left: 9px;
-  bottom: -6px;
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  bottom: 0.5rem;
   width: 2px;
+  border-radius: 9999px;
+  background-color: var(--color-light-black100);
 }
 
+.dark .prose ol > li::after {
+  background-color: var(--color-dark-black100);
+}
+
+/* Unordered list — small dot, white in dark mode.
+   Use explicit selector for dark to bypass @apply variant on ::before. */
 .prose ul > li {
   @apply relative pl-4;
 }
 
 .prose ul > li::before {
   content: '';
-  @apply absolute rounded-full bg-light-black100 dark:bg-dark-black100;
+  position: absolute;
+  border-radius: 9999px;
+  background-color: var(--color-light-black100);
   left: 2px;
   top: 11px;
   width: 6px;
   height: 6px;
 }
 
+.dark .prose ul > li::before {
+  background-color: var(--color-light-white100);
+}
+
 .prose li > ul,
 .prose li > ol {
   @apply mt-2 ml-2;
+}
+
+/* Nested ol inside ol: smaller, even more muted, no accent bar to avoid noise */
+.prose ol ol > li {
+  padding-left: 2.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose ol ol > li::before {
+  font-size: 0.875rem;
+  color: var(--color-light-black100);
+  left: 0.5rem;
+}
+
+.dark .prose ol ol > li::before {
+  color: var(--color-dark-black100);
+}
+
+.prose ol ol > li::after {
+  display: none;
 }
 
 /* Blockquotes */
