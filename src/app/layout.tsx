@@ -87,6 +87,14 @@ export default function RootLayout({
 	return (
 		<html lang="ko" suppressHydrationWarning>
 			<head>
+				{/* One-time kill switch: unregister stale Gatsby/old service worker that's
+				    intercepting requests with cached Next 14/React 18 chunks. Runs first so
+				    it can reload before the broken bundle executes. No-op once cleaned. */}
+				<script
+					dangerouslySetInnerHTML={{
+						__html: `(function(){if(!('serviceWorker' in navigator))return;navigator.serviceWorker.getRegistrations().then(function(rs){if(!rs.length)return;Promise.all(rs.map(function(r){return r.unregister()})).then(function(){if(!('caches' in window))return window.location.reload();caches.keys().then(function(ks){Promise.all(ks.map(function(k){return caches.delete(k)})).then(function(){window.location.reload()})})})})})();`,
+					}}
+				/>
 				{/* Font preloading */}
 				<link
 					rel="preload"
