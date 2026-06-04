@@ -122,7 +122,7 @@ export default function RootLayout({
 				<ThemeProvider attribute="class" defaultTheme="light">
 					<div className="flex min-h-screen flex-col">
 						<Header />
-						<main className="mx-auto w-full max-w-[1200px] px-4 flex-1">
+						<main className="mx-auto w-full max-w-[var(--width-content)] px-4 flex-1">
 							{children}
 						</main>
 						<Footer />

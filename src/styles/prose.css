@@ -1,82 +1,164 @@
-/* Prose styles for markdown content */
+/* Prose styles for markdown content
+   본문 가독성 원칙
+   - 한 줄 35~45자(약 38em) 유지로 시선 회귀 부담 최소화
+   - Pretendard 기반 본문 weight 400, 헤딩은 700~800로 대비 확보
+   - CJK 가독성을 위해 word-break: keep-all, line-height 1.8
+   - 단락 간격을 행간보다 넓혀 단락 분리를 시각화 */
+
 .prose {
-  @apply text-light-black100 dark:text-dark-black100 font-normal;
+  @apply text-light-black100 dark:text-dark-black100;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.8;
+  letter-spacing: -0.003em;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+@media (min-width: 640px) {
+  .prose {
+    font-size: 17px;
+  }
 }
 
 /* Headings */
 .prose h1 {
-  @apply text-2xl sm:text-4xl font-extrabold mb-4 sm:mb-6 mt-8 sm:mt-12;
+  @apply text-2xl sm:text-[2rem] font-extrabold mb-5 mt-12 sm:mt-16 tracking-tight;
+  line-height: 1.3;
 }
 
+/* H2 — 메인 섹션. 장식 없이 크기와 위 여백만으로 챕터 진입감을 만든다.
+   풀폭 보더나 짧은 underline 같은 ornament가 모두 사라지면서 가장 깔끔한 형태. */
 .prose h2 {
-  @apply text-xl sm:text-3xl font-extrabold mb-3 sm:mb-5 mt-7 sm:mt-10;
+  @apply text-[1.625rem] sm:text-[2rem] font-extrabold mb-6 mt-16 sm:mt-24 tracking-tight;
+  line-height: 1.25;
 }
 
+/* 두 번째 이후의 H2 앞에 자동으로 짧은 가로 구분선을 끼워 넣는다.
+   마크다운 본문에서 `---` 를 수동으로 적어주지 않아도 챕터 분기가 또렷이 표시된다. */
+.prose h2:not(:first-of-type)::before {
+  content: '';
+  display: block;
+  width: 6rem;
+  height: 2px;
+  border-radius: 9999px;
+  background-color: var(--color-light-gray40);
+  margin: 0 auto 5rem;
+}
+
+.dark .prose h2:not(:first-of-type)::before {
+  background-color: var(--color-dark-gray40);
+}
+
+/* H3 — 서브 섹션. 본문과의 위계를 분명히:
+   1) 크기 22~24px로 본문(17px)과 격차 확보
+   2) extrabold로 굵게 (본문은 400, 시각적 무게가 즉시 구분)
+   3) 색은 본문과 동일한 black100 — 톤다운하면 오히려 본문보다 약해 보인다
+   4) 좌측 3px strip을 헤딩 라인 풀하이트로 늘려 종속 섹션 마커를 강조 */
 .prose h3 {
-  @apply text-lg sm:text-2xl font-extrabold mb-3 sm:mb-4 mt-6 sm:mt-8;
+  @apply text-xl sm:text-2xl font-extrabold mb-6 mt-14 sm:mt-20 tracking-tight;
+  line-height: 1.35;
+  position: relative;
+  padding-left: 0.875rem;
+  color: var(--color-light-black100);
+}
+
+.dark .prose h3 {
+  color: var(--color-dark-black100);
+}
+
+.prose h3::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 9999px;
+  background-color: var(--color-light-black40);
+}
+
+.dark .prose h3::before {
+  background-color: var(--color-dark-black40);
 }
 
 .prose h4 {
-  @apply text-base sm:text-xl font-extrabold mb-3 sm:mb-4 mt-5 sm:mt-6;
+  @apply text-base sm:text-lg font-bold mb-3 mt-8 sm:mt-10 tracking-tight;
+  line-height: 1.45;
 }
 
 .prose h5 {
-  @apply text-sm sm:text-lg font-extrabold mb-2 sm:mb-3 mt-4 sm:mt-5;
+  @apply text-sm sm:text-base font-bold mb-2 mt-6 sm:mt-8;
 }
 
 .prose h6 {
-  @apply text-sm sm:text-base font-extrabold mb-2 sm:mb-3 mt-4 sm:mt-5;
+  @apply text-sm sm:text-base font-bold mb-2 mt-6 sm:mt-8 text-light-gray80 dark:text-dark-gray80;
 }
 
-/* 헤딩 다음 첫 번째 요소에 추가 여백 */
+/* 헤딩 직후 첫 번째 요소의 상단 여백 정리 */
 .prose h1 + *,
 .prose h2 + *,
-.prose h3 + * {
-  @apply mt-6;
+.prose h3 + *,
+.prose h4 + * {
+  margin-top: 0.75rem;
 }
 
 /* Paragraphs */
 .prose p {
-  @apply mb-4 text-sm sm:text-base leading-7;
+  margin-bottom: 1.25rem;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
 }
 
 /* Links */
 .prose a {
-  @apply text-blue-600 dark:text-blue-400 no-underline hover:text-blue-700 dark:hover:text-blue-300 transition-colors;
+  @apply text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.prose a:hover {
+  text-decoration-color: currentColor;
 }
 
 /* Strong and emphasis */
 .prose strong {
-  @apply font-bold;
+  @apply font-bold text-light-black100 dark:text-dark-black100;
 }
 
+/* CLAUDE.md 규칙: 한글 본문에서 italic 시각 효과가 약하므로 사용하지 않는다.
+   파서가 em을 생성하더라도 일반 본문처럼 보이도록 normalize한다. */
 .prose em {
-  @apply italic;
+  font-style: normal;
+  font-weight: 600;
 }
 
 /* Lists */
 .prose ul {
-  @apply list-none mb-4 space-y-2 pl-5;
+  @apply list-none mb-5 space-y-2 pl-5;
 }
 
 .prose ol {
-  @apply list-none mb-4 pl-0;
+  @apply list-none mb-5 pl-0;
   counter-reset: ol-counter;
 }
 
 .prose li {
-  @apply text-sm sm:text-base leading-7;
+  line-height: 1.8;
 }
 
 /* Ordered list — editorial step style:
-   muted large number + thin left accent bar, generous spacing.
-   Dark mode written explicitly to avoid the @apply dark:* on ::before bug. */
+   muted large number + thin left accent bar, generous spacing. */
 .prose ol > li {
   position: relative;
   counter-increment: ol-counter;
   padding-left: 2.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .prose ol > li:last-child {
@@ -89,7 +171,7 @@
   left: 0.75rem;
   top: 0;
   font-size: 1rem;
-  line-height: 1.75rem;
+  line-height: inherit;
   font-weight: 700;
   color: var(--color-light-black100);
   font-variant-numeric: tabular-nums;
@@ -107,32 +189,32 @@
   bottom: 0.5rem;
   width: 2px;
   border-radius: 9999px;
-  background-color: var(--color-light-black100);
+  background-color: var(--color-light-gray40);
 }
 
 .dark .prose ol > li::after {
-  background-color: var(--color-dark-black100);
+  background-color: var(--color-dark-gray40);
 }
 
-/* Unordered list — small dot, white in dark mode.
-   Use explicit selector for dark to bypass @apply variant on ::before. */
+/* Unordered list — smaller, softer dot to avoid visual heaviness */
 .prose ul > li {
-  @apply relative pl-4;
+  position: relative;
+  padding-left: 1.125rem;
 }
 
 .prose ul > li::before {
   content: '';
   position: absolute;
   border-radius: 9999px;
-  background-color: var(--color-light-black100);
+  background-color: var(--color-light-gray80);
   left: 2px;
-  top: 11px;
-  width: 6px;
-  height: 6px;
+  top: 0.7em;
+  width: 5px;
+  height: 5px;
 }
 
 .dark .prose ul > li::before {
-  background-color: var(--color-light-white100);
+  background-color: var(--color-dark-gray80);
 }
 
 .prose li > ul,
@@ -148,26 +230,61 @@
 
 .prose ol ol > li::before {
   font-size: 0.875rem;
-  color: var(--color-light-black100);
+  color: var(--color-light-gray80);
   left: 0.5rem;
 }
 
 .dark .prose ol ol > li::before {
-  color: var(--color-dark-black100);
+  color: var(--color-dark-gray80);
 }
 
 .prose ol ol > li::after {
   display: none;
 }
 
-/* Blockquotes */
+/* Blockquotes — 한글 italic 가독성이 떨어지므로 italic 제거하고
+   좌측 컬러 바 + 옅은 배경으로 구분한다.
+   내부 첫/마지막 요소의 마진을 제거해 위아래 시각적 공백을 없앤다. */
 .prose blockquote {
-  @apply border-l-4 border-light-gray40 dark:border-dark-gray40 pl-4 py-0 my-4 italic text-light-gray80 dark:text-dark-gray80;
+  position: relative;
+  margin: 1.5rem 0;
+  padding: 0.625rem 1.125rem;
+  border-left: 3px solid var(--color-light-gray40);
+  background-color: var(--color-light-gray10);
+  border-radius: 0 0.375rem 0.375rem 0;
+  color: var(--color-light-black60);
+  font-style: normal;
+}
+
+.dark .prose blockquote {
+  border-left-color: var(--color-dark-gray40);
+  background-color: var(--color-dark-gray10);
+  color: var(--color-dark-black60);
+}
+
+.prose blockquote p {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.prose blockquote > *:first-child {
+  margin-top: 0;
+}
+
+.prose blockquote > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Tailwind Typography가 추가하는 open-quote / close-quote 의사요소 제거.
+   원문에 따옴표가 들어 있으면 중복으로 보인다. */
+.prose blockquote p:first-of-type::before,
+.prose blockquote p:last-of-type::after {
+  content: none;
 }
 
 /* Code collapse (토글 코드 블록) */
 .prose .code-collapse {
-  @apply my-4 rounded-lg overflow-hidden border border-light-gray20 dark:border-dark-gray20;
+  @apply my-5 rounded-lg overflow-hidden border border-light-gray20 dark:border-dark-gray20;
 }
 
 .prose .code-collapse summary {
@@ -193,16 +310,46 @@
 
 /* Code blocks */
 .prose pre {
-  @apply rounded-lg p-4 overflow-x-auto my-4 bg-light-gray10 dark:bg-dark-gray10;
+  position: relative;
+  margin: 1.25rem 0;
+  padding: 1rem 1.125rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  background-color: var(--color-light-gray10);
+  border: 1px solid var(--color-light-gray20);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.dark .prose pre {
+  background-color: var(--color-dark-gray10);
+  border-color: var(--color-dark-gray20);
 }
 
 .prose .code-collapse pre {
-  @apply my-0 rounded-none border-t border-light-gray20 dark:border-dark-gray20;
+  margin: 0;
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
 }
 
+/* Inline code — 본문과 시각적 구분을 강화 */
 .prose code {
-  @apply rounded px-1.5 py-0.5 text-sm bg-light-gray10 dark:bg-dark-gray10 text-light-black100 dark:text-dark-black100;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  background-color: var(--color-light-gray10);
+  color: var(--color-light-black100);
+  border: 1px solid var(--color-light-gray20);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  word-break: break-word;
+}
+
+.dark .prose code {
+  background-color: var(--color-dark-gray10);
+  color: var(--color-dark-black100);
+  border-color: var(--color-dark-gray20);
 }
 
 /* Tailwind Typography가 추가하는 백틱 제거 */
@@ -212,7 +359,10 @@
 }
 
 .prose pre code {
-  @apply bg-transparent p-0;
+  background-color: transparent;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
 }
 
 /* rehype-pretty-code shiki theme support */
@@ -263,18 +413,28 @@
 
 /* Images */
 .prose img {
-  @apply mx-auto rounded-lg my-6 max-w-full;
+  @apply mx-auto rounded-lg my-8 max-w-full;
   max-height: 560px;
 }
 
-/* Horizontal rule */
+/* Horizontal rule — 섹션 전환 임팩트를 키운다.
+   글 안에서 `---`로 자주 쓰이므로 ‘쉼’이 시각적으로 명확해야 한다. */
 .prose hr {
-  @apply border-t border-light-gray20 dark:border-dark-gray20 my-8;
+  border: 0;
+  margin: 3rem auto;
+  width: 6rem;
+  height: 0;
+  border-top: 2px solid var(--color-light-gray40);
+  opacity: 0.9;
+}
+
+.dark .prose hr {
+  border-top-color: var(--color-dark-gray40);
 }
 
 /* Tables */
 .prose table {
-  @apply w-full border-collapse my-6;
+  @apply w-full border-collapse my-6 text-sm sm:text-base;
 }
 
 .prose thead {
@@ -300,12 +460,15 @@
 .prose h4 code,
 .prose h5 code,
 .prose h6 code {
-  @apply text-inherit;
+  font-size: 0.9em;
+  padding: 0.05rem 0.35rem;
+  vertical-align: baseline;
 }
 
 /* Autolink headers */
 .prose .anchor {
   @apply no-underline text-inherit;
+  text-decoration: none;
 }
 
 .prose .anchor:hover {
@@ -328,7 +491,7 @@
 
 /* Details/Summary (펼치기/접기) */
 .prose details {
-  @apply my-4 rounded-lg border border-light-gray20 dark:border-dark-gray20 overflow-hidden;
+  @apply my-5 rounded-lg border border-light-gray20 dark:border-dark-gray20 overflow-hidden;
 }
 
 .prose details summary {

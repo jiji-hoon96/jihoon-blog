@@ -61,18 +61,25 @@
   /* Responsive */
   --breakpoint-mobile: 768px;
 
-  /* Content max width */
-  --width-content: 720px;
+  /* Content max width — 본문 측정값(measure):
+     CJK 가독성 권장은 한 줄 40자이지만 17px 본문 + 한글에서는
+     ~50~55자(820~860px)까지는 시선 회귀가 편안하다. */
+  --width-content: 840px;
 }
 
 body {
   @apply bg-light-white100 text-light-black100;
   @apply dark:bg-dark-white100 dark:text-dark-black100;
-  @apply font-[family-name:var(--font-gmarket)] font-medium;
+  @apply font-[family-name:var(--font-gmarket)] font-normal;
   @apply transition-colors duration-200;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* Utterances comment widget */
+/* Utterances comment widget — 사이트 콘텐츠 폭과 통일 */
 .utterances-wrapper .utterances {
-  max-width: 1200px !important;
+  max-width: var(--width-content) !important;
 }

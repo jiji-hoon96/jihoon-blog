@@ -65,7 +65,7 @@ export default function Header() {
 
   return (
     <header className="border-b border-light-gray20 dark:border-dark-gray20 mb-8">
-      <nav className="mx-auto max-w-[1200px] px-4 py-4 sm:py-6">
+      <nav className="mx-auto max-w-[var(--width-content)] px-4 py-4 sm:py-6">
         <div className="flex items-center justify-between">
           <Link
             href="/"

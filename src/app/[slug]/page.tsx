@@ -174,11 +174,13 @@ export default async function PostPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       <ReadingProgress />
-      <article className="py-8 sm:py-12">
+      <article className="py-10 sm:py-16">
         {/* Post Header */}
-        <header className="mb-6 sm:mb-8">
-          <h1 className="text-xl sm:text-4xl font-bold mb-4">{post.title}</h1>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-light-gray60 dark:text-dark-gray60">
+        <header className="mb-10 sm:mb-14 pb-8 border-b border-light-gray20 dark:border-dark-gray20">
+          <h1 className="text-2xl sm:text-[2.5rem] font-extrabold mb-5 leading-tight tracking-tight break-keep">
+            {post.title}
+          </h1>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-light-gray60 dark:text-dark-gray60">
             <time dateTime={post.date}>
               {new Date(post.date).toLocaleDateString('ko-KR', {
                 year: 'numeric',
@@ -186,29 +188,29 @@ export default async function PostPage({ params }: Props) {
                 day: 'numeric',
               })}
             </time>
-            <span>·</span>
+            <span aria-hidden="true">·</span>
             <span>{post.readingTime}</span>
           </div>
-        <div className="flex flex-wrap gap-2 mt-4">
-          {post.categoryArray.map((category: string) => (
-            <a
-              key={category}
-              href={`/posts/${encodeURIComponent(category)}`}
-              className="px-3 py-1 text-sm rounded-full bg-light-gray10 dark:bg-dark-gray10 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors"
-            >
-              {category}
-            </a>
-          ))}
-        </div>
-      </header>
+          <div className="flex flex-wrap gap-2 mt-5">
+            {post.categoryArray.map((category: string) => (
+              <a
+                key={category}
+                href={`/posts/${encodeURIComponent(category)}`}
+                className="px-3 py-1 text-xs sm:text-sm rounded-full bg-light-gray10 dark:bg-dark-gray10 text-light-black60 dark:text-dark-black60 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors"
+              >
+                {category}
+              </a>
+            ))}
+          </div>
+        </header>
 
-      <TableOfContents content={post.body.html} />
+        <TableOfContents content={post.body.html} />
 
-      <div
-        className="prose sm:prose-lg dark:prose-invert max-w-none mb-12"
-        dangerouslySetInnerHTML={{ __html: post.body.html }}
-      />
-      <CodeCopyButton />
+        <div
+          className="prose dark:prose-invert max-w-none mb-16"
+          dangerouslySetInnerHTML={{ __html: post.body.html }}
+        />
+        <CodeCopyButton />
 
       {/* Related Posts */}
       {relatedPosts.length > 0 && (
