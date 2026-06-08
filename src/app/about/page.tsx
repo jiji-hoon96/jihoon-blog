@@ -78,22 +78,11 @@ export default function AboutPage() {
       {/* Profile Section */}
       <section className="mb-10 sm:mb-14">
         <div className="flex flex-col sm:flex-row gap-6 sm:gap-10">
-          {/* Profile Image */}
-          <div className="flex-shrink-0 order-first w-full sm:w-auto border border-light-gray20 dark:border-dark-gray20 rounded-xl">
-            <Image
-              src="/images/jihoon.jpeg"
-              alt={siteMetadata.author.name}
-              width={300}
-              height={400}
-              className="rounded-xl object-cover w-full h-64 sm:w-56 sm:h-72"
-              priority
-            />
-          </div>
 
           {/* Profile Info */}
           <div className="flex-1 flex flex-col justify-center">
             <h1 className="text-2xl sm:text-4xl font-bold mb-6">
-              {siteMetadata.author.name}
+              {`안녕하세요 ${siteMetadata.author.name}입니다.`}
             </h1>
 
             {/* Contact Info */}
@@ -183,105 +172,6 @@ export default function AboutPage() {
               </a>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Career Section */}
-      <section className="mb-10 sm:mb-14">
-        <div className="flex items-center gap-2 mb-5">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-          </svg>
-          <h2 className="text-xl sm:text-2xl font-bold">Career</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {siteMetadata.timestamps
-            .filter((item) => item.category === "Career")
-            .map((item, index) => (
-              <div
-                key={index}
-                className="p-5 border border-light-gray20 dark:border-dark-gray20 rounded-xl"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 className="font-bold text-base sm:text-lg">
-                      {item.kr}
-                    </h3>
-                    <p className="text-sm text-light-gray60 dark:text-dark-gray60">
-                      {item.en}
-                    </p>
-                  </div>
-                  {item.date.includes("NOW") && (
-                    <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-light-black100 dark:bg-dark-black100 text-light-white100 dark:text-dark-white100">
-                      현재
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-light-gray80 dark:text-dark-gray80 mb-2">
-                  {item.info}
-                </p>
-                <p className="text-xs text-light-gray60 dark:text-dark-gray60">
-                  {item.date}
-                </p>
-              </div>
-            ))}
-        </div>
-      </section>
-
-      {/* Activity Section */}
-      <section>
-        <div className="flex items-center gap-2 mb-5">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-          <h2 className="text-xl sm:text-2xl font-bold">Activity</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {siteMetadata.timestamps
-            .filter((item) => item.category === "Activity")
-            .map((item, index) => (
-              <div
-                key={index}
-                className="p-5 border border-light-gray20 dark:border-dark-gray20 rounded-xl"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="font-bold text-base">{item.kr}</h3>
-                  {item.date.includes("NOW") && (
-                    <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-light-black100 dark:bg-dark-black100 text-light-white100 dark:text-dark-white100">
-                      현재
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-light-gray80 dark:text-dark-gray80 mb-2">
-                  {item.info}
-                </p>
-                <p className="text-xs text-light-gray60 dark:text-dark-gray60">
-                  {item.date}
-                </p>
-              </div>
-            ))}
         </div>
       </section>
     </div>
