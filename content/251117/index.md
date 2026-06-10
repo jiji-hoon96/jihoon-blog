@@ -665,14 +665,14 @@ export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 ## 참고 자료
 
 :::ref
-- [docs] [React — Error Boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
+- [docs] [React, Error Boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
 - [repo] [react-error-boundary](https://github.com/bvaughn/react-error-boundary)
-- [docs] [TanStack Query — Suspense](https://tanstack.com/query/latest/docs/framework/react/guides/suspense)
-- [docs] [TanStack Query — QueryErrorResetBoundary](https://tanstack.com/query/latest/docs/framework/react/reference/QueryErrorResetBoundary)
-- [docs] [TanStack Query — Important Defaults](https://tanstack.com/query/v5/docs/framework/react/guides/important-defaults)
-- [article] [TkDodo — React Query Error Handling](https://tkdodo.eu/blog/react-query-error-handling)
-- [article] [TkDodo — Breaking React Query's API on Purpose](https://tkdodo.eu/blog/breaking-react-querys-api-on-purpose)
+- [docs] [TanStack Query, Suspense](https://tanstack.com/query/latest/docs/framework/react/guides/suspense)
+- [docs] [TanStack Query, QueryErrorResetBoundary](https://tanstack.com/query/latest/docs/framework/react/reference/QueryErrorResetBoundary)
+- [docs] [TanStack Query, Important Defaults](https://tanstack.com/query/v5/docs/framework/react/guides/important-defaults)
+- [article] [TkDodo, React Query Error Handling](https://tkdodo.eu/blog/react-query-error-handling)
+- [article] [TkDodo, Breaking React Query's API on Purpose](https://tkdodo.eu/blog/breaking-react-querys-api-on-purpose)
 - [docs] [Toss Suspensive](https://suspensive.org/)
-- [repo] [toss/suspensive — @suspensive/react-query](https://github.com/toss/suspensive)
-- [docs] [React Router — Error Boundaries](https://reactrouter.com/how-to/error-boundary)
+- [repo] [toss/suspensive, @suspensive/react-query](https://github.com/toss/suspensive)
+- [docs] [React Router, Error Boundaries](https://reactrouter.com/how-to/error-boundary)
 :::

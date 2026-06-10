@@ -271,12 +271,12 @@ return children;
 ### 참고 자료
 
 :::ref
-- [docs] [React — Choosing the State Structure](https://react.dev/learn/choosing-the-state-structure)
-- [docs] [React — You Probably Don't Need Derived State](https://legacy.reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html)
-- [docs] [TanStack Query — Does This Replace Redux?](https://tanstack.com/query/latest/docs/framework/react/guides/does-this-replace-client-state)
-- [docs] [TanStack Router — RBAC 가이드](https://tanstack.com/router/v1/docs/framework/react/how-to/setup-rbac)
-- [docs] [nuqs — Type-safe search params](https://nuqs.dev/)
+- [docs] [React, Choosing the State Structure](https://react.dev/learn/choosing-the-state-structure)
+- [docs] [React, You Probably Don't Need Derived State](https://legacy.reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html)
+- [docs] [TanStack Query, Does This Replace Redux?](https://tanstack.com/query/latest/docs/framework/react/guides/does-this-replace-client-state)
+- [docs] [TanStack Router, RBAC 가이드](https://tanstack.com/router/v1/docs/framework/react/how-to/setup-rbac)
+- [docs] [nuqs, Type-safe search params](https://nuqs.dev/)
 - [docs] [XState](https://xstate.js.org/)
-- [article] [hoseung.me — 프론트엔드 상태 관리에 대한 생각](https://blog.hoseung.me/2021-12-05-state-management)
+- [article] [hoseung.me, 프론트엔드 상태 관리에 대한 생각](https://blog.hoseung.me/2021-12-05-state-management)
 - [article] [Top 5 React State Management Tools in 2026](https://www.syncfusion.com/blogs/post/react-state-management-libraries)
 :::
