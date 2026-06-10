@@ -224,13 +224,14 @@ Open AI의 권위자인 [Andrej Karpathy](https://thenewstack.io/vibe-coding-is-
 
 ## 참고 자료
 
-- [2026 AI Coding Trends](https://beyond.addy.ie/2026-trends/)
-- [Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
-- [Product Engineers](https://leerob.com/product-engineers)
-- [배휘동님 프론트엔드 엔지니어 커리어 로드맵: 주니어를 위한 3가지 전문성 트랙 (LinkedIn)](https://kr.linkedin.com/posts/hwidongbae_%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C-%EC%97%94%EC%A7%80%EB%8B%88%EC%96%B4-%EC%BB%A4%EB%A6%AC%EC%96%B4-%EB%A1%9C%EB%93%9C%EB%A7%B5-%EC%A3%BC%EB%8B%88%EC%96%B4%EB%A5%BC-%EC%9C%84%ED%95%9C-3%EA%B0%80%EC%A7%80-%EC%A0%84%EB%AC%B8%EC%84%B1-%ED%8A%B8%EB%9E%99-activity-7013888624140189696-XiIz)
-- [토스) 개발자는 AI에게 대체될 것인가](https://toss.tech/article/will-ai-replace-developers)
-- [토스) 프론트엔드 개발자들이 더 이상 문서를 찾지 않는 이유](https://toss.tech/article/toss-frontend-ai-docs)
-- [토스) AI 시대, 디자이너를 없앴더니 생긴 일](https://toss.tech/article/removing_designers_in_ai_era)
-- [우아한형제들) AI가 코드 짜는 시대, 그래도 개발자가 되시겠습니까?](https://techblog.woowahan.com/22828/)
-- [yceffort님 AI가 코드를 짜는 시대, 프론트엔드 엔지니어링은 어디로 가는가](https://yceffort.kr/2026/02/frontend-engineering-in-ai-era)
-- [Evan Moon님 AI 코딩 시대, 더이상 성장하지 않는 개발자들](https://evan-moon.github.io/2026/04/18/developers-who-stopped-growing-in-ai-era/)
+:::ref
+- [article] [2026 AI Coding Trends — Addy Osmani](https://beyond.addy.ie/2026-trends/)
+- [article] [Effective context engineering for AI agents — Anthropic](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
+- [article] [Product Engineers — Lee Robinson](https://leerob.com/product-engineers)
+- [article] [토스 — 개발자는 AI에게 대체될 것인가](https://toss.tech/article/will-ai-replace-developers)
+- [article] [토스 — 프론트엔드 개발자들이 더 이상 문서를 찾지 않는 이유](https://toss.tech/article/toss-frontend-ai-docs)
+- [article] [토스 — AI 시대, 디자이너를 없앴더니 생긴 일](https://toss.tech/article/removing_designers_in_ai_era)
+- [article] [우아한형제들 — AI가 코드 짜는 시대, 그래도 개발자가 되시겠습니까?](https://techblog.woowahan.com/22828/)
+- [article] [yceffort — AI가 코드를 짜는 시대, 프론트엔드 엔지니어링은 어디로 가는가](https://yceffort.kr/2026/02/frontend-engineering-in-ai-era)
+- [article] [Evan Moon — AI 코딩 시대, 더이상 성장하지 않는 개발자들](https://evan-moon.github.io/2026/04/18/developers-who-stopped-growing-in-ai-era/)
+:::

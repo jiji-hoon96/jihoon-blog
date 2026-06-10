@@ -675,9 +675,12 @@ src/
 
 ### 참고 자료
 
-- [Eric Evans - Domain-Driven Design: Tackling Complexity in the Heart of Software](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215)
-- [Robert C. Martin - Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-- [Code with Jason - Domains, Domain Models, Object Models, Domain Objects](https://www.codewithjason.com/difference-domains-domain-models-object-models-domain-objects/)
-- [Khalil Stemmler - Does DDD Belong on the Frontend?](https://khalilstemmler.com/articles/typescript-domain-driven-design/ddd-frontend/)
-- [Alex Bespoyasov - Clean Architecture on Frontend](https://bespoyasov.me/blog/clean-architecture-on-frontend/)
-- [토스인컴 빠른 속도에서 품질을 지키기 위한 E2E 자동화 여정](https://toss.tech/article/income-qa-e2e-automation)
+:::ref
+- [article] [Eric Evans — Domain-Driven Design (Book)](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215)
+- [article] [Robert C. Martin — Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+- [article] [Code with Jason — Domains, Domain Models, Domain Objects](https://www.codewithjason.com/difference-domains-domain-models-object-models-domain-objects/)
+- [article] [Khalil Stemmler — Does DDD Belong on the Frontend?](https://khalilstemmler.com/articles/typescript-domain-driven-design/ddd-frontend/)
+- [article] [Alex Bespoyasov — Clean Architecture on Frontend](https://bespoyasov.me/blog/clean-architecture-on-frontend/)
+- [article] [토스 — E2E 자동화 여정](https://toss.tech/article/income-qa-e2e-automation)
+- [docs] [Toss Frontend Fundamentals](https://frontend-fundamentals.com/)
+:::

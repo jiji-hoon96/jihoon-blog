@@ -432,8 +432,10 @@ v4에서 v5로 마이그레이션할 때는 먼저 v4 최신 버전으로 업데
 
 ### 참고자료
 
-- [Zustand GitHub](https://github.com/pmndrs/zustand/tree/main/src)
-- [React useSyncExternalStore 문서](https://react.dev/reference/react/useSyncExternalStore)
-- [Zustand and React Context - TkDodo](https://tkdodo.eu/blog/zustand-and-react-context)
-- [Jotai Comparison 문서](https://jotai.org/docs/basics/comparison)
-- [Concurrent React, External Stores, and Tearing - InterBolt](https://interbolt.org/blog/react-ui-tearing/)
+:::ref
+- [repo] [pmndrs/zustand — 소스코드](https://github.com/pmndrs/zustand/tree/main/src)
+- [docs] [React — useSyncExternalStore](https://react.dev/reference/react/useSyncExternalStore)
+- [article] [TkDodo — Zustand and React Context](https://tkdodo.eu/blog/zustand-and-react-context)
+- [docs] [Jotai — Comparison](https://jotai.org/docs/basics/comparison)
+- [article] [InterBolt — Concurrent React, External Stores, and Tearing](https://interbolt.org/blog/react-ui-tearing/)
+:::

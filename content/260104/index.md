@@ -580,9 +580,18 @@ queryOptions({
 
 ## 참고 자료
 
-- TanStack Query 공식 문서 — [Query Keys](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys), [Query Options](https://tanstack.com/query/v5/docs/framework/react/guides/query-options), [queryOptions reference](https://tanstack.com/query/v5/docs/framework/react/reference/queryOptions), [Query Invalidation](https://tanstack.com/query/v5/docs/framework/react/guides/query-invalidation), [TypeScript](https://tanstack.com/query/v5/docs/framework/react/typescript)
-- TanStack Query 소스 — [`queryCache.ts`](https://github.com/TanStack/query/blob/main/packages/query-core/src/queryCache.ts), [`utils.ts` (`hashKey`/`isPlainObject`/`partialMatchKey`)](https://github.com/TanStack/query/blob/main/packages/query-core/src/utils.ts), [Issue #1343 — `setQueryData`와 `queryKeyHashFn`](https://github.com/TanStack/query/issues/1343)
-- TkDodo — [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys), [The Query Options API](https://tkdodo.eu/blog/the-query-options-api), [Inside React Query](https://tkdodo.eu/blog/inside-react-query), [Leveraging the Query Function Context](https://tkdodo.eu/blog/leveraging-the-query-function-context)
-- TanStack — [Announcing TanStack Query v5](https://tanstack.com/blog/announcing-tanstack-query-v5)
-- Luke Morales — [@lukemorales/query-key-factory](https://github.com/lukemorales/query-key-factory)
-- Tsuboi — [Uncovering the unique symbol Behind DataTag](https://zenn.dev/tsuboi/articles/tanstack-query-options-unique-symbol?locale=en)
+:::ref
+- [docs] [TanStack Query — Query Keys](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)
+- [docs] [TanStack Query — Query Options](https://tanstack.com/query/v5/docs/framework/react/guides/query-options)
+- [docs] [TanStack Query — Query Invalidation](https://tanstack.com/query/v5/docs/framework/react/guides/query-invalidation)
+- [docs] [TanStack Query — TypeScript](https://tanstack.com/query/v5/docs/framework/react/typescript)
+- [repo] [TanStack Query 소스 — queryCache.ts](https://github.com/TanStack/query/blob/main/packages/query-core/src/queryCache.ts)
+- [repo] [TanStack Query 소스 — utils.ts (hashKey)](https://github.com/TanStack/query/blob/main/packages/query-core/src/utils.ts)
+- [article] [TkDodo — Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys)
+- [article] [TkDodo — The Query Options API](https://tkdodo.eu/blog/the-query-options-api)
+- [article] [TkDodo — Inside React Query](https://tkdodo.eu/blog/inside-react-query)
+- [article] [TkDodo — Leveraging the Query Function Context](https://tkdodo.eu/blog/leveraging-the-query-function-context)
+- [article] [TanStack — Announcing TanStack Query v5](https://tanstack.com/blog/announcing-tanstack-query-v5)
+- [repo] [lukemorales/query-key-factory](https://github.com/lukemorales/query-key-factory)
+- [article] [Tsuboi — Uncovering the unique symbol Behind DataTag](https://zenn.dev/tsuboi/articles/tanstack-query-options-unique-symbol?locale=en)
+:::

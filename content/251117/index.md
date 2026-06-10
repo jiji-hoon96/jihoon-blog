@@ -664,9 +664,15 @@ export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 
 ## 참고 자료
 
-- Component (Error Boundaries)](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
-- [react-error-boundary GitHub](https://github.com/bvaughn/react-error-boundary)
-- TanStack Query 공식 문서 [Suspense](https://tanstack.com/query/latest/docs/framework/react/guides/suspense), [Mutations](https://tanstack.com/query/latest/docs/framework/react/guides/mutations), [QueryErrorResetBoundary](https://tanstack.com/query/latest/docs/framework/react/reference/QueryErrorResetBoundary), [useQueryErrorResetBoundary](https://tanstack.com/query/v5/docs/framework/react/reference/useQueryErrorResetBoundary), [Important Defaults](https://tanstack.com/query/v5/docs/framework/react/guides/important-defaults)
-- TkDodo [React Query Error Handling](https://tkdodo.eu/blog/react-query-error-handling), [Breaking React Query's API on Purpose](https://tkdodo.eu/blog/breaking-react-querys-api-on-purpose)
-- Toss [Suspensive](https://suspensive.org/), [@suspensive/react-query (QueryAsyncBoundary)](https://github.com/toss/suspensive)
-- React Router [Error Boundaries (status-aware fallback)](https://reactrouter.com/how-to/error-boundary)
+:::ref
+- [docs] [React — Error Boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
+- [repo] [react-error-boundary](https://github.com/bvaughn/react-error-boundary)
+- [docs] [TanStack Query — Suspense](https://tanstack.com/query/latest/docs/framework/react/guides/suspense)
+- [docs] [TanStack Query — QueryErrorResetBoundary](https://tanstack.com/query/latest/docs/framework/react/reference/QueryErrorResetBoundary)
+- [docs] [TanStack Query — Important Defaults](https://tanstack.com/query/v5/docs/framework/react/guides/important-defaults)
+- [article] [TkDodo — React Query Error Handling](https://tkdodo.eu/blog/react-query-error-handling)
+- [article] [TkDodo — Breaking React Query's API on Purpose](https://tkdodo.eu/blog/breaking-react-querys-api-on-purpose)
+- [docs] [Toss Suspensive](https://suspensive.org/)
+- [repo] [toss/suspensive — @suspensive/react-query](https://github.com/toss/suspensive)
+- [docs] [React Router — Error Boundaries](https://reactrouter.com/how-to/error-boundary)
+:::
