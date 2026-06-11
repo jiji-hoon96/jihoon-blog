@@ -2,11 +2,29 @@ import Link from 'next/link'
 import { allPosts } from 'contentlayer/generated'
 import { getAllCategories } from '@/lib/categories'
 import { getSortedPublishedPosts } from '@/lib/filter-posts'
+import { siteMetadata } from '@/lib/site-metadata'
 import type { Metadata } from 'next'
+
+const allPostsUrl = `${siteMetadata.siteUrl}/posts`
+const allPostsDescription = `${siteMetadata.author.name}(${siteMetadata.author.nickname})의 모든 기술 블로그 글 모음. React, TypeScript, Next.js 등 프론트엔드 개발 기록과 학습 노트를 한곳에서 봅니다.`
 
 export const metadata: Metadata = {
   title: '모든 글',
-  description: '모든 블로그 포스트',
+  description: allPostsDescription,
+  alternates: { canonical: allPostsUrl },
+  openGraph: {
+    title: `모든 글 | ${siteMetadata.title}`,
+    description: allPostsDescription,
+    url: allPostsUrl,
+    type: 'website',
+    locale: 'ko_KR',
+    siteName: siteMetadata.title,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '모든 글',
+    description: allPostsDescription,
+  },
 }
 
 export default function AllPostsPage() {

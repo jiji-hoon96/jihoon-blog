@@ -22,6 +22,9 @@
 # contentlayer (generated build output)
 .contentlayer/
 
+# GSC 수집 데이터 (비공개 검색 분석 데이터)
+.gsc-data/
+
 # production
 /build
 

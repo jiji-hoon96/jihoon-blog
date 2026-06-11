@@ -11,6 +11,7 @@ import { imageSize } from 'image-size'
  *  - 첫 이미지에 fetchpriority="high" (LCP 부스트), 이후는 loading="lazy"
  *  - 모든 이미지 decoding="async"
  *  - 비디오에 preload="metadata", playsInline 주입 (대역폭 절감 + LCP)
+ *  - alt 텍스트 누락 시 빌드 경고 (이미지 SEO + 접근성)
  */
 export function rehypeImagePath() {
   return (tree: Root, file: any) => {
@@ -48,6 +49,15 @@ export function rehypeImagePath() {
     visit(tree, 'element', (node: any) => {
       if (node.tagName === 'img' && node.properties?.src) {
         const rawSrc = node.properties.src as string
+
+        // alt 텍스트 누락 검증 (이미지 SEO + 접근성)
+        // 빌드를 막지 않고 작성자에게 누락 이미지를 알린다.
+        const alt = node.properties.alt
+        if (alt === undefined || alt === null || String(alt).trim() === '') {
+          console.warn(
+            `[rehype-image-path] 이미지 alt 텍스트 누락 (${folderName}): ${rawSrc} — 검색엔진/접근성을 위해 ![설명](${rawSrc}) 형식으로 alt를 작성하세요.`,
+          )
+        }
 
         let resolvedSrc = rawSrc
         if (
