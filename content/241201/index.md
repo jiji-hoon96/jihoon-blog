@@ -1,6 +1,7 @@
 ---
 emoji: 🔧
 title: 'Biome이 ESLint와 Prettier를 대체할 수 있을까?'
+seoTitle: 'Biome vs ESLint vs Prettier — Rust 기반 올인원 툴체인 성능 비교와 마이그레이션'
 date: '2024-12-01'
 categories: 프론트엔드 자바스크립트
 description: "Biome의 린팅과 포매팅 성능을 ESLint, Prettier와 비교한다. Rust 기반 올인원 툴체인의 실무 도입 경험과 마이그레이션 가이드를 정리했다."

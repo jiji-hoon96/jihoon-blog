@@ -1,6 +1,7 @@
 ---
 emoji: 🤯
 title: 'Zustand, 너 뭔데 ProviderLess 인 거야?'
+seoTitle: 'Zustand는 왜 Provider가 없을까 — useSyncExternalStore 기반 동작 원리 분석'
 date: '2024-08-18'
 categories: 프론트엔드 React
 description: "Zustand가 Provider 없이 상태관리를 해내는 원리를 소스코드 분석을 통해 파헤친다. React Context API와의 차이점과 모듈 스코프 기반 설계를 알아보자."

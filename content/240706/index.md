@@ -1,6 +1,7 @@
 ---
 emoji: 🗜️
 title: "압축 알고리즘에 대해 알아보자"
+seoTitle: "압축 알고리즘 비교 — GZIP, Zstandard, Brotli와 LZ77 원리 정리"
 date: "2024-07-06"
 categories: 소박한궁금증 소프트웨어
 description: "ZIP, GZIP, ZSTD, Brotli 등 주요 압축 알고리즘의 원리와 성능을 비교한다. LZ77부터 현대 알고리즘까지, 빌드 결과물 압축에 최적인 선택은 무엇일까?"
