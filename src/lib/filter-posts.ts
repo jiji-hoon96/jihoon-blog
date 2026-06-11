@@ -1,14 +1,27 @@
 import { Post } from 'contentlayer/generated'
 
 /**
- * draft가 아닌 공개된 게시글만 필터링합니다.
- * draft: true인 글은 제외됩니다.
- * 
+ * 비공개(숨김) 글 여부를 판별합니다.
+ * 비공개 조건:
+ *  - draft: true 이거나
+ *  - categories 에 'ignore' 가 포함된 경우 (이 블로그의 비공개 규칙)
+ *
+ * @param post - 판별할 게시글
+ * @returns 비공개면 true
+ */
+export function isHiddenPost(post: Post): boolean {
+  if (post.draft) return true
+  return post.categories.split(/\s+/).some(c => c.includes('ignore'))
+}
+
+/**
+ * draft가 아니고 ignore 처리되지 않은 공개 게시글만 필터링합니다.
+ *
  * @param posts - 필터링할 게시글 배열
- * @returns draft가 아닌 게시글 배열
+ * @returns 공개된 게시글 배열
  */
 export function filterPublishedPosts(posts: Post[]): Post[] {
-  return posts.filter(post => !post.draft)
+  return posts.filter(post => !isHiddenPost(post))
 }
 
 /**

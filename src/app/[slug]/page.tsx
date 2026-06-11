@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { allPosts } from 'contentlayer/generated'
 import { getAdjacentPosts, getRelatedPosts } from '@/lib/post-navigation'
+import { isHiddenPost } from '@/lib/filter-posts'
 import { siteMetadata } from '@/lib/site-metadata'
 import Utterances from '@/components/Utterances'
 import TableOfContents from '@/components/TableOfContents'
@@ -13,9 +14,11 @@ type Props = {
 }
 
 export async function generateStaticParams() {
-  return allPosts.map(post => ({
-    slug: post.slug.replace('/', ''),
-  }))
+  return allPosts
+    .filter(post => !isHiddenPost(post))
+    .map(post => ({
+      slug: post.slug.replace('/', ''),
+    }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -24,6 +27,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!post) {
     return {}
+  }
+
+  // 비공개(draft/ignore) 글은 색인 차단
+  if (isHiddenPost(post)) {
+    return { robots: { index: false, follow: false } }
   }
 
   const url = `${siteMetadata.siteUrl}${post.slug}`
@@ -64,7 +72,7 @@ export default async function PostPage({ params }: Props) {
   const { slug } = await params
   const post = allPosts.find(p => p.slug === `/${slug}`)
 
-  if (!post || post.draft) {
+  if (!post || isHiddenPost(post)) {
     notFound()
   }
 

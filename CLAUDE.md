@@ -51,11 +51,20 @@
 
 프론트매터에 `description`/`keywords`가 없으면 자동 생성된 excerpt/categories로 대체되지만, 직접 작성하는 것이 SEO에 훨씬 효과적입니다.
 
+실제 운영 데이터상 `description`/`keywords`가 비면 검색 노출은 되어도 클릭이 0에 수렴하는 사례가 확인됐습니다. 발행 전 SEO 체크리스트(길이 기준, 내부 링크, 이미지 alt 등)는 `.claude/commands/write-post.md`를 참고하세요.
+
+### GSC(검색 성과) 데이터 활용
+
+- `pnpm gsc`로 Google Search Console의 최근 28일 vs 직전 28일 검색 데이터를 수집합니다. (`.gsc-data/`에 CSV 저장 + Quick Win/Cannibalization 자동 분류)
+- 사전 준비: `.env.local`에 `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `GSC_SITE_URL` 설정. (GA4와 동일 서비스 계정 재사용, 해당 계정을 GSC 속성에 사용자로 추가 필요)
+- GitHub Actions(`.github/workflows/gsc-collect.yml`)가 매주 월요일 자동 수집하며, 결과는 아티팩트 + Job Summary로 확인합니다. (동일한 3개 값을 리포 Secrets에 등록해야 동작)
+- 글의 `keywords`는 추측이 아니라 GSC에서 실제 노출되는 쿼리를 우선 반영합니다.
+
 ### 콘텐츠 구조
 
 - 블로그 포스트: `content/YYMMDD/index.md`
 - 프론트매터: emoji, title, date, categories, description, keywords 필드 사용
-- categories에 "ignore"가 포함되면 비공개 처리
+- categories에 "ignore"가 포함되면 비공개 처리됩니다. `ignore` 글은 sitemap, RSS, 글 목록, 검색, 개별 페이지(404), llms.txt에서 완전히 제외되고 `noindex`가 적용됩니다. (판별 로직: `src/lib/filter-posts.ts`의 `isHiddenPost`) 발행 시 `ignore`를 실제 카테고리로 교체합니다.
 
 ### 커스텀 명령어
 

@@ -1,6 +1,7 @@
 import { Feed } from 'feed'
 import { allPosts } from 'contentlayer/generated'
 import { siteMetadata } from '@/lib/site-metadata'
+import { getSortedPublishedPosts } from '@/lib/filter-posts'
 
 export async function GET() {
   const feedUrl = `${siteMetadata.siteUrl}/rss.xml`
@@ -23,9 +24,7 @@ export async function GET() {
     },
   })
 
-  const sortedPosts = allPosts.sort((a, b) =>
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  )
+  const sortedPosts = getSortedPublishedPosts(allPosts)
 
   sortedPosts.forEach(post => {
     // Encode Korean characters in URL

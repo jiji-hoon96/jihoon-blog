@@ -1,0 +1,73 @@
+name: Collect GSC Data
+
+# Google Search Console 검색 성과 데이터를 주기적으로 수집한다.
+# - 매주 월요일 오전 9시(KST, = UTC 00:00)에 자동 실행
+# - 수동 실행도 가능 (Actions 탭 > Run workflow)
+#
+# 수집한 데이터(.gsc-data/*.csv)는 비공개 검색 데이터이므로
+# 리포지토리에 커밋하지 않고 Actions 아티팩트로만 업로드한다.
+# Quick Win / Cannibalization 분석 요약은 Job Summary에 출력된다.
+#
+# 필요한 Secrets (Settings > Secrets and variables > Actions):
+#   GOOGLE_SERVICE_ACCOUNT_EMAIL  - GA4/GSC 서비스 계정 이메일
+#   GOOGLE_PRIVATE_KEY            - 서비스 계정 private key (\n 포함 원문 그대로)
+#   GSC_SITE_URL                  - https://hooninedev.com (또는 sc-domain:hooninedev.com)
+
+on:
+  schedule:
+    # UTC 기준. 매주 월요일 00:00 UTC = 한국시간 월요일 09:00
+    - cron: '0 0 * * 1'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Fetch GSC data
+        env:
+          GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
+          GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+          GSC_SITE_URL: ${{ secrets.GSC_SITE_URL }}
+        run: |
+          # 콘솔 출력을 캡처해 Job Summary로도 남긴다.
+          pnpm gsc | tee gsc-output.txt
+
+      - name: Write job summary
+        if: always()
+        run: |
+          {
+            echo '## 📊 GSC 수집 결과'
+            echo ''
+            echo '```'
+            cat gsc-output.txt 2>/dev/null || echo '(출력 없음)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload CSV artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gsc-data-${{ github.run_id }}
+          path: .gsc-data/
+          retention-days: 90
+          if-no-files-found: warn
