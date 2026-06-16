@@ -59,14 +59,30 @@ export function rehypeImagePath() {
           )
         }
 
-        let resolvedSrc = rawSrc
+        // 작성자 쿼리 파싱: ?w=400 으로 개별 이미지 가로폭 캡
+        let srcWithoutQuery = rawSrc
+        let widthCap: number | null = null
+        const queryIdx = rawSrc.indexOf('?')
+        if (queryIdx !== -1) {
+          srcWithoutQuery = rawSrc.slice(0, queryIdx)
+          const params = new URLSearchParams(rawSrc.slice(queryIdx + 1))
+          const w = params.get('w') ?? params.get('width')
+          if (w && /^\d+$/.test(w)) widthCap = parseInt(w, 10)
+        }
+
+        let resolvedSrc = srcWithoutQuery
         if (
-          !rawSrc.startsWith('http') &&
-          !rawSrc.startsWith('https') &&
-          !rawSrc.startsWith('/')
+          !srcWithoutQuery.startsWith('http') &&
+          !srcWithoutQuery.startsWith('https') &&
+          !srcWithoutQuery.startsWith('/')
         ) {
-          resolvedSrc = `/content/${folderName}/${rawSrc}`
-          node.properties.src = resolvedSrc
+          resolvedSrc = `/content/${folderName}/${srcWithoutQuery}`
+        }
+        node.properties.src = resolvedSrc
+
+        if (widthCap !== null) {
+          const existing = (node.properties.style as string | undefined) ?? ''
+          node.properties.style = `${existing}${existing && !existing.endsWith(';') ? ';' : ''}max-width:${widthCap}px;`
         }
 
         // width/height 자동 주입 (CLS 방지)
