@@ -107,7 +107,7 @@ function SearchBox() {
 
 API로 받아온 데이터를 클라이언트 상태에 넣고, 직접 로딩과 에러를 boolean으로 관리하다가, **"왜 이렇게 매번 똑같은 보일러플레이트를 짜고 있지?"** 라는 의문에 도달한다.
 
-Tanstack 메인 관리자인 [Tanner Linsley](https://tanstack.com/query/latest/docs/framework/react/guides/does-this-replace-client-state)는 **"클라이언트 상태는 동기적이고 예측 가능하다. 서버 상태는 비동기적이고, 여러 컴포넌트에 걸쳐 공유되며, 캐싱·백그라운드 갱신·에러 상태를 신중히 다루어야 한다."** 라고 한다. 즉 서버 상태는 클라이언트 상태와 **본질적으로 다른 종(種)** 이다. 같은 도구로 다루면 안 된다.
+Tanstack 메인 관리자인 Tanner Linsley는 **"클라이언트 상태는 동기적이고 예측 가능하다. 서버 상태는 비동기적이고, 여러 컴포넌트에 걸쳐 공유되며, 캐싱·백그라운드 갱신·에러 상태를 신중히 다루어야 한다."** 라고 한다. 즉 서버 상태는 클라이언트 상태와 **본질적으로 다른 종(種)** 이다. 같은 도구로 다루면 안 된다.
 
 서버 상태가 까다로운 것은 도구의 문제가 아니라 **데이터의 본질** 때문이다.
 
@@ -273,10 +273,6 @@ return children;
 :::ref
 - [docs] [React, Choosing the State Structure](https://react.dev/learn/choosing-the-state-structure)
 - [docs] [React, You Probably Don't Need Derived State](https://legacy.reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html)
-- [docs] [TanStack Query, Does This Replace Redux?](https://tanstack.com/query/latest/docs/framework/react/guides/does-this-replace-client-state)
-- [docs] [TanStack Router, RBAC 가이드](https://tanstack.com/router/v1/docs/framework/react/how-to/setup-rbac)
-- [docs] [nuqs, Type-safe search params](https://nuqs.dev/)
 - [docs] [XState](https://xstate.js.org/)
-- [article] [hoseung.me, 프론트엔드 상태 관리에 대한 생각](https://blog.hoseung.me/2021-12-05-state-management)
 - [article] [Top 5 React State Management Tools in 2026](https://www.syncfusion.com/blogs/post/react-state-management-libraries)
 :::

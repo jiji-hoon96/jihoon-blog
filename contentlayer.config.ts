@@ -8,6 +8,7 @@ import readingTime from 'reading-time'
 import { rehypeImagePath } from './src/lib/rehype-image-path'
 import { remarkDetails } from './src/lib/remark-details'
 import { remarkRef } from './src/lib/remark-ref'
+import { remarkWidget } from './src/lib/remark-widget'
 
 export const Post = defineDocumentType(() => ({
   name: 'Post',
@@ -87,7 +88,7 @@ export default makeSource({
   documentTypes: [Post],
   disableImportAliasWarning: true,
   markdown: {
-    remarkPlugins: [[remarkGfm, { singleTilde: false }], remarkDirective, remarkDetails, remarkRef],
+    remarkPlugins: [[remarkGfm, { singleTilde: false }], remarkDirective, remarkDetails, remarkRef, remarkWidget],
     rehypePlugins: [
       rehypeSlug,
       [

@@ -674,3 +674,179 @@
   border-radius: 9999px;
   opacity: 0.75;
 }
+
+/* ── 인터랙티브 위젯: 토큰→임베딩 파이프라인 (TokenEmbeddingPipeline) ── */
+.prose .interactive-widget {
+  margin: 1.5rem 0;
+  padding: 16px 16px 18px;
+  background: var(--color-light-gray10, #f5f6f8);
+  border: 1px solid var(--color-light-gray20, #e5e7eb);
+  border-radius: 16px;
+  position: relative;
+}
+.dark .prose .interactive-widget {
+  background: var(--color-dark-gray10, #1c1d1f);
+  border-color: var(--color-dark-gray20, #2f3133);
+}
+/* 위젯 영역임을 알리는 라벨 */
+.prose .interactive-widget::before {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-light-black40, #6b7280);
+  background: var(--color-light-gray20, #e9eaed);
+  padding: 3px 9px;
+  border-radius: 9999px;
+  margin-bottom: 12px;
+}
+.dark .prose .interactive-widget::before {
+  color: var(--color-dark-black40, #9ca3af);
+  background: var(--color-dark-gray20, #2f3133);
+}
+.prose .tep-root {
+  font-size: 14px;
+  padding: 0 0 0.25rem !important;
+}
+.prose .tep-stage {
+  background: #ffffff;
+  border: 1px solid var(--color-light-gray20, #e5e7eb);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.dark .prose .tep-stage {
+  background: #1a1b1d;
+  border-color: var(--color-dark-gray20, #2f3133);
+}
+.prose .tep-stage-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-light-black40, #6b7280);
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+.dark .prose .tep-stage-label {
+  color: var(--color-dark-black40, #9ca3af);
+}
+.prose .tep-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--color-light-black40, #9ca3af);
+  font-size: 12px;
+  margin: 6px 0;
+}
+.dark .prose .tep-arrow {
+  color: var(--color-dark-black40, #9ca3af);
+}
+.prose .tep-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  cursor: pointer;
+  transition: transform 0.12s;
+  user-select: none;
+  margin: 0;
+}
+.prose .tep-chip:hover {
+  transform: translateY(-1px);
+}
+.prose .tep-chip.tep-active {
+  outline: 2px solid #3b82f6;
+  outline-offset: 1px;
+}
+.prose .tep-id-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 13px;
+  font-size: 12px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.prose .tep-vec {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.prose .tep-cell {
+  width: 34px;
+  height: 26px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.prose .tep-vlabel {
+  font-size: 12px;
+  color: var(--color-light-black40, #6b7280);
+  margin-bottom: 3px;
+}
+.dark .prose .tep-vlabel {
+  color: var(--color-dark-black40, #9ca3af);
+}
+.prose .tep-hint {
+  font-size: 12px;
+  color: var(--color-light-black40, #9ca3af);
+  margin-top: 6px;
+}
+.dark .prose .tep-hint {
+  color: var(--color-dark-black40, #9ca3af);
+}
+.prose .tep-dim-note {
+  font-size: 11px;
+  color: var(--color-light-black40, #9ca3af);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.dark .prose .tep-dim-note {
+  color: var(--color-dark-black40, #9ca3af);
+}
+.prose .tep-inbtn {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--color-light-gray20, #e5e7eb);
+  background: #ffffff;
+  color: var(--color-light-black60, #4b5563);
+  cursor: pointer;
+}
+.dark .prose .tep-inbtn {
+  background: #1a1b1d;
+  border-color: var(--color-dark-gray20, #2f3133);
+  color: var(--color-dark-black60, #d1d5db);
+}
+.prose .tep-inbtn.tep-inbtn-active {
+  background: #e8f1ff;
+  color: #0c447c;
+  border-color: #b5d4f4;
+}
+.dark .prose .tep-inbtn.tep-inbtn-active {
+  background: #1e3a5f;
+  color: #d4e8ff;
+  border-color: #2c5a8c;
+}
+.prose .tep-summary {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: var(--color-light-gray10, #f3f4f6);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--color-light-black60, #4b5563);
+  line-height: 1.7;
+}
+.dark .prose .tep-summary {
+  background: var(--color-dark-gray10, #232527);
+  color: var(--color-dark-black60, #d1d5db);
+}
+.prose .tep-root input[type='range'] {
+  width: 100%;
+}

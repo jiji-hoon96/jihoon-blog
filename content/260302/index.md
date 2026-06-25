@@ -141,7 +141,7 @@ AI 시대에 이들의 가치는 어떻게 바뀌었을까? 코드 짜는 속도
 
 흥미로운 변화는 이 트랙의 이름이 글로벌 표준으로 자리잡기 시작했다는 점이다. 원글에서도 이미 이 트랙을 'Product Engineer' 로 부르고 있었지만, 글을 읽었던 시점 필자에겐 다소 생소했던 표현이었다. 1년이 지난 지금은 [Vercel이 직무 기술서의 'Fullstack Engineer'를 'Product Engineer'로 일괄 변경하는 수준](https://leerob.com/product-engineers)으로 자리잡았다.
 
-[Lee Robinson](https://leerob.com/product-engineers)이 정의하는 Product Engineer의 핵심 자질로 세 가지를 꼽는다.
+Lee Robinson이 정의하는 Product Engineer의 핵심 자질로 세 가지를 꼽는다.
 
 
 - **반복(Iteration) 주의**: 배포 → 피드백 → 조정의 사이클을 빠르게 돈다.
@@ -213,7 +213,7 @@ Evan Moon 님의 글에서 짚은 인지적 부하 감소 문제와 직결되는
 - AI가 아니라 자신이 방향을 정한다. 명시적 책임자가 아닐 때조차 "어디로 가야 하는지" 를 결정한다.
 - AI를 개인 생산성 도구로만 쓰지 않고, 팀과 시스템의 병목을 푸는 데 쓴다.
 
-Open AI의 권위자인 [Andrej Karpathy](https://thenewstack.io/vibe-coding-is-passe/)의 글을 살펴보면, 그가 지금 강조하는 **"agentic engineering"** 의 핵심도 결국 같다. 시스템을 설계하고, 제약을 명세하고, 이미 머릿속에서 추론을 마친 구현을 AI로 가속화하는 것. 도구가 바뀌어도, 방향키는 여전히 사람 손에 있다 는 이야기다.
+Open AI의 권위자인 Andrej Karpathy의 글을 살펴보면, 그가 지금 강조하는 **"agentic engineering"** 의 핵심도 결국 같다. 시스템을 설계하고, 제약을 명세하고, 이미 머릿속에서 추론을 마친 구현을 AI로 가속화하는 것. 도구가 바뀌어도, 방향키는 여전히 사람 손에 있다 는 이야기다.
 
 원글이 마지막에 던지는 메시지도 결국 "주어진 일을 잘 끝마치는 데에 만족하지 않고, 전후 맥락을 살피며 큰 영향력을 만드는 사람" 이 시니어가 된다는 것이었다. AI 시대에는 그 "임팩트" 의 정의가 달라졌을 뿐이다. AI가 1시간 만에 만들어낸 화면 하나를 "동작하니까 됐다" 로 머지하는 사람과, 그 화면이 접근성·보안·성능·시스템 정합성 면에서 어디까지 합리적인지를 30분 더 살피는 사람이 있다. 1년 뒤 시니어로 인정받는 건 후자다. 70%(동작)와 30%(응용과 활용)의 경계 위에서, 30% 쪽에 서 있는 사람 이 살아남는다.
 
@@ -225,13 +225,4 @@ Open AI의 권위자인 [Andrej Karpathy](https://thenewstack.io/vibe-coding-is-
 ## 참고 자료
 
 :::ref
-- [article] [2026 AI Coding Trends, Addy Osmani](https://beyond.addy.ie/2026-trends/)
-- [article] [Effective context engineering for AI agents, Anthropic](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
-- [article] [Product Engineers, Lee Robinson](https://leerob.com/product-engineers)
-- [article] [토스, 개발자는 AI에게 대체될 것인가](https://toss.tech/article/will-ai-replace-developers)
-- [article] [토스, 프론트엔드 개발자들이 더 이상 문서를 찾지 않는 이유](https://toss.tech/article/toss-frontend-ai-docs)
-- [article] [토스, AI 시대, 디자이너를 없앴더니 생긴 일](https://toss.tech/article/removing_designers_in_ai_era)
-- [article] [우아한형제들, AI가 코드 짜는 시대, 그래도 개발자가 되시겠습니까?](https://techblog.woowahan.com/22828/)
-- [article] [yceffort, AI가 코드를 짜는 시대, 프론트엔드 엔지니어링은 어디로 가는가](https://yceffort.kr/2026/02/frontend-engineering-in-ai-era)
-- [article] [Evan Moon, AI 코딩 시대, 더이상 성장하지 않는 개발자들](https://evan-moon.github.io/2026/04/18/developers-who-stopped-growing-in-ai-era/)
 :::

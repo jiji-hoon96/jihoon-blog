@@ -49,11 +49,21 @@ export default function HomePage() {
     name: siteMetadata.title,
     url: siteMetadata.siteUrl,
     description: siteMetadata.description,
+    inLanguage: "ko-KR",
     author: {
       "@type": "Person",
+      "@id": `${siteMetadata.siteUrl}/about#person`,
       name: siteMetadata.author.name,
+      alternateName: siteMetadata.author.nickname,
       email: siteMetadata.author.bio.email,
-      url: siteMetadata.siteUrl,
+      url: `${siteMetadata.siteUrl}/about`,
+      image: `${siteMetadata.siteUrl}/images/jihoon.jpeg`,
+      jobTitle: "Frontend Developer",
+      knowsAbout: siteMetadata.author.stack,
+      sameAs: [
+        siteMetadata.author.social.github,
+        siteMetadata.author.social.linkedIn,
+      ],
     },
   };
 

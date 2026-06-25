@@ -7,6 +7,7 @@ import Utterances from '@/components/Utterances'
 import TableOfContents from '@/components/TableOfContents'
 import ReadingProgress from '@/components/ReadingProgress'
 import CodeCopyButton from '@/components/CodeCopyButton'
+import InteractiveWidgets from '@/components/InteractiveWidgets'
 import type { Metadata } from 'next'
 
 type Props = {
@@ -95,6 +96,7 @@ export default async function PostPage({ params }: Props) {
     image: [ogImageUrl],
     author: {
       '@type': 'Person',
+      '@id': `${siteMetadata.siteUrl}/about#person`,
       name: siteMetadata.author.name,
       alternateName: siteMetadata.author.nickname,
       email: siteMetadata.author.bio.email,
@@ -115,6 +117,7 @@ export default async function PostPage({ params }: Props) {
     },
     publisher: {
       '@type': 'Person',
+      '@id': `${siteMetadata.siteUrl}/about#person`,
       name: siteMetadata.author.name,
       url: siteMetadata.siteUrl,
       logo: {
@@ -123,6 +126,7 @@ export default async function PostPage({ params }: Props) {
       },
     },
     inLanguage: 'ko-KR',
+    license: siteMetadata.license,
     keywords: post.keywords || post.categoryArray.join(', '),
     ...(typeof post.wordCount === 'number'
       ? { wordCount: post.wordCount }
@@ -219,6 +223,7 @@ export default async function PostPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: post.body.html }}
         />
         <CodeCopyButton />
+        <InteractiveWidgets />
 
       {/* Related Posts */}
       {relatedPosts.length > 0 && (

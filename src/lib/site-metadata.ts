@@ -8,6 +8,12 @@ export const siteMetadata = {
 	siteUrl: `https://hooninedev.com`,
 
 	/**
+	 * 글 이용 라이선스 (JSON-LD license 필드 등에서 사용)
+	 * 크롤러/LLM에 글의 사용 조건을 명시한다.
+	 */
+	license: `https://creativecommons.org/licenses/by-nc/4.0/`,
+
+	/**
 	 * comments setting
 	 */
 	comments: {

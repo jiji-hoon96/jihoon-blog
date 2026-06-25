@@ -96,7 +96,7 @@ Fiber 방식에서는 렌더링 중에도 사용자 이벤트(버튼 클릭, 타
 
 여기까지 읽으면 자연스럽게 떠오르는 질문이 하나 있다. "그래서 Fiber 노드는 내부적으로 어떻게 생겼는가?"
 
-React 팀은 Fiber의 내부 구현에 대한 공식 문서를 별도로 제공하지 않고 있다. 하지만 Andrew Clark의 [react-fiber-architecture](https://github.com/acdlite/react-fiber-architecture) 문서와 실제 React 소스코드(`ReactFiber.js`)를 통해 그 구조를 파악할 수 있다.
+React 팀은 Fiber의 내부 구현에 대한 공식 문서를 별도로 제공하지 않고 있다. 하지만 Andrew Clark의 react-fiber-architecture 문서와 실제 React 소스코드(`ReactFiber.js`)를 통해 그 구조를 파악할 수 있다.
 
 Fiber 노드를 필자는 **작업 지시서(Work Order)** 에 비유하고 싶다. 공장에서 제품을 조립할 때, 각 작업 지시서에는 "이 부품이 어떤 종류인지", "어떤 재료를 사용하는지", "다음에 어떤 작업을 해야 하는지", "우선순위는 어떤지"가 적혀 있다. Fiber 노드도 마찬가지다.
 
@@ -680,15 +680,12 @@ React 18의 `renderToPipeableStream`은 Suspense 경계를 활용한다.
 ## 출처
 
 :::ref
-- [article] [Andrew Clark, React Fiber Architecture](https://github.com/acdlite/react-fiber-architecture)
 - [repo] [React 소스코드, ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberWorkLoop.js)
 - [repo] [React 소스코드, ReactFiberBeginWork.js](https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberBeginWork.js)
 - [repo] [React 소스코드, ReactFiberCompleteWork.js](https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberCompleteWork.js)
 - [repo] [React 소스코드, ReactFiberLane.js](https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberLane.js)
 - [repo] [React 소스코드, ReactFiber.js](https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiber.js)
 - [repo] [React 소스코드, Scheduler.js](https://github.com/facebook/react/blob/main/packages/scheduler/src/forks/Scheduler.js)
-- [repo] [PR #18796, Initial Lanes implementation](https://github.com/facebook/react/pull/18796)
-- [repo] [PR #19381, Remove effect list](https://github.com/facebook/react/pull/19381)
 - [repo] [Issue #7942, Fiber Principles](https://github.com/facebook/react/issues/7942)
 - [docs] [React 18 WG, New Suspense SSR Architecture](https://github.com/reactwg/react-18/discussions/37)
 - [docs] [React 18 WG, Concurrent Scheduling](https://github.com/reactwg/react-18/discussions/27)
