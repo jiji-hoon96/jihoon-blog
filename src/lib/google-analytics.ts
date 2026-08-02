@@ -48,7 +48,7 @@ export interface PopularPage {
 async function fetchAnalyticsStats(): Promise<AnalyticsStats> {
   const client = getClient();
   if (!client) {
-    return { totalPageViews: 0, todayVisitors: addDailyVisitorBaseline(0) };
+    return { totalPageViews: 0, todayVisitors: 0 };
   }
 
   try {
@@ -96,22 +96,31 @@ async function fetchAnalyticsStats(): Promise<AnalyticsStats> {
 
     return {
       totalPageViews: totalPageViews + totalCalibration,
-      todayVisitors: addDailyVisitorBaseline(todayVisitors),
+      todayVisitors,
     };
   } catch (error) {
     console.error("Error fetching analytics stats:", error);
-    return { totalPageViews: 0, todayVisitors: addDailyVisitorBaseline(0) };
+    return { totalPageViews: 0, todayVisitors: 0 };
   }
 }
 
 /**
  * 전체 조회수와 오늘 방문자 수 조회 (캐시 적용)
  */
-export const getAnalyticsStats = unstable_cache(
+const getCachedAnalyticsStats = unstable_cache(
   fetchAnalyticsStats,
   ["analytics-stats"],
   { revalidate: REVALIDATE_TIME }
 );
+
+export async function getAnalyticsStats(): Promise<AnalyticsStats> {
+  const stats = await getCachedAnalyticsStats();
+
+  return {
+    totalPageViews: stats.totalPageViews,
+    todayVisitors: addDailyVisitorBaseline(stats.todayVisitors),
+  };
+}
 
 /**
  * 인기 페이지 목록 조회 (내부 함수)
