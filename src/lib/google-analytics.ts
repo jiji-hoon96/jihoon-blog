@@ -1,12 +1,13 @@
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
 import { unstable_cache } from "next/cache";
 
+import { addDailyVisitorBaseline } from "@/lib/daily-visitor-baseline";
+
 const propertyId = process.env.GA_PROPERTY_ID;
 const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
 const totalCalibration = parseInt(process.env.ANALYTICS_TOTAL_CALIBRATION || "0", 10);
-const dailyCalibration = parseInt(process.env.ANALYTICS_DAILY_CALIBRATION || "0", 10);
 
 let analyticsDataClient: BetaAnalyticsDataClient | null = null;
 
@@ -47,7 +48,7 @@ export interface PopularPage {
 async function fetchAnalyticsStats(): Promise<AnalyticsStats> {
   const client = getClient();
   if (!client) {
-    return { totalPageViews: 0, todayVisitors: 0 };
+    return { totalPageViews: 0, todayVisitors: addDailyVisitorBaseline(0) };
   }
 
   try {
@@ -95,11 +96,11 @@ async function fetchAnalyticsStats(): Promise<AnalyticsStats> {
 
     return {
       totalPageViews: totalPageViews + totalCalibration,
-      todayVisitors: todayVisitors + dailyCalibration,
+      todayVisitors: addDailyVisitorBaseline(todayVisitors),
     };
   } catch (error) {
     console.error("Error fetching analytics stats:", error);
-    return { totalPageViews: 0, todayVisitors: 0 };
+    return { totalPageViews: 0, todayVisitors: addDailyVisitorBaseline(0) };
   }
 }
 
