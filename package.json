@@ -12,6 +12,7 @@
     "content:sync": "node scripts/copy-content-images.js && (npx contentlayer build || true)",
     "gsc": "node scripts/fetch-gsc.js",
     "test": "node --test src/lib/*.test.mjs",
+    "test:homepage-rendering": "node scripts/assert-homepage-dynamic.mjs",
     "build": "node scripts/copy-content-images.js && (npx contentlayer build || true) && next build",
     "start": "next start",
     "lint": "eslint"

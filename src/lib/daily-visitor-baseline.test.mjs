@@ -12,6 +12,11 @@ test("uses midnight in Asia/Seoul as the date boundary", () => {
   assert.equal(getSeoulDateKey(new Date("2026-08-01T15:00:00Z")), "2026-08-02");
 });
 
+test("changes the daily baseline at midnight in Asia/Seoul", () => {
+  assert.equal(getDailyVisitorBaseline(new Date("2026-08-01T14:59:59Z")), 19);
+  assert.equal(getDailyVisitorBaseline(new Date("2026-08-01T15:00:00Z")), 34);
+});
+
 test("returns a stable deterministic baseline for a Korean date", () => {
   const date = new Date("2026-08-01T03:00:00Z");
 

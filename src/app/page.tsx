@@ -6,8 +6,7 @@ import { getSortedPublishedPosts } from "@/lib/filter-posts";
 import { AnalyticsStats } from "@/components/AnalyticsStats";
 import { PopularPosts } from "@/components/PopularPosts";
 
-// ISR: 1시간마다 재검증
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 // 로딩 스켈레톤 컴포넌트들
 function AnalyticsStatsSkeleton() {
