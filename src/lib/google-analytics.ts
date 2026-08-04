@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import * as Sentry from "@sentry/nextjs";
 
 import { addDailyVisitorBaseline } from "@/lib/daily-visitor-baseline";
+import { gaCallOptions } from "@/lib/ga-request-options";
 
 const propertyId = process.env.GA_PROPERTY_ID;
 const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -68,7 +69,7 @@ async function fetchAnalyticsStats(): Promise<AnalyticsStats> {
             },
           },
         },
-      }),
+      }, gaCallOptions()),
       client.runReport({
         property: `properties/${propertyId}`,
         dateRanges: [{ startDate: "today", endDate: "today" }],
@@ -82,7 +83,7 @@ async function fetchAnalyticsStats(): Promise<AnalyticsStats> {
             },
           },
         },
-      }),
+      }, gaCallOptions()),
     ]);
 
     const totalPageViews = parseInt(
@@ -142,7 +143,7 @@ async function fetchPopularPages(limit: number = 10): Promise<PopularPage[]> {
       metrics: [{ name: "screenPageViews" }],
       orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
       limit,
-    });
+    }, gaCallOptions());
 
     if (!response.rows) {
       return [];
@@ -203,7 +204,7 @@ export async function getPageViews(pagePath: string): Promise<number> {
           },
         },
       },
-    });
+    }, gaCallOptions());
 
     return parseInt(
       response.rows?.[0]?.metricValues?.[0]?.value || "0",
@@ -246,7 +247,7 @@ export async function getMultiplePageViews(
           })),
         },
       },
-    });
+    }, gaCallOptions());
 
     const result: Record<string, number> = {};
     response.rows?.forEach((row) => {

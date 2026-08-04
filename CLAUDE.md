@@ -144,6 +144,7 @@ Netlify 함수 런타임에서 실제 이벤트로 확인한 것들이다. Deplo
 - DSN 이 있고 `NODE_ENV === 'production'` 일 때만 전송한다. 개발 중 발생하는 에러는 무료 티어 쿼터만 태우므로 보내지 않는다.
 - `tracesSampleRate` 는 0.1. Core Web Vitals 는 기존대로 `WebVitalsReporter` 가 GA4 로 보내고, Sentry 는 에러와 낮은 샘플링 트레이싱만 담당한다.
 - **Session Replay 는 쓰지 않는다.** 블로그는 로딩 성능이 곧 SEO 라서 비용이 이득보다 크다. `next.config.ts` 의 `bundleSizeOptimizations` 로 관련 코드를 번들에서 제거한다.
+- **GA 호출에는 반드시 `gaCallOptions()` 를 넘긴다.** `src/lib/ga-request-options.ts` 에 있다. `runReport` 의 라이브러리 기본 RPC 타임아웃이 60초여서, 넘기지 않으면 GA 가 응답하지 않을 때 요청이 60초 넘게 매달린다. fallback 때문에 응답은 200 이라 조용히 통계만 빈다. 프로덕션에서 `Deadline exceeded after 65.877s` 로 실제 관측됐다(JIHOON-BLOG-2). 블랙홀 서버로 재현해 타임아웃 미지정 60.04초 / 5초 지정 5.00초를 실측했다. `src/lib/ga-request-options.test.mjs` 가 호출 지점 누락을 막는다.
 - `src/lib/google-analytics.ts` 의 catch 블록 4곳에서 `captureException` 을 호출한다. 이 함수들은 GA 호출이 실패해도 fallback 값을 반환하고 응답은 200 이라, 계측하지 않으면 통계가 0 으로 보이는 장애를 알 방법이 없다. **라우트 핸들러의 catch 만으로는 잡히지 않는다.** 실제로 검증 과정에서 이 사실이 드러났다.
 
 ### 번들 비용 실측 (2026-08-04)
