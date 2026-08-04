@@ -34,7 +34,13 @@ export default withSentryConfig(withContentlayer(nextConfig), {
     // 업로드가 끝나면 빌드 산출물에서 .map 을 지운다.
     // Turbopack 이 만드는 서버 소스맵이 57MB 로 서버 JS(15MB) 보다 크고,
     // 그대로 두면 Netlify 함수 번들에 전부 실린다. 업로드 후에는 쓸모가 없다.
-    deleteSourcemapsAfterUpload: hasSentryAuthToken,
+    //
+    // deleteSourcemapsAfterUpload 만으로는 `.next/static` 만 지워지고
+    // 정작 용량을 차지하는 `.next/server` 는 남는다. 실측으로 확인했다.
+    // 그래서 glob 을 직접 지정한다.
+    filesToDeleteAfterUpload: hasSentryAuthToken
+      ? [".next/server/**/*.map", ".next/static/**/*.map"]
+      : [],
   },
 
   // 업로드를 시도할 때만 로그를 남긴다.
