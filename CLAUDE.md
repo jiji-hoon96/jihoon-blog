@@ -86,7 +86,7 @@
 
 ## 에러 모니터링 (Sentry)
 
-Sentry 프로젝트: `panda-1r/jihoon-blog` (`@sentry/nextjs`)
+Sentry 프로젝트: `hooninedev/jihoon-blog` (`@sentry/nextjs`)
 
 ### 서버 전용 구성이다
 
@@ -114,8 +114,19 @@ Sentry 프로젝트: `panda-1r/jihoon-blog` (`@sentry/nextjs`)
 
 - 로컬: `.env` 의 `NEXT_PUBLIC_SENTRY_DSN`
 - Netlify 대시보드에도 `NEXT_PUBLIC_SENTRY_DSN` 을 등록해야 한다. `.env*` 는 gitignore 대상이라 배포 환경엔 자동으로 넘어가지 않는다.
-- 소스맵 업로드를 쓰려면 `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` 를 추가한다. 토큰이 없으면 업로드만 꺼지고 빌드는 통과한다. (`next.config.ts` 의 `sourcemaps.disable`)
-- `SENTRY_ORG` 는 슬러그 기준이다. Sentry org 슬러그를 바꾸면 이 값도 같이 바꿔야 업로드가 동작한다.
+- 소스맵 업로드에는 `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` 가 필요하다. Netlify 대시보드에 등록되어 있다. 토큰이 없으면 업로드만 꺼지고 빌드는 통과한다. (`next.config.ts` 의 `sourcemaps.disable`)
+- `SENTRY_ORG` 는 슬러그 기준이다. Sentry org 슬러그를 바꾸면 이 값도 같이 바꿔야 업로드가 동작한다. 현재 슬러그는 `hooninedev` 다.
+- 토큰은 organization auth token 이고 스코프는 `project:releases` 다.
+
+### 소스맵
+
+Turbopack 빌드도 업로드를 지원한다. `useRunAfterProductionCompileHook` 이 Turbopack 에서 기본 `true` 이고, 빌드 로그의 `Running next.config.js provided runAfterProductionCompile` 이 그 경로다. 서버 `.map` 은 Next 가 이미 130개 남짓 생성하므로 따로 켤 설정은 없다.
+
+`deleteSourcemapsAfterUpload` 를 켠 이유는 용량이다. Turbopack 이 만드는 서버 소스맵이 57MB 로 서버 JS(15MB) 보다 큰데, 지우지 않으면 그게 전부 Netlify 함수 번들에 실린다. 업로드 후에는 필요 없다.
+
+`silent` 은 조건부다. 항상 켜두면 토큰 스코프 부족이나 만료로 업로드가 실패해도 조용히 넘어가서, 다음에 읽을 수 없는 스택 트레이스를 볼 때까지 알 수 없다. 업로드를 시도할 때만 로그를 남긴다.
+
+**클라이언트 맵은 대상이 아니다.** 서버 전용 구성이라 브라우저 SDK 가 없다.
 
 ### 동작 조건과 정책
 
