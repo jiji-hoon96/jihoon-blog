@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { withContentlayer } from "next-contentlayer";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   images: {
@@ -18,4 +19,20 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withContentlayer(nextConfig);
+export default withSentryConfig(withContentlayer(nextConfig), {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },
+
+  silent: true,
+  telemetry: false,
+
+  bundleSizeOptimizations: {
+    excludeDebugStatements: true,
+    excludeReplayShadowDom: true,
+    excludeReplayIframe: true,
+    excludeReplayWorker: true,
+  },
+});
