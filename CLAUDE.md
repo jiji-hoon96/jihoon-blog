@@ -83,3 +83,73 @@
 
 - `/write-post [초안]` - 초안을 블로그 글 작성
 - `/refine-post [파일경로]` - 기존 글을 jihoon 스타일로 리파인
+
+## 에러 모니터링 (Sentry)
+
+Sentry 프로젝트: `panda-1r/jihoon-blog` (`@sentry/nextjs`)
+
+### 서버 전용 구성이다
+
+**브라우저 계측은 의도적으로 넣지 않았다.** `src/instrumentation-client.ts` 가 없다. 아래 번들 실측대로 클라이언트 SDK 가 client JS 를 79KB(gzip) 늘리는데, 이 블로그의 도입 목적은 서버에서 조용히 실패하는 GA 호출을 잡는 것이고 그 부분은 사실상 공짜다.
+
+따라서 잡히는 것과 안 잡히는 것이 갈린다.
+
+- 잡힌다: 라우트 핸들러와 서버 컴포넌트에서 발생한 에러, `src/lib/google-analytics.ts` 의 GA 실패
+- 안 잡힌다: 브라우저에서만 발생하는 에러 (클라이언트 컴포넌트 이벤트 핸들러, 하이드레이션 불일치 등)
+
+클라이언트 계측을 켜려면 `src/instrumentation-client.ts` 를 만들어 `Sentry.init` 과 `export const onRouterTransitionStart = Sentry.captureRouterTransitionStart` 를 넣고, `src/app/global-error.tsx` 에 `captureException` 을 되살린다. 이때 브라우저 확장·서드파티 스크립트·`utteranc.es` 를 걸러내는 `ignoreErrors`/`denyUrls` 를 반드시 함께 넣는다. 무료 티어 쿼터를 태우는 건 실제 버그가 아니라 그런 노이즈다.
+
+### 파일 구조
+
+`src/` 디렉터리를 쓰는 프로젝트이므로 init 파일도 전부 `src/` 아래에 둔다. Next 16 은 `src/instrumentation-client` 를 루트보다 먼저 해석하고(`next/dist/build/create-compiler-aliases.js`), 서버 훅도 `app` 과 같은 레벨에서 탐지한다.
+
+| 파일 | 역할 |
+|---|---|
+| `src/instrumentation.ts` | 런타임별 init 로드, `onRequestError` 로 서버 요청 에러 캡처 |
+| `src/sentry.server.config.ts` | Node 런타임 init |
+| `src/sentry.edge.config.ts` | Edge 런타임 init (현재 edge 라우트는 없지만 빌드가 배선함) |
+| `src/app/global-error.tsx` | 루트 렌더 에러 UI 폴백. 서버 전용 구성이라 Sentry 로 직접 보고하지는 않는다 |
+
+### 환경변수
+
+- 로컬: `.env` 의 `NEXT_PUBLIC_SENTRY_DSN`
+- Netlify 대시보드에도 `NEXT_PUBLIC_SENTRY_DSN` 을 등록해야 한다. `.env*` 는 gitignore 대상이라 배포 환경엔 자동으로 넘어가지 않는다.
+- 소스맵 업로드를 쓰려면 `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` 를 추가한다. 토큰이 없으면 업로드만 꺼지고 빌드는 통과한다. (`next.config.ts` 의 `sourcemaps.disable`)
+- `SENTRY_ORG` 는 슬러그 기준이다. Sentry org 슬러그를 바꾸면 이 값도 같이 바꿔야 업로드가 동작한다.
+
+### 동작 조건과 정책
+
+- DSN 이 있고 `NODE_ENV === 'production'` 일 때만 전송한다. 개발 중 발생하는 에러는 무료 티어 쿼터만 태우므로 보내지 않는다.
+- `tracesSampleRate` 는 0.1. Core Web Vitals 는 기존대로 `WebVitalsReporter` 가 GA4 로 보내고, Sentry 는 에러와 낮은 샘플링 트레이싱만 담당한다.
+- **Session Replay 는 쓰지 않는다.** 블로그는 로딩 성능이 곧 SEO 라서 비용이 이득보다 크다. `next.config.ts` 의 `bundleSizeOptimizations` 로 관련 코드를 번들에서 제거한다.
+- `src/lib/google-analytics.ts` 의 catch 블록 4곳에서 `captureException` 을 호출한다. 이 함수들은 GA 호출이 실패해도 fallback 값을 반환하고 응답은 200 이라, 계측하지 않으면 통계가 0 으로 보이는 장애를 알 방법이 없다. **라우트 핸들러의 catch 만으로는 잡히지 않는다.** 실제로 검증 과정에서 이 사실이 드러났다.
+
+### 번들 비용 실측 (2026-08-04)
+
+`.next/static/chunks/*.js` 의 gzip 총합을 clean build 기준으로 비교했다.
+
+| 구성 | client JS (gzip) | 증가분 |
+|---|---|---|
+| Sentry 미적용 | 181.6 KB | 기준 |
+| **현재 구성 (서버 전용)** | **182.3 KB** | **+0.7 KB** |
+| 서버 전용 + global-error 에서 `captureException` 호출 | 186.0 KB | +4.4 KB |
+| 클라이언트 + 서버 | 260.4 KB | +78.8 KB |
+
+`bundleSizeOptimizations.excludeTracing: true` 도 시도했지만 260.4 KB 로 변화가 없었다. 클라이언트 비용을 줄이는 유일한 방법은 `src/instrumentation-client.ts` 를 두지 않는 것이다.
+
+3번째 행이 있는 이유: 브라우저 Sentry 클라이언트가 없으면 `global-error.tsx` 의 `captureException` 은 no-op 인데 SDK 코드는 번들에 실린다. 그래서 호출을 뺐다.
+
+### 로컬 검증 방법
+
+개발 모드에서는 전송이 꺼져 있으므로 프로덕션 모드로 확인한다. 잘못된 키를 주입해 GA 호출을 실패시키면 된다.
+
+```bash
+pnpm build
+PORT=3111 GA_PROPERTY_ID=123456789 \
+  GOOGLE_SERVICE_ACCOUNT_EMAIL=verify@example.iam.gserviceaccount.com \
+  GOOGLE_PRIVATE_KEY='-----BEGIN PRIVATE KEY-----\nINVALID\n-----END PRIVATE KEY-----\n' \
+  pnpm start
+curl "http://localhost:3111/api/analytics?type=page&slug=/verify"
+```
+
+`type=page` 를 쓰는 이유는 `getPageViews` 가 `unstable_cache` 를 거치지 않아서다. `type=stats` 나 `type=popular` 는 캐시된 fallback 이 돌아와 에러가 재현되지 않을 수 있다.
