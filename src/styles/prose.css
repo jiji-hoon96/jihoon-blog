@@ -282,6 +282,26 @@
   content: none;
 }
 
+.prose .bilingual-quote .quote-translation {
+  color: var(--color-light-black80);
+  font-size: 1rem;
+}
+
+.dark .prose .bilingual-quote .quote-translation {
+  color: var(--color-dark-black80);
+}
+
+.prose .bilingual-quote .quote-original {
+  margin-top: 0.75rem;
+  color: var(--color-light-gray60);
+  font-size: 0.8125rem;
+  line-height: 1.65;
+}
+
+.dark .prose .bilingual-quote .quote-original {
+  color: var(--color-dark-gray60);
+}
+
 /* Code collapse (토글 코드 블록) */
 .prose .code-collapse {
   @apply my-5 rounded-lg overflow-hidden border border-light-gray20 dark:border-dark-gray20;
