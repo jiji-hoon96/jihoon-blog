@@ -11,6 +11,7 @@ import { remarkDetails } from './src/lib/remark-details'
 import { remarkBilingualQuote } from './src/lib/remark-bilingual-quote'
 import { remarkRef } from './src/lib/remark-ref'
 import { remarkWidget } from './src/lib/remark-widget'
+import { parseContentIdentity } from './src/lib/localized-posts'
 
 export const Post = defineDocumentType(() => ({
   name: 'Post',
@@ -25,15 +26,22 @@ export const Post = defineDocumentType(() => ({
     keywords: { type: 'string', required: false },
     seoTitle: { type: 'string', required: false },
     emoji: { type: 'string', required: false },
+    locale: { type: 'string', required: false },
+    translationOf: { type: 'string', required: false },
+    sourceHash: { type: 'string', required: false },
   },
   computedFields: {
+    contentLocale: {
+      type: 'string',
+      resolve: (doc) => parseContentIdentity(doc._raw.flattenedPath).locale,
+    },
+    translationKey: {
+      type: 'string',
+      resolve: (doc) => parseContentIdentity(doc._raw.flattenedPath).translationKey,
+    },
     slug: {
       type: 'string',
-      resolve: (doc) => {
-        // Extract YYMMDD from path: content/240101/index.md -> /240101
-        const pathParts = doc._raw.flattenedPath.split('/')
-        return `/${pathParts[pathParts.length - 1]}`
-      },
+      resolve: (doc) => parseContentIdentity(doc._raw.flattenedPath).slug,
     },
     categoryArray: {
       type: 'list',
