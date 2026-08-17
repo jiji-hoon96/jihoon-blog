@@ -8,6 +8,7 @@ import readingTime from 'reading-time'
 import { rehypeImagePath } from './src/lib/rehype-image-path'
 import { rehypeOpenLinksInNewTab } from './src/lib/rehype-open-links-in-new-tab'
 import { remarkDetails } from './src/lib/remark-details'
+import { remarkBilingualQuote } from './src/lib/remark-bilingual-quote'
 import { remarkRef } from './src/lib/remark-ref'
 import { remarkWidget } from './src/lib/remark-widget'
 
@@ -89,7 +90,7 @@ export default makeSource({
   documentTypes: [Post],
   disableImportAliasWarning: true,
   markdown: {
-    remarkPlugins: [[remarkGfm, { singleTilde: false }], remarkDirective, remarkDetails, remarkRef, remarkWidget],
+    remarkPlugins: [[remarkGfm, { singleTilde: false }], remarkDirective, remarkDetails, remarkRef, remarkWidget, remarkBilingualQuote],
     rehypePlugins: [
       rehypeSlug,
       [
