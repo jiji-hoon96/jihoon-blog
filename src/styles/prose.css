@@ -283,12 +283,12 @@
 }
 
 .prose .bilingual-quote .quote-translation {
-  color: var(--color-light-black80);
+  color: var(--color-light-black100);
   font-size: 1rem;
 }
 
 .dark .prose .bilingual-quote .quote-translation {
-  color: var(--color-dark-black80);
+  color: var(--color-dark-black100);
 }
 
 .prose .bilingual-quote .quote-original {

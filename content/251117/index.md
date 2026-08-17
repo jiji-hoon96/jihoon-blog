@@ -73,15 +73,15 @@ class ErrorBoundary extends React.Component {
 
 `getDerivedStateFromError`는 **순수 함수**여야 한다. 사이드이펙트 없이 새로운 state만 반환하는 역할이다. 반면 `componentDidCatch`는 사이드이펙트를 위한 자리이다. Sentry로 에러를 전송한다거나, 콘솔에 컴포넌트 스택을 찍는 일은 여기서 한다.
 
-여기서 중요한 점이 하나 있다. 이 두 메서드는 **클래스 컴포넌트에만 존재한다.** 함수 컴포넌트로 Error Boundary를 만들 수 있는 공식적인 방법은 아직 없다. React 공식 문서도 이 점을 명시한다. 
+여기서 중요한 점이 하나 있다. 이 두 메서드는 **클래스 컴포넌트에만 존재한다.** 함수 컴포넌트로 Error Boundary를 만들 수 있는 공식적인 방법은 아직 없다. [React 공식 문서](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)도 이 점을 명시한다.
 
 ::::quote
 :::translation
-함수 컴포넌트에는 Error Boundary에 직접 대응하는 기능이 없다. 함수 컴포넌트에서는 [`react-error-boundary`](https://github.com/bvaughn/react-error-boundary) 패키지를 사용하라.
+현재 함수 컴포넌트로 Error Boundary를 작성할 방법은 없다.
 :::
 
 :::original
-No direct equivalent exists for Error Boundaries in function components. For function components, use [`react-error-boundary`](https://github.com/bvaughn/react-error-boundary) package.
+There is currently no way to write an Error Boundary as a function component.
 :::
 ::::
 
