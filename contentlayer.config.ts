@@ -6,6 +6,7 @@ import remarkDirective from 'remark-directive'
 import remarkGfm from 'remark-gfm'
 import readingTime from 'reading-time'
 import { rehypeImagePath } from './src/lib/rehype-image-path'
+import { rehypeOpenLinksInNewTab } from './src/lib/rehype-open-links-in-new-tab'
 import { remarkDetails } from './src/lib/remark-details'
 import { remarkRef } from './src/lib/remark-ref'
 import { remarkWidget } from './src/lib/remark-widget'
@@ -111,6 +112,7 @@ export default makeSource({
         },
       ],
       rehypeImagePath as any,
+      rehypeOpenLinksInNewTab,
     ],
   },
 })
