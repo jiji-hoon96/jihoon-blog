@@ -75,7 +75,15 @@ class ErrorBoundary extends React.Component {
 
 여기서 중요한 점이 하나 있다. 이 두 메서드는 **클래스 컴포넌트에만 존재한다.** 함수 컴포넌트로 Error Boundary를 만들 수 있는 공식적인 방법은 아직 없다. React 공식 문서도 이 점을 명시한다. 
 
-> No direct equivalent exists for Error Boundaries in function components. For function components, use [`react-error-boundary`](https://github.com/bvaughn/react-error-boundary) package.
+::::quote
+:::translation
+함수 컴포넌트에는 Error Boundary에 직접 대응하는 기능이 없다. 함수 컴포넌트에서는 [`react-error-boundary`](https://github.com/bvaughn/react-error-boundary) 패키지를 사용하라.
+:::
+
+:::original
+No direct equivalent exists for Error Boundaries in function components. For function components, use [`react-error-boundary`](https://github.com/bvaughn/react-error-boundary) package.
+:::
+::::
 
 매번 클래스 컴포넌트를 직접 작성하는 것은 번거로우니, 보통은 `react-error-boundary` 라이브러리를 사용하게 된다. (React 메인테이너 중 한 명이었던 Brian Vaughn이 직접 만든 라이브러리이고, 사실상 표준처럼 쓰인다.)
 

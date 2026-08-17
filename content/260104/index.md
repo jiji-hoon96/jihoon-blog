@@ -67,7 +67,15 @@ SWR과 React Query(현 TanStack Query)는 이 문제를 정면으로 풀었다. 
 
 그렇다면 queryKey는 정확히 무엇일까? TanStack Query 공식 문서는 이렇게 정의한다.
 
-> At its core, TanStack Query manages query caching for you based on query keys. Query keys have to be an Array at the top level... As long as the query key is serializable, and **unique to the query's data**, you can use it.
+::::quote
+:::translation
+핵심적으로 TanStack Query는 query key를 기준으로 쿼리 캐싱을 관리한다. query key의 최상위 수준은 배열이어야 한다... query key가 직렬화 가능하고 **쿼리 데이터에 고유하기만 하면**, 사용할 수 있다.
+:::
+
+:::original
+At its core, TanStack Query manages query caching for you based on query keys. Query keys have to be an Array at the top level... As long as the query key is serializable, and **unique to the query's data**, you can use it.
+:::
+::::
 
 핵심은 두 가지다. **직렬화 가능해야 하고, 그 데이터에 고유해야 한다.** 같은 키는 같은 데이터를 의미하고, 다른 데이터는 다른 키를 가져야 한다. 이 단순한 규칙이 캐시 시스템의 전체 동작을 결정한다.
 

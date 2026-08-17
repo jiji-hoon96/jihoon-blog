@@ -25,8 +25,15 @@ keywords: "프론트엔드 도메인 모델, 도메인 주도 설계, DDD 프론
 
 Eric Evans는 그의 저서 **Domain-Driven Design: Tackling Complexity in the Heart of Software(2003)** 에서 도메인을 다음과 같이 정의한다.
 
-> "A sphere of knowledge, influence, or activity."
-> (지식, 영향력, 또는 활동의 영역)
+::::quote
+:::translation
+지식, 영향력, 또는 활동의 영역.
+:::
+
+:::original
+"A sphere of knowledge, influence, or activity."
+:::
+::::
 
 쉽게 말해, **프로그래밍으로 해결하고자 하는 문제 영역** 그 자체가 도메인이다. 세금 신고 서비스를 만든다면 "세금 신고"가 도메인이고, 보험 청구 플랫폼을 만든다면 "보험 청구"가 도메인인 것이다. 도메인은 코드가 아니다. 소프트웨어 이전에 존재하는 현실 세계의 문제 영역이다.
 
@@ -45,11 +52,25 @@ Eric Evans는 그의 저서 **Domain-Driven Design: Tackling Complexity in the H
 
 Martin Fowler와 Eric Evans는 도메인 모델을 이렇게 정의한다.
 
-> An object model of the domain that incorporates both behavior and data.
-> (행위와 데이터를 모두 포함하는 도메인의 객체 모델) - Martin Fowler
+::::quote
+:::translation
+행위와 데이터를 모두 포함하는 도메인의 객체 모델. — Martin Fowler
+:::
 
-> A system of abstractions that describes selected aspects of a domain and can be used to solve problems related to that domain.
-> (도메인의 선택된 측면을 기술하는 추상화 체계로, 해당 도메인과 관련된 문제를 해결하는 데 사용될 수 있다.) - Eric Evans
+:::original
+An object model of the domain that incorporates both behavior and data.
+:::
+::::
+
+::::quote
+:::translation
+도메인의 선택된 측면을 기술하는 추상화 체계로, 해당 도메인과 관련된 문제를 해결하는 데 사용될 수 있다. — Eric Evans
+:::
+
+:::original
+A system of abstractions that describes selected aspects of a domain and can be used to solve problems related to that domain.
+:::
+::::
 
 핵심은 **"선택적 추상화"** 라는 점이다. 도메인 모델은 현실 세계의 모든 것을 담지 않는다. 영화감독이 현실의 모든 장면을 담지 않고 이야기에 필요한 장면만 선택하듯, 도메인 모델도 **해결하려는 문제에 필요한 측면만 골라서 구조화**한 것이다.
 
@@ -75,8 +96,15 @@ Martin Fowler와 Eric Evans는 도메인 모델을 이렇게 정의한다.
 
 Code with Jason 을 운영하고있는 [Jason Swett 의 글](https://www.codewithjason.com/difference-domains-domain-models-object-models-domain-objects/)에서 도메인 오브젝트를 이렇게 정의한다.
 
-> Any object in my object model that also exist as a concept in my domain model I would call a domain object.
-> (객체 모델에 존재하는 객체 중, 도메인 모델에서도 하나의 개념으로 자리잡고 있는 것을 도메인 오브젝트라고 부른다.)
+::::quote
+:::translation
+내 객체 모델의 객체 가운데 도메인 모델에서도 하나의 개념으로 존재하는 것은 도메인 오브젝트라고 부르겠다.
+:::
+
+:::original
+Any object in my object model that also exist as a concept in my domain model I would call a domain object.
+:::
+::::
 
 즉, 도메인 모델에서 "종합소득"이라는 개념이 있고, 코드에서 `Income`이라는 타입이 있다면, 이 `Income`이 바로 도메인 오브젝트인 것이다. 하지만 모든 코드 객체가 도메인 오브젝트인 것은 아니다. `HttpClient`, `LocalStorageAdapter`, `useDebounce` 같은 것들은 기술적 도구이지 도메인 개념이 아니다.
 
@@ -185,8 +213,15 @@ function TaxPreviewPage() {
 
 Alex Bespoyasov의 Clean Architecture 접근법에서 핵심 원칙을 빌려오자. 도메인 로직을 **프레임워크에 의존하지 않는 순수 함수**로 분리하는 것이다.
 
-> The domain is the core that distinguishes one application from another. You can think of the domain as something that won't change if we move from React to Angular.
-> (도메인은 하나의 애플리케이션을 다른 것과 구별하는 핵심이다. React에서 Angular로 옮기더라도 변하지 않는 것이라고 생각하면 된다.)
+::::quote
+:::translation
+도메인은 하나의 애플리케이션을 다른 애플리케이션과 구별하는 핵심이다. React에서 Angular로 옮겨도 변하지 않는 것으로 생각할 수 있다.
+:::
+
+:::original
+The domain is the core that distinguishes one application from another. You can think of the domain as something that won't change if we move from React to Angular.
+:::
+::::
 
 위의 세금 계산 예시를 리팩토링해보자.
 

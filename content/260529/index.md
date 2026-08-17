@@ -122,7 +122,15 @@ Prisma 쿼리 결과에 optional chaining 쓰지 말 것 — null은 if-check로
 
 가장 먼저 짚어둘 사실 하나. **`CLAUDE.md`는 system prompt가 아니라 user message로 주입된다.** Anthropic 공식 문서가 아래와 같이 명시한다
 
-> CLAUDE.md content is delivered as a user message after the system prompt, not as part of the system prompt itself. Claude reads it and tries to follow it, but there's no guarantee of strict compliance. 
+::::quote
+:::translation
+CLAUDE.md 콘텐츠는 시스템 프롬프트의 일부가 아니라 시스템 프롬프트 뒤에 사용자 메시지로 전달된다. Claude는 이를 읽고 따르려 하지만, 엄격히 준수한다는 보장은 없다.
+:::
+
+:::original
+CLAUDE.md content is delivered as a user message after the system prompt, not as part of the system prompt itself. Claude reads it and tries to follow it, but there's no guarantee of strict compliance.
+:::
+::::
 
 즉 강제 규칙이 아니라 "참고용 컨텍스트"인 셈이다. 정확히 어떤 동작을 강제하고 싶다면 `PreToolUse` 훅 같은 별도 장치를 써야 한다고 공식 가이드도 권장한다.
 
@@ -385,5 +393,4 @@ Serena가 빠르게 채택된 진짜 이유는 **토큰 절약**이다. 텍스�
 - [article] [OX Security, MCP Supply Chain Advisory](https://www.ox.security/blog/mcp-supply-chain-advisory-rce-vulnerabilities-across-the-ai-ecosystem/)
 - [repo] [rtk-ai/rtk](https://github.com/rtk-ai/rtk)
 :::
-
 

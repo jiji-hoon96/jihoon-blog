@@ -29,8 +29,15 @@ keywords: 'AI 시대 프론트엔드, AI 시대 개발자, vibe coding, agentic 
 
 2025년 2월, OpenAI 공동창업자이자 테슬라 AI 디렉터를 지낸 [Andrej Karpathy](https://x.com/karpathy/status/1886192184808149383)는 자신의 트위터에 이런 문장을 남겼다.
 
-> There's a new kind of coding I call 'vibe coding', where you fully give in to the vibes, embrace exponentials, and forget that the code even exists.
-> (바이브 코딩이라는 새로운 방식이 있다. 바이브에 완전히 몸을 맡기고, 지수적 성장을 받아들이며, 코드 자체가 존재한다는 것을 잊는 것이다.)
+::::quote
+:::translation
+제가 'vibe coding'이라고 부르는 새로운 종류의 코딩이 있다. 바이브에 완전히 몸을 맡기고, 지수적 성장을 받아들이며, 코드 자체가 존재한다는 것조차 잊는 방식이다.
+:::
+
+:::original
+There's a new kind of coding I call 'vibe coding', where you fully give in to the vibes, embrace exponentials, and forget that the code even exists.
+:::
+::::
 
 **바이브 코딩(Vibe Coding)** 이란 한마디로 "AI에게 키보드를 넘기고 원하는 걸 자연어로 묘사하기만 하는 코딩 방식" 이다. 아키텍처 문서도, 보일러플레이트도, 세미콜론 검색도 없다. 그저 바이브로 코드가 굴러간다. 이 용어는 1년도 안 되어 영어권 개발자 커뮤니티 표준 어휘로 자리잡았다.
 
