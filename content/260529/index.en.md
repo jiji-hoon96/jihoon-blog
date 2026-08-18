@@ -6,7 +6,7 @@ date: '2026-05-29'
 locale: en
 translationOf: '260529'
 sourceHash: dcdf13a2067a0ae15b501b063ecf0c65202580351b7df388dad34849f41e1c3c
-categories: AI Developer Tools Claude MCP CodeGraph
+categories: AI Developer-Tools Claude MCP CodeGraph
 description: 'A practical map of the AI coding agent ecosystem: the differences between CLAUDE.md, AGENTS.md, and SKILL.md; how MCP, Serena, and CodeGraph work; the layers of code intelligence; and how to discover emerging tools through GitHub Trending.'
 keywords: 'CLAUDE.md, AGENTS.md, SKILL.md, MCP, Model Context Protocol, Serena MCP, CodeGraph, code intelligence, GitHub Trending, AI coding agents, Claude Code, Cursor rules, tree-sitter, LSP'
 ---
