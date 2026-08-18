@@ -167,7 +167,7 @@ Reactはこの構造を基に、深さ優先探索（DFS）の順序でノード
 
 **pendingProps**は、そのFiberが処理を開始する時点で渡された**新しいprops**を意味し、**memoizedProps**は、前回のレンダリングで処理が完了した**以前のprops**を表す。
 
-この二つの値が同じなら、Reactは「このcomponentには変更がない」と判断し、前回のレンダリング結果をそのまま再利用できる。これが**bailout最適化**の中心的な仕組みだ。
+この二つの値が同じなら、Reactは「このコンポーネントには変更がない」と判断し、前回のレンダリング結果をそのまま再利用できる。これが**bailout最適化**の中心的な仕組みだ。
 
 同様に、**memoizedState**はそのFiberのフックのstateを保存し、**updateQueue**はまだ処理されていないstate更新（setState呼び出し）を連結リストとして管理する。
 
@@ -616,13 +616,13 @@ function bubbleProperties(completedWork) {
 コミットフェーズは内部で、次のような詳細な順序で動作する。
 
 1. **変更前フェーズ**：`commitBeforeMutationEffects()`
-   - DOMが変更される前に、現在のDOMのstateを読み取る。`getSnapshotBeforeUpdate`のライフサイクルはここで実行される。この時点では`current`ツリーがまだ画面の状態を表しているため、DOMのスクロール位置やサイズなどの情報を安全に取得できる。
+   - DOMが変更される前に、現在のDOMの状態を読み取る。`getSnapshotBeforeUpdate`のライフサイクルはここで実行される。この時点では`current`ツリーがまだ画面の状態を表しているため、DOMのスクロール位置やサイズなどの情報を安全に取得できる。
 2. **変更フェーズ**：`commitMutationEffects()`
-   - **実際のDOM操作**が行われる段階だ。新しいノードの挿入、既存ノードの変更、不要なノードの削除がすべてここで発生する。`componentWillUnmount`もこの時点で実行される。まだ`current`が以前のツリーを指しているため、以前のstateを読めるからだ。
+   - **実際のDOM操作**が行われる段階だ。新しいノードの挿入、既存ノードの変更、不要なノードの削除がすべてここで発生する。`componentWillUnmount`もこの時点で実行される。まだ`current`が以前のツリーを指しているため、以前の状態を読めるからだ。
 3. **ツリーの切り替え**：`root.current = finishedWork`
    - ダブルバッファリングの核心だ。workInProgressツリーがcurrentツリーへ昇格する。この切り替えが変更フェーズ後、レイアウトフェーズ前に行われる理由は重要だ。`componentWillUnmount`は**以前のツリー**を読む必要があるため変更フェーズで実行しなければならず、`componentDidMount`/`componentDidUpdate`は**新しいツリー**を読む必要があるためレイアウトフェーズで実行しなければならない。
 4. **レイアウトフェーズ**：`commitLayoutEffects()`
-   - DOMの変更が完了した後、新しいDOMのstateを基にする処理が実行される。
+   - DOMの変更が完了した後、新しいDOMの状態を基にする処理が実行される。
       - `componentDidMount`、`componentDidUpdate`を実行
       - `useLayoutEffect`のコールバックを実行
       - この時点では`current`がすでに新しいツリーを指しているため、DOMを読むと更新後の値を取得できる
