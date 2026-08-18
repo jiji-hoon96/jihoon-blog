@@ -46,3 +46,26 @@ English original.
     originalQuotes: ['English original.'],
   })
 })
+
+test('keeps indented list fences separate from translatable prose', () => {
+  const markdown = `- 설명
+
+    \`\`\`ts
+    # this is code, not a heading
+    const first = 1
+    \`\`\`
+
+    번역해야 하는 본문과 \`inlineCode\`.
+
+    \`\`\`ts
+    const second = 2
+    \`\`\`
+`
+
+  const structure = extractProtectedStructure(markdown)
+
+  assert.equal(structure.fencedCode.length, 2)
+  assert.equal(structure.fencedCode[0].includes('번역해야 하는 본문'), false)
+  assert.deepEqual(structure.headingLevels, [])
+  assert.deepEqual(structure.inlineCode, ['inlineCode'])
+})
