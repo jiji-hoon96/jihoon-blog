@@ -65,6 +65,13 @@ type Dictionary = {
     description: string
     empty: string
   }
+  llms: {
+    intro: string
+    about: string
+    rss: string
+    sitemap: string
+    posts: string
+  }
 }
 
 const dictionaries: Record<Locale, Dictionary> = {
@@ -80,6 +87,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     about: { greeting: '안녕하세요 {name}입니다.', description: '프론트엔드 개발자 {name}의 소개, 커리어, 활동 이력과 기술 스택을 확인하세요.', profileDescription: '프론트엔드 개발자. {stack} 등의 기술로 웹을 개발합니다.' },
     guestbook: { title: '안녕하세요!', description: '자유롭게 방명록을 작성해주세요 :)' },
     playground: { title: '재미있는 것을 만듭니다', description: '개인 프로젝트 모음', empty: '아직 프로젝트가 없습니다.' },
+    llms: { intro: '프론트엔드 개발자 {authorName}({authorNickname})의 기술 블로그입니다. 주요 스택: {stack}', about: '저자 소개, 커리어, 활동 이력', rss: 'RSS 구독', sitemap: '사이트 전체 URL', posts: '글' },
   },
   en: {
     siteDescription: 'Jihoon Lee’s frontend engineering blog, sharing practical notes on React, TypeScript, Next.js, and web development.',
@@ -93,6 +101,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     about: { greeting: 'Hello, I’m {name}.', description: 'Meet frontend engineer {name} and explore his career, activities, and technical stack.', profileDescription: 'Frontend engineer building for the web with {stack}.' },
     guestbook: { title: 'Hello!', description: 'Feel free to leave a message :)' },
     playground: { title: 'Enjoying making fun things', description: 'A collection of personal projects', empty: 'No projects yet.' },
+    llms: { intro: 'Technical blog by frontend engineer {authorName} ({authorNickname}). Main stack: {stack}', about: 'Author profile, career, and activities', rss: 'RSS subscription', sitemap: 'All site URLs', posts: 'Posts' },
   },
   ja: {
     siteDescription: 'フロントエンドエンジニア、イ・ジフンの技術ブログ。React、TypeScript、Next.jsなどの実践記録を共有します。',
@@ -106,6 +115,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     about: { greeting: 'こんにちは、{name}です。', description: 'フロントエンドエンジニア{name}の経歴、活動、技術スタックを紹介します。', profileDescription: '{stack}などを使ってWeb開発に取り組むフロントエンドエンジニアです。' },
     guestbook: { title: 'こんにちは！', description: 'お気軽にメッセージを残してください :)' },
     playground: { title: '楽しいものを作る', description: '個人プロジェクト集', empty: 'プロジェクトはまだありません。' },
+    llms: { intro: 'フロントエンドエンジニア{authorName}（{authorNickname}）の技術ブログです。主な技術: {stack}', about: '著者プロフィール、経歴、活動', rss: 'RSS購読', sitemap: 'サイト全体のURL', posts: '記事' },
   },
   es: {
     siteDescription: 'Blog de ingeniería frontend de Jihoon Lee con experiencias sobre React, TypeScript, Next.js y desarrollo web.',
@@ -119,6 +129,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     about: { greeting: 'Hola, soy {name}.', description: 'Conoce al ingeniero frontend {name}, su trayectoria, actividades y stack técnico.', profileDescription: 'Ingeniero frontend que desarrolla para la web con {stack}.' },
     guestbook: { title: '¡Hola!', description: 'Puedes dejar un mensaje cuando quieras :)' },
     playground: { title: 'Creando cosas divertidas', description: 'Una colección de proyectos personales', empty: 'Aún no hay proyectos.' },
+    llms: { intro: 'Blog técnico del ingeniero frontend {authorName} ({authorNickname}). Stack principal: {stack}', about: 'Perfil, trayectoria y actividades del autor', rss: 'Suscripción RSS', sitemap: 'Todas las URL del sitio', posts: 'Artículos' },
   },
   'pt-BR': {
     siteDescription: 'Blog de engenharia frontend de Jihoon Lee, com experiências sobre React, TypeScript, Next.js e desenvolvimento web.',
@@ -132,6 +143,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     about: { greeting: 'Olá, eu sou {name}.', description: 'Conheça o engenheiro frontend {name}, sua carreira, atividades e stack técnico.', profileDescription: 'Engenheiro frontend que desenvolve para a web com {stack}.' },
     guestbook: { title: 'Olá!', description: 'Fique à vontade para deixar uma mensagem :)' },
     playground: { title: 'Criando coisas divertidas', description: 'Uma coleção de projetos pessoais', empty: 'Ainda não há projetos.' },
+    llms: { intro: 'Blog técnico do engenheiro frontend {authorName} ({authorNickname}). Stack principal: {stack}', about: 'Perfil, carreira e atividades do autor', rss: 'Assinatura RSS', sitemap: 'Todas as URLs do site', posts: 'Artigos' },
   },
   'zh-CN': {
     siteDescription: '前端工程师李智勋的技术博客，分享 React、TypeScript、Next.js 与 Web 开发实践。',
@@ -145,6 +157,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     about: { greeting: '你好，我是{name}。', description: '了解前端工程师{name}的职业经历、活动与技术栈。', profileDescription: '使用{stack}等技术进行 Web 开发的前端工程师。' },
     guestbook: { title: '你好！', description: '欢迎随时留言 :)' },
     playground: { title: '创造有趣的东西', description: '个人项目合集', empty: '暂无项目。' },
+    llms: { intro: '前端工程师{authorName}（{authorNickname}）的技术博客。主要技术栈：{stack}', about: '作者简介、职业经历与活动', rss: 'RSS 订阅', sitemap: '全站 URL', posts: '文章' },
   },
 }
 
