@@ -596,7 +596,7 @@ eat("jihoon", "감자탕");
 
 **1. React 상태 관리와의 마찰**
 
-React의 상태 관리는 기본적으로 **Plain Object**를 전제로 설계되어 있다. `useState`나 `useReducer`는 기술적으로 어떤 값이든 담을 수 있지만, 함께 쓰이는 도구 생태계(Redux/Zustand의 영속화 미들웨어, Redux DevTools, React Server Component의 클라이언트 전달)는 모두 직렬화 가능한(serializable) 객체를 전제로 한다. 이 경로 어딘가에서 Class 인스턴스는 `JSON.stringify` → `JSON.parse` 사이클을 거치며 메서드가 소실되고, 프로토타입을 잃은 plain object로 퇴화한다.
+React의 상태 관리는 기본적으로 **Plain Object**와 가장 자연스럽게 맞물린다. `useState`나 `useReducer`는 기술적으로 어떤 값이든 담을 수 있고 Redux DevTools도 Class 인스턴스의 프로토타입을 직접 제거하지는 않는다. 하지만 Redux/Zustand의 영속화 미들웨어가 JSON으로 상태를 저장했다가 복원하면 Class 인스턴스는 `JSON.stringify` → `JSON.parse` 사이클에서 메서드와 프로토타입을 잃은 plain object가 된다. 한편 React Server Component에서 Client Component로 props를 전달하는 경계는 직렬화 가능한(serializable) 값만 지원하므로, 임의의 Class 인스턴스는 애초에 전달할 수 없다.
 
 아래 코드를 살펴보자.
 
@@ -606,7 +606,7 @@ const [filing, setFiling] = useState(
 );
 ```
 
-상태를 업데이트하고 나면 `filing`은 여전히 `TaxFilingModel`의 인스턴스인가? Redux Devtools에서 직렬화될 때, 그리고 React Server Component를 거쳐 클라이언트로 전달될 때는 어떨까? 결국 어느 시점에서 메서드를 잃은 plain object로 퇴화하고, 무심코 호출한 `filing.canAmend()`가 런타임 에러로 터지는 상황을 마주하게 된다.
+React 상태를 업데이트하는 것만으로는 `filing`이 `TaxFilingModel` 인스턴스라는 사실이 사라지지 않는다. 다만 Redux/Zustand 영속화가 JSON으로 저장·복원한 값은 메서드 없는 plain object가 될 수 있어, 무심코 호출한 `filing.canAmend()`가 런타임 에러로 터질 수 있다. React Server Component에서 Client Component로 넘길 때는 Class 인스턴스가 지원되는 직렬화 형식이 아니므로 전달 단계에서 막힌다.
 
 **2. 불변성 보장의 어려움**
 
@@ -655,7 +655,7 @@ filing.canAmend();
 filing.canEdit();
 ```
 
-이 패턴은 Class의 표현력(`filing.canAmend()`)과 함수형의 실용성(Plain Object, 직렬화 가능)을 동시에 얻는다. 물론 매번 함수 객체를 새로 만드는 비용이 있지만, 프론트엔드에서 다루는 데이터 규모에서는 성능 문제가 되는 경우가 거의 없다.
+이 패턴은 Class의 표현력(`filing.canAmend()`)과 객체 리터럴을 활용하는 함수형 구성의 실용성을 함께 얻는다. 다만 반환 객체에 함수 프로퍼티가 있으므로 JSON 직렬화가 가능한 데이터 객체는 아니다. 매번 함수 객체를 새로 만드는 비용도 있지만, 프론트엔드에서 다루는 데이터 규모에서는 성능 문제가 되는 경우가 거의 없다.
 
 
 ## 어디까지 분리할 것인가?
