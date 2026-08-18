@@ -2,7 +2,9 @@ import { allPosts } from 'contentlayer/generated'
 import { getSortedPublishedPosts } from '@/lib/filter-posts'
 import { siteMetadata } from '@/lib/site-metadata'
 import { getPostsForLocale } from '@/lib/localized-posts'
-import { isLocale, toPublicPath } from '@/i18n/locales'
+import { isLocale } from '@/i18n/locales'
+import { getDictionary } from '@/i18n/dictionaries'
+import { buildLlmsText } from '@/lib/llms-text'
 import { notFound } from 'next/navigation'
 
 /**
@@ -19,40 +21,18 @@ export async function GET(
   if (!isLocale(lang)) notFound()
 
   const posts = getSortedPublishedPosts(getPostsForLocale(allPosts, lang))
-  const stack = siteMetadata.author.stack.join(', ')
-
-  const header = [
-    `# ${siteMetadata.title}`,
-    '',
-    `> ${siteMetadata.description}`,
-    '',
-    `프론트엔드 개발자 ${siteMetadata.author.name}(${siteMetadata.author.nickname})의 기술 블로그입니다.`,
-    `주요 스택: ${stack}`,
-    `사이트 URL: ${siteMetadata.siteUrl}${toPublicPath(lang, '/')}`,
-    '',
-    '## About',
-    '',
-    `- [About](${siteMetadata.siteUrl}${toPublicPath(lang, '/about')}): 저자 소개, 커리어, 활동 이력`,
-    `- [RSS Feed](${siteMetadata.siteUrl}${toPublicPath(lang, '/rss.xml')}): 전체 글 RSS`,
-    `- [Sitemap](${siteMetadata.siteUrl}/sitemap.xml): 사이트 전체 URL`,
-    '',
-    '## Posts',
-    '',
-  ].join('\n')
-
-  const postLines = posts
-    .map(post => {
-      const url = `${siteMetadata.siteUrl}${post.slug}`
-      const summary = (post.description || post.excerpt || '').replace(
-        /\s+/g,
-        ' ',
-      )
-      const title = post.seoTitle || post.title
-      return `- [${title}](${url}): ${summary}`
-    })
-    .join('\n')
-
-  const body = `${header}${postLines}\n`
+  const dictionary = getDictionary(lang)
+  const body = buildLlmsText({
+    locale: lang,
+    siteUrl: siteMetadata.siteUrl,
+    siteTitle: siteMetadata.title,
+    siteDescription: dictionary.siteDescription,
+    authorName: siteMetadata.author.name,
+    authorNickname: siteMetadata.author.nickname,
+    stack: siteMetadata.author.stack,
+    labels: dictionary.llms,
+    posts,
+  })
 
   return new Response(body, {
     headers: {
