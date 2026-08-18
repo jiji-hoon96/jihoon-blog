@@ -272,7 +272,7 @@ Each lane is also assigned an expiration time to prevent **starvation**. Sync/In
 
 Now that we have examined Fiber's structure, another question arises: how do these Fiber nodes turn into the **actual DOM**?
 
-output means concrete DOM node information that can be applied to the actual DOM. There is an important distinction here.
+The output represents concrete DOM node information that can be applied to the actual DOM. There is an important distinction here.
 
 ```jsx
 // 사용자 정의 컴포넌트 — output 없음
