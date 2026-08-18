@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
+import AiReferralReporter from "@/components/AiReferralReporter";
 import { siteMetadata } from "@/lib/site-metadata";
 import {
 	getLanguageAlternates,
@@ -146,7 +147,7 @@ export default async function RootLayout({
 						<main className="mx-auto w-full max-w-[var(--width-content)] px-4 flex-1">
 							{children}
 						</main>
-						<Footer />
+						<Footer locale={lang} />
 					</div>
 					<ScrollToTop />
 				</ThemeProvider>
@@ -165,6 +166,7 @@ export default async function RootLayout({
           `}
 				</Script>
 				<WebVitalsReporter />
+				<AiReferralReporter />
 			</body>
 		</html>
 	);
