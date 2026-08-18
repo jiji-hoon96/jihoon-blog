@@ -9,6 +9,7 @@ import { findTranslation, getPostsForLocale } from "@/lib/localized-posts";
 import { isLocale, toPublicPath } from "@/i18n/locales";
 import { notFound } from "next/navigation";
 import { getDictionary, interpolate } from "@/i18n/dictionaries";
+import { getAuthorEntityId } from "@/lib/author-identity";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +66,7 @@ export default async function HomePage({
     inLanguage: lang,
     author: {
       "@type": "Person",
-      "@id": `${siteMetadata.siteUrl}/about#person`,
+      "@id": getAuthorEntityId(siteMetadata.siteUrl),
       name: siteMetadata.author.name,
       alternateName: siteMetadata.author.nickname,
       email: siteMetadata.author.bio.email,

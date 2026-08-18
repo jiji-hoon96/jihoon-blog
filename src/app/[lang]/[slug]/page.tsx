@@ -18,6 +18,7 @@ import { isLocale, toPublicPath } from '@/i18n/locales'
 import { buildLocalizedPostMetadata } from '@/lib/localized-metadata'
 import { getDictionary } from '@/i18n/dictionaries'
 import { getPostModifiedDate } from '@/lib/post-dates'
+import { getAuthorEntityId } from '@/lib/author-identity'
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>
@@ -86,7 +87,7 @@ export default async function PostPage({ params }: Props) {
     image: [ogImageUrl],
     author: {
       '@type': 'Person',
-      '@id': `${siteMetadata.siteUrl}/about#person`,
+      '@id': getAuthorEntityId(siteMetadata.siteUrl),
       name: siteMetadata.author.name,
       alternateName: siteMetadata.author.nickname,
       email: siteMetadata.author.bio.email,
@@ -107,7 +108,7 @@ export default async function PostPage({ params }: Props) {
     },
     publisher: {
       '@type': 'Person',
-      '@id': `${siteMetadata.siteUrl}/about#person`,
+      '@id': getAuthorEntityId(siteMetadata.siteUrl),
       name: siteMetadata.author.name,
       url: siteMetadata.siteUrl,
       logo: {

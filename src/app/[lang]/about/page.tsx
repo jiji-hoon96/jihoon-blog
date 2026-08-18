@@ -4,6 +4,7 @@ import { getDictionary, interpolate } from "@/i18n/dictionaries";
 import { getLanguageAlternates, isLocale, toPublicPath } from "@/i18n/locales";
 import { getOpenGraphLocale } from "@/lib/localized-metadata";
 import { notFound } from "next/navigation";
+import { getAuthorEntityId } from "@/lib/author-identity";
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params;
@@ -33,7 +34,7 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
     url: aboutUrl,
     mainEntity: {
       "@type": "Person",
-      "@id": `${aboutUrl}#person`,
+      "@id": getAuthorEntityId(siteMetadata.siteUrl),
       name: siteMetadata.author.name,
       alternateName: siteMetadata.author.nickname,
       description: interpolate(dictionary.about.profileDescription, { stack: siteMetadata.author.stack.join(", ") }),
