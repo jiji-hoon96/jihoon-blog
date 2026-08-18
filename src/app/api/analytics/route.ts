@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as Sentry from "@sentry/nextjs";
+import { captureServerException } from "@/lib/sentry-server";
 import {
   getAnalyticsStats,
   getPopularPages,
@@ -57,11 +57,10 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error("Analytics API error:", error);
-    // 서비스 계정 키 만료, GA4 쿼터 초과, GA 측 5xx 는 로그만 남으면 알 방법이 없다.
-    // type 을 태그로 붙여 어떤 쿼리에서 터졌는지 Sentry 에서 바로 구분한다.
-    Sentry.captureException(error, {
-      tags: { route: "api/analytics", analyticsType: type ?? "none" },
-    });
+    const operation = ["stats", "popular", "page", "pages"].includes(type ?? "")
+      ? `route-${type}`
+      : "route-invalid";
+    captureServerException(error, { routeKind: "analytics", operation });
     return NextResponse.json(
       { error: "Failed to fetch analytics data" },
       { status: 500 }

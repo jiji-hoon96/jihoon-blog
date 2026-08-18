@@ -1,6 +1,6 @@
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
 import { unstable_cache } from "next/cache";
-import * as Sentry from "@sentry/nextjs";
+import { captureServerException } from "@/lib/sentry-server";
 
 import { addDailyVisitorBaseline } from "@/lib/daily-visitor-baseline";
 import { gaCallOptions } from "@/lib/ga-request-options";
@@ -103,7 +103,7 @@ async function fetchAnalyticsStats(): Promise<AnalyticsStats> {
   } catch (error) {
     console.error("Error fetching analytics stats:", error);
     // 여기서 삼키면 방문자에겐 통계가 0 으로 보이고 응답은 200 이라, 로그를 안 보면 장애를 알 수 없다.
-    Sentry.captureException(error, { tags: { gaQuery: "stats" } });
+    captureServerException(error, { routeKind: "analytics", operation: "stats" });
     return { totalPageViews: 0, todayVisitors: 0 };
   }
 }
@@ -166,7 +166,7 @@ async function fetchPopularPages(limit: number = 10): Promise<PopularPage[]> {
       }));
   } catch (error) {
     console.error("Error fetching popular pages:", error);
-    Sentry.captureException(error, { tags: { gaQuery: "popular" } });
+    captureServerException(error, { routeKind: "analytics", operation: "popular" });
     return [];
   }
 }
@@ -212,7 +212,7 @@ export async function getPageViews(pagePath: string): Promise<number> {
     );
   } catch (error) {
     console.error("Error fetching page views:", error);
-    Sentry.captureException(error, { tags: { gaQuery: "page" } });
+    captureServerException(error, { routeKind: "analytics", operation: "page" });
     return 0;
   }
 }
@@ -259,7 +259,7 @@ export async function getMultiplePageViews(
     return result;
   } catch (error) {
     console.error("Error fetching multiple page views:", error);
-    Sentry.captureException(error, { tags: { gaQuery: "pages" } });
+    captureServerException(error, { routeKind: "analytics", operation: "pages" });
     return {};
   }
 }

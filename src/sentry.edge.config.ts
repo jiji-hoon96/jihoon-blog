@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/nextjs'
+import { getSentryRuntimeOptions } from './lib/sentry-options'
 
 /**
  * Edge 런타임 Sentry 초기화.
@@ -7,11 +8,4 @@ import * as Sentry from '@sentry/nextjs'
  * withSentryConfig 는 edge 빌드를 조건 없이 배선하므로 파일을 두는 편이 안전하다.
  */
 
-const dsn = process.env.SENTRY_DSN ?? process.env.NEXT_PUBLIC_SENTRY_DSN
-
-Sentry.init({
-  dsn,
-  enabled: Boolean(dsn) && process.env.NODE_ENV === 'production',
-  tracesSampleRate: 0.1,
-  sendDefaultPii: false,
-})
+Sentry.init(getSentryRuntimeOptions(process.env))

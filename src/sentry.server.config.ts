@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/nextjs'
+import { getSentryRuntimeOptions } from './lib/sentry-options'
 
 /**
  * Node 런타임(서버) Sentry 초기화. `src/instrumentation.ts` 의 register() 가 불러온다.
@@ -8,11 +9,4 @@ import * as Sentry from '@sentry/nextjs'
  * 키 만료·쿼터 초과·GA 측 5xx 가 나면 Netlify 함수 로그에만 남고 아무 알림이 없었다.
  */
 
-const dsn = process.env.SENTRY_DSN ?? process.env.NEXT_PUBLIC_SENTRY_DSN
-
-Sentry.init({
-  dsn,
-  enabled: Boolean(dsn) && process.env.NODE_ENV === 'production',
-  tracesSampleRate: 0.1,
-  sendDefaultPii: false,
-})
+Sentry.init(getSentryRuntimeOptions(process.env))
