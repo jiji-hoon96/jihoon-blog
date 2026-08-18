@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { siteMetadata } from "@/lib/site-metadata";
 import SearchModal from "./SearchModal";
@@ -12,161 +12,86 @@ import { toPublicPath, type Locale } from "@/i18n/locales";
 export default function Header({ locale }: { locale: Locale }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
 
   const dictionary = getDictionary(locale);
+  const homePath = toPublicPath(locale, "/");
   const navLinks = [
-    { href: toPublicPath(locale, "/posts"), label: dictionary.navigation.posts },
-    { href: toPublicPath(locale, "/guestbook"), label: dictionary.navigation.guestbook },
-    { href: toPublicPath(locale, "/about"), label: dictionary.navigation.about },
+    { href: `${homePath}#writing`, label: "Writing" },
+    { href: toPublicPath(locale, "/about"), label: "About" },
+    { href: toPublicPath(locale, "/posts"), label: "Index" },
   ];
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
-  const SunIcon = () => (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="5" />
-      <line x1="12" y1="1" x2="12" y2="3" />
-      <line x1="12" y1="21" x2="12" y2="23" />
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-      <line x1="1" y1="12" x2="3" y2="12" />
-      <line x1="21" y1="12" x2="23" y2="12" />
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-    </svg>
-  );
-
-  const MoonIcon = () => (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </svg>
-  );
+  const utilityClass =
+    "home-meta text-[11px] uppercase tracking-[0.06em] text-stone transition-colors hover:text-tide";
 
   return (
-    <header className="border-b border-light-gray20 dark:border-dark-gray20 mb-8">
-      <nav className="mx-auto max-w-[var(--width-content)] px-4 py-4 sm:py-6">
-        <div className="flex items-center justify-between">
-          <Link
-            href={toPublicPath(locale, "/")}
-            className="text-lg sm:text-2xl font-bold hover:opacity-70 transition-opacity"
-          >
-            {siteMetadata.title}
+    <header className="border-b border-mineral">
+      <nav className="mx-auto max-w-[var(--width-shell)] px-4 py-5 sm:px-8 sm:py-7">
+        <div className="flex items-center justify-between gap-8">
+          <Link href={homePath} className="group min-w-0">
+            <span className="block text-[15px] font-semibold tracking-[-0.015em] text-ink transition-colors group-hover:text-tide">
+              {siteMetadata.author.name}
+            </span>
+            <span className="home-meta mt-1 block text-[10px] uppercase tracking-[0.08em] text-stone">
+              Frontend Engineer
+            </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <ul className="hidden sm:flex items-center gap-6">
+          <ul className="hidden items-center gap-6 sm:flex">
             {navLinks.map((link) => (
               <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="hover:text-light-gray60 dark:hover:text-dark-gray60 transition-colors"
-                >
+                <Link href={link.href} className={utilityClass}>
                   {link.label}
                 </Link>
               </li>
             ))}
+            <li><SearchModal locale={locale} trigger="text" /></li>
+            <li><LanguageSelector locale={locale} /></li>
             <li>
-              <SearchModal locale={locale} />
-            </li>
-            <li>
-              <LanguageSelector locale={locale} />
-            </li>
-            <li>
-              <button
-                onClick={toggleTheme}
-                className="p-2 hover:bg-light-gray10 dark:hover:bg-dark-gray10 rounded-lg transition-colors cursor-pointer"
-                aria-label={dictionary.actions.changeTheme}
-              >
-                {mounted ? (
-                  resolvedTheme === "dark" ? <SunIcon /> : <MoonIcon />
-                ) : (
-                  <div className="w-5 h-5" />
-                )}
+              <button onClick={toggleTheme} className={utilityClass} aria-label={dictionary.actions.changeTheme}>
+                {mounted ? (resolvedTheme === "dark" ? "Dark" : "Light") : "Light"}
               </button>
             </li>
           </ul>
 
-          {/* Mobile: Search + Theme Toggle + Hamburger */}
-          <div className="flex items-center gap-1 sm:hidden">
-            <SearchModal locale={locale} />
-            <LanguageSelector locale={locale} />
-            <button
-              onClick={toggleTheme}
-              className="p-2 hover:bg-light-gray10 dark:hover:bg-dark-gray10 rounded-lg transition-colors cursor-pointer"
-              aria-label={dictionary.actions.changeTheme}
-            >
-              {mounted ? (
-                resolvedTheme === "dark" ? <SunIcon /> : <MoonIcon />
-              ) : (
-                <div className="w-5 h-5" />
-              )}
-            </button>
-            <button
-              className="p-2"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label={dictionary.actions.openMenu}
-            >
-              <div className="w-5 h-4 flex flex-col justify-between">
-                <span
-                  className={`block h-0.5 bg-current transition-transform duration-200 ${
-                    isMenuOpen ? "rotate-45 translate-y-1.5" : ""
-                  }`}
-                />
-                <span
-                  className={`block h-0.5 bg-current transition-opacity duration-200 ${
-                    isMenuOpen ? "opacity-0" : ""
-                  }`}
-                />
-                <span
-                  className={`block h-0.5 bg-current transition-transform duration-200 ${
-                    isMenuOpen ? "-rotate-45 -translate-y-2" : ""
-                  }`}
-                />
-              </div>
-            </button>
-          </div>
+          <button
+            className={`${utilityClass} sm:hidden`}
+            onClick={() => setIsMenuOpen((open) => !open)}
+            aria-expanded={isMenuOpen}
+            aria-label={dictionary.actions.openMenu}
+          >
+            {isMenuOpen ? "Close" : "Menu"}
+          </button>
         </div>
 
-        {/* Mobile Menu */}
         {isMenuOpen && (
-          <ul className="sm:hidden mt-4 pt-4 border-t border-light-gray20 dark:border-dark-gray20 flex flex-col gap-3">
-            {navLinks.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="block py-1 hover:text-light-gray60 dark:hover:text-dark-gray60 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
+          <div className="mt-6 border-t border-mineral pt-5 sm:hidden">
+            <ul className="grid grid-cols-2 gap-x-6 gap-y-5">
+              {navLinks.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className={utilityClass} onClick={() => setIsMenuOpen(false)}>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+              <li><SearchModal locale={locale} trigger="text" /></li>
+              <li><LanguageSelector locale={locale} /></li>
+              <li>
+                <button onClick={toggleTheme} className={utilityClass}>
+                  {mounted ? (resolvedTheme === "dark" ? "Dark" : "Light") : "Light"}
+                </button>
               </li>
-            ))}
-          </ul>
+            </ul>
+          </div>
         )}
       </nav>
     </header>

@@ -1,0 +1,63 @@
+<meta charset="utf-8">
+<link rel="stylesheet" href="base.css">
+<style>
+.scale{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.scale .seg{flex:1;height:8px;border-radius:999px}
+.s1{background:#3d3d47} .s2{background:var(--accent)} .s3{background:#3d3d47}
+.scale .cap{font-size:15px;color:var(--dim);white-space:nowrap}
+.cols{display:flex;gap:18px;align-items:stretch}
+.cols .card{flex:1;display:flex;flex-direction:column}
+.cols .card.mid{border-color:#5b47a8;background:#221f30}
+.name{font-size:22px;font-weight:800;margin-bottom:6px}
+.name .en{font-size:16px;color:var(--dim);font-weight:600;margin-left:6px}
+.ex{font-size:16px;color:var(--muted);line-height:1.7;min-height:78px;padding-bottom:14px;border-bottom:1px dashed var(--border)}
+.qs{margin-top:14px;font-size:16px;line-height:1.8}
+.qs .y{color:var(--ok);font-weight:700}
+.qs .n{color:var(--warn);font-weight:700}
+.qs div{margin-bottom:6px;color:var(--muted)}
+</style>
+<h1>요구사항에도 해상도가 있다</h1>
+<div class="sub">기획의 문장은 너무 성기고 디자인 시안은 너무 촘촘하다. 흐름을 확인하기 좋은 해상도는 그 사이에 있다.</div>
+
+<div class="scale">
+  <span class="cap">추상적</span>
+  <span class="seg s1"></span><span class="seg s2"></span><span class="seg s3"></span>
+  <span class="cap">구체적</span>
+</div>
+
+<div class="cols">
+  <div class="card">
+    <div class="name">문장</div>
+    <div class="ex">"사용자가 예약 내역을<br>편하게 확인할 수 있게"</div>
+    <div class="qs">
+      <div><span class="y">답한다</span> 왜 만드는가</div>
+      <div><span class="n">못 한다</span> 화면이 몇 개인가</div>
+      <div><span class="n">못 한다</span> 어디서 어디로 가는가</div>
+    </div>
+  </div>
+
+  <div class="card mid">
+    <div class="name">브레드보드<span class="en">breadboard</span></div>
+    <div class="ex">장소, 조작할 수 있는 것,<br>그 조작이 데려가는 곳.<br>딱 세 가지만 그린다.</div>
+    <div class="qs">
+      <div><span class="y">답한다</span> 이 흐름이 맞는가</div>
+      <div><span class="y">답한다</span> 빠진 단계는 없는가</div>
+      <div><span class="y">답한다</span> 여기서 뒤로 가면 어디인가</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="name">시안</div>
+    <div class="ex">버튼의 색, 여백,<br>타이포그래피까지<br>정해진 화면</div>
+    <div class="qs">
+      <div><span class="y">답한다</span> 어떻게 보이는가</div>
+      <div><span class="n">묻기 어렵다</span> 이 흐름이 맞는가</div>
+      <div><span class="n">묻기 어렵다</span> 이 화면이 필요한가</div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  해상도가 어긋난 회의는 두 방향으로 실패한다. 문장만 있으면 각자 다른 화면을 상상하고,<br>
+  시안만 있으면 <b>흐름을 되물을 자리가 사라진다.</b>
+</div>

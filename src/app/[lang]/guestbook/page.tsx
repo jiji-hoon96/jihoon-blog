@@ -3,7 +3,7 @@ import Utterances from "@/components/Utterances";
 import type { Metadata } from "next";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getLanguageAlternates, isLocale, toPublicPath } from "@/i18n/locales";
-import { getOpenGraphLocale } from "@/lib/localized-metadata";
+import { getLocalizedOpenGraphImageUrl, getOpenGraphLocale } from "@/lib/localized-metadata";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     title: dictionary.navigation.guestbook,
     description: dictionary.guestbook.description,
     alternates: { canonical: url, languages: getLanguageAlternates(siteMetadata.siteUrl, "/guestbook") },
-    openGraph: { title: dictionary.navigation.guestbook, description: dictionary.guestbook.description, url, type: "website", locale: getOpenGraphLocale(lang) },
+    openGraph: { title: dictionary.navigation.guestbook, description: dictionary.guestbook.description, url, images: [getLocalizedOpenGraphImageUrl(siteMetadata.siteUrl, lang)], type: "website", locale: getOpenGraphLocale(lang) },
   };
 }
 

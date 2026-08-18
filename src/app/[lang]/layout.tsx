@@ -24,8 +24,8 @@ export const viewport: Viewport = {
 	maximumScale: 5,
 	colorScheme: "light dark",
 	themeColor: [
-		{ media: "(prefers-color-scheme: light)", color: "#ffffff" },
-		{ media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+		{ media: "(prefers-color-scheme: light)", color: "#f4f1ea" },
+		{ media: "(prefers-color-scheme: dark)", color: "#171815" },
 	],
 };
 
@@ -44,7 +44,7 @@ export async function generateMetadata({
 	return {
 		metadataBase: new URL(siteMetadata.siteUrl),
 		title: {
-			default: siteMetadata.title,
+			default: `${siteMetadata.author.name} · Frontend Engineering`,
 			template: `%s | ${siteMetadata.title}`,
 		},
 		description: dictionary.siteDescription,
@@ -117,28 +117,9 @@ export default async function RootLayout({
 						__html: `(function(){if(!('serviceWorker' in navigator))return;navigator.serviceWorker.getRegistrations().then(function(rs){if(!rs.length)return;Promise.all(rs.map(function(r){return r.unregister()})).then(function(){if(!('caches' in window))return window.location.reload();caches.keys().then(function(ks){Promise.all(ks.map(function(k){return caches.delete(k)})).then(function(){window.location.reload()})})})})})();`,
 					}}
 				/>
-				{/* Font preloading */}
-				<link
-					rel="preload"
-					href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansLight.woff"
-					as="font"
-					type="font/woff"
-					crossOrigin="anonymous"
-				/>
-				<link
-					rel="preload"
-					href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff"
-					as="font"
-					type="font/woff"
-					crossOrigin="anonymous"
-				/>
-				<link
-					rel="preload"
-					href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff"
-					as="font"
-					type="font/woff"
-					crossOrigin="anonymous"
-				/>
+				<link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+				<link rel="preconnect" href="https://fonts.googleapis.com" />
+				<link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 			</head>
 			<body>
 				<ThemeProvider attribute="class" defaultTheme="light">

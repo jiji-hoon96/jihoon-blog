@@ -9,7 +9,7 @@ import {
   isLocale,
   toPublicPath,
 } from '../i18n/locales.ts'
-import { getDictionary } from '../i18n/dictionaries.ts'
+import { getDictionary, interpolate } from '../i18n/dictionaries.ts'
 import {
   findTranslation,
   getLocalizedPostParams,
@@ -41,14 +41,17 @@ test('emits Simplified Chinese as zh-Hans in language alternates', () => {
   assert.equal(alternates['x-default'], 'https://example.com/260703')
 })
 
-test('switches locale while preserving the visible page path', () => {
-  assert.equal(getLocaleSwitchPath('ko', '/en/260703'), '/260703')
-  assert.equal(getLocaleSwitchPath('ja', '/en/260703'), '/ja/260703')
-  assert.equal(getLocaleSwitchPath('en', '/260703'), '/en/260703')
+test('switches shared routes directly and uses the post index as a safe fallback', () => {
+  assert.equal(getLocaleSwitchPath('ko', '/en/260703'), '/posts')
+  assert.equal(getLocaleSwitchPath('ja', '/en/260703'), '/ja/posts')
+  assert.equal(getLocaleSwitchPath('en', '/260703'), '/en/posts')
   assert.equal(
     getLocaleSwitchPath('es', '/pt-BR/posts/AI'),
-    '/es/posts/AI',
+    '/es/posts',
   )
+  assert.equal(getLocaleSwitchPath('es', '/pt-BR/about'), '/es/about')
+  assert.equal(getLocaleSwitchPath('ko', '/en/posts'), '/posts')
+  assert.equal(getLocaleSwitchPath('ko', '/ko/260703'), '/260703')
 })
 
 test('filters and finds posts without crossing locale boundaries', () => {
@@ -106,6 +109,24 @@ test('provides shared navigation labels for every locale', () => {
     assert.ok(dictionary.search.empty)
     assert.ok(dictionary.search.help)
     assert.ok(dictionary.search.shortcut)
+  }
+})
+
+test('provides descriptive metadata for category and guestbook pages', () => {
+  for (const locale of LOCALES) {
+    const dictionary = getDictionary(locale)
+    const categoryDescription = interpolate(dictionary.category.description, {
+      category: 'React',
+      count: 3,
+    })
+
+    assert.ok(categoryDescription.includes('React'))
+    assert.ok(categoryDescription.includes('3'))
+    assert.ok(categoryDescription.length >= 70)
+    assert.ok(dictionary.guestbook.description.length >= 70)
+    assert.ok(dictionary.about.description.length >= 70)
+    assert.ok(dictionary.siteDescription.length >= 70)
+    assert.ok(dictionary.playground.description.length >= 70)
   }
 })
 

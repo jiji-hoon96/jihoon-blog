@@ -1,0 +1,21 @@
+:root{
+  --bg:#17171a; --panel:#1f1f24; --panel2:#26262c; --border:#34343d;
+  --text:#e8e8ea; --muted:#9a9aa2; --dim:#6f6f78;
+  --accent:#a78bfa; --warn:#f5a623; --ok:#5ec98f; --bad:#f2777a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'Pretendard','Apple SD Gothic Neo',-apple-system,sans-serif;
+  width:1200px; padding:56px 60px 52px;
+  -webkit-font-smoothing:antialiased;
+}
+h1{font-size:38px;font-weight:800;color:var(--accent);letter-spacing:-.5px;margin-bottom:10px}
+.sub{font-size:20px;color:var(--muted);margin-bottom:38px}
+.note{margin-top:34px;font-size:17px;line-height:1.75;color:var(--dim)}
+.note b{color:var(--muted);font-weight:700}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:24px 26px}
+.label{font-size:15px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.row{display:flex;gap:18px}
+.col{flex:1}
+.mono{font-family:'SFMono-Regular',Menlo,monospace}

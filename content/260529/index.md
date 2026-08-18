@@ -358,7 +358,7 @@ Serena가 빠르게 채택된 진짜 이유는 **토큰 절약**이다. 텍스�
 
 ## GitHub Trending
 
-![1.png](1.png)
+![AI 코딩 에이전트 도구와 코드 인텔리전스 흐름](1.webp)
 
 마지막으로 한 가지 더, 위 도구들 중 상당수를 필자가 처음 알게 된 통로가 **GitHub Trending**이다. 누가 어떤 도구를 만들었는지, 무엇이 갑자기 인기를 얻고 있는지를 한눈에 볼 수 있는 장소다.
 
@@ -393,4 +393,3 @@ Serena가 빠르게 채택된 진짜 이유는 **토큰 절약**이다. 텍스�
 - [article] [OX Security, MCP Supply Chain Advisory](https://www.ox.security/blog/mcp-supply-chain-advisory-rce-vulnerabilities-across-the-ai-ecosystem/)
 - [repo] [rtk-ai/rtk](https://github.com/rtk-ai/rtk)
 :::
-

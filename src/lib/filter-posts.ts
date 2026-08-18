@@ -1,4 +1,4 @@
-import { Post } from 'contentlayer/generated'
+import type { Post } from 'contentlayer/generated'
 
 /**
  * 비공개(숨김) 글 여부를 판별합니다.

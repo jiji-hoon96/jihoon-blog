@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { getDictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/locales";
@@ -12,20 +12,34 @@ interface Post {
   category: string;
 }
 
-export default function SearchModal({ locale }: { locale: Locale }) {
+export default function SearchModal({
+  locale,
+  trigger = "icon",
+}: {
+  locale: Locale;
+  trigger?: "icon" | "text";
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [posts, setPosts] = useState<Post[]>([]);
-  const [results, setResults] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const dictionary = getDictionary(locale);
 
+  const openSearch = useCallback(() => {
+    setIsOpen(true);
+    if (posts.length === 0) setLoading(true);
+  }, [posts.length]);
+
+  const closeSearch = useCallback(() => {
+    setIsOpen(false);
+    setQuery("");
+  }, []);
+
   // Fetch posts when modal opens
   useEffect(() => {
     if (isOpen && posts.length === 0) {
-      setLoading(true);
       fetch(`/api/search?locale=${encodeURIComponent(locale)}`)
         .then((res) => res.json())
         .then((data) => {
@@ -40,12 +54,8 @@ export default function SearchModal({ locale }: { locale: Locale }) {
   }, [isOpen, locale, posts.length]);
 
   // Search logic
-  useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
-
+  const results = useMemo(() => {
+    if (!query.trim()) return [];
     const searchQuery = query.toLowerCase();
     const filtered = posts.filter(
       (post) =>
@@ -53,7 +63,7 @@ export default function SearchModal({ locale }: { locale: Locale }) {
         post.excerpt?.toLowerCase().includes(searchQuery) ||
         post.category?.toLowerCase().includes(searchQuery)
     );
-    setResults(filtered.slice(0, 10));
+    return filtered.slice(0, 10);
   }, [query, posts]);
 
   // Keyboard shortcut (Cmd/Ctrl + K)
@@ -61,16 +71,16 @@ export default function SearchModal({ locale }: { locale: Locale }) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setIsOpen(true);
+        openSearch();
       }
       if (e.key === "Escape") {
-        setIsOpen(false);
+        closeSearch();
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [closeSearch, openSearch]);
 
   // Focus input when modal opens
   useEffect(() => {
@@ -82,27 +92,23 @@ export default function SearchModal({ locale }: { locale: Locale }) {
   // Close modal when clicking outside
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      setIsOpen(false);
+      closeSearch();
     }
-  }, []);
-
-  // Reset on close
-  useEffect(() => {
-    if (!isOpen) {
-      setQuery("");
-      setResults([]);
-    }
-  }, [isOpen]);
+  }, [closeSearch]);
 
   return (
     <>
       {/* Search Button */}
       <button
-        onClick={() => setIsOpen(true)}
-        className="p-2 hover:bg-light-gray10 dark:hover:bg-dark-gray10 rounded-lg transition-colors cursor-pointer"
+        onClick={openSearch}
+        className={
+          trigger === "text"
+            ? "home-meta text-[11px] uppercase tracking-[0.06em] text-stone transition-colors hover:text-tide"
+            : "p-2 transition-colors hover:text-tide cursor-pointer"
+        }
         aria-label={dictionary.actions.search}
       >
-        <svg
+        {trigger === "text" ? dictionary.actions.search : <svg
           width="20"
           height="20"
           viewBox="0 0 24 24"
@@ -114,7 +120,7 @@ export default function SearchModal({ locale }: { locale: Locale }) {
         >
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.35-4.35" />
-        </svg>
+        </svg>}
       </button>
 
       {/* Modal */}
@@ -125,7 +131,7 @@ export default function SearchModal({ locale }: { locale: Locale }) {
         >
           <div
             ref={modalRef}
-            className="w-full max-w-xl mx-4 bg-light-white100 dark:bg-dark-white100 rounded-xl border border-light-gray20 dark:border-dark-gray20 shadow-2xl overflow-hidden"
+            className="w-full max-w-xl mx-4 bg-light-white100 dark:bg-dark-white100 border border-light-gray20 dark:border-dark-gray20 overflow-hidden"
           >
             {/* Search Input */}
             <div className="flex items-center gap-3 px-4 border-b border-light-gray20 dark:border-dark-gray20">
@@ -192,7 +198,7 @@ export default function SearchModal({ locale }: { locale: Locale }) {
                     <li key={post.slug}>
                       <Link
                         href={post.slug}
-                        onClick={() => setIsOpen(false)}
+                        onClick={closeSearch}
                         className="flex flex-col gap-1 px-4 py-3 hover:bg-light-gray10 dark:hover:bg-dark-gray10 transition-colors"
                       >
                         <span className="text-xs text-light-gray60 dark:text-dark-gray60">

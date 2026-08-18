@@ -1,0 +1,27 @@
+<meta charset="utf-8">
+<link rel="stylesheet" href="base.css">
+<style>
+.stack{display:flex;flex-direction:column;align-items:center;gap:8px}
+.item{width:760px;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px 22px;display:flex;align-items:baseline;gap:14px}
+.item .who{font-size:19px;font-weight:800;color:var(--accent);width:210px;font-family:'SFMono-Regular',Menlo,monospace}
+.item .what{font-size:18px;color:var(--muted)}
+.plus{font-size:24px;color:var(--dim);font-weight:800}
+.down{font-size:26px;color:var(--dim)}
+.result{width:420px;background:#241f16;border:1px solid var(--warn);border-radius:14px;padding:18px 22px;text-align:center}
+.result .n{font-size:26px;font-weight:800;color:var(--warn)}
+.result .d{font-size:16px;color:var(--muted);margin-top:6px}
+</style>
+<h1>Kalyx 의 자리</h1>
+<div class="sub">기존 라이브러리에서 좋았던 부분의 합집합 위에, 한 가지를 더 얹었다.</div>
+
+<div class="stack">
+  <div class="item"><span class="who">react-day-picker</span><span class="what">헤드리스 철학</span></div>
+  <div class="plus">+</div>
+  <div class="item"><span class="who">react-datepicker</span><span class="what">통합된 primitive 세트</span></div>
+  <div class="plus">+</div>
+  <div class="item"><span class="who">shadcn</span><span class="what">Composition 패턴과 Tailwind 친화성</span></div>
+  <div class="plus">+</div>
+  <div class="item"><span class="who">Ark UI</span><span class="what">에 없는 standalone TimePicker 통합</span></div>
+  <div class="down">↓</div>
+  <div class="result"><div class="n">Kalyx</div><div class="d">7 primitive, 약 16KB gzip, ISO 문자열 API</div></div>
+</div>

@@ -1,0 +1,56 @@
+<meta charset="utf-8">
+<link rel="stylesheet" href="base.css">
+<style>
+.cols{display:flex;gap:20px}
+.cols .card{flex:1;display:flex;flex-direction:column}
+.q{font-size:23px;font-weight:800;line-height:1.45;margin-bottom:18px;min-height:66px}
+.kv{font-size:17px;color:var(--muted);line-height:1.9}
+.kv b{color:var(--text);font-weight:700}
+.tool{margin-top:auto;padding-top:16px;border-top:1px dashed var(--border);font-size:16px;color:var(--dim)}
+.tag{display:inline-block;font-size:14px;font-weight:800;letter-spacing:1px;padding:4px 10px;border-radius:999px;margin-bottom:14px}
+.t1{background:rgba(242,119,122,.14);color:#f2777a}
+.t2{background:rgba(167,139,250,.16);color:var(--accent)}
+.t3{background:rgba(245,166,35,.14);color:var(--warn)}
+</style>
+<h1>이 블로그가 관측하는 세 층</h1>
+<div class="sub">세 층이 답하는 질문이 각각 다르다. 그리고 셋 다 심어두지 않으면 알 수 없는 것들이다.</div>
+
+<div class="cols">
+  <div class="card">
+    <span class="tag t1">에러</span>
+    <div class="q">무엇이 깨졌는가</div>
+    <div class="kv">
+      서버 예외와 GA 호출 실패<br>
+      <b>서버 전용</b> 계측<br>
+      쿼리별 태그로 구분
+    </div>
+    <div class="tool">Sentry, 회사에서 먼저 익숙해진 도구</div>
+  </div>
+
+  <div class="card">
+    <span class="tag t2">체감 성능</span>
+    <div class="q">방문자는 얼마나 기다렸는가</div>
+    <div class="kv">
+      LCP, INP, CLS, FCP, TTFB<br>
+      실사용자 <b>field data</b><br>
+      75번째 백분위수로 판단
+    </div>
+    <div class="tool">web-vitals 로 측정해 GA4 로 전송</div>
+  </div>
+
+  <div class="card">
+    <span class="tag t3">검색 행동</span>
+    <div class="q">애초에 어떻게 들어왔는가</div>
+    <div class="kv">
+      쿼리별 노출, 클릭, 순위<br>
+      최근 28일 대 <b>직전 28일</b><br>
+      주 1회 자동 수집
+    </div>
+    <div class="tool">Search Console API, 개인 블로그의 축</div>
+  </div>
+</div>
+
+<div class="note">
+  세 층은 서로를 대신하지 못한다. 에러가 0건이어도 방문자는 느릴 수 있고, 속도가 좋아도 아무도 안 들어올 수 있다.<br>
+  <b>층마다 답하는 질문이 다르므로, 빠진 층의 질문은 그냥 답이 없는 채로 남는다.</b>
+</div>

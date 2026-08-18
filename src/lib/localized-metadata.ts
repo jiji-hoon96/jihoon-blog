@@ -1,5 +1,10 @@
 import type { Metadata } from 'next'
-import { HREF_LANG, isLocale, type Locale } from '../i18n/locales.ts'
+import {
+  HREF_LANG,
+  isLocale,
+  toPublicPath,
+  type Locale,
+} from '../i18n/locales.ts'
 import { getPostModifiedDate } from './post-dates.ts'
 
 const OPEN_GRAPH_LOCALE: Record<Locale, string> = {
@@ -11,8 +16,31 @@ const OPEN_GRAPH_LOCALE: Record<Locale, string> = {
   'zh-CN': 'zh_CN',
 }
 
+export function truncateMetadataText(text: string, maxLength: number): string {
+  const normalized = text.replace(/\s+/g, ' ').trim()
+
+  if ([...normalized].length <= maxLength) return normalized
+
+  const characters = [...normalized]
+  const candidate = characters.slice(0, maxLength - 1).join('').trimEnd()
+  const lastSpace = candidate.lastIndexOf(' ')
+  const shortened = lastSpace >= Math.floor(maxLength * 0.6)
+    ? candidate.slice(0, lastSpace).trimEnd()
+    : candidate
+
+  return `${shortened}…`
+}
+
 export function getOpenGraphLocale(locale: Locale): string {
   return OPEN_GRAPH_LOCALE[locale]
+}
+
+export function getLocalizedOpenGraphImageUrl(
+  siteUrl: string,
+  locale: Locale,
+): string {
+  const baseUrl = siteUrl.replace(/\/+$/, '')
+  return `${baseUrl}${toPublicPath(locale, '/opengraph-image')}`
 }
 
 type MetadataPost = {
@@ -69,14 +97,14 @@ export function buildLocalizedPostMetadata(
   const languages = buildTranslationAlternates(translations, baseUrl)
 
   const url = `${baseUrl}${post.slug}`
-  const title = post.seoTitle || post.title
-  const description = post.description || post.excerpt
+  const title = truncateMetadataText(post.seoTitle || post.title, 60)
+  const description = truncateMetadataText(post.description || post.excerpt, 155)
   const keywords = post.keywords
     ? post.keywords.split(',').map(keyword => keyword.trim())
     : post.categoryArray
 
   return {
-    title,
+    title: { absolute: title },
     description,
     keywords,
     alternates: {
@@ -87,6 +115,7 @@ export function buildLocalizedPostMetadata(
       title,
       description,
       url,
+      images: [`${url}/opengraph-image`],
       type: 'article',
       publishedTime: post.date,
       modifiedTime: getPostModifiedDate(post),

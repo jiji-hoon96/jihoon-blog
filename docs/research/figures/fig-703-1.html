@@ -1,0 +1,63 @@
+<meta charset="utf-8">
+<link rel="stylesheet" href="base.css">
+<style>
+.stage{display:flex;align-items:stretch;gap:0}
+.obs{width:400px}
+.obs .card{height:100%}
+.center{width:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.server{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:16px;padding:22px 20px;text-align:center}
+.server .t{font-size:22px;font-weight:800;margin-bottom:6px}
+.server .d{font-size:16px;color:var(--muted);line-height:1.6}
+.arrow{flex:0 0 40px;display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--dim)}
+.big{font-size:26px;font-weight:800;margin:6px 0 12px}
+.ok{color:var(--ok)} .bad{color:var(--warn)}
+.line{font-size:17px;color:var(--muted);line-height:1.85}
+.code{display:inline-block;background:#101013;border:1px solid var(--border);border-radius:8px;padding:3px 9px;font-size:16px;color:var(--text)}
+.verdict{margin-top:16px;padding-top:14px;border-top:1px dashed var(--border);font-size:18px;font-weight:700}
+</style>
+<h1>같은 사건을 두 관측자가 다르게 본다</h1>
+<div class="sub">필자의 블로그에서 실제로 일어난 일. 실패 감지기는 정상이라 답했고 방문자는 실패를 봤다.</div>
+
+<div class="stage">
+  <div class="obs">
+    <div class="card">
+      <div class="label">실패 감지기</div>
+      <div class="big ok">정상</div>
+      <div class="line">
+        라우트 핸들러의 <span class="code">catch</span><br>
+        HTTP 상태 코드<br>
+        업타임 체크
+      </div>
+      <div class="verdict ok">응답 200, 예외 없음</div>
+    </div>
+  </div>
+
+  <div class="arrow">←</div>
+
+  <div class="center">
+    <div class="server">
+      <div class="t">통계 조회</div>
+      <div class="d">GA 호출 실패<br><span class="code">catch</span> 가 삼키고<br>기본값 반환</div>
+    </div>
+  </div>
+
+  <div class="arrow">→</div>
+
+  <div class="obs">
+    <div class="card">
+      <div class="label">방문자</div>
+      <div class="big bad">실패</div>
+      <div class="line">
+        조회수 <span class="code">0</span> 으로 표시<br>
+        통계 자리가 1분 넘게 로딩<br>
+        오류 화면은 없음
+      </div>
+      <div class="verdict bad">빈 통계를 본다</div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  실패를 감지하고 복구할 책임이 있는 쪽이 문제를 인지하지 못한다. Gray Failure 논문은 이 비대칭을 <b>differential observability</b> 라고 부른다.<br>
+  계측 지점을 라우트에서 한 층 아래로 내리는 일이 이 격차를 메우는 작업이었다.
+</div>

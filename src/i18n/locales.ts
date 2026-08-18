@@ -48,9 +48,19 @@ export function getLocaleSwitchPath(
   currentPathname: string,
 ): string {
   const firstSegment = currentPathname.split('/')[1]
+  const currentLocale = isLocale(firstSegment) ? firstSegment : 'ko'
   const contentPath = isLocale(firstSegment)
     ? currentPathname.slice(firstSegment.length + 1) || '/'
     : currentPathname
+
+  if (targetLocale === currentLocale) {
+    return toPublicPath(targetLocale, contentPath)
+  }
+
+  const sharedPaths = new Set(['/', '/posts', '/about', '/guestbook', '/playground'])
+  if (!sharedPaths.has(contentPath)) {
+    return toPublicPath(targetLocale, '/posts')
+  }
 
   return toPublicPath(targetLocale, contentPath)
 }

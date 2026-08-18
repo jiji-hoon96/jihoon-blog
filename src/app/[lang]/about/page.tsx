@@ -2,7 +2,7 @@ import { siteMetadata } from "@/lib/site-metadata";
 import type { Metadata } from "next";
 import { getDictionary, interpolate } from "@/i18n/dictionaries";
 import { getLanguageAlternates, isLocale, toPublicPath } from "@/i18n/locales";
-import { getOpenGraphLocale } from "@/lib/localized-metadata";
+import { getLocalizedOpenGraphImageUrl, getOpenGraphLocale } from "@/lib/localized-metadata";
 import { notFound } from "next/navigation";
 import { getAuthorEntityId } from "@/lib/author-identity";
 
@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     title: dictionary.navigation.about,
     description,
     alternates: { canonical: url, languages: getLanguageAlternates(siteMetadata.siteUrl, "/about") },
-    openGraph: { title: `${dictionary.navigation.about} | ${siteMetadata.title}`, description, url, type: "profile", locale: getOpenGraphLocale(lang), siteName: siteMetadata.title },
+    openGraph: { title: `${dictionary.navigation.about} | ${siteMetadata.title}`, description, url, images: [getLocalizedOpenGraphImageUrl(siteMetadata.siteUrl, lang)], type: "profile", locale: getOpenGraphLocale(lang), siteName: siteMetadata.title },
     twitter: { card: "summary_large_image", title: `${dictionary.navigation.about} ${siteMetadata.author.name}`, description },
   };
 }

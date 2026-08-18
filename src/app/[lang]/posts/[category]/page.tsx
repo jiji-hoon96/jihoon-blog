@@ -6,11 +6,15 @@ import type { Metadata } from 'next'
 import { allPosts } from 'contentlayer/generated'
 import { getPostsForLocale } from '@/lib/localized-posts'
 import {
-  getLanguageAlternates,
+  HREF_LANG,
   isLocale,
+  LOCALES,
   toPublicPath,
 } from '@/i18n/locales'
-import { getOpenGraphLocale } from '@/lib/localized-metadata'
+import {
+  getLocalizedOpenGraphImageUrl,
+  getOpenGraphLocale,
+} from '@/lib/localized-metadata'
 import { getDictionary, interpolate } from '@/i18n/dictionaries'
 
 type Props = {
@@ -43,21 +47,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     count: posts.length,
   })
   const title = `${decodedCategory} · ${dictionary.category.label}`
+  const languages = Object.fromEntries(
+    LOCALES.flatMap(candidateLocale => {
+      const candidatePosts = getPostsForLocale(allPosts, candidateLocale)
+      return getAllCategories(candidatePosts).includes(decodedCategory)
+        ? [[
+            HREF_LANG[candidateLocale],
+            `${siteMetadata.siteUrl}${toPublicPath(candidateLocale, `/posts/${encodeURIComponent(decodedCategory)}`)}`,
+          ]]
+        : []
+    }),
+  )
+
+  if (languages.ko) languages['x-default'] = languages.ko
 
   return {
     title,
     description,
     alternates: {
       canonical: url,
-      languages: getLanguageAlternates(
-        siteMetadata.siteUrl,
-        `/posts/${encodeURIComponent(decodedCategory)}`,
-      ),
+      languages,
     },
     openGraph: {
       title: `${title} | ${siteMetadata.title}`,
       description,
       url,
+      images: [getLocalizedOpenGraphImageUrl(siteMetadata.siteUrl, lang)],
       type: 'website',
       locale: getOpenGraphLocale(lang),
       siteName: siteMetadata.title,
@@ -161,7 +176,7 @@ export default async function CategoryPage({ params }: Props) {
           return (
             <Link
               key={cat}
-              href={toPublicPath(lang, `/posts/${encodeURIComponent(cat)}`)}
+              href={toPublicPath(lang, cat === 'All' ? '/posts' : `/posts/${encodeURIComponent(cat)}`)}
               className={`
                 px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition-colors
                 ${
@@ -187,7 +202,7 @@ export default async function CategoryPage({ params }: Props) {
               return (
                 <Link
                   key={cat}
-                  href={toPublicPath(lang, `/posts/${encodeURIComponent(cat)}`)}
+                  href={toPublicPath(lang, cat === 'All' ? '/posts' : `/posts/${encodeURIComponent(cat)}`)}
                   className={`
                     px-3 py-2 rounded-lg transition-colors text-sm
                     ${

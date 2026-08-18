@@ -1,0 +1,35 @@
+<meta charset="utf-8">
+<link rel="stylesheet" href="base.css">
+<style>
+.stats{display:flex;gap:16px;margin-bottom:30px}
+.stat{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px 20px}
+.stat .k{font-size:15px;color:var(--dim);margin-bottom:6px}
+.stat .v{font-size:30px;font-weight:800}
+.stat .d{font-size:14px;color:var(--muted);margin-top:4px}
+.v1{color:var(--ok)} .v2{color:var(--text)} .v3{color:var(--warn)}
+.r{display:flex;align-items:center;height:40px}
+.rng{width:170px;font-size:17px;color:var(--muted)}
+.track{flex:1;position:relative}
+.bar{height:24px;border-radius:5px;background:var(--accent)}
+.cnt{position:absolute;top:1px;font-size:16px;font-weight:700;color:var(--muted)}
+</style>
+<h1>보고된 시간이 5초에서 504초까지 고르게 퍼져 있다</h1>
+<div class="sub">타임아웃을 5초로 고정한 커밋이 배포된 릴리스에서, 가장 최근 100건의 DEADLINE_EXCEEDED</div>
+
+<div class="stats">
+  <div class="stat"><div class="k">최소</div><div class="v v1">5.16초</div><div class="d">상한 5초에 붙어 있다</div></div>
+  <div class="stat"><div class="k">중앙값</div><div class="v v2">61초</div><div class="d">상한의 12배</div></div>
+  <div class="stat"><div class="k">최대</div><div class="v v3">504초</div><div class="d">8분 24초</div></div>
+</div>
+
+<div class="r"><div class="rng">5초 ~ 10초</div><div class="track"><div class="bar" style="width:396px"></div><div class="cnt" style="left:412px">18건</div></div></div>
+<div class="r"><div class="rng">10초 ~ 30초</div><div class="track"><div class="bar" style="width:308px"></div><div class="cnt" style="left:324px">14건</div></div></div>
+<div class="r"><div class="rng">30초 ~ 60초</div><div class="track"><div class="bar" style="width:396px"></div><div class="cnt" style="left:412px">18건</div></div></div>
+<div class="r"><div class="rng">60초 ~ 120초</div><div class="track"><div class="bar" style="width:374px"></div><div class="cnt" style="left:390px">17건</div></div></div>
+<div class="r"><div class="rng">120초 ~ 240초</div><div class="track"><div class="bar" style="width:352px"></div><div class="cnt" style="left:368px">16건</div></div></div>
+<div class="r"><div class="rng">240초 이상</div><div class="track"><div class="bar" style="width:374px"></div><div class="cnt" style="left:390px">17건</div></div></div>
+
+<div class="note">
+  이 값은 GA 가 응답에 쓴 시간이 아니라 <b>마감 타이머가 얼마나 늦게 울렸는지</b>다.<br>
+  타이머가 늦게 울리는 시나리오는 여럿이고, 이 분포만으로는 그중 어느 것인지 가려지지 않는다.
+</div>

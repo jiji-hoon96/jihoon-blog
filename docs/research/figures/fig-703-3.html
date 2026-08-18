@@ -1,0 +1,66 @@
+<meta charset="utf-8">
+<link rel="stylesheet" href="base.css">
+<style>
+.legend{display:flex;gap:24px;font-size:16px;color:var(--muted);margin-bottom:22px}
+.chip{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:8px;vertical-align:-2px}
+.c-prev{background:#4a4a55} .c-now{background:var(--accent)}
+table{width:100%;border-collapse:collapse}
+td{padding:14px 0;vertical-align:middle;border-bottom:1px solid #26262c}
+tr:last-child td{border-bottom:none}
+.metric{width:150px;font-size:19px;font-weight:700}
+.bars{width:600px}
+.bar{height:26px;border-radius:6px;display:flex;align-items:center;padding-left:12px;font-size:16px;font-weight:700;color:#111114;margin:5px 0;min-width:52px}
+.bar.prev{background:#4a4a55;color:#d7d7dd}
+.bar.now{background:var(--accent)}
+.bar.now.worse{background:var(--warn)}
+.delta{font-size:20px;font-weight:800;text-align:right}
+.up{color:var(--ok)} .down{color:var(--warn)}
+.delta .s{display:block;font-size:14px;font-weight:600;color:var(--dim);margin-top:3px}
+</style>
+<h1>순위는 내려갔는데 클릭은 6배가 됐다</h1>
+<div class="sub">Search Console 기준, 이 블로그의 한 글이 최근 28일과 직전 28일 사이에 보인 변화</div>
+
+<div class="legend">
+  <span><span class="chip c-prev"></span>직전 28일</span>
+  <span><span class="chip c-now"></span>최근 28일</span>
+</div>
+
+<table>
+  <tr>
+    <td class="metric">노출</td>
+    <td class="bars">
+      <div class="bar prev" style="width:100%">230</div>
+      <div class="bar now" style="width:88.7%">204</div>
+    </td>
+    <td class="delta down">11% 감소<span class="s">덜 보였다</span></td>
+  </tr>
+  <tr>
+    <td class="metric">클릭</td>
+    <td class="bars">
+      <div class="bar prev" style="width:15.4%">2</div>
+      <div class="bar now" style="width:100%">13</div>
+    </td>
+    <td class="delta up">6.5배<span class="s">더 눌렸다</span></td>
+  </tr>
+  <tr>
+    <td class="metric">클릭률</td>
+    <td class="bars">
+      <div class="bar prev" style="width:13.7%">0.87%</div>
+      <div class="bar now" style="width:100%">6.37%</div>
+    </td>
+    <td class="delta up">7.3배<span class="s">노출은 줄었는데</span></td>
+  </tr>
+  <tr>
+    <td class="metric">평균 순위</td>
+    <td class="bars">
+      <div class="bar prev" style="width:76.7%">8.9위</div>
+      <div class="bar now worse" style="width:100%">11.6위</div>
+    </td>
+    <td class="delta down">2.7 하락<span class="s">더 뒤로 밀렸다</span></td>
+  </tr>
+</table>
+
+<div class="note">
+  늘어난 클릭은 28일 동안 <b>11회</b>다. 배수로 보면 크고 절대량으로 보면 작다.<br>
+  평균 순위는 노출로 가중한 값이라, 안 눌리던 노출이 빠지기만 해도 순위와 클릭률이 반대로 움직인다.
+</div>

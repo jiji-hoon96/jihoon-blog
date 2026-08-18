@@ -1,9 +1,9 @@
-import { allPosts } from 'contentlayer/generated'
 import type { Post } from 'contentlayer/generated'
+import { isHiddenPost } from './filter-posts.ts'
 
-export function getAdjacentPosts(slug: string, posts: Post[] = allPosts) {
+export function getAdjacentPosts(slug: string, posts: Post[]) {
   const sortedPosts = posts
-    .filter(p => !p.draft)
+    .filter(post => !isHiddenPost(post))
     .sort((a, b) =>
       new Date(b.date).getTime() - new Date(a.date).getTime()
     )
@@ -16,14 +16,14 @@ export function getAdjacentPosts(slug: string, posts: Post[] = allPosts) {
   }
 }
 
-export function getRelatedPosts(slug: string, limit = 3, posts: Post[] = allPosts) {
+export function getRelatedPosts(slug: string, limit: number, posts: Post[]) {
   const current = posts.find(p => p.slug === slug)
   if (!current) return []
 
   const currentCategories = new Set(current.categoryArray)
 
   const scored = posts
-    .filter(p => !p.draft && p.slug !== slug)
+    .filter(post => !isHiddenPost(post) && post.slug !== slug)
     .map(p => {
       const overlap = p.categoryArray.filter((c: string) =>
         currentCategories.has(c),

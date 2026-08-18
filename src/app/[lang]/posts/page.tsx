@@ -9,7 +9,10 @@ import { isLocale, toPublicPath } from '@/i18n/locales'
 import { notFound } from 'next/navigation'
 import { getDictionary, interpolate } from '@/i18n/dictionaries'
 import { getLanguageAlternates } from '@/i18n/locales'
-import { getOpenGraphLocale } from '@/lib/localized-metadata'
+import {
+  getLocalizedOpenGraphImageUrl,
+  getOpenGraphLocale,
+} from '@/lib/localized-metadata'
 
 export async function generateMetadata({
   params,
@@ -34,6 +37,7 @@ export async function generateMetadata({
       title: `${title} | ${siteMetadata.title}`,
       description: dictionary.siteDescription,
       url,
+      images: [getLocalizedOpenGraphImageUrl(siteMetadata.siteUrl, lang)],
       type: 'website',
       locale: getOpenGraphLocale(lang),
       siteName: siteMetadata.title,
@@ -77,7 +81,7 @@ export default async function AllPostsPage({
         {categories.map(cat => (
           <Link
             key={cat}
-            href={toPublicPath(lang, `/posts/${encodeURIComponent(cat)}`)}
+            href={toPublicPath(lang, cat === 'All' ? '/posts' : `/posts/${encodeURIComponent(cat)}`)}
             className="px-3 py-1.5 text-sm rounded-lg whitespace-nowrap bg-light-gray10 dark:bg-dark-gray10 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors"
           >
             {cat}
@@ -93,7 +97,7 @@ export default async function AllPostsPage({
             {categories.map(cat => (
               <Link
                 key={cat}
-                href={toPublicPath(lang, `/posts/${encodeURIComponent(cat)}`)}
+                href={toPublicPath(lang, cat === 'All' ? '/posts' : `/posts/${encodeURIComponent(cat)}`)}
                 className="px-3 py-2 rounded-lg transition-colors text-sm hover:bg-light-gray10 dark:hover:bg-dark-gray10"
               >
                 {cat}
