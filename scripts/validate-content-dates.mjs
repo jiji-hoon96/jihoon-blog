@@ -14,12 +14,36 @@ function frontmatterValue(markdown, field) {
 export function validateMarkdownDates(markdown) {
   const date = frontmatterValue(markdown, 'date')
   const updatedAt = frontmatterValue(markdown, 'updatedAt')
+  const violations = []
 
-  if (!date || !updatedAt) return []
+  if (date && !isCalendarDate(date)) {
+    violations.push('date must be a real calendar date in YYYY-MM-DD format')
+  }
+  if (updatedAt && !isCalendarDate(updatedAt)) {
+    violations.push(
+      'updatedAt must be a real calendar date in YYYY-MM-DD format',
+    )
+  }
 
-  return new Date(updatedAt).getTime() < new Date(date).getTime()
-    ? ['updatedAt must be on or after date']
-    : []
+  if (
+    violations.length === 0 &&
+    date &&
+    updatedAt &&
+    updatedAt < date
+  ) {
+    violations.push('updatedAt must be on or after date')
+  }
+
+  return violations
+}
+
+function isCalendarDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/u.exec(value)
+  if (!match) return false
+
+  const [, year, month, day] = match
+  const parsed = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)))
+  return parsed.toISOString().slice(0, 10) === value
 }
 
 async function markdownPaths(directory) {
@@ -69,4 +93,3 @@ async function main() {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   await main()
 }
-

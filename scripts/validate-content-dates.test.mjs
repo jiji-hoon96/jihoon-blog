@@ -34,3 +34,23 @@ test('accepts quoted frontmatter dates', () => {
   )
 })
 
+test('rejects malformed and impossible calendar dates', () => {
+  assert.deepEqual(
+    validateMarkdownDates(
+      '---\ndate: nope\nupdatedAt: definitely-not-a-date\n---\n',
+    ),
+    [
+      'date must be a real calendar date in YYYY-MM-DD format',
+      'updatedAt must be a real calendar date in YYYY-MM-DD format',
+    ],
+  )
+  assert.deepEqual(
+    validateMarkdownDates(
+      '---\ndate: 2026-02-30\nupdatedAt: 2026-02-31\n---\n',
+    ),
+    [
+      'date must be a real calendar date in YYYY-MM-DD format',
+      'updatedAt must be a real calendar date in YYYY-MM-DD format',
+    ],
+  )
+})

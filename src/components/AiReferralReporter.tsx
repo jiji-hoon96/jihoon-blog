@@ -1,7 +1,10 @@
 'use client'
 
 import { useEffect } from 'react'
-import { classifyAiReferral } from '@/lib/ai-referral'
+import {
+  buildAiReferralEventParameters,
+  classifyAiReferral,
+} from '@/lib/ai-referral'
 
 export default function AiReferralReporter() {
   useEffect(() => {
@@ -20,10 +23,11 @@ export default function AiReferralReporter() {
       if (sent || typeof gtag !== 'function') return
 
       sent = true
-      gtag('event', 'ai_referral', {
-        ai_source: aiSource,
-        landing_path: window.location.pathname,
-      })
+      gtag(
+        'event',
+        'ai_referral',
+        buildAiReferralEventParameters(aiSource, window.location),
+      )
     }
 
     report()

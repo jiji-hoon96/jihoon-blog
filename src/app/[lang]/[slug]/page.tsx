@@ -92,7 +92,7 @@ export default async function PostPage({ params }: Props) {
       alternateName: siteMetadata.author.nickname,
       email: siteMetadata.author.bio.email,
       jobTitle: 'Frontend Developer',
-      url: `${siteMetadata.siteUrl}/about`,
+      url: `${siteMetadata.siteUrl}${toPublicPath(lang, '/about')}`,
       sameAs: [
         siteMetadata.author.social.github,
         siteMetadata.author.social.linkedIn,
@@ -110,7 +110,7 @@ export default async function PostPage({ params }: Props) {
       '@type': 'Person',
       '@id': getAuthorEntityId(siteMetadata.siteUrl),
       name: siteMetadata.author.name,
-      url: siteMetadata.siteUrl,
+      url: `${siteMetadata.siteUrl}${toPublicPath(lang, '/about')}`,
       logo: {
         '@type': 'ImageObject',
         url: siteIconUrl,

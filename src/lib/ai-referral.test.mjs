@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { classifyAiReferral } from './ai-referral.ts'
+import {
+  buildAiReferralEventParameters,
+  classifyAiReferral,
+} from './ai-referral.ts'
 
 test('classifies only known AI sources', () => {
   const cases = [
@@ -35,5 +38,20 @@ test('prefers a recognized utm source over the referrer', () => {
       referrer: 'https://www.perplexity.ai/',
     }),
     'claude',
+  )
+})
+
+test('builds an event payload without a query, hash, or raw referrer', () => {
+  assert.deepEqual(
+    buildAiReferralEventParameters(
+      'chatgpt',
+      new URL('https://example.com/en/post?prompt=secret#answer'),
+    ),
+    {
+      ai_source: 'chatgpt',
+      landing_path: '/en/post',
+      page_location: 'https://example.com/en/post',
+      page_referrer: '',
+    },
   )
 })

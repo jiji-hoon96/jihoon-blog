@@ -52,3 +52,15 @@ export function classifyAiReferral(
     return undefined
   }
 }
+
+export function buildAiReferralEventParameters(
+  aiSource: AiReferralSource,
+  location: { origin: string; pathname: string },
+) {
+  return {
+    ai_source: aiSource,
+    landing_path: location.pathname,
+    page_location: `${location.origin}${location.pathname}`,
+    page_referrer: '',
+  }
+}
