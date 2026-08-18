@@ -16,7 +16,9 @@ export function validateMarkdownDates(markdown) {
   const updatedAt = frontmatterValue(markdown, 'updatedAt')
   const violations = []
 
-  if (date && !isCalendarDate(date)) {
+  if (!date) {
+    violations.push('date is required')
+  } else if (!isCalendarDate(date)) {
     violations.push('date must be a real calendar date in YYYY-MM-DD format')
   }
   if (updatedAt && !isCalendarDate(updatedAt)) {

@@ -54,3 +54,10 @@ test('rejects malformed and impossible calendar dates', () => {
     ],
   )
 })
+
+test('rejects a missing required publication date', () => {
+  assert.deepEqual(
+    validateMarkdownDates('---\ntitle: Missing date\n---\n'),
+    ['date is required'],
+  )
+})
