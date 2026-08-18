@@ -57,17 +57,15 @@ React 공식 문서는 좀 더 형식적으로 정의한다. 페이지 제목이
 
 필자는 여기서 한 발 더 나아가, 프론트엔드의 상태를 **일곱 가지 범주**로 구분해서 본다. 미리 짚어두자면, 이 일곱 가지는 단일 축으로 깔끔하게 나뉘지 않는다. 저장 위치·출처·생애주기·역할이 섞여 있어 한 상태가 여러 범주에 동시에 속할 수도 있다. 완벽한 분류표가 아니라 **상태를 어떻게 관리할지 결정할 때 던지는 질문들**이라고 봐주면 좋겠다.
 
-```
-1. 지역 상태 (Local State)       — 한 컴포넌트, 또는 좁은 트리 안에서만 쓰는 상태
-2. 전역 상태 (Global State)      — 앱 전체가 공유해야 하는 상태
-3. 서버 상태 (Server State)      — 서버가 진실의 출처이고, 클라이언트는 캐시인 상태
-4. 폼 상태 (Form State)          — 사용자 입력 중 일시적으로 존재하는 상태
-5. URL 상태 (URL State)          — 주소창에 사는, 공유 가능하고 새로고침에도 살아남는 상태
-6. 외부 상태 (External State)    — 쿠키, localStorage, sessionStorage, IndexedDB 등 React 외부에 사는 상태
-7. 상태 가드 (State Guard)       — 상태 자체가 아닌, 상태의 조합으로 접근/실행을 막거나 검증하는 로직
+- **지역 상태(Local State)** — 한 컴포넌트, 또는 좁은 트리 안에서만 쓰는 상태
+- **전역 상태(Global State)** — 앱 전체가 공유해야 하는 상태
+- **서버 상태(Server State)** — 서버가 진실의 출처이고, 클라이언트는 캐시인 상태
+- **폼 상태(Form State)** — 사용자 입력 중 일시적으로 존재하는 상태
+- **URL 상태(URL State)** — 주소창에 사는, 공유 가능하고 새로고침에도 살아남는 상태
+- **외부 상태(External State)** — 쿠키, localStorage, sessionStorage, IndexedDB 등 React 외부에 사는 상태
+- **상태 가드(State Guard)** — 상태 자체가 아닌, 상태의 조합으로 접근/실행을 막거나 검증하는 로직
 
-+ 상태머신으로 정교화해야 하는 워크플로우 상태, WebSocket·CRDT 기반의 실시간 협업 상태도 있다.
-```
+이 분류 외에도 상태머신으로 정교화해야 하는 워크플로우 상태, WebSocket·CRDT 기반의 실시간 협업 상태가 있다.
 
 각각이 왜 다른 도구를 필요로 하는지, 그리고 어떤 안목으로 접근해야 하는지를 하나씩 풀어보자.
 
@@ -172,16 +170,16 @@ Cookie와 Web Storage(local/session)는 **문자열만 저장**한다. 그래서
 
 ```ts
 JSON.stringify({ when: new Date() });
-// → { "when": "2026-05-19T..." } — Date가 문자열로 박제됨
+// → { "when": "2026-05-19T..." } — Date becomes a string
 
 JSON.stringify({ map: new Map([["a", 1]]) });
-// → { "map": {} } — Map은 통째로 사라짐
+// → { "map": {} } — Map is lost entirely
 
 JSON.stringify({ value: undefined });
-// → "{}" — undefined 필드는 생략됨
+// → "{}" — the undefined field is omitted
 ```
 
-`Date`, `Map`, `Set`, `BigInt`, `undefined`는 모두 JSON으로 왕복할 때 형태가 변한다. 외부 저장소에 객체를 넣을 때는 **어떤 타입이 사라지거나 변할 수 있는지**를 항상 의식하고, 필요하면 직렬화 어댑터를 둬야 한다.
+`Date`는 JSON 왕복 과정에서 문자열이 되고, `Map`, `Set`, `undefined`는 데이터가 사라질 수 있다. `BigInt`는 기본 설정에서 `JSON.stringify`가 `TypeError`를 던져 직렬화 자체가 실패한다. 외부 저장소에 객체를 넣을 때는 **어떤 타입이 사라지거나 변하거나 직렬화를 실패하게 하는지**를 항상 의식하고, 필요하면 직렬화 어댑터를 둬야 한다.
 
 외부 상태의 진짜 어려움은 **React가 그 변화를 자동으로 감지하지 못한다**는 점이다. localStorage에 값을 써도 React 컴포넌트는 리렌더링되지 않는다. 이걸 해결하는 패턴은 보통 세 가지이다.
 
@@ -231,10 +229,10 @@ function ProtectedRoute({ children }) {
 가장 흔한 버그가 **"가드의 비동기 검사가 끝나기 전에 보호된 콘텐츠가 잠깐 깜빡이는"** 것이다. 인증 토큰 검증, 권한 조회는 대부분 비동기이고, 그 사이 `isAuthenticated`가 `undefined`나 `false`로 잠시 잡혀 있는 시점이 있다. **로딩 상태를 명시적으로 다루지 않으면 그 틈에 보호된 화면이 노출되거나, 로그인 페이지로 잘못 리다이렉트되거나 한다.**
 
 ```tsx
-// 로딩 상태는 무시하고 데이터가 존재하지 않는 상태만 다룬다. => 잘못된 패턴
+// Ignores loading and handles only missing data => incorrect
 if (!user) return <Navigate to="/login" />;
 
-// 로딩을 1급으로 다룬다.(early return) => 옳바른 패턴
+// Treat loading as a first-class state (early return) => correct
 if (isLoading) return <Spinner />;
 if (!user) return <Navigate to="/login" replace />;
 return children;
