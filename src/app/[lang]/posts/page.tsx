@@ -4,6 +4,9 @@ import { getAllCategories } from '@/lib/categories'
 import { getSortedPublishedPosts } from '@/lib/filter-posts'
 import { siteMetadata } from '@/lib/site-metadata'
 import type { Metadata } from 'next'
+import { getPostsForLocale } from '@/lib/localized-posts'
+import { isLocale, toPublicPath } from '@/i18n/locales'
+import { notFound } from 'next/navigation'
 
 const allPostsUrl = `${siteMetadata.siteUrl}/posts`
 const allPostsDescription = `${siteMetadata.author.name}(${siteMetadata.author.nickname})의 모든 기술 블로그 글 모음. React, TypeScript, Next.js 등 프론트엔드 개발 기록과 학습 노트를 한곳에서 봅니다.`
@@ -27,9 +30,18 @@ export const metadata: Metadata = {
   },
 }
 
-export default function AllPostsPage() {
-  const categories = getAllCategories()
-  const sortedPosts = getSortedPublishedPosts(allPosts)
+export default async function AllPostsPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}) {
+  const { lang } = await params
+
+  if (!isLocale(lang)) notFound()
+
+  const localePosts = getPostsForLocale(allPosts, lang)
+  const categories = getAllCategories(localePosts)
+  const sortedPosts = getSortedPublishedPosts(localePosts)
 
   return (
     <div className="py-8 sm:py-12">
@@ -46,7 +58,7 @@ export default function AllPostsPage() {
         {categories.map(cat => (
           <Link
             key={cat}
-            href={`/posts/${encodeURIComponent(cat)}`}
+            href={toPublicPath(lang, `/posts/${encodeURIComponent(cat)}`)}
             className="px-3 py-1.5 text-sm rounded-lg whitespace-nowrap bg-light-gray10 dark:bg-dark-gray10 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors"
           >
             {cat}
@@ -62,7 +74,7 @@ export default function AllPostsPage() {
             {categories.map(cat => (
               <Link
                 key={cat}
-                href={`/posts/${encodeURIComponent(cat)}`}
+                href={toPublicPath(lang, `/posts/${encodeURIComponent(cat)}`)}
                 className="px-3 py-2 rounded-lg transition-colors text-sm hover:bg-light-gray10 dark:hover:bg-dark-gray10"
               >
                 {cat}
@@ -81,7 +93,7 @@ export default function AllPostsPage() {
             >
               <h3 className="text-lg font-bold mb-2">{post.title}</h3>
               <p className="text-sm text-light-gray60 dark:text-dark-gray60 mb-2">
-                {new Date(post.date).toLocaleDateString('ko-KR')} · {post.readingTime}
+                {new Date(post.date).toLocaleDateString(lang)} · {post.readingTime}
               </p>
               <p className="text-sm text-light-gray80 dark:text-dark-gray80 line-clamp-2">
                 {post.excerpt}
@@ -107,7 +119,7 @@ export default function AllPostsPage() {
           >
             <h3 className="text-base font-bold mb-2">{post.title}</h3>
             <p className="text-xs text-light-gray60 dark:text-dark-gray60 mb-2">
-              {new Date(post.date).toLocaleDateString('ko-KR')} · {post.readingTime}
+              {new Date(post.date).toLocaleDateString(lang)} · {post.readingTime}
             </p>
             <p className="text-sm text-light-gray80 dark:text-dark-gray80 line-clamp-2">
               {post.excerpt}

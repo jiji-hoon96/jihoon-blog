@@ -2,22 +2,24 @@ import { ImageResponse } from 'next/og'
 import { allPosts } from 'contentlayer/generated'
 import { siteMetadata } from '@/lib/site-metadata'
 import { loadNotoSansKR } from '@/lib/og-font'
+import { findTranslation } from '@/lib/localized-posts'
+import { isLocale } from '@/i18n/locales'
 
 export const alt = '포스트 썸네일'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
-type Props = { params: Promise<{ slug: string }> }
+type Props = { params: Promise<{ lang: string; slug: string }> }
 
 export async function generateImageMetadata({ params }: Props) {
-  const { slug } = await params
-  const post = allPosts.find(p => p.slug === `/${slug}`)
+  const { lang, slug } = await params
+  const post = isLocale(lang) ? findTranslation(allPosts, slug, lang) : undefined
   return [{ alt: post?.title ?? alt, contentType, size, id: 'og' }]
 }
 
 export default async function Image({ params }: Props) {
-  const { slug } = await params
-  const post = allPosts.find(p => p.slug === `/${slug}`)
+  const { lang, slug } = await params
+  const post = isLocale(lang) ? findTranslation(allPosts, slug, lang) : undefined
   const fonts = await loadNotoSansKR()
 
   const title = post?.title ?? siteMetadata.title

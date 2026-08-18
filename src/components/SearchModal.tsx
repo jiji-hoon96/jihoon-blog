@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { getDictionary } from "@/i18n/dictionaries";
+import type { Locale } from "@/i18n/locales";
 
 interface Post {
   slug: string;
@@ -10,7 +12,7 @@ interface Post {
   category: string;
 }
 
-export default function SearchModal() {
+export default function SearchModal({ locale }: { locale: Locale }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [posts, setPosts] = useState<Post[]>([]);
@@ -18,12 +20,13 @@ export default function SearchModal() {
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const dictionary = getDictionary(locale);
 
   // Fetch posts when modal opens
   useEffect(() => {
     if (isOpen && posts.length === 0) {
       setLoading(true);
-      fetch("/api/search")
+      fetch(`/api/search?locale=${encodeURIComponent(locale)}`)
         .then((res) => res.json())
         .then((data) => {
           setPosts(data.posts || []);
@@ -34,7 +37,7 @@ export default function SearchModal() {
         })
         .finally(() => setLoading(false));
     }
-  }, [isOpen, posts.length]);
+  }, [isOpen, locale, posts.length]);
 
   // Search logic
   useEffect(() => {
@@ -97,7 +100,7 @@ export default function SearchModal() {
       <button
         onClick={() => setIsOpen(true)}
         className="p-2 hover:bg-light-gray10 dark:hover:bg-dark-gray10 rounded-lg transition-colors cursor-pointer"
-        aria-label="검색"
+        aria-label={dictionary.actions.search}
       >
         <svg
           width="20"
@@ -145,7 +148,7 @@ export default function SearchModal() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="검색어를 입력하세요..."
+                placeholder={dictionary.search.placeholder}
                 className="flex-1 py-4 bg-transparent outline-none text-light-black100 dark:text-dark-black100 placeholder:text-light-gray60 dark:placeholder:text-dark-gray60"
               />
               {query && (
@@ -175,12 +178,12 @@ export default function SearchModal() {
             <div className="max-h-[60vh] overflow-y-auto">
               {loading && (
                 <div className="px-4 py-8 text-center text-light-gray60 dark:text-dark-gray60">
-                  로딩 중...
+                  {dictionary.search.loading}
                 </div>
               )}
               {!loading && query && results.length === 0 && (
                 <div className="px-4 py-8 text-center text-light-gray60 dark:text-dark-gray60">
-                  &apos;{query}&apos;에 대한 검색 결과가 없습니다.
+                  &apos;{query}&apos;: {dictionary.search.empty}
                 </div>
               )}
               {results.length > 0 && (
@@ -210,12 +213,12 @@ export default function SearchModal() {
               )}
               {!loading && !query && (
                 <div className="px-4 py-8 text-center text-sm text-light-gray60 dark:text-dark-gray60">
-                  <p>제목, 내용, 카테고리로 검색할 수 있습니다.</p>
+                  <p>{dictionary.search.help}</p>
                   <p className="mt-2 text-xs">
                     <kbd className="px-1.5 py-0.5 bg-light-gray10 dark:bg-dark-gray10 rounded">⌘</kbd>
                     {" + "}
                     <kbd className="px-1.5 py-0.5 bg-light-gray10 dark:bg-dark-gray10 rounded">K</kbd>
-                    {" 로 언제든 검색할 수 있습니다."}
+                    {` ${dictionary.search.shortcut}`}
                   </p>
                 </div>
               )}

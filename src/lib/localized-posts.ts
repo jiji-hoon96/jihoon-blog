@@ -1,7 +1,7 @@
 import { isLocale, toPublicPath, type Locale } from '../i18n/locales.ts'
 
 type LocalizedPost = {
-  locale: string
+  contentLocale: string
   translationKey: string
 }
 
@@ -9,7 +9,7 @@ export function getPostsForLocale<T extends LocalizedPost>(
   posts: readonly T[],
   locale: Locale,
 ): T[] {
-  return posts.filter(post => post.locale === locale)
+  return posts.filter(post => post.contentLocale === locale)
 }
 
 export function findTranslation<T extends LocalizedPost>(
@@ -18,7 +18,18 @@ export function findTranslation<T extends LocalizedPost>(
   locale: Locale,
 ): T | undefined {
   return posts.find(
-    post => post.translationKey === translationKey && post.locale === locale,
+    post =>
+      post.translationKey === translationKey && post.contentLocale === locale,
+  )
+}
+
+export function getLocalizedPostParams<T extends LocalizedPost>(
+  posts: readonly T[],
+): Array<{ lang: Locale; slug: string }> {
+  return posts.flatMap(post =>
+    isLocale(post.contentLocale)
+      ? [{ lang: post.contentLocale, slug: post.translationKey }]
+      : [],
   )
 }
 

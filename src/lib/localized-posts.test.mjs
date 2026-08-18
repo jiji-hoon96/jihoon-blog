@@ -5,12 +5,14 @@ import {
   HREF_LANG,
   LOCALES,
   getLanguageAlternates,
+  getLocaleSwitchPath,
   isLocale,
   toPublicPath,
 } from '../i18n/locales.ts'
 import { getDictionary } from '../i18n/dictionaries.ts'
 import {
   findTranslation,
+  getLocalizedPostParams,
   getPostsForLocale,
   parseContentIdentity,
 } from './localized-posts.ts'
@@ -39,12 +41,22 @@ test('emits Simplified Chinese as zh-Hans in language alternates', () => {
   assert.equal(alternates['x-default'], 'https://example.com/260703')
 })
 
+test('switches locale while preserving the visible page path', () => {
+  assert.equal(getLocaleSwitchPath('ko', '/en/260703'), '/260703')
+  assert.equal(getLocaleSwitchPath('ja', '/en/260703'), '/ja/260703')
+  assert.equal(getLocaleSwitchPath('en', '/260703'), '/en/260703')
+  assert.equal(
+    getLocaleSwitchPath('es', '/pt-BR/posts/AI'),
+    '/es/posts/AI',
+  )
+})
+
 test('filters and finds posts without crossing locale boundaries', () => {
   const posts = [
-    { translationKey: '260703', locale: 'ko', title: '한국어' },
-    { translationKey: '260703', locale: 'en', title: 'English' },
-    { translationKey: '260703', locale: 'ja', title: '日本語' },
-    { translationKey: '260723', locale: 'en', title: 'Another post' },
+    { translationKey: '260703', contentLocale: 'ko', title: '한국어' },
+    { translationKey: '260703', contentLocale: 'en', title: 'English' },
+    { translationKey: '260703', contentLocale: 'ja', title: '日本語' },
+    { translationKey: '260723', contentLocale: 'en', title: 'Another post' },
   ]
 
   assert.deepEqual(
@@ -53,6 +65,12 @@ test('filters and finds posts without crossing locale boundaries', () => {
   )
   assert.equal(findTranslation(posts, '260703', 'ja')?.title, '日本語')
   assert.equal(findTranslation(posts, '260723', 'ko'), undefined)
+  assert.deepEqual(getLocalizedPostParams(posts), [
+    { lang: 'ko', slug: '260703' },
+    { lang: 'en', slug: '260703' },
+    { lang: 'ja', slug: '260703' },
+    { lang: 'en', slug: '260723' },
+  ])
 })
 
 test('provides shared navigation labels for every locale', () => {
@@ -64,6 +82,11 @@ test('provides shared navigation labels for every locale', () => {
     assert.ok(dictionary.navigation.about)
     assert.ok(dictionary.actions.search)
     assert.ok(dictionary.actions.changeTheme)
+    assert.ok(dictionary.search.placeholder)
+    assert.ok(dictionary.search.loading)
+    assert.ok(dictionary.search.empty)
+    assert.ok(dictionary.search.help)
+    assert.ok(dictionary.search.shortcut)
   }
 })
 

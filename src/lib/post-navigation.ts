@@ -1,7 +1,8 @@
 import { allPosts } from 'contentlayer/generated'
+import type { Post } from 'contentlayer/generated'
 
-export function getAdjacentPosts(slug: string) {
-  const sortedPosts = allPosts
+export function getAdjacentPosts(slug: string, posts: Post[] = allPosts) {
+  const sortedPosts = posts
     .filter(p => !p.draft)
     .sort((a, b) =>
       new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -15,13 +16,13 @@ export function getAdjacentPosts(slug: string) {
   }
 }
 
-export function getRelatedPosts(slug: string, limit = 3) {
-  const current = allPosts.find(p => p.slug === slug)
+export function getRelatedPosts(slug: string, limit = 3, posts: Post[] = allPosts) {
+  const current = posts.find(p => p.slug === slug)
   if (!current) return []
 
   const currentCategories = new Set(current.categoryArray)
 
-  const scored = allPosts
+  const scored = posts
     .filter(p => !p.draft && p.slug !== slug)
     .map(p => {
       const overlap = p.categoryArray.filter((c: string) =>

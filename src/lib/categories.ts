@@ -1,9 +1,10 @@
 import { allPosts } from 'contentlayer/generated'
 import { filterPublishedPosts } from './filter-posts'
+import type { Post } from 'contentlayer/generated'
 
-export function getAllCategories(): string[] {
+export function getAllCategories(posts: Post[] = allPosts): string[] {
   const categorySet = new Set<string>(['All'])
-  const publishedPosts = filterPublishedPosts(allPosts)
+  const publishedPosts = filterPublishedPosts(posts)
 
   publishedPosts.forEach(post => {
     post.categoryArray.forEach((category: string) => {
@@ -16,8 +17,8 @@ export function getAllCategories(): string[] {
   return Array.from(categorySet).sort()
 }
 
-export function getPostsByCategory(category: string) {
-  const publishedPosts = filterPublishedPosts(allPosts)
+export function getPostsByCategory(category: string, posts: Post[] = allPosts) {
+  const publishedPosts = filterPublishedPosts(posts)
   
   if (category === 'All') {
     return publishedPosts.sort((a, b) =>

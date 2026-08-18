@@ -6,7 +6,9 @@ import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
 import { siteMetadata } from "@/lib/site-metadata";
-import "./globals.css";
+import { isLocale, LOCALES } from "@/i18n/locales";
+import { notFound } from "next/navigation";
+import "../globals.css";
 
 export const viewport: Viewport = {
 	width: "device-width",
@@ -79,13 +81,25 @@ export const metadata: Metadata = {
 	},
 };
 
-export default function RootLayout({
+export function generateStaticParams() {
+	return LOCALES.map((lang) => ({ lang }));
+}
+
+export default async function RootLayout({
 	children,
+    params,
 }: Readonly<{
 	children: React.ReactNode;
+    params: Promise<{ lang: string }>;
 }>) {
+	const { lang } = await params;
+
+	if (!isLocale(lang)) {
+		notFound();
+	}
+
 	return (
-		<html lang="ko" suppressHydrationWarning>
+		<html lang={lang} suppressHydrationWarning>
 			<head>
 				{/* One-time kill switch: unregister stale Gatsby/old service worker that's
 				    intercepting requests with cached Next 14/React 18 chunks. Runs first so
@@ -121,7 +135,7 @@ export default function RootLayout({
 			<body>
 				<ThemeProvider attribute="class" defaultTheme="light">
 					<div className="flex min-h-screen flex-col">
-						<Header />
+						<Header locale={lang} />
 						<main className="mx-auto w-full max-w-[var(--width-content)] px-4 flex-1">
 							{children}
 						</main>

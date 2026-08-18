@@ -42,3 +42,15 @@ export function getLanguageAlternates(
     'x-default': `${baseUrl}${toPublicPath('ko', pathname)}`,
   }
 }
+
+export function getLocaleSwitchPath(
+  targetLocale: Locale,
+  currentPathname: string,
+): string {
+  const firstSegment = currentPathname.split('/')[1]
+  const contentPath = isLocale(firstSegment)
+    ? currentPathname.slice(firstSegment.length + 1) || '/'
+    : currentPathname
+
+  return toPublicPath(targetLocale, contentPath)
+}

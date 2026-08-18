@@ -3,23 +3,34 @@ import Link from 'next/link'
 import { getAllCategories, getPostsByCategory } from '@/lib/categories'
 import { siteMetadata } from '@/lib/site-metadata'
 import type { Metadata } from 'next'
+import { allPosts } from 'contentlayer/generated'
+import { getPostsForLocale } from '@/lib/localized-posts'
+import { isLocale, toPublicPath } from '@/i18n/locales'
 
 type Props = {
-  params: Promise<{ category: string }>
+  params: Promise<{ lang: string; category: string }>
 }
 
-export async function generateStaticParams() {
-  const categories = getAllCategories()
+export async function generateStaticParams({
+  params,
+}: {
+  params: { lang: string }
+}) {
+  if (!isLocale(params.lang)) return []
+
+  const categories = getAllCategories(getPostsForLocale(allPosts, params.lang))
   return categories.map(category => ({
     category: encodeURIComponent(category),
   }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { category } = await params
+  const { lang, category } = await params
+  if (!isLocale(lang)) return {}
   const decodedCategory = decodeURIComponent(category)
-  const posts = getPostsByCategory(decodedCategory)
-  const url = `${siteMetadata.siteUrl}/posts/${encodeURIComponent(decodedCategory)}`
+  const localePosts = getPostsForLocale(allPosts, lang)
+  const posts = getPostsByCategory(decodedCategory, localePosts)
+  const url = `${siteMetadata.siteUrl}${toPublicPath(lang, `/posts/${encodeURIComponent(decodedCategory)}`)}`
   const description = `${siteMetadata.author.name}이(가) 작성한 ${decodedCategory} 카테고리의 글 ${posts.length}개. 프론트엔드/React/TypeScript 등 웹 개발 기록을 모아 봅니다.`
 
   return {
@@ -43,16 +54,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CategoryPage({ params }: Props) {
-  const { category } = await params
+  const { lang, category } = await params
+  if (!isLocale(lang)) notFound()
   const decodedCategory = decodeURIComponent(category)
-  const categories = getAllCategories()
-  const posts = getPostsByCategory(decodedCategory)
+  const localePosts = getPostsForLocale(allPosts, lang)
+  const categories = getAllCategories(localePosts)
+  const posts = getPostsByCategory(decodedCategory, localePosts)
 
   if (!categories.includes(decodedCategory)) {
     notFound()
   }
 
-  const categoryUrl = `${siteMetadata.siteUrl}/posts/${encodeURIComponent(decodedCategory)}`
+  const categoryUrl = `${siteMetadata.siteUrl}${toPublicPath(lang, `/posts/${encodeURIComponent(decodedCategory)}`)}`
   const collectionLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -127,7 +140,7 @@ export default async function CategoryPage({ params }: Props) {
           return (
             <Link
               key={cat}
-              href={`/posts/${encodeURIComponent(cat)}`}
+              href={toPublicPath(lang, `/posts/${encodeURIComponent(cat)}`)}
               className={`
                 px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition-colors
                 ${
@@ -153,7 +166,7 @@ export default async function CategoryPage({ params }: Props) {
               return (
                 <Link
                   key={cat}
-                  href={`/posts/${encodeURIComponent(cat)}`}
+                  href={toPublicPath(lang, `/posts/${encodeURIComponent(cat)}`)}
                   className={`
                     px-3 py-2 rounded-lg transition-colors text-sm
                     ${
@@ -180,7 +193,7 @@ export default async function CategoryPage({ params }: Props) {
             >
               <h3 className="text-lg font-bold mb-2">{post.title}</h3>
               <p className="text-sm text-light-gray60 dark:text-dark-gray60 mb-2">
-                {new Date(post.date).toLocaleDateString('ko-KR')} · {post.readingTime}
+                {new Date(post.date).toLocaleDateString(lang)} · {post.readingTime}
               </p>
               <p className="text-sm text-light-gray80 dark:text-dark-gray80 line-clamp-2">
                 {post.excerpt}
@@ -206,7 +219,7 @@ export default async function CategoryPage({ params }: Props) {
           >
             <h3 className="text-base font-bold mb-2">{post.title}</h3>
             <p className="text-xs text-light-gray60 dark:text-dark-gray60 mb-2">
-              {new Date(post.date).toLocaleDateString('ko-KR')} · {post.readingTime}
+              {new Date(post.date).toLocaleDateString(lang)} · {post.readingTime}
             </p>
             <p className="text-sm text-light-gray80 dark:text-dark-gray80 line-clamp-2">
               {post.excerpt}

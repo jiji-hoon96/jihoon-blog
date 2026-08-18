@@ -5,6 +5,9 @@ import { siteMetadata } from "@/lib/site-metadata";
 import { getSortedPublishedPosts } from "@/lib/filter-posts";
 import { AnalyticsStats } from "@/components/AnalyticsStats";
 import { PopularPosts } from "@/components/PopularPosts";
+import { findTranslation, getPostsForLocale } from "@/lib/localized-posts";
+import { isLocale, toPublicPath } from "@/i18n/locales";
+import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -39,8 +42,17 @@ function PopularPostsSkeleton() {
   );
 }
 
-export default function HomePage() {
-  const sortedPosts = getSortedPublishedPosts(allPosts);
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+
+  if (!isLocale(lang)) notFound();
+
+  const localePosts = getPostsForLocale(allPosts, lang);
+  const sortedPosts = getSortedPublishedPosts(localePosts);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -83,7 +95,7 @@ export default function HomePage() {
   const pinnedPosts =
     siteMetadata.pinnedPosts.length > 0
       ? siteMetadata.pinnedPosts
-          .map((slug) => allPosts.find((post) => post.slug === slug))
+          .map((slug) => findTranslation(allPosts, slug.replace(/^\//, ""), lang))
           .filter((post) => post !== undefined)
           .slice(0, 3)
       : sortedPosts.slice(5, 8);
@@ -161,7 +173,7 @@ export default function HomePage() {
               최근 작성한 글
             </h2>
             <Link
-              href="/posts"
+              href={toPublicPath(lang, "/posts")}
               className="text-sm text-light-gray60 dark:text-dark-gray60 hover:text-light-black100 dark:hover:text-dark-black100"
             >
               전체보기 →

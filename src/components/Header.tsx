@@ -5,8 +5,11 @@ import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { siteMetadata } from "@/lib/site-metadata";
 import SearchModal from "./SearchModal";
+import LanguageSelector from "./LanguageSelector";
+import { getDictionary } from "@/i18n/dictionaries";
+import { toPublicPath, type Locale } from "@/i18n/locales";
 
-export default function Header() {
+export default function Header({ locale }: { locale: Locale }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -15,10 +18,11 @@ export default function Header() {
     setMounted(true);
   }, []);
 
+  const dictionary = getDictionary(locale);
   const navLinks = [
-    { href: "/posts", label: "Posts" },
-    { href: "/guestbook", label: "Guestbook" },
-    { href: "/about", label: "About" },
+    { href: toPublicPath(locale, "/posts"), label: dictionary.navigation.posts },
+    { href: toPublicPath(locale, "/guestbook"), label: dictionary.navigation.guestbook },
+    { href: toPublicPath(locale, "/about"), label: dictionary.navigation.about },
   ];
 
   const toggleTheme = () => {
@@ -68,7 +72,7 @@ export default function Header() {
       <nav className="mx-auto max-w-[var(--width-content)] px-4 py-4 sm:py-6">
         <div className="flex items-center justify-between">
           <Link
-            href="/"
+            href={toPublicPath(locale, "/")}
             className="text-lg sm:text-2xl font-bold hover:opacity-70 transition-opacity"
           >
             {siteMetadata.title}
@@ -87,13 +91,16 @@ export default function Header() {
               </li>
             ))}
             <li>
-              <SearchModal />
+              <SearchModal locale={locale} />
+            </li>
+            <li>
+              <LanguageSelector locale={locale} />
             </li>
             <li>
               <button
                 onClick={toggleTheme}
                 className="p-2 hover:bg-light-gray10 dark:hover:bg-dark-gray10 rounded-lg transition-colors cursor-pointer"
-                aria-label="테마 변경"
+                aria-label={dictionary.actions.changeTheme}
               >
                 {mounted ? (
                   resolvedTheme === "dark" ? <SunIcon /> : <MoonIcon />
@@ -106,11 +113,12 @@ export default function Header() {
 
           {/* Mobile: Search + Theme Toggle + Hamburger */}
           <div className="flex items-center gap-1 sm:hidden">
-            <SearchModal />
+            <SearchModal locale={locale} />
+            <LanguageSelector locale={locale} />
             <button
               onClick={toggleTheme}
               className="p-2 hover:bg-light-gray10 dark:hover:bg-dark-gray10 rounded-lg transition-colors cursor-pointer"
-              aria-label="테마 변경"
+              aria-label={dictionary.actions.changeTheme}
             >
               {mounted ? (
                 resolvedTheme === "dark" ? <SunIcon /> : <MoonIcon />

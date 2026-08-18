@@ -9,22 +9,26 @@ import ReadingProgress from '@/components/ReadingProgress'
 import CodeCopyButton from '@/components/CodeCopyButton'
 import InteractiveWidgets from '@/components/InteractiveWidgets'
 import type { Metadata } from 'next'
+import {
+  findTranslation,
+  getLocalizedPostParams,
+  getPostsForLocale,
+} from '@/lib/localized-posts'
+import { isLocale, toPublicPath } from '@/i18n/locales'
 
 type Props = {
-  params: Promise<{ slug: string }>
+  params: Promise<{ lang: string; slug: string }>
 }
 
 export async function generateStaticParams() {
-  return allPosts
-    .filter(post => !isHiddenPost(post))
-    .map(post => ({
-      slug: post.slug.replace('/', ''),
-    }))
+  return getLocalizedPostParams(allPosts.filter(post => !isHiddenPost(post)))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params
-  const post = allPosts.find(p => p.slug === `/${slug}`)
+  const { lang, slug } = await params
+  const post = isLocale(lang)
+    ? findTranslation(allPosts, slug, lang)
+    : undefined
 
   if (!post) {
     return {}
@@ -70,15 +74,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PostPage({ params }: Props) {
-  const { slug } = await params
-  const post = allPosts.find(p => p.slug === `/${slug}`)
+  const { lang, slug } = await params
+  if (!isLocale(lang)) notFound()
+
+  const post = findTranslation(allPosts, slug, lang)
 
   if (!post || isHiddenPost(post)) {
     notFound()
   }
 
-  const { prev, next } = getAdjacentPosts(post.slug)
-  const relatedPosts = getRelatedPosts(post.slug, 3)
+  const localePosts = getPostsForLocale(allPosts, lang)
+  const { prev, next } = getAdjacentPosts(post.slug, localePosts)
+  const relatedPosts = getRelatedPosts(post.slug, 3, localePosts)
 
   const postUrl = `${siteMetadata.siteUrl}${post.slug}`
   const ogImageUrl = `${postUrl}/opengraph-image`
@@ -207,7 +214,7 @@ export default async function PostPage({ params }: Props) {
             {post.categoryArray.map((category: string) => (
               <a
                 key={category}
-                href={`/posts/${encodeURIComponent(category)}`}
+                href={toPublicPath(lang, `/posts/${encodeURIComponent(category)}`)}
                 className="px-3 py-1 text-xs sm:text-sm rounded-full bg-light-gray10 dark:bg-dark-gray10 text-light-black60 dark:text-dark-black60 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors"
               >
                 {category}
