@@ -16,6 +16,14 @@ test('rewrites legacy Korean page URLs to the internal ko locale tree', () => {
     kind: 'rewrite',
     pathname: '/ko/posts',
   })
+  assert.deepEqual(classifyLocaleRequest('/rss.xml'), {
+    kind: 'rewrite',
+    pathname: '/ko/rss.xml',
+  })
+  assert.deepEqual(classifyLocaleRequest('/llms.txt'), {
+    kind: 'rewrite',
+    pathname: '/ko/llms.txt',
+  })
 })
 
 test('leaves supported foreign locale URLs unchanged', () => {

@@ -6,6 +6,10 @@ export type LocaleRequestDecision =
   | { kind: 'redirect'; pathname: string }
 
 export function classifyLocaleRequest(pathname: string): LocaleRequestDecision {
+  if (pathname === '/rss.xml' || pathname === '/llms.txt') {
+    return { kind: 'rewrite', pathname: `/ko${pathname}` }
+  }
+
   if (
     pathname === '/api' ||
     pathname.startsWith('/api/') ||
