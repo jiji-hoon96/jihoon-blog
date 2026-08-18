@@ -13,6 +13,7 @@
     "gsc": "node scripts/fetch-gsc.js",
     "test": "node --test src/lib/*.test.mjs scripts/*.test.mjs",
     "content:terms": "node scripts/validate-terminology.mjs",
+    "content:translations": "node scripts/validate-translations.mjs",
     "test:homepage-rendering": "node scripts/assert-homepage-dynamic.mjs",
     "build": "node scripts/copy-content-images.js && (npx contentlayer build || true) && next build",
     "start": "next start",
