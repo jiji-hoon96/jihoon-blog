@@ -1,43 +1,45 @@
 import { siteMetadata } from "@/lib/site-metadata";
 import type { Metadata } from "next";
-import Image from "next/image";
+import { getDictionary, interpolate } from "@/i18n/dictionaries";
+import { getLanguageAlternates, isLocale, toPublicPath } from "@/i18n/locales";
+import { getOpenGraphLocale } from "@/lib/localized-metadata";
+import { notFound } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "About",
-  description: `프론트엔드 개발자 ${siteMetadata.author.name}(${siteMetadata.author.nickname})의 소개 페이지. 커리어, 활동 이력, 기술 스택(${siteMetadata.author.stack.join(", ")})을 확인하세요.`,
-  alternates: {
-    canonical: `${siteMetadata.siteUrl}/about`,
-  },
-  openGraph: {
-    title: `About | ${siteMetadata.title}`,
-    description: `프론트엔드 개발자 ${siteMetadata.author.name}의 소개`,
-    url: `${siteMetadata.siteUrl}/about`,
-    type: "profile",
-    locale: "ko_KR",
-    siteName: siteMetadata.title,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `About ${siteMetadata.author.name}`,
-    description: `프론트엔드 개발자 ${siteMetadata.author.name}의 소개`,
-  },
-};
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  if (!isLocale(lang)) return {};
+  const dictionary = getDictionary(lang);
+  const description = interpolate(dictionary.about.description, { name: siteMetadata.author.name });
+  const url = `${siteMetadata.siteUrl}${toPublicPath(lang, "/about")}`;
 
-export default function AboutPage() {
+  return {
+    title: dictionary.navigation.about,
+    description,
+    alternates: { canonical: url, languages: getLanguageAlternates(siteMetadata.siteUrl, "/about") },
+    openGraph: { title: `${dictionary.navigation.about} | ${siteMetadata.title}`, description, url, type: "profile", locale: getOpenGraphLocale(lang), siteName: siteMetadata.title },
+    twitter: { card: "summary_large_image", title: `${dictionary.navigation.about} ${siteMetadata.author.name}`, description },
+  };
+}
+
+export default async function AboutPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  if (!isLocale(lang)) notFound();
+  const dictionary = getDictionary(lang);
+  const aboutUrl = `${siteMetadata.siteUrl}${toPublicPath(lang, "/about")}`;
   const profileLd = {
     "@context": "https://schema.org",
     "@type": "ProfilePage",
-    inLanguage: "ko-KR",
-    url: `${siteMetadata.siteUrl}/about`,
+    inLanguage: lang,
+    url: aboutUrl,
     mainEntity: {
       "@type": "Person",
-      "@id": `${siteMetadata.siteUrl}/about#person`,
+      "@id": `${aboutUrl}#person`,
       name: siteMetadata.author.name,
       alternateName: siteMetadata.author.nickname,
-      description: `프론트엔드 개발자. ${siteMetadata.author.stack.join(", ")} 등의 스택으로 웹 개발 중.`,
+      description: interpolate(dictionary.about.profileDescription, { stack: siteMetadata.author.stack.join(", ") }),
       jobTitle: "Frontend Developer",
       email: siteMetadata.author.bio.email,
-      url: `${siteMetadata.siteUrl}/about`,
+      url: aboutUrl,
       image: `${siteMetadata.siteUrl}/images/jihoon.jpeg`,
       address: {
         "@type": "PostalAddress",
@@ -82,7 +84,7 @@ export default function AboutPage() {
           {/* Profile Info */}
           <div className="flex-1 flex flex-col justify-center">
             <h1 className="text-2xl sm:text-4xl font-bold mb-6">
-              {`안녕하세요 ${siteMetadata.author.name}입니다.`}
+              {interpolate(dictionary.about.greeting, { name: siteMetadata.author.name })}
             </h1>
 
             {/* Contact Info */}

@@ -8,23 +8,24 @@ import { PopularPosts } from "@/components/PopularPosts";
 import { findTranslation, getPostsForLocale } from "@/lib/localized-posts";
 import { isLocale, toPublicPath } from "@/i18n/locales";
 import { notFound } from "next/navigation";
+import { getDictionary, interpolate } from "@/i18n/dictionaries";
 
 export const dynamic = "force-dynamic";
 
 // 로딩 스켈레톤 컴포넌트들
-function AnalyticsStatsSkeleton() {
+function AnalyticsStatsSkeleton({ label }: { label: string }) {
   return (
     <div className="flex gap-4 text-sm text-light-gray60 dark:text-dark-gray60">
-      <span className="animate-pulse">통계 로딩 중...</span>
+      <span className="animate-pulse">{label}</span>
     </div>
   );
 }
 
-function PopularPostsSkeleton() {
+function PopularPostsSkeleton({ title }: { title: string }) {
   return (
     <section className="mb-8 sm:mb-12">
       <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <h2 className="text-xl sm:text-2xl font-bold">🔥 인기 글</h2>
+        <h2 className="text-xl sm:text-2xl font-bold">🔥 {title}</h2>
       </div>
       <div className="flex flex-col gap-4">
         {[1, 2, 3].map((i) => (
@@ -51,6 +52,7 @@ export default async function HomePage({
 
   if (!isLocale(lang)) notFound();
 
+  const dictionary = getDictionary(lang);
   const localePosts = getPostsForLocale(allPosts, lang);
   const sortedPosts = getSortedPublishedPosts(localePosts);
 
@@ -58,16 +60,16 @@ export default async function HomePage({
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: siteMetadata.title,
-    url: siteMetadata.siteUrl,
-    description: siteMetadata.description,
-    inLanguage: "ko-KR",
+    url: `${siteMetadata.siteUrl}${toPublicPath(lang, "/")}`,
+    description: dictionary.siteDescription,
+    inLanguage: lang,
     author: {
       "@type": "Person",
       "@id": `${siteMetadata.siteUrl}/about#person`,
       name: siteMetadata.author.name,
       alternateName: siteMetadata.author.nickname,
       email: siteMetadata.author.bio.email,
-      url: `${siteMetadata.siteUrl}/about`,
+      url: `${siteMetadata.siteUrl}${toPublicPath(lang, "/about")}`,
       image: `${siteMetadata.siteUrl}/images/jihoon.jpeg`,
       jobTitle: "Frontend Developer",
       knowsAbout: siteMetadata.author.stack,
@@ -107,7 +109,7 @@ export default async function HomePage({
     >
       <h3 className="text-base font-bold line-clamp-2 mb-2">{post.title}</h3>
       <p className="text-xs text-light-gray60 dark:text-dark-gray60 mb-2">
-        {new Date(post.date).toLocaleDateString("ko-KR")} · {post.readingTime}
+        {new Date(post.date).toLocaleDateString(lang)} · {post.readingTime}
       </p>
       <p className="text-sm text-light-gray80 dark:text-dark-gray80 line-clamp-2">
         {post.excerpt}
@@ -125,13 +127,13 @@ export default async function HomePage({
         {/* Hero Section */}
         <div className="mb-8 sm:mb-12">
           <h1 className="text-2xl sm:text-4xl font-bold mb-3 sm:mb-4">
-            {`안녕하세요 ${siteMetadata.author.name}입니다`}
+            {interpolate(dictionary.home.greeting, { name: siteMetadata.author.name })}
           </h1>
           <p className="mt-2 text-sm text-light-gray60 dark:text-dark-gray60">
             {siteMetadata.author.bio.email}
           </p>
           <div className="mt-3">
-            <Suspense fallback={<AnalyticsStatsSkeleton />}>
+            <Suspense fallback={<AnalyticsStatsSkeleton label={dictionary.home.statsLoading} />}>
               <AnalyticsStats />
             </Suspense>
           </div>
@@ -142,7 +144,7 @@ export default async function HomePage({
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h2 className="text-xl sm:text-2xl font-bold">
               <span className="mr-3">📌</span>
-              고정 글
+              {dictionary.home.pinnedPosts}
             </h2>
           </div>
           {pinnedPosts.length > 0 ? (
@@ -154,15 +156,20 @@ export default async function HomePage({
           ) : (
             <div className="p-6 border border-light-gray20 dark:border-dark-gray20 rounded-lg text-center">
               <p className="text-sm text-light-gray60 dark:text-dark-gray60">
-                고정된 글이 없습니다.
+                {dictionary.home.noPinnedPosts}
               </p>
             </div>
           )}
         </section>
 
         {/* 조회수 높은 글 (GA 데이터 기반) */}
-        <Suspense fallback={<PopularPostsSkeleton />}>
-          <PopularPosts allPosts={postsForPopular} />
+        <Suspense fallback={<PopularPostsSkeleton title={dictionary.home.popularPosts} />}>
+          <PopularPosts
+            allPosts={postsForPopular}
+            locale={lang}
+            title={dictionary.home.popularPosts}
+            emptyLabel={dictionary.home.noPopularPosts}
+          />
         </Suspense>
 
         {/* 최근 작성한 글 */}
@@ -170,13 +177,13 @@ export default async function HomePage({
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h2 className="text-xl sm:text-2xl font-bold">
               <span className="mr-3">🆕</span>
-              최근 작성한 글
+              {dictionary.home.recentPosts}
             </h2>
             <Link
               href={toPublicPath(lang, "/posts")}
               className="text-sm text-light-gray60 dark:text-dark-gray60 hover:text-light-black100 dark:hover:text-dark-black100"
             >
-              전체보기 →
+              {dictionary.home.viewAll} →
             </Link>
           </div>
           {recentPosts.length > 0 ? (
@@ -188,7 +195,7 @@ export default async function HomePage({
           ) : (
             <div className="p-6 border border-light-gray20 dark:border-dark-gray20 rounded-lg text-center">
               <p className="text-sm text-light-gray60 dark:text-dark-gray60">
-                아직 작성된 글이 없습니다.
+                {dictionary.home.noPosts}
               </p>
             </div>
           )}

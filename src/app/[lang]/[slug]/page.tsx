@@ -16,6 +16,7 @@ import {
 } from '@/lib/localized-posts'
 import { isLocale, toPublicPath } from '@/i18n/locales'
 import { buildLocalizedPostMetadata } from '@/lib/localized-metadata'
+import { getDictionary } from '@/i18n/dictionaries'
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>
@@ -64,6 +65,7 @@ export default async function PostPage({ params }: Props) {
   }
 
   const localePosts = getPostsForLocale(allPosts, lang)
+  const dictionary = getDictionary(lang)
   const { prev, next } = getAdjacentPosts(post.slug, localePosts)
   const relatedPosts = getRelatedPosts(post.slug, 3, localePosts)
 
@@ -203,7 +205,14 @@ export default async function PostPage({ params }: Props) {
           </div>
         </header>
 
-        <TableOfContents content={post.body.html} />
+        <TableOfContents
+          content={post.body.html}
+          labels={{
+            title: dictionary.post.tableOfContents,
+            open: dictionary.post.openTableOfContents,
+            close: dictionary.post.closeTableOfContents,
+          }}
+        />
 
         <div
           className="prose dark:prose-invert max-w-none mb-16"
@@ -217,7 +226,7 @@ export default async function PostPage({ params }: Props) {
         <section className="mt-12 pt-8 border-t border-light-gray20 dark:border-dark-gray20">
           <h2 className="text-xl sm:text-2xl font-bold mb-4">
             <span className="mr-2">📚</span>
-            함께 읽으면 좋은 글
+            {dictionary.post.relatedPosts}
           </h2>
           <div className="flex flex-col gap-4">
             {relatedPosts.map(related => (
@@ -230,7 +239,7 @@ export default async function PostPage({ params }: Props) {
                   {related.title}
                 </h3>
                 <p className="text-xs text-light-gray60 dark:text-dark-gray60 mb-2">
-                  {new Date(related.date).toLocaleDateString('ko-KR')} ·{' '}
+                  {new Date(related.date).toLocaleDateString(lang)} ·{' '}
                   {related.readingTime}
                 </p>
                 <p className="text-sm text-light-gray80 dark:text-dark-gray80 line-clamp-2">
@@ -250,7 +259,7 @@ export default async function PostPage({ params }: Props) {
             className="flex-1 group text-left"
           >
             <div className="text-sm text-light-gray60 dark:text-dark-gray60 mb-1">
-              ← 이전 글
+              ← {dictionary.post.previousPost}
             </div>
             <div className="font-medium group-hover:text-light-gray80 dark:group-hover:text-dark-gray80 transition-colors">
               {prev.title}
@@ -266,7 +275,7 @@ export default async function PostPage({ params }: Props) {
             className="flex-1 group text-right"
           >
             <div className="text-sm text-light-gray60 dark:text-dark-gray60 mb-1">
-              다음 글 →
+              {dictionary.post.nextPost} →
             </div>
             <div className="font-medium group-hover:text-light-gray80 dark:group-hover:text-dark-gray80 transition-colors">
               {next.title}
@@ -279,7 +288,7 @@ export default async function PostPage({ params }: Props) {
 
       {/* Comments */}
       <div className="mt-12">
-        <h3 className="text-xl font-bold mb-4">댓글</h3>
+        <h3 className="text-xl font-bold mb-4">{dictionary.post.comments}</h3>
         <Utterances
           repo={siteMetadata.comments.utterances.repo}
           path={post.slug}

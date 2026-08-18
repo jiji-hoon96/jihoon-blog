@@ -11,6 +11,7 @@ import {
   toPublicPath,
 } from '@/i18n/locales'
 import { getOpenGraphLocale } from '@/lib/localized-metadata'
+import { getDictionary, interpolate } from '@/i18n/dictionaries'
 
 type Props = {
   params: Promise<{ lang: string; category: string }>
@@ -35,11 +36,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const decodedCategory = decodeURIComponent(category)
   const localePosts = getPostsForLocale(allPosts, lang)
   const posts = getPostsByCategory(decodedCategory, localePosts)
+  const dictionary = getDictionary(lang)
   const url = `${siteMetadata.siteUrl}${toPublicPath(lang, `/posts/${encodeURIComponent(decodedCategory)}`)}`
-  const description = `${siteMetadata.author.name}이(가) 작성한 ${decodedCategory} 카테고리의 글 ${posts.length}개. 프론트엔드/React/TypeScript 등 웹 개발 기록을 모아 봅니다.`
+  const description = interpolate(dictionary.category.description, {
+    category: decodedCategory,
+    count: posts.length,
+  })
+  const title = `${decodedCategory} · ${dictionary.category.label}`
 
   return {
-    title: `${decodedCategory} 카테고리`,
+    title,
     description,
     alternates: {
       canonical: url,
@@ -49,7 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ),
     },
     openGraph: {
-      title: `${decodedCategory} 카테고리 | ${siteMetadata.title}`,
+      title: `${title} | ${siteMetadata.title}`,
       description,
       url,
       type: 'website',
@@ -58,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${decodedCategory} 카테고리`,
+      title,
       description,
     },
   }
@@ -71,6 +77,7 @@ export default async function CategoryPage({ params }: Props) {
   const localePosts = getPostsForLocale(allPosts, lang)
   const categories = getAllCategories(localePosts)
   const posts = getPostsByCategory(decodedCategory, localePosts)
+  const dictionary = getDictionary(lang)
 
   if (!categories.includes(decodedCategory)) {
     notFound()
@@ -80,8 +87,11 @@ export default async function CategoryPage({ params }: Props) {
   const collectionLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `${decodedCategory} 카테고리`,
-    description: `${decodedCategory} 카테고리의 글 ${posts.length}개`,
+    name: `${decodedCategory} · ${dictionary.category.label}`,
+    description: interpolate(dictionary.category.description, {
+      category: decodedCategory,
+      count: posts.length,
+    }),
     url: categoryUrl,
     inLanguage: lang,
     isPartOf: {
@@ -114,7 +124,7 @@ export default async function CategoryPage({ params }: Props) {
       {
         '@type': 'ListItem',
         position: 2,
-        name: '카테고리',
+        name: dictionary.category.label,
         item: `${siteMetadata.siteUrl}${toPublicPath(lang, '/posts')}`,
       },
       {
@@ -140,7 +150,7 @@ export default async function CategoryPage({ params }: Props) {
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-4xl font-bold mb-2">{decodedCategory}</h1>
         <p className="text-light-gray60 dark:text-dark-gray60">
-          {posts.length}개의 글
+          {interpolate(dictionary.posts.count, { count: posts.length })}
         </p>
       </div>
 
@@ -214,7 +224,7 @@ export default async function CategoryPage({ params }: Props) {
 
           {posts.length === 0 && (
             <div className="text-center py-12 text-light-gray60 dark:text-dark-gray60">
-              이 카테고리에는 아직 글이 없습니다.
+              {dictionary.category.empty}
             </div>
           )}
         </div>
@@ -240,7 +250,7 @@ export default async function CategoryPage({ params }: Props) {
 
         {posts.length === 0 && (
           <div className="text-center py-12 text-light-gray60 dark:text-dark-gray60">
-            이 카테고리에는 아직 글이 없습니다.
+            {dictionary.category.empty}
           </div>
         )}
       </div>

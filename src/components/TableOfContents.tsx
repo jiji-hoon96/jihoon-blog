@@ -10,9 +10,14 @@ interface TocItem {
 
 interface TableOfContentsProps {
   content: string;
+  labels: {
+    title: string;
+    open: string;
+    close: string;
+  };
 }
 
-export default function TableOfContents({ content }: TableOfContentsProps) {
+export default function TableOfContents({ content, labels }: TableOfContentsProps) {
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
@@ -125,7 +130,7 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
         ref={buttonRef}
         type="button"
         onClick={() => setIsOpen((v) => !v)}
-        aria-label={isOpen ? "목차 닫기" : "목차 열기"}
+        aria-label={isOpen ? labels.close : labels.open}
         aria-expanded={isOpen}
         style={{ opacity: isOpen ? 1 : 0.3 + 0.7 * proximity }}
         className="fixed right-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full shadow-lg bg-light-gray10 dark:bg-dark-gray10 border border-light-gray20 dark:border-dark-gray20 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-[opacity,background-color] duration-200 cursor-pointer"
@@ -161,19 +166,19 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
 
       <aside
         role="dialog"
-        aria-label="목차"
+        aria-label={labels.title}
         className={`fixed right-0 top-0 z-50 h-screen w-[22rem] sm:w-96 max-w-[90vw] bg-white dark:bg-dark-gray10 shadow-xl border-l border-light-gray20 dark:border-dark-gray20 transition-transform duration-200 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-light-gray20 dark:border-dark-gray20">
           <h2 className="font-bold text-light-black100 dark:text-dark-black100">
-            목차
+            {labels.title}
           </h2>
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            aria-label="목차 닫기"
+            aria-label={labels.close}
             className="p-1 rounded hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors cursor-pointer"
           >
             <svg

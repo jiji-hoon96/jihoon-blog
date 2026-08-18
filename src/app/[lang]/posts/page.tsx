@@ -7,7 +7,7 @@ import type { Metadata } from 'next'
 import { getPostsForLocale } from '@/lib/localized-posts'
 import { isLocale, toPublicPath } from '@/i18n/locales'
 import { notFound } from 'next/navigation'
-import { getDictionary } from '@/i18n/dictionaries'
+import { getDictionary, interpolate } from '@/i18n/dictionaries'
 import { getLanguageAlternates } from '@/i18n/locales'
 import { getOpenGraphLocale } from '@/lib/localized-metadata'
 
@@ -56,6 +56,7 @@ export default async function AllPostsPage({
   if (!isLocale(lang)) notFound()
 
   const localePosts = getPostsForLocale(allPosts, lang)
+  const dictionary = getDictionary(lang)
   const categories = getAllCategories(localePosts)
   const sortedPosts = getSortedPublishedPosts(localePosts)
 
@@ -63,9 +64,11 @@ export default async function AllPostsPage({
     <div className="py-8 sm:py-12">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-4xl font-bold mb-2">모든 글</h1>
+        <h1 className="text-2xl sm:text-4xl font-bold mb-2">
+          {dictionary.posts.allPosts}
+        </h1>
         <p className="text-light-gray60 dark:text-dark-gray60">
-          {sortedPosts.length}개의 글
+          {interpolate(dictionary.posts.count, { count: sortedPosts.length })}
         </p>
       </div>
 
@@ -119,7 +122,7 @@ export default async function AllPostsPage({
 
           {sortedPosts.length === 0 && (
             <div className="text-center py-12 text-light-gray60 dark:text-dark-gray60">
-              아직 작성된 글이 없습니다.
+              {dictionary.posts.empty}
             </div>
           )}
         </div>
@@ -145,7 +148,7 @@ export default async function AllPostsPage({
 
         {sortedPosts.length === 0 && (
           <div className="text-center py-12 text-light-gray60 dark:text-dark-gray60">
-            아직 작성된 글이 없습니다.
+            {dictionary.posts.empty}
           </div>
         )}
       </div>

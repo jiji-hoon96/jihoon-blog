@@ -129,7 +129,7 @@ export default function Header({ locale }: { locale: Locale }) {
             <button
               className="p-2"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="메뉴 열기"
+              aria-label={dictionary.actions.openMenu}
             >
               <div className="w-5 h-4 flex flex-col justify-between">
                 <span
