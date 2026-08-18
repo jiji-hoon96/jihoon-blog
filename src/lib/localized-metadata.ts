@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { HREF_LANG, isLocale, type Locale } from '../i18n/locales.ts'
+import { getPostModifiedDate } from './post-dates.ts'
 
 const OPEN_GRAPH_LOCALE: Record<Locale, string> = {
   ko: 'ko_KR',
@@ -25,6 +26,7 @@ type MetadataPost = {
   keywords?: string
   categoryArray: string[]
   date: string
+  updatedAt?: string
 }
 
 type SiteMetadataInput = {
@@ -87,7 +89,7 @@ export function buildLocalizedPostMetadata(
       url,
       type: 'article',
       publishedTime: post.date,
-      modifiedTime: post.date,
+      modifiedTime: getPostModifiedDate(post),
       authors: [site.authorName],
       tags: post.categoryArray,
       locale: getOpenGraphLocale(post.contentLocale),

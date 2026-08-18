@@ -21,6 +21,8 @@ const translations = [
   date: '2026-07-03T00:00:00.000Z',
 }))
 
+translations[1].updatedAt = '2026-07-05T00:00:00.000Z'
+
 const site = {
   siteUrl: 'https://example.com',
   siteName: 'Hooni Blog',
@@ -41,6 +43,8 @@ test('builds a self-canonical with reciprocal language alternates', () => {
     'x-default': 'https://example.com/260703',
   })
   assert.equal(metadata.openGraph.locale, 'en_US')
+  assert.equal(metadata.openGraph.publishedTime, '2026-07-03T00:00:00.000Z')
+  assert.equal(metadata.openGraph.modifiedTime, '2026-07-05T00:00:00.000Z')
 })
 
 test('uses Simplified Chinese locale metadata without changing its public URL', () => {
