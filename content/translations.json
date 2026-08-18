@@ -2,7 +2,7 @@
   "locales": ["en", "ja", "es", "pt-BR", "zh-CN"],
   "posts": [
     { "key": "240706", "source": "content/240706/index.md", "sourceHash": "f22dd067bdfcbcb307ebd4df15776267b07fc845a1d9909b7aeee26c73e24d16", "reviewed": ["en", "ja", "es", "pt-BR", "zh-CN"] },
-    { "key": "240818", "source": "content/240818/index.md", "sourceHash": "7e4c03efdbf0b5dead93870b853fa5c987ebfd96bb765663ebb98da138417e85", "reviewed": [] },
+    { "key": "240818", "source": "content/240818/index.md", "sourceHash": "7e4c03efdbf0b5dead93870b853fa5c987ebfd96bb765663ebb98da138417e85", "reviewed": ["en", "ja", "es", "pt-BR", "zh-CN"] },
     { "key": "241201", "source": "content/241201/index.md", "sourceHash": "16af1949a7c5575b586c919af82c78646819b783ebee024a579d48a0c0ac5032", "reviewed": [] },
     { "key": "250520", "source": "content/250520/index.md", "sourceHash": "da152b27d26e4621cb1e554cd3d68e531f794e86f395ef9ee35e851f1f0aeff8", "reviewed": [] },
     { "key": "251117", "source": "content/251117/index.md", "sourceHash": "688aa8b21e8068e6d24e46e383d3dddbb24778dff87c065c19b3489cff0380fa", "reviewed": [] },
