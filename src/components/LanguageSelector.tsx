@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   getLocaleSwitchPath,
+  HREF_LANG,
   type Locale,
   LOCALES,
 } from '@/i18n/locales'
@@ -31,7 +32,7 @@ export default function LanguageSelector({ locale }: { locale: Locale }) {
           <li key={targetLocale}>
             <Link
               href={getLocaleSwitchPath(targetLocale, pathname)}
-              hrefLang={targetLocale}
+              hrefLang={HREF_LANG[targetLocale]}
               lang={targetLocale}
               aria-current={targetLocale === locale ? 'page' : undefined}
               className="block rounded-md px-3 py-2 text-sm hover:bg-light-gray10 dark:hover:bg-dark-gray10"

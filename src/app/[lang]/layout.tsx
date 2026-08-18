@@ -6,7 +6,14 @@ import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
 import { siteMetadata } from "@/lib/site-metadata";
-import { isLocale, LOCALES } from "@/i18n/locales";
+import {
+	getLanguageAlternates,
+	isLocale,
+	LOCALES,
+	toPublicPath,
+} from "@/i18n/locales";
+import { getDictionary } from "@/i18n/dictionaries";
+import { getOpenGraphLocale } from "@/lib/localized-metadata";
 import { notFound } from "next/navigation";
 import "../globals.css";
 
@@ -21,65 +28,65 @@ export const viewport: Viewport = {
 	],
 };
 
-export const metadata: Metadata = {
-	metadataBase: new URL(siteMetadata.siteUrl),
-	title: {
-		default: siteMetadata.title,
-		template: `%s | ${siteMetadata.title}`,
-	},
-	description: siteMetadata.description,
-	keywords: [
-		"개발 블로그",
-		"프론트엔드",
-		"프론트엔드 개발자",
-		"React",
-		"Next.js",
-		"TypeScript",
-		"JavaScript",
-		"웹 개발",
-		"Frontend",
-		"frontend",
-		"이지훈",
-		"후니",
-		siteMetadata.author.name,
-	],
-	authors: [{ name: siteMetadata.author.name, url: siteMetadata.siteUrl }],
-	creator: siteMetadata.author.name,
-	publisher: siteMetadata.author.name,
-	alternates: {
-		canonical: siteMetadata.siteUrl,
-		types: {
-			"application/rss+xml": `${siteMetadata.siteUrl}/rss.xml`,
+export async function generateMetadata({
+	params,
+}: {
+	params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+	const { lang } = await params;
+	if (!isLocale(lang)) return {};
+
+	const dictionary = getDictionary(lang);
+	const homePath = toPublicPath(lang, "/");
+	const homeUrl = `${siteMetadata.siteUrl}${homePath}`;
+
+	return {
+		metadataBase: new URL(siteMetadata.siteUrl),
+		title: {
+			default: siteMetadata.title,
+			template: `%s | ${siteMetadata.title}`,
 		},
-	},
-	openGraph: {
-		title: siteMetadata.title,
-		description: siteMetadata.description,
-		url: siteMetadata.siteUrl,
-		siteName: siteMetadata.title,
-		locale: "ko_KR",
-		type: "website",
-	},
-	twitter: {
-		card: "summary_large_image",
-		title: siteMetadata.title,
-		description: siteMetadata.description,
-	},
-	robots: {
-		index: true,
-		follow: true,
-		googleBot: {
+		description: dictionary.siteDescription,
+		keywords: ["React", "Next.js", "TypeScript", "JavaScript", "Frontend"],
+		authors: [{ name: siteMetadata.author.name, url: siteMetadata.siteUrl }],
+		creator: siteMetadata.author.name,
+		publisher: siteMetadata.author.name,
+		alternates: {
+			canonical: homeUrl,
+			languages: getLanguageAlternates(siteMetadata.siteUrl, "/"),
+			types: {
+				"application/rss+xml": `${siteMetadata.siteUrl}${toPublicPath(lang, "/rss.xml")}`,
+			},
+		},
+		openGraph: {
+			title: siteMetadata.title,
+			description: dictionary.siteDescription,
+			url: homeUrl,
+			siteName: siteMetadata.title,
+			locale: getOpenGraphLocale(lang),
+			type: "website",
+		},
+		twitter: {
+			card: "summary_large_image",
+			title: siteMetadata.title,
+			description: dictionary.siteDescription,
+		},
+		robots: {
 			index: true,
 			follow: true,
-			"max-video-preview": -1,
-			"max-image-preview": "large",
-			"max-snippet": -1,
+			googleBot: {
+				index: true,
+				follow: true,
+				"max-video-preview": -1,
+				"max-image-preview": "large",
+				"max-snippet": -1,
+			},
 		},
-	},
-	verification: {
-		google: "H_Kznnz38Boo3HJm1zCQjpG8Pxo3EZqhjkGd6Gdm-qU",
-	},
-};
+		verification: {
+			google: "H_Kznnz38Boo3HJm1zCQjpG8Pxo3EZqhjkGd6Gdm-qU",
+		},
+	};
+}
 
 export function generateStaticParams() {
 	return LOCALES.map((lang) => ({ lang }));

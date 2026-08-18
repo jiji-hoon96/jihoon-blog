@@ -77,6 +77,7 @@ test('provides shared navigation labels for every locale', () => {
   for (const locale of LOCALES) {
     const dictionary = getDictionary(locale)
 
+    assert.ok(dictionary.siteDescription)
     assert.ok(dictionary.navigation.posts)
     assert.ok(dictionary.navigation.guestbook)
     assert.ok(dictionary.navigation.about)

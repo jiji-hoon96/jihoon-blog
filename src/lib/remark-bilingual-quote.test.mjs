@@ -103,3 +103,31 @@ test('leaves ordinary blockquotes unchanged', () => {
 
   assert.deepEqual(tree, before)
 })
+
+test('uses the document locale for translated quote text', () => {
+  const tree = quoteTree({
+    translation: [{ type: 'paragraph', children: [{ type: 'text', value: 'Traducción' }] }],
+    original: [{ type: 'paragraph', children: [{ type: 'text', value: 'English original' }] }],
+  })
+
+  remarkBilingualQuote()(tree, { path: '/content/260703/index.es.md' })
+
+  assert.equal(tree.children[0].children[0].data.hProperties.lang, 'es')
+  assert.equal(tree.children[0].children[1].data.hProperties.lang, 'en')
+})
+
+test('renders one primary quote when the page locale matches the English original', () => {
+  const tree = quoteTree({
+    translation: [{ type: 'paragraph', children: [{ type: 'text', value: 'English translation' }] }],
+    original: [{ type: 'paragraph', children: [{ type: 'text', value: 'English original' }] }],
+  })
+
+  remarkBilingualQuote()(tree, { path: '/content/260703/index.en.md' })
+
+  assert.equal(tree.children[0].children.length, 1)
+  assert.equal(tree.children[0].children[0].name, 'original')
+  assert.deepEqual(tree.children[0].children[0].data, {
+    hName: 'div',
+    hProperties: { className: ['quote-translation'], lang: 'en' },
+  })
+})

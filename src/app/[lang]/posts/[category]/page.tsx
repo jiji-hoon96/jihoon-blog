@@ -5,7 +5,12 @@ import { siteMetadata } from '@/lib/site-metadata'
 import type { Metadata } from 'next'
 import { allPosts } from 'contentlayer/generated'
 import { getPostsForLocale } from '@/lib/localized-posts'
-import { isLocale, toPublicPath } from '@/i18n/locales'
+import {
+  getLanguageAlternates,
+  isLocale,
+  toPublicPath,
+} from '@/i18n/locales'
+import { getOpenGraphLocale } from '@/lib/localized-metadata'
 
 type Props = {
   params: Promise<{ lang: string; category: string }>
@@ -36,13 +41,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${decodedCategory} 카테고리`,
     description,
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      languages: getLanguageAlternates(
+        siteMetadata.siteUrl,
+        `/posts/${encodeURIComponent(decodedCategory)}`,
+      ),
+    },
     openGraph: {
       title: `${decodedCategory} 카테고리 | ${siteMetadata.title}`,
       description,
       url,
       type: 'website',
-      locale: 'ko_KR',
+      locale: getOpenGraphLocale(lang),
       siteName: siteMetadata.title,
     },
     twitter: {
@@ -72,7 +83,7 @@ export default async function CategoryPage({ params }: Props) {
     name: `${decodedCategory} 카테고리`,
     description: `${decodedCategory} 카테고리의 글 ${posts.length}개`,
     url: categoryUrl,
-    inLanguage: 'ko-KR',
+    inLanguage: lang,
     isPartOf: {
       '@type': 'WebSite',
       name: siteMetadata.title,
@@ -98,13 +109,13 @@ export default async function CategoryPage({ params }: Props) {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: siteMetadata.siteUrl,
+        item: `${siteMetadata.siteUrl}${toPublicPath(lang, '/')}`,
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: '카테고리',
-        item: `${siteMetadata.siteUrl}/posts`,
+        item: `${siteMetadata.siteUrl}${toPublicPath(lang, '/posts')}`,
       },
       {
         '@type': 'ListItem',

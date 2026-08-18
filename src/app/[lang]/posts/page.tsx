@@ -7,27 +7,43 @@ import type { Metadata } from 'next'
 import { getPostsForLocale } from '@/lib/localized-posts'
 import { isLocale, toPublicPath } from '@/i18n/locales'
 import { notFound } from 'next/navigation'
+import { getDictionary } from '@/i18n/dictionaries'
+import { getLanguageAlternates } from '@/i18n/locales'
+import { getOpenGraphLocale } from '@/lib/localized-metadata'
 
-const allPostsUrl = `${siteMetadata.siteUrl}/posts`
-const allPostsDescription = `${siteMetadata.author.name}(${siteMetadata.author.nickname})의 모든 기술 블로그 글 모음. React, TypeScript, Next.js 등 프론트엔드 개발 기록과 학습 노트를 한곳에서 봅니다.`
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang } = await params
+  if (!isLocale(lang)) return {}
 
-export const metadata: Metadata = {
-  title: '모든 글',
-  description: allPostsDescription,
-  alternates: { canonical: allPostsUrl },
-  openGraph: {
-    title: `모든 글 | ${siteMetadata.title}`,
-    description: allPostsDescription,
-    url: allPostsUrl,
-    type: 'website',
-    locale: 'ko_KR',
-    siteName: siteMetadata.title,
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: '모든 글',
-    description: allPostsDescription,
-  },
+  const dictionary = getDictionary(lang)
+  const title = dictionary.navigation.posts
+  const url = `${siteMetadata.siteUrl}${toPublicPath(lang, '/posts')}`
+
+  return {
+    title,
+    description: dictionary.siteDescription,
+    alternates: {
+      canonical: url,
+      languages: getLanguageAlternates(siteMetadata.siteUrl, '/posts'),
+    },
+    openGraph: {
+      title: `${title} | ${siteMetadata.title}`,
+      description: dictionary.siteDescription,
+      url,
+      type: 'website',
+      locale: getOpenGraphLocale(lang),
+      siteName: siteMetadata.title,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: dictionary.siteDescription,
+    },
+  }
 }
 
 export default async function AllPostsPage({

@@ -1,6 +1,9 @@
 import { allPosts } from 'contentlayer/generated'
 import { getSortedPublishedPosts } from '@/lib/filter-posts'
 import { siteMetadata } from '@/lib/site-metadata'
+import { getPostsForLocale } from '@/lib/localized-posts'
+import { isLocale, toPublicPath } from '@/i18n/locales'
+import { notFound } from 'next/navigation'
 
 /**
  * /llms.txt
@@ -8,8 +11,14 @@ import { siteMetadata } from '@/lib/site-metadata'
  * llms.txt 비공식 표준(llmstxt.org)에 따라, ChatGPT/Perplexity/Claude 같은
  * AI 검색·요약 도구가 사이트의 구조와 핵심 콘텐츠를 파악하기 쉽도록 정보를 제공.
  */
-export async function GET() {
-  const posts = getSortedPublishedPosts(allPosts)
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ lang: string }> },
+) {
+  const { lang } = await params
+  if (!isLocale(lang)) notFound()
+
+  const posts = getSortedPublishedPosts(getPostsForLocale(allPosts, lang))
   const stack = siteMetadata.author.stack.join(', ')
 
   const header = [
@@ -19,12 +28,12 @@ export async function GET() {
     '',
     `프론트엔드 개발자 ${siteMetadata.author.name}(${siteMetadata.author.nickname})의 기술 블로그입니다.`,
     `주요 스택: ${stack}`,
-    `사이트 URL: ${siteMetadata.siteUrl}`,
+    `사이트 URL: ${siteMetadata.siteUrl}${toPublicPath(lang, '/')}`,
     '',
     '## About',
     '',
-    `- [About](${siteMetadata.siteUrl}/about): 저자 소개, 커리어, 활동 이력`,
-    `- [RSS Feed](${siteMetadata.siteUrl}/rss.xml): 전체 글 RSS`,
+    `- [About](${siteMetadata.siteUrl}${toPublicPath(lang, '/about')}): 저자 소개, 커리어, 활동 이력`,
+    `- [RSS Feed](${siteMetadata.siteUrl}${toPublicPath(lang, '/rss.xml')}): 전체 글 RSS`,
     `- [Sitemap](${siteMetadata.siteUrl}/sitemap.xml): 사이트 전체 URL`,
     '',
     '## Posts',

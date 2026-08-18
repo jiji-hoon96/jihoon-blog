@@ -15,6 +15,7 @@ import {
   getPostsForLocale,
 } from '@/lib/localized-posts'
 import { isLocale, toPublicPath } from '@/i18n/locales'
+import { buildLocalizedPostMetadata } from '@/lib/localized-metadata'
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>
@@ -39,38 +40,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { robots: { index: false, follow: false } }
   }
 
-  const url = `${siteMetadata.siteUrl}${post.slug}`
-  const description = post.description || post.excerpt
-  const keywords = post.keywords
-    ? post.keywords.split(',').map((k: string) => k.trim())
-    : post.categoryArray
-  const metaTitle = post.seoTitle || post.title
+  const translations = allPosts.filter(
+    candidate =>
+      candidate.translationKey === post.translationKey &&
+      !isHiddenPost(candidate),
+  )
 
-  return {
-    title: metaTitle,
-    description,
-    keywords,
-    alternates: {
-      canonical: url,
-    },
-    openGraph: {
-      title: metaTitle,
-      description,
-      url: url,
-      type: 'article',
-      publishedTime: post.date,
-      modifiedTime: post.date,
-      authors: [siteMetadata.author.name],
-      tags: post.categoryArray,
-      locale: 'ko_KR',
-      siteName: siteMetadata.title,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: metaTitle,
-      description,
-    },
-  }
+  return buildLocalizedPostMetadata(post, translations, {
+    siteUrl: siteMetadata.siteUrl,
+    siteName: siteMetadata.title,
+    authorName: siteMetadata.author.name,
+  })
 }
 
 export default async function PostPage({ params }: Props) {
@@ -132,7 +112,7 @@ export default async function PostPage({ params }: Props) {
         url: siteIconUrl,
       },
     },
-    inLanguage: 'ko-KR',
+    inLanguage: lang,
     license: siteMetadata.license,
     keywords: post.keywords || post.categoryArray.join(', '),
     ...(typeof post.wordCount === 'number'
@@ -154,7 +134,7 @@ export default async function PostPage({ params }: Props) {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: siteMetadata.siteUrl,
+        item: `${siteMetadata.siteUrl}${toPublicPath(lang, '/')}`,
       },
       ...(primaryCategory
         ? [
@@ -162,7 +142,7 @@ export default async function PostPage({ params }: Props) {
               '@type': 'ListItem',
               position: 2,
               name: primaryCategory,
-              item: `${siteMetadata.siteUrl}/posts/${encodeURIComponent(primaryCategory)}`,
+              item: `${siteMetadata.siteUrl}${toPublicPath(lang, `/posts/${encodeURIComponent(primaryCategory)}`)}`,
             },
             {
               '@type': 'ListItem',
@@ -201,7 +181,7 @@ export default async function PostPage({ params }: Props) {
           </h1>
           <div className="flex flex-wrap items-center gap-2 text-sm text-light-gray60 dark:text-dark-gray60">
             <time dateTime={post.date}>
-              {new Date(post.date).toLocaleDateString('ko-KR', {
+              {new Date(post.date).toLocaleDateString(lang, {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',

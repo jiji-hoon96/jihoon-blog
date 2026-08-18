@@ -2,15 +2,25 @@ import { Feed } from 'feed'
 import { allPosts } from 'contentlayer/generated'
 import { siteMetadata } from '@/lib/site-metadata'
 import { getSortedPublishedPosts } from '@/lib/filter-posts'
+import { getPostsForLocale } from '@/lib/localized-posts'
+import { isLocale, toPublicPath } from '@/i18n/locales'
+import { notFound } from 'next/navigation'
 
-export async function GET() {
-  const feedUrl = `${siteMetadata.siteUrl}/rss.xml`
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ lang: string }> },
+) {
+  const { lang } = await params
+  if (!isLocale(lang)) notFound()
+
+  const homeUrl = `${siteMetadata.siteUrl}${toPublicPath(lang, '/')}`
+  const feedUrl = `${siteMetadata.siteUrl}${toPublicPath(lang, '/rss.xml')}`
   const feed = new Feed({
     title: siteMetadata.title,
     description: siteMetadata.description,
-    id: siteMetadata.siteUrl,
-    link: siteMetadata.siteUrl,
-    language: siteMetadata.language,
+    id: homeUrl,
+    link: homeUrl,
+    language: lang,
     favicon: `${siteMetadata.siteUrl}/favicon.ico`,
     copyright: `All rights reserved ${new Date().getFullYear()}, ${siteMetadata.author.name}`,
     feedLinks: {
@@ -20,11 +30,11 @@ export async function GET() {
     author: {
       name: siteMetadata.author.name,
       email: siteMetadata.author.bio.email,
-      link: siteMetadata.siteUrl,
+      link: homeUrl,
     },
   })
 
-  const sortedPosts = getSortedPublishedPosts(allPosts)
+  const sortedPosts = getSortedPublishedPosts(getPostsForLocale(allPosts, lang))
 
   sortedPosts.forEach(post => {
     // Encode Korean characters in URL
@@ -40,7 +50,7 @@ export async function GET() {
         {
           name: siteMetadata.author.name,
           email: siteMetadata.author.bio.email,
-          link: siteMetadata.siteUrl,
+          link: homeUrl,
         },
       ],
       date: new Date(post.date),
