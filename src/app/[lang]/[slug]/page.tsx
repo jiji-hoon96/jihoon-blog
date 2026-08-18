@@ -17,6 +17,7 @@ import {
 import { isLocale, toPublicPath } from '@/i18n/locales'
 import { buildLocalizedPostMetadata } from '@/lib/localized-metadata'
 import { getDictionary } from '@/i18n/dictionaries'
+import { getPostModifiedDate } from '@/lib/post-dates'
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>
@@ -98,7 +99,7 @@ export default async function PostPage({ params }: Props) {
       knowsAbout: siteMetadata.author.stack,
     },
     datePublished: post.date,
-    dateModified: post.date,
+    dateModified: getPostModifiedDate(post),
     url: postUrl,
     mainEntityOfPage: {
       '@type': 'WebPage',
@@ -189,6 +190,19 @@ export default async function PostPage({ params }: Props) {
                 day: 'numeric',
               })}
             </time>
+            {post.updatedAt && (
+              <>
+                <span aria-hidden="true">·</span>
+                <time dateTime={post.updatedAt}>
+                  {dictionary.post.updated}{' '}
+                  {new Date(post.updatedAt).toLocaleDateString(lang, {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </time>
+              </>
+            )}
             <span aria-hidden="true">·</span>
             <span>{post.readingTime}</span>
           </div>

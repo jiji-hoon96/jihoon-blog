@@ -6,6 +6,10 @@ import { siteMetadata } from '@/lib/site-metadata'
 import { getPostsForLocale } from '@/lib/localized-posts'
 import { buildTranslationAlternates } from '@/lib/localized-metadata'
 import {
+  getLatestPostModifiedDate,
+  getPostModifiedDate,
+} from '@/lib/post-dates'
+import {
   getLanguageAlternates,
   HREF_LANG,
   LOCALES,
@@ -15,8 +19,7 @@ import {
 export default function sitemap(): MetadataRoute.Sitemap {
   const publishedPosts = getSortedPublishedPosts(allPosts)
 
-  const latestPostDate =
-    publishedPosts.length > 0 ? new Date(publishedPosts[0].date) : new Date()
+  const latestPostDate = getLatestPostModifiedDate(publishedPosts)
 
   const pinnedSet = new Set(siteMetadata.pinnedPosts)
 
@@ -27,7 +30,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     )
     return {
       url: `${siteMetadata.siteUrl}${post.slug}`,
-      lastModified: isPinned ? new Date() : new Date(post.date),
+      lastModified: new Date(getPostModifiedDate(post)),
       changeFrequency: (isPinned ? 'weekly' : 'monthly') as
         | 'weekly'
         | 'monthly',
@@ -48,9 +51,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       .filter(category => category !== 'All')
       .map(category => {
         const categoryPosts = getPostsByCategory(category, localePosts)
-        const latest = categoryPosts.length > 0
-          ? new Date(categoryPosts[0].date)
-          : new Date()
+        const latest = getLatestPostModifiedDate(categoryPosts)
         const languages = Object.fromEntries(
           LOCALES.flatMap(candidateLocale => {
             const candidatePosts = getPostsForLocale(
@@ -79,15 +80,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
   })
 
   const routeDefinitions = [
-    { path: '/', changeFrequency: 'daily' as const, priority: 1 },
-    { path: '/posts', changeFrequency: 'daily' as const, priority: 0.9 },
-    { path: '/about', changeFrequency: 'monthly' as const, priority: 0.7 },
-    { path: '/guestbook', changeFrequency: 'weekly' as const, priority: 0.5 },
+    { path: '/', changeFrequency: 'daily' as const, priority: 1, tracksPosts: true },
+    { path: '/posts', changeFrequency: 'daily' as const, priority: 0.9, tracksPosts: true },
+    { path: '/about', changeFrequency: 'monthly' as const, priority: 0.7, tracksPosts: false },
+    { path: '/guestbook', changeFrequency: 'weekly' as const, priority: 0.5, tracksPosts: false },
   ]
   const routes: MetadataRoute.Sitemap = routeDefinitions.flatMap(route =>
     LOCALES.map(locale => ({
       url: `${siteMetadata.siteUrl}${toPublicPath(locale, route.path)}`,
-      lastModified: latestPostDate,
+      ...(route.tracksPosts && latestPostDate
+        ? { lastModified: latestPostDate }
+        : {}),
       changeFrequency: route.changeFrequency,
       priority: route.priority,
       alternates: {

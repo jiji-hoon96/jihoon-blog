@@ -88,6 +88,7 @@ test('provides shared navigation labels for every locale', () => {
     assert.ok(dictionary.posts.count)
     assert.ok(dictionary.post.tableOfContents)
     assert.ok(dictionary.post.relatedPosts)
+    assert.ok(dictionary.post.updated)
     assert.ok(dictionary.category.label)
     assert.ok(dictionary.about.greeting)
     assert.ok(dictionary.guestbook.title)
