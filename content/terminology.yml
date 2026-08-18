@@ -1,0 +1,21 @@
+{
+  "terms": [
+    { "term": "wall-clock time", "preserve": true, "koFirstUse": "wall-clock time(실제 경과 시간)" },
+    { "term": "Computer Science", "preserve": true },
+    { "term": "OpenTelemetry", "preserve": true },
+    { "term": "React Server Components", "preserve": true },
+    { "term": "ubiquitous language", "preserve": true, "koFirstUse": "ubiquitous language(보편 언어)" },
+    { "term": "API", "preserve": true },
+    { "term": "SDK", "preserve": true },
+    { "term": "LLM", "preserve": true },
+    { "term": "MCP", "preserve": true },
+    { "term": "SEO", "preserve": true }
+  ],
+  "banned": [
+    { "pattern": "computer siense", "replacement": "Computer Science" },
+    { "pattern": "컴퓨터 사이언스", "replacement": "Computer Science" },
+    { "pattern": "벽시계 경과", "replacement": "wall-clock time(실제 경과 시간)" },
+    { "pattern": "벽시계 기준", "replacement": "wall-clock time 기준" },
+    { "pattern": "벽시계로", "replacement": "wall-clock time으로" }
+  ]
+}
