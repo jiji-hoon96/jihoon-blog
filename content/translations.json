@@ -6,7 +6,7 @@
     { "key": "241201", "source": "content/241201/index.md", "sourceHash": "16af1949a7c5575b586c919af82c78646819b783ebee024a579d48a0c0ac5032", "reviewed": ["en", "ja", "es", "pt-BR", "zh-CN"] },
     { "key": "250520", "source": "content/250520/index.md", "sourceHash": "da152b27d26e4621cb1e554cd3d68e531f794e86f395ef9ee35e851f1f0aeff8", "reviewed": ["en", "ja", "es", "pt-BR", "zh-CN"] },
     { "key": "251117", "source": "content/251117/index.md", "sourceHash": "688aa8b21e8068e6d24e46e383d3dddbb24778dff87c065c19b3489cff0380fa", "reviewed": ["en", "ja", "es", "pt-BR", "zh-CN"] },
-    { "key": "260104", "source": "content/260104/index.md", "sourceHash": "beee9a6d46fea46ddca7ab57b452f0182cf37efe534445726d0f3b9d81190400", "reviewed": [] },
+    { "key": "260104", "source": "content/260104/index.md", "sourceHash": "beee9a6d46fea46ddca7ab57b452f0182cf37efe534445726d0f3b9d81190400", "reviewed": ["en", "ja", "es", "pt-BR", "zh-CN"] },
     { "key": "260201", "source": "content/260201/index.md", "sourceHash": "eb0c0636ce4986f62ea086d233c0900e666075222b58fd44d692ac442bb197c3", "reviewed": [] },
     { "key": "260302", "source": "content/260302/index.md", "sourceHash": "8622877ee90352b24b0ec5131450def442d07449b2b669894ba2f674c2508509", "reviewed": [] },
     { "key": "260328", "source": "content/260328/index.md", "sourceHash": "e86e832b1598fe8ec2aadc4afd0647977190316292f2adb0fd1d520f28953ab4", "reviewed": [] },
