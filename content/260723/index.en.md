@@ -63,7 +63,7 @@ In Domain-Driven Design, published in 2003, Evans presents a pattern called ubiq
 
 ::::quote
 :::translation
-Domain experts object to terms or structures that are awkward or inadequate to convey domain understanding, while developers watch for ambiguity or inconsistency that will trip up design.
+Domain experts raise objections to terms or structures that are awkward or inadequate for conveying an understanding of the domain, while developers stay alert to any ambiguity or inconsistency that will trip up the design.
 :::
 
 :::original
@@ -89,7 +89,7 @@ Here comes the important passage.
 
 ::::quote
 :::translation
-By the principle of least collaborative effort, people should try to ground with as little combined effort as needed. But what takes effort changes dramatically with the communication medium.
+Under the principle of least collaborative effort, people should aim to reach grounding with no more combined effort than is required. Yet which actions cost effort shifts dramatically from one communication medium to another.
 :::
 
 :::original
@@ -165,7 +165,7 @@ But the sentence I found most practical in that paper was not the definition; it
 
 ::::quote
 :::translation
-For the most part, this belief tends to be tacit, taken for granted and not given direct attention either by individuals or by the team as a whole.
+In most cases this belief remains tacit: it is taken for granted, and neither the individual members nor the team as a whole give it direct attention.
 :::
 
 :::original
@@ -195,7 +195,7 @@ When DORA addresses organizational culture, it borrows the sociologist Ron Westr
 
 ::::quote
 :::translation
-Organizational culture that is high-trust and emphasizes information flow is predictive of software delivery performance.
+An organizational culture built on high trust, one that places weight on the flow of information, predicts how well software delivery performs.
 :::
 
 :::original
