@@ -110,6 +110,23 @@
 - 프론트매터: emoji, title, seoTitle(선택), date, updatedAt(의미 있는 수정 시 선택), categories, description, keywords 필드 사용
 - categories에 "ignore"가 포함되면 비공개 처리됩니다. `ignore` 글은 sitemap, RSS, 글 목록, 검색, 개별 페이지(404), llms.txt에서 완전히 제외되고 `noindex`가 적용됩니다. (판별 로직: `src/lib/filter-posts.ts`의 `isHiddenPost`) 발행 시 `ignore`를 실제 카테고리로 교체합니다.
 
+### 다국어 번역 (한글 본문을 고치면 5개 로케일이 같이 움직인다)
+
+모든 한글 글은 `en`, `ja`, `es`, `pt-BR`, `zh-CN` 5개 로케일 번역본을 가진다. (`content/YYMMDD/index.<locale>.md`, 로케일 목록은 `src/i18n/locales.ts`)
+
+**한글 원문(`index.md`)을 고치면 그 글의 번역본 5개가 전부 stale 이 된다.** `content/translations.json` 이 각 글의 한글 원문 sha256 을 들고 있고, 번역본 프론트매터의 `sourceHash` 가 그 값과 같아야 통과한다. 해시는 프론트매터를 포함한 파일 전체를 대상으로 하므로 `keywords` 하나만 고쳐도 stale 이 된다. (의도한 동작이다. 원문 SEO 메타가 바뀌면 각 로케일의 `description`·`keywords` 도 검색 의도에 맞춰 다시 써야 한다)
+
+그래서 한글 본문을 수정할 때의 절차는 이렇다.
+
+1. `index.md` 를 고친다
+2. 번역본 5개의 해당 문단을 같이 고친다. 절차는 `docs/translation-review.md` 의 2-pass 규약을 따른다
+3. `node -e` 로 새 해시를 구해 `content/translations.json` 과 번역본 5개의 `sourceHash` 를 갱신한다
+4. `pnpm content:translations` 로 확인한다
+
+**빠뜨리면 빌드가 막힌다.** `pnpm build` 와 `pnpm test` 양쪽에서 `scripts/validate-translations.mjs` 가 돌고, missing·stale·구조 불일치가 하나라도 있으면 실패한다. 구조 검사는 코드 블록, 인라인 코드, 링크 목적지, 이미지 경로, 헤딩 레벨, 디렉티브, `:::original` 원문을 원문과 완전히 일치시킬 것을 요구한다. 따라서 번역본에서 내부 링크(`/260418`)를 로케일 경로로 바꾸거나 인용 원문을 손대면 실패한다.
+
+한 글만 볼 때는 `pnpm content:translations -- --post YYMMDD` 를 쓴다.
+
 ### 커스텀 명령어
 
 - `/write-post [초안]` - 초안을 블로그 글 작성

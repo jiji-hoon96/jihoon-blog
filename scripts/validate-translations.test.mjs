@@ -1,10 +1,18 @@
 import assert from 'node:assert/strict'
+import path from 'node:path'
 import test from 'node:test'
+import { fileURLToPath } from 'node:url'
 
 import {
   extractProtectedStructure,
   normalizedSourceHash,
 } from './lib/translation-structure.mjs'
+import { validateTranslations } from './validate-translations.mjs'
+
+const repositoryRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+)
 
 test('source hash ignores a sourceHash frontmatter field', () => {
   const first = '---\ntitle: Test\nsourceHash: old\n---\nBody\n'
@@ -68,4 +76,11 @@ test('keeps indented list fences separate from translatable prose', () => {
   assert.equal(structure.fencedCode[0].includes('번역해야 하는 본문'), false)
   assert.deepEqual(structure.headingLevels, [])
   assert.deepEqual(structure.inlineCode, ['inlineCode'])
+})
+
+test('every Korean post keeps current translations in all locales', async () => {
+  assert.deepEqual(
+    await validateTranslations({ rootDirectory: repositoryRoot }),
+    [],
+  )
 })
