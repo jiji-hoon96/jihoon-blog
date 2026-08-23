@@ -1,5 +1,5 @@
-@import url("https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/static/split/WantedSans.min.css");
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap");
+/* 폰트는 layout.tsx 의 <link> 로 불러온다. CSS @import 로 두면 브라우저가
+   이 파일을 받아 파싱한 뒤에야 폰트 CSS 를 발견해서 왕복이 하나 더 붙는다. */
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
@@ -61,9 +61,12 @@
 
   /* Font families */
   --font-wanted: "Wanted Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  /* mono 는 코드에만 쓴다. IBM Plex Mono 에는 한글 글리프가 없어서
-     UI 라벨에 걸면 한글이 줄 중간에 다른 서체로 폴백된다. */
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+  /* 코드 블록 전용. 시스템 mono 를 쓴다. 웹폰트로 받으면 origin 이 하나 더
+     붙는데(fonts.googleapis.com + fonts.gstatic.com) 실측에서 636B 받는 데
+     164ms 가 걸렸고 그게 FCP 를 막고 있었다.
+     한글은 여기 걸지 않는다. mono 서체에 한글 글리프가 없다. */
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
 
   /* Responsive */
   --breakpoint-mobile: 768px;

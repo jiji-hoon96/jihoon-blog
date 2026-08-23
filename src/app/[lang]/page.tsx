@@ -11,8 +11,6 @@ import { notFound } from "next/navigation";
 import { getDictionary, interpolate } from "@/i18n/dictionaries";
 import { getAuthorEntityId } from "@/lib/author-identity";
 
-export const dynamic = "force-dynamic";
-
 const FEATURED_POST_KEY = "250520";
 const STREAM_POST_KEYS = [
   "260723",

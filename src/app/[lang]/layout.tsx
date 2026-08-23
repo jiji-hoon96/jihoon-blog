@@ -117,9 +117,14 @@ export default async function RootLayout({
 						__html: `(function(){if(!('serviceWorker' in navigator))return;navigator.serviceWorker.getRegistrations().then(function(rs){if(!rs.length)return;Promise.all(rs.map(function(r){return r.unregister()})).then(function(){if(!('caches' in window))return window.location.reload();caches.keys().then(function(ks){Promise.all(ks.map(function(k){return caches.delete(k)})).then(function(){window.location.reload()})})})})})();`,
 					}}
 				/>
+				{/* 폰트 CSS 는 여기서 직접 건다. globals.css 안에 @import 로 두면
+				    app CSS 를 받아 파싱한 뒤에야 요청이 시작돼 왕복이 하나 더 붙는다.
+				    preconnect 는 연결만 미리 열 뿐 요청 시점을 당기지 못한다. */}
 				<link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
-				<link rel="preconnect" href="https://fonts.googleapis.com" />
-				<link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+				<link
+					rel="stylesheet"
+					href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/static/split/WantedSans.min.css"
+				/>
 			</head>
 			<body>
 				<ThemeProvider attribute="class" defaultTheme="light">
