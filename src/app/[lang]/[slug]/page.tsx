@@ -239,7 +239,7 @@ export default async function PostPage({ params }: Props) {
       {/* Related Posts */}
       {relatedPosts.length > 0 && (
         <section className="mt-12 pt-10 border-t border-mineral">
-          <h2 className="text-xl font-semibold tracking-[-0.02em] mb-1">
+          <h2 className="text-xl font-bold tracking-[-0.02em] mb-1">
             {dictionary.post.relatedPosts}
           </h2>
           <div className="flex flex-col">
@@ -253,7 +253,7 @@ export default async function PostPage({ params }: Props) {
                   {new Date(related.date).toLocaleDateString(lang)} ·{' '}
                   {interpolate(dictionary.post.readingTime, { minutes: related.readingMinutes })}
                 </p>
-                <h3 className="mt-1.5 text-base font-semibold leading-snug line-clamp-2 transition-colors group-hover:text-accent">
+                <h3 className="mt-1.5 text-base font-bold leading-snug line-clamp-2 transition-colors group-hover:text-accent">
                   {related.title}
                 </h3>
               </a>
@@ -272,7 +272,7 @@ export default async function PostPage({ params }: Props) {
             <div className="home-meta text-stone mb-1.5">
               ← {dictionary.post.previousPost}
             </div>
-            <div className="font-medium leading-snug transition-colors group-hover:text-accent">
+            <div className="font-bold leading-snug transition-colors group-hover:text-accent">
               {prev.title}
             </div>
           </a>
@@ -288,7 +288,7 @@ export default async function PostPage({ params }: Props) {
             <div className="home-meta text-stone mb-1.5">
               {dictionary.post.nextPost} →
             </div>
-            <div className="font-medium leading-snug transition-colors group-hover:text-accent">
+            <div className="font-bold leading-snug transition-colors group-hover:text-accent">
               {next.title}
             </div>
           </a>
@@ -299,7 +299,7 @@ export default async function PostPage({ params }: Props) {
 
       {/* Comments */}
       <div className="mt-12">
-        <h3 className="text-xl font-semibold tracking-[-0.02em] mb-4">{dictionary.post.comments}</h3>
+        <h3 className="text-xl font-bold tracking-[-0.02em] mb-4">{dictionary.post.comments}</h3>
         <Utterances
           repo={siteMetadata.comments.utterances.repo}
           path={post.slug}

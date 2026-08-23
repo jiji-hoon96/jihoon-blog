@@ -40,7 +40,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       <div>
         <p className="home-meta text-stone">{project.techStack.join(" · ")}</p>
 
-        <h2 className="mt-1.5 text-xl font-semibold leading-snug tracking-[-0.02em] text-ink">
+        <h2 className="mt-1.5 text-xl font-bold leading-snug tracking-[-0.02em] text-ink">
           {project.title}
         </h2>
 

@@ -60,6 +60,10 @@
   --color-accent: var(--qa-accent);
 
   /* Font families */
+  /* 굵기는 400 과 700 두 종만 쓴다. 위계는 크기로 준다.
+     Wanted Sans 는 굵기마다 한글 서브셋을 따로 받으므로 굵기 하나가
+     곧 수십 KB 다. 500/600/800 을 같이 쓰면 같은 글자를 굵기 수만큼
+     중복해서 내려받게 된다. (실측: 글 페이지 4종 = 330.8KB) */
   --font-wanted: "Wanted Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   /* 코드 블록 전용. 시스템 mono 를 쓴다. 웹폰트로 받으면 origin 이 하나 더
      붙는데(fonts.googleapis.com + fonts.gstatic.com) 실측에서 636B 받는 데

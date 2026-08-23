@@ -220,7 +220,7 @@ export default function TableOfContents({ content, labels }: TableOfContentsProp
                     ${item.level === 3 ? "pl-6" : "pl-3"}
                     ${
                       activeId === item.id
-                        ? "border-light-black100 dark:border-dark-black100 text-light-black100 dark:text-dark-black100 font-medium"
+                        ? "border-light-black100 dark:border-dark-black100 text-light-black100 dark:text-dark-black100 font-bold"
                         : "border-transparent text-light-gray60 dark:text-dark-gray60 hover:text-light-black100 dark:hover:text-dark-black100"
                     }
                   `}

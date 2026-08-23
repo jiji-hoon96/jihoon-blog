@@ -88,7 +88,7 @@ export function PostList({
             {formatHomepageDate(post.date, lang)} ·{' '}
             {interpolate(readingTimeLabel, { minutes: post.readingMinutes })}
           </p>
-          <h2 className="mt-1.5 text-lg font-semibold leading-[1.45] tracking-[-0.02em] transition-colors group-hover:text-accent sm:text-xl">
+          <h2 className="mt-1.5 text-lg font-bold leading-[1.45] tracking-[-0.02em] transition-colors group-hover:text-accent sm:text-xl">
             {post.title}
           </h2>
           <p className="mt-2 line-clamp-2 text-[15px] leading-[1.7] text-stone">

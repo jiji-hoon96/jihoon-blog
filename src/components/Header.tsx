@@ -38,7 +38,7 @@ export default function Header({ locale }: { locale: Locale }) {
       <nav className="mx-auto max-w-[var(--width-shell)] px-4 py-5 sm:py-6">
         <div className="flex items-center justify-between gap-8">
           <Link href={homePath} className="group min-w-0">
-            <span className="block text-base font-semibold tracking-[-0.015em] text-ink transition-colors group-hover:text-accent">
+            <span className="block text-base font-bold tracking-[-0.015em] text-ink transition-colors group-hover:text-accent">
               {siteMetadata.author.name}
             </span>
             <span className="home-meta mt-0.5 block text-stone">

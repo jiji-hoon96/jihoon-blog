@@ -204,7 +204,7 @@ export default function SearchModal({
                         <span className="text-xs text-light-gray60 dark:text-dark-gray60">
                           {post.category}
                         </span>
-                        <span className="font-medium text-light-black100 dark:text-dark-black100">
+                        <span className="font-bold text-light-black100 dark:text-dark-black100">
                           {post.title}
                         </span>
                         {post.excerpt && (

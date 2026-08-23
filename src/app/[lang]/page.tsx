@@ -59,7 +59,7 @@ function PostRow({
       className="group block border-t border-mineral py-7 sm:py-8"
     >
       <PostMeta post={post} lang={lang} readingTimeLabel={readingTimeLabel} />
-      <h3 className="mt-2 text-lg font-semibold leading-[1.45] tracking-[-0.02em] text-ink transition-colors group-hover:text-accent sm:text-xl">
+      <h3 className="mt-2 text-lg font-bold leading-[1.45] tracking-[-0.02em] text-ink transition-colors group-hover:text-accent sm:text-xl">
         {post.title}
       </h3>
       {withDescription && (
@@ -149,7 +149,7 @@ export default async function HomePage({
         <section id="writing" className="scroll-mt-24 pt-14 sm:pt-16">
           <div className="flex flex-col justify-between gap-4 pb-4 sm:flex-row sm:items-baseline">
             {/* 총 개수는 넣지 않는다. 여기 보이는 건 최근 몇 편이고, 전체는 아래 "전체보기" 다. */}
-            <h2 className="text-xl font-semibold tracking-[-0.02em] text-ink">
+            <h2 className="text-xl font-bold tracking-[-0.02em] text-ink">
               {dictionary.home.recentPosts}
             </h2>
             <nav

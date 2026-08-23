@@ -169,7 +169,7 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
                 href={siteMetadata.author.social.resume}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2.5 rounded-lg font-semibold bg-light-gray10 dark:bg-dark-gray10 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors text-sm"
+                className="px-4 py-2.5 rounded-lg font-bold bg-light-gray10 dark:bg-dark-gray10 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors text-sm"
               >
                 Resume
               </a>
