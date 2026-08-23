@@ -18,44 +18,37 @@ type ProjectCardProps = {
   project: Project;
 };
 
+/** 목록 행과 같은 규칙을 쓴다. 박스 카드와 pill 태그를 두지 않는다. */
 export default function ProjectCard({ project }: ProjectCardProps) {
+  // 썸네일이 없으면 2열로 두지 않는다. 빈 칸이 생기고 본문이 220px 로 눌린다.
+  const hasThumbnail = Boolean(project.thumbnailUrl);
+
   return (
-    <div className="border border-light-gray20 dark:border-dark-gray20 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-      {/* Thumbnail Image */}
-      {project.thumbnailUrl && (
-        <div className="aspect-video bg-light-gray10 dark:bg-dark-gray10">
-          <img
-            src={project.thumbnailUrl}
-            alt={project.title}
-            className="w-full h-full object-cover"
-          />
-        </div>
+    <article
+      className={`border-t border-mineral py-8${
+        hasThumbnail ? " sm:grid sm:grid-cols-[220px_1fr] sm:gap-8" : ""
+      }`}
+    >
+      {hasThumbnail && (
+        <img
+          src={project.thumbnailUrl}
+          alt={project.title}
+          className="mb-4 aspect-video w-full object-cover sm:mb-0"
+        />
       )}
 
-      {/* Content */}
-      <div className="p-6">
-        {/* Tech Stack Tags */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          {project.techStack.map((tech, index) => (
-            <span
-              key={index}
-              className="px-2 py-1 text-xs rounded bg-light-gray10 dark:bg-dark-gray10 text-light-black100 dark:text-dark-black100"
-            >
-              {tech}
-            </span>
-          ))}
-        </div>
+      <div>
+        <p className="home-meta text-stone">{project.techStack.join(" · ")}</p>
 
-        {/* Title */}
-        <h3 className="text-xl font-bold mb-2">{project.title}</h3>
+        <h2 className="mt-1.5 text-xl font-semibold leading-snug tracking-[-0.02em] text-ink">
+          {project.title}
+        </h2>
 
-        {/* Description */}
-        <p className="text-sm text-light-gray80 dark:text-dark-gray80 mb-4">
+        <p className="mt-2 text-[15px] leading-[1.7] text-stone">
           {project.description}
         </p>
 
-        {/* Links */}
-        <div className="flex flex-wrap gap-3">
+        <div className="home-meta mt-3 flex flex-wrap gap-x-4 gap-y-1">
           {Object.entries(project.links).map(([linkType, url]) =>
             url ? (
               <Link
@@ -63,7 +56,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                className="text-accent transition-colors hover:underline"
               >
                 {linkType}
               </Link>
@@ -71,6 +64,6 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           )}
         </div>
       </div>
-    </div>
+    </article>
   );
 }
