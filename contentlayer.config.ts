@@ -52,6 +52,12 @@ export const Post = defineDocumentType(() => ({
       type: 'string',
       resolve: (doc) => readingTime(doc.body.raw).text,
     },
+    // readingTime.text 는 '44 min read' 로 영어 고정이다. 로케일별 문구는
+    // UI 에서 만들도록 분(minute) 값을 따로 노출한다.
+    readingMinutes: {
+      type: 'number',
+      resolve: (doc) => Math.max(1, Math.round(readingTime(doc.body.raw).minutes)),
+    },
     wordCount: {
       type: 'number',
       resolve: (doc) => readingTime(doc.body.raw).words,

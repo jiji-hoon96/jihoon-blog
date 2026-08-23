@@ -178,7 +178,7 @@ export default async function CategoryPage({ params }: Props) {
         label={dictionary.category.label}
       />
 
-      <PostList posts={posts} lang={lang} emptyLabel={dictionary.category.empty} />
+      <PostList posts={posts} lang={lang} emptyLabel={dictionary.category.empty} readingTimeLabel={dictionary.post.readingTime} />
 
     </div>
   )

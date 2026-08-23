@@ -82,7 +82,7 @@ export default async function AllPostsPage({
         label={dictionary.category.label}
       />
 
-      <PostList posts={sortedPosts} lang={lang} emptyLabel={dictionary.posts.empty} />
+      <PostList posts={sortedPosts} lang={lang} emptyLabel={dictionary.posts.empty} readingTimeLabel={dictionary.post.readingTime} />
 
     </div>
   )

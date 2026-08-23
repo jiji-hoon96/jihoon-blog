@@ -8,7 +8,7 @@ import { buildHomepageIndex, formatHomepageDate } from "@/lib/homepage-index";
 import { findTranslation, getPostsForLocale } from "@/lib/localized-posts";
 import { isLocale, toPublicPath } from "@/i18n/locales";
 import { notFound } from "next/navigation";
-import { getDictionary } from "@/i18n/dictionaries";
+import { getDictionary, interpolate } from "@/i18n/dictionaries";
 import { getAuthorEntityId } from "@/lib/author-identity";
 
 export const dynamic = "force-dynamic";
@@ -26,9 +26,11 @@ const STREAM_POST_KEYS = [
 function PostMeta({
   post,
   lang,
+  readingTimeLabel,
 }: {
   post: (typeof allPosts)[number];
   lang: string;
+  readingTimeLabel: string;
 }) {
   return (
     <div className="home-meta flex flex-wrap items-center gap-x-2 gap-y-1 text-stone">
@@ -36,7 +38,7 @@ function PostMeta({
       <span aria-hidden="true" className="opacity-50">·</span>
       <span>{post.categoryArray[0] ?? "Writing"}</span>
       <span aria-hidden="true" className="opacity-50">·</span>
-      <span>{post.readingTime}</span>
+      <span>{interpolate(readingTimeLabel, { minutes: post.readingMinutes })}</span>
     </div>
   );
 }
@@ -46,17 +48,19 @@ function PostRow({
   post,
   lang,
   withDescription,
+  readingTimeLabel,
 }: {
   post: (typeof allPosts)[number];
   lang: string;
   withDescription: boolean;
+  readingTimeLabel: string;
 }) {
   return (
     <Link
       href={post.slug}
       className="group block border-t border-mineral py-7 sm:py-8"
     >
-      <PostMeta post={post} lang={lang} />
+      <PostMeta post={post} lang={lang} readingTimeLabel={readingTimeLabel} />
       <h3 className="mt-2 text-lg font-semibold leading-[1.45] tracking-[-0.02em] text-ink transition-colors group-hover:text-accent sm:text-xl">
         {post.title}
       </h3>
@@ -132,7 +136,7 @@ export default async function HomePage({
       <div className="pb-20 sm:pb-28">
         {index.featured && (
           <section className="border-b border-mineral pb-14 pt-16 sm:pb-16 sm:pt-24">
-            <PostMeta post={index.featured} lang={lang} />
+            <PostMeta post={index.featured} lang={lang} readingTimeLabel={dictionary.post.readingTime} />
             <Link href={index.featured.slug} className="group mt-4 block">
               <h1 className="text-[2.15rem] font-bold leading-[1.18] tracking-[-0.03em] text-ink transition-colors group-hover:text-accent sm:text-[2.75rem]">
                 {index.featured.title}
@@ -175,7 +179,7 @@ export default async function HomePage({
 
           <div>
             {index.expanded.map((post) => (
-              <PostRow key={post.slug} post={post} lang={lang} withDescription />
+              <PostRow key={post.slug} post={post} lang={lang} withDescription readingTimeLabel={dictionary.post.readingTime} />
             ))}
             {index.compact.map((post) => (
               <PostRow
@@ -183,6 +187,7 @@ export default async function HomePage({
                 post={post}
                 lang={lang}
                 withDescription={false}
+                readingTimeLabel={dictionary.post.readingTime}
               />
             ))}
           </div>

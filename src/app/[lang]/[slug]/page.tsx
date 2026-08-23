@@ -16,7 +16,7 @@ import {
 } from '@/lib/localized-posts'
 import { isLocale, toPublicPath } from '@/i18n/locales'
 import { buildLocalizedPostMetadata } from '@/lib/localized-metadata'
-import { getDictionary } from '@/i18n/dictionaries'
+import { getDictionary, interpolate } from '@/i18n/dictionaries'
 import { getPostModifiedDate } from '@/lib/post-dates'
 import { getAuthorEntityId } from '@/lib/author-identity'
 
@@ -205,7 +205,7 @@ export default async function PostPage({ params }: Props) {
               </>
             )}
             <span aria-hidden="true">·</span>
-            <span>{post.readingTime}</span>
+            <span>{interpolate(dictionary.post.readingTime, { minutes: post.readingMinutes })}</span>
           </div>
           <div className="home-meta mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-stone">
             {post.categoryArray.map((category: string) => (
@@ -251,7 +251,7 @@ export default async function PostPage({ params }: Props) {
               >
                 <p className="home-meta text-stone">
                   {new Date(related.date).toLocaleDateString(lang)} ·{' '}
-                  {related.readingTime}
+                  {interpolate(dictionary.post.readingTime, { minutes: related.readingMinutes })}
                 </p>
                 <h3 className="mt-1.5 text-base font-semibold leading-snug line-clamp-2 transition-colors group-hover:text-accent">
                   {related.title}

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { allPosts } from 'contentlayer/generated'
 import { toPublicPath, type Locale } from '@/i18n/locales'
 import { formatHomepageDate } from '@/lib/homepage-index'
+import { interpolate } from '@/i18n/dictionaries'
 
 type Post = (typeof allPosts)[number]
 
@@ -62,10 +63,12 @@ export function PostList({
   posts,
   lang,
   emptyLabel,
+  readingTimeLabel,
 }: {
   posts: readonly Post[]
   lang: Locale
   emptyLabel: string
+  readingTimeLabel: string
 }) {
   if (posts.length === 0) {
     return (
@@ -82,7 +85,8 @@ export function PostList({
           className="group block border-b border-mineral py-6 sm:py-7"
         >
           <p className="home-meta text-stone">
-            {formatHomepageDate(post.date, lang)} · {post.readingTime}
+            {formatHomepageDate(post.date, lang)} ·{' '}
+            {interpolate(readingTimeLabel, { minutes: post.readingMinutes })}
           </p>
           <h2 className="mt-1.5 text-lg font-semibold leading-[1.45] tracking-[-0.02em] transition-colors group-hover:text-accent sm:text-xl">
             {post.title}
