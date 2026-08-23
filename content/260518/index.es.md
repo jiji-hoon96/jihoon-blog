@@ -3,7 +3,7 @@ emoji: 🧠
 title: "Gestión del estado"
 seoTitle: "Criterio para gestionar el estado en frontend: 7 categorías y principios de diseño en React"
 date: "2026-05-18"
-categories: Gestión-del-estado-frontend Arquitectura-React
+categories: frontend gestión-del-estado React arquitectura
 description: "La gestión del estado es una de las tareas más complejas del frontend. Clasificamos el estado en siete categorías —local, global, de servidor, de formulario, de URL, externo y guards— y presentamos cuatro criterios para elegir herramientas y modelar correctamente: Single Source of Truth, eliminación de estados imposibles y State Colocation, entre otros."
 keywords: "gestión del estado frontend, gestión del estado React, comparativa Zustand Jotai, TanStack Query, Server State Client State, State Colocation, Single Source of Truth, React 19 useOptimistic"
 locale: es

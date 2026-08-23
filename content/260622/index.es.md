@@ -3,7 +3,7 @@ emoji: 🧭
 title: 'Ingeniería de Harness (Sistemas)'
 seoTitle: 'Agentes de IA después del contexto: diseño de harness, eval y containment'
 date: '2026-06-22'
-categories: Agentes de IA
+categories: IA Agentes
 description: 'Del prompt al context engineering: ¿qué viene después? A partir de las tendencias recientes del blog de ingeniería de Anthropic, este artículo conecta el ahorro de tokens con tres direcciones: diseño de harness, eval y containment (aislamiento).'
 keywords: 'context engineering, diseño de harness, eval de agentes de IA, agent evaluation, containment, aislamiento de agentes, tendencias de IA 2026, prompt engineering, agentes LLM, después del ahorro de tokens'
 locale: es

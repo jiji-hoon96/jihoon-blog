@@ -3,7 +3,7 @@ emoji: 🤖
 title: 'AIフロントエンドエンジニア'
 seoTitle: 'AI時代、フロントエンドエンジニアとして生き残る方法：検証・仕様化・判断力という新たな能力'
 date: '2026-03-02'
-categories: 프론트엔드 커리어 AI
+categories: フロントエンド キャリア AI
 description: 'AIがコードを書く時代に、フロントエンドエンジニアはどのように成長し、生き残ればよいのか。Karpathyのagentic engineering、Vercel v0、Stack Overflow Survey、METRの研究など、検証された資料をもとに、検証・仕様化・判断力を軸とした新たな能力と学習戦略を整理する。'
 keywords: 'AI時代のフロントエンド, AI時代の開発者, vibe coding, agentic engineering, AIコーディングツール, Product Engineer, フロントエンドのキャリアロードマップ'
 locale: ja

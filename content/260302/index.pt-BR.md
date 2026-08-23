@@ -3,7 +3,7 @@ emoji: 🤖
 title: 'Engenheiro frontend na era da IA'
 seoTitle: 'Como sobreviver como engenheiro frontend na era da IA: novas competências em validação, especificação e discernimento'
 date: '2026-03-02'
-categories: 프론트엔드 커리어 AI
+categories: frontend carreira IA
 locale: pt-BR
 translationOf: '260302'
 sourceHash: 8622877ee90352b24b0ec5131450def442d07449b2b669894ba2f674c2508509

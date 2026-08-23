@@ -3,7 +3,7 @@ emoji: 🧩
 title: "Abstraction"
 seoTitle: "Frontend Abstraction — Design Principles for Good Code"
 date: "2026-02-01"
-categories: 프론트엔드 설계 추상화
+categories: frontend design abstraction
 description: "What abstraction means in frontend development and how good abstractions differ from bad ones, covering levels of abstraction, intention-revealing names, and composition from parts through the lens of React component and function design."
 keywords: "frontend abstraction, React component abstraction, Clean Code abstraction, level of abstraction, Level of Abstraction, writing good code, intention-revealing names, Composed Method, Law of Leaky Abstractions, component design, custom hook design, frontend architecture, Kent Beck, Robert C. Martin"
 locale: en

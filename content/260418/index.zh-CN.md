@@ -3,7 +3,7 @@ emoji: 🧩
 title: "领域模型"
 seoTitle: "前端领域模型设计指南——DDD 实践"
 date: "2026-04-18"
-categories: 프론트엔드 아키텍처 DDD
+categories: 前端 架构 DDD
 description: "从前端视角梳理领域、领域模型与领域对象的概念，并讨论实体与值对象、贫血领域模型以及 ViewModel 的分离。通过综合所得税领域的示例，了解如何在 React 中分离领域逻辑。"
 keywords: "前端领域模型, 领域驱动设计, DDD 前端, 前端 DDD, 领域对象, 实体 值对象, 贫血领域模型, Clean Architecture 前端, Eric Evans, Martin Fowler, 领域逻辑分离, React 设计模式, 前端架构, ViewModel 分离, 限界上下文"
 locale: zh-CN

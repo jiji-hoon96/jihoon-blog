@@ -3,7 +3,7 @@ emoji: 🧭
 title: 'Harness（Systems）Engineering'
 seoTitle: 'コンテキストの次に来るAI agent：harness設計、eval、containment'
 date: '2026-06-22'
-categories: AIエージェント
+categories: AI エージェント
 description: 'prompt engineeringからcontext engineeringへ、その次はどこへ向かうのか。Anthropicのエンジニアリングブログに見られる最近の流れを手がかりに、harness設計、eval、containment（隔離）という3つの方向とtoken節約の議論とのつながりを整理する。'
 keywords: 'context engineering, harness設計, AI agent eval, agent evaluation, containment, agent隔離, AIトレンド2026, prompt engineering, LLM agent, token節約の次'
 locale: ja

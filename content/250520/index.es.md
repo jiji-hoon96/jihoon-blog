@@ -3,7 +3,7 @@ emoji: ⚛️
 title: 'React Fiber al completo'
 seoTitle: 'React Fiber al completo — análisis de su arquitectura y del renderizado concurrente'
 date: '2025-05-20'
-categories: 프론트엔드 React
+categories: frontend React
 locale: es
 translationOf: '250520'
 sourceHash: da152b27d26e4621cb1e554cd3d68e531f794e86f395ef9ee35e851f1f0aeff8

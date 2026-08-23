@@ -3,7 +3,7 @@ emoji: 🤯
 title: 'Zustand, ¿qué eres y por qué eres ProviderLess?'
 seoTitle: 'Por qué Zustand no necesita Provider — Análisis de su funcionamiento basado en useSyncExternalStore'
 date: '2024-08-18'
-categories: 프론트엔드 React
+categories: frontend React
 description: "Analizamos el código fuente de Zustand para descubrir cómo gestiona el estado sin Provider, sus diferencias con la Context API de React y su diseño basado en el scope de módulo."
 keywords: "cómo funciona Zustand, por qué Zustand no necesita Provider, librería de gestión de estado para React, análisis del código fuente de Zustand, useSyncExternalStore, React Context API"
 locale: es

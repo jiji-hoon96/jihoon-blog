@@ -3,7 +3,7 @@ emoji: 🛠️
 title: 'Reflexões sobre a refatoração do 2º simulado do Toss Frontend Fundamentals'
 seoTitle: 'Refatoração do 2º simulado do Toss Frontend Fundamentals — separação de componentes e extração da lógica de domínio'
 date: '2026-03-28'
-categories: 프론트엔드 React 리팩토링
+categories: frontend React refatoração
 description: "Compartilho minha experiência refatorando o aplicativo de reserva de salas do 2º simulado do Toss Frontend Fundamentals. Reuni o processo de separação de componentes monolíticos, extração da lógica de domínio e refatoração orientada por testes."
 keywords: "Toss Frontend Fundamentals, refatoração de frontend, separação de componentes React, revisão de código, simulado da Toss, arquitetura frontend"
 locale: pt-BR

@@ -3,7 +3,7 @@ emoji: 🔑
 title: "queryKey"
 seoTitle: "彻底掌握 TanStack Query queryKey——从 query key factory 到 queryOptions"
 date: "2026-01-04"
-categories: 프론트엔드 React TanStack-Query queryKey
+categories: 前端 React TanStack-Query queryKey
 description: "梳理 TanStack Query 的 queryKey 如何工作，以及它为何从内联数组演进到 query key factory 和 queryOptions；并从实践角度讨论 TkDodo 模式、v5 queryOptions，以及 setQueryData 和缓存失效。"
 keywords: "queryKey, query key factory, TanStack Query queryKey, React Query 缓存键, queryOptions, setQueryData, TkDodo query keys, query-key-factory, React Query v5, 查询失效"
 locale: zh-CN

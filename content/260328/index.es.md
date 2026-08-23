@@ -3,7 +3,7 @@ emoji: 🛠️
 title: 'Reflexiones sobre la refactorización del segundo simulacro de Toss Frontend Fundamentals'
 seoTitle: 'Refactorización del segundo simulacro de Toss Frontend Fundamentals — separación de componentes y extracción de la lógica de dominio'
 date: '2026-03-28'
-categories: 프론트엔드 React 리팩토링
+categories: frontend React refactorización
 description: "Comparto mi experiencia al refactorizar la aplicación de reserva de salas del segundo simulacro de Toss Frontend Fundamentals. Repaso la separación de componentes monolíticos, la extracción de la lógica de dominio y el proceso de refactorización guiado por pruebas."
 keywords: "Toss Frontend Fundamentals, refactorización frontend, separación de componentes React, revisión de código, simulacro de Toss, diseño frontend"
 locale: es

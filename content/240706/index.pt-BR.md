@@ -3,7 +3,7 @@ emoji: 🗜️
 title: "Entendendo algoritmos de compressão"
 seoTitle: "Comparativo de compressão: GZIP, Zstandard, Brotli e os fundamentos do LZ77"
 date: "2024-07-06"
-categories: 소박한궁금증 소프트웨어
+categories: curiosidades software
 description: "Uma comparação prática entre ZIP, GZIP, ZSTD, Brotli e outros formatos, dos fundamentos do LZ77 à escolha ideal para artefatos de build."
 keywords: "comparação de algoritmos de compressão, GZIP vs ZSTD, tar.gz vs zip, Brotli, LZ77, otimização de build frontend, compressão sem perdas"
 locale: pt-BR

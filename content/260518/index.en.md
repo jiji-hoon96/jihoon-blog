@@ -3,7 +3,7 @@ emoji: 🧠
 title: "State Management"
 seoTitle: "A Practical Framework for Frontend State Management: Local, Global, Server, Form, URL, External State, and Guards"
 date: "2026-05-18"
-categories: Frontend State-Management React Architecture
+categories: frontend State-Management React Architecture
 description: "A practical framework for frontend state management across seven categories—Local, Global, Server, Form, URL, External State, and State Guards—with clear principles for Single Source of Truth, impossible states, State Colocation, tool selection, and modeling."
 keywords: "frontend state management, React state management, Zustand vs Jotai, TanStack Query, Server State vs Client State, State Colocation, Single Source of Truth, React 19 useOptimistic"
 locale: en

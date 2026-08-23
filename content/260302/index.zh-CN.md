@@ -3,7 +3,7 @@ emoji: 🤖
 title: 'AI 前端工程师'
 seoTitle: 'AI 时代，前端工程师的生存之道：验证、规格与判断力这三项新能力'
 date: '2026-03-02'
-categories: 프론트엔드 커리어 AI
+categories: 前端 职业发展 AI
 description: '在 AI 代替人编写代码的时代，前端工程师该如何成长并生存下去？本文基于 Karpathy 的 agentic engineering、Vercel v0、Stack Overflow Survey、METR 研究等可靠资料，梳理以验证、规格与判断力为核心的新能力和学习策略。'
 keywords: 'AI 时代前端, AI 时代开发者, vibe coding, agentic engineering, AI 编程工具, Product Engineer, 前端职业路线图'
 locale: zh-CN

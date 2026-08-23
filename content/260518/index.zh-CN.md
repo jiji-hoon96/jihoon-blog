@@ -3,7 +3,7 @@ emoji: 🧠
 title: "状态管理"
 seoTitle: "前端状态管理的判断力——局部、全局、服务端、表单、URL 等 7 类状态与 React 设计准则"
 date: "2026-05-18"
-categories: 前端状态管理 React 架构
+categories: 前端 状态管理 React 架构
 description: "状态管理被视为前端开发中最棘手的工作之一。本文将状态分为局部、全局、服务端、表单、URL、外部和守卫 7 类，并从 Single Source of Truth、消除不可能状态、State Colocation 等 4 个判断维度，梳理工具选择与状态建模的准则。"
 keywords: "前端状态管理, React 状态管理, Zustand Jotai 对比, TanStack Query, Server State Client State, State Colocation, Single Source of Truth, React 19 useOptimistic"
 locale: zh-CN

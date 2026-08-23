@@ -3,7 +3,7 @@ emoji: 🔧
 title: '¿Puede Biome reemplazar a ESLint y Prettier?'
 seoTitle: 'Biome vs ESLint vs Prettier — Comparativa de rendimiento y migración a una toolchain todo en uno basada en Rust'
 date: '2024-12-01'
-categories: 프론트엔드 자바스크립트
+categories: frontend JavaScript
 description: "Comparamos el rendimiento de linting y formateo de Biome con ESLint y Prettier, junto con la experiencia de adopción práctica y una guía de migración a esta toolchain todo en uno basada en Rust."
 keywords: "Biome vs ESLint, Biome vs Prettier, migración a Biome, comparativa de linters JavaScript, linter basado en Rust, herramientas de desarrollo frontend"
 locale: es

@@ -3,7 +3,7 @@ emoji: 🛠️
 title: 'Reflections on Refactoring the Second Toss Frontend Fundamentals Mock Exam'
 seoTitle: 'Refactoring the Second Toss Frontend Fundamentals Mock Exam — Component Decomposition and Domain Logic Extraction'
 date: '2026-03-28'
-categories: 프론트엔드 React 리팩토링
+categories: frontend React refactoring
 description: "A look back at refactoring the meeting room reservation app from the second Toss Frontend Fundamentals mock exam, covering monolithic component decomposition, domain logic extraction, and a test-driven refactoring process."
 keywords: "Toss Frontend Fundamentals, frontend refactoring, React component decomposition, code review, Toss mock exam, frontend architecture"
 locale: en

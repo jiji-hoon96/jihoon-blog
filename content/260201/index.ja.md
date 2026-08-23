@@ -3,7 +3,7 @@ emoji: 🧩
 title: "抽象化"
 seoTitle: "フロントエンドの抽象化 — 良いコードのための設計原則"
 date: "2026-02-01"
-categories: 프론트엔드 설계 추상화
+categories: フロントエンド 設計 抽象化
 description: "フロントエンドにおける抽象化とは何か、良い抽象化と悪い抽象化はどう違うのか。抽象化レベル、意図が伝わる名前、部品を組み立てるアプローチを、Reactコンポーネントと関数設計の観点から整理する。"
 keywords: "フロントエンド抽象化, Reactコンポーネント抽象化, Clean Code抽象化, 抽象化レベル, Level of Abstraction, 良いコードの書き方, 意図が伝わる名前, Composed Method, 漏れのある抽象化の法則, コンポーネント設計, カスタムフック設計, フロントエンドアーキテクチャ, Kent Beck, Robert C. Martin"
 locale: ja

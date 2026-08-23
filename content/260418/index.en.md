@@ -3,7 +3,7 @@ emoji: 🧩
 title: "Domain Models"
 seoTitle: "A Guide to Frontend Domain Model Design — Applying DDD"
 date: "2026-04-18"
-categories: 프론트엔드 아키텍처 DDD
+categories: frontend Architecture DDD
 description: "A frontend-focused guide to domains, domain models, and domain objects, covering Entities, Value Objects, the Anemic Domain Model, and separating ViewModels. Learn practical ways to separate domain logic in React through a comprehensive income tax example."
 keywords: "frontend domain model, domain-driven design, frontend DDD, Frontend DDD, Domain Object, Entity Value Object, Anemic Domain Model, Clean Architecture frontend, Eric Evans, Martin Fowler, domain logic separation, React design patterns, frontend architecture, ViewModel separation, Bounded Context"
 locale: en

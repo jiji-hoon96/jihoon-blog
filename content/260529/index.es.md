@@ -3,7 +3,7 @@ emoji: 🧭
 title: 'Herramientas para agentes de IA'
 seoTitle: 'Mapa de herramientas para agentes de codificación con IA — archivos md, MCP, inteligencia de código y GitHub Trending'
 date: '2026-05-29'
-categories: AI Herramientas-de-desarrollo Claude MCP CodeGraph
+categories: IA Herramientas-de-desarrollo Claude MCP CodeGraph
 description: 'Organizamos desde cuatro perspectivas las herramientas que he encontrado al desarrollar frontend con Claude: las diferencias entre CLAUDE.md, AGENTS.md y SKILL.md; los fundamentos de MCP y Serena; cómo funcionan herramientas de inteligencia de código como CodeGraph; y cómo leer GitHub Trending.'
 keywords: 'CLAUDE.md, AGENTS.md, SKILL.md, MCP, Model Context Protocol, Serena MCP, CodeGraph, inteligencia de código, GitHub Trending, agente de codificación con IA, Claude Code, Cursor rules, tree-sitter, LSP'
 locale: es

@@ -3,7 +3,7 @@ emoji: 🛠️
 title: 'Toss Frontend Fundamentals 模拟考试第 2 期重构复盘'
 seoTitle: 'Toss Frontend Fundamentals 模拟考试第 2 期重构——拆分组件与提取领域逻辑'
 date: '2026-03-28'
-categories: 프론트엔드 React 리팩토링
+categories: 前端 React 重构
 locale: zh-CN
 translationOf: '260328'
 sourceHash: e86e832b1598fe8ec2aadc4afd0647977190316292f2adb0fd1d520f28953ab4

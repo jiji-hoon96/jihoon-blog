@@ -3,7 +3,7 @@ emoji: 🛡️
 title: 'エラーハンドリング'
 seoTitle: 'フロントエンドのエラーハンドリング — Error Boundary と TanStack Query の throwOnError を組み合わせるためのガイド'
 date: '2025-11-17'
-categories: 프론트엔드 React TanStack-Query 에러핸들링
+categories: フロントエンド React TanStack-Query エラーハンドリング
 description: "React Error Boundary、try/catch、TanStack Query の throwOnError がそれぞれどこまでを担い、どう組み合わせるのかを整理する。レンダー段階のエラーと非同期エラーを区別し、react-error-boundary のリセットの仕組みまで解説する。"
 keywords: "フロントエンドのエラーハンドリング, React Error Boundary, react-error-boundary, TanStack Query throwOnError, React Query のエラー処理, Error Boundary のリセット, try catch エラー, 非同期エラー処理, React のエラーハンドリング"
 locale: ja

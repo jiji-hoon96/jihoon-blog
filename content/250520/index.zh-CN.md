@@ -3,7 +3,7 @@ emoji: ⚛️
 title: '彻底掌握 React Fiber'
 seoTitle: '彻底掌握 React Fiber — 架构与并发渲染原理分析'
 date: '2025-05-20'
-categories: 프론트엔드 React
+categories: 前端 React
 description: "基于 React 源码，深入分析 React Fiber 架构，从 Stack Reconciler、Lane 优先级、双缓冲、MessageChannel 调度器到 Concurrent Features。前端面试中的高频主题。"
 keywords: "React Fiber, React Fiber 架构, Stack Reconciler, Concurrent Mode, React 18 并发, useTransition, useDeferredValue, Suspense, React 渲染原理, React 源码分析, Virtual DOM, Reconciliation, Lane 优先级, 前端面试"
 locale: zh-CN

@@ -3,7 +3,7 @@ emoji: 🤖
 title: 'The AI Frontend Engineer'
 seoTitle: 'How Frontend Engineers Can Survive the AI Era: New Skills in Verification, Specification, and Judgment'
 date: '2026-03-02'
-categories: 프론트엔드 커리어 AI
+categories: frontend career AI
 description: 'In an era when AI writes code for us, how can frontend engineers grow and survive? Drawing on verified sources including Karpathy’s agentic engineering, Vercel v0, the Stack Overflow Survey, and METR research, this article outlines the new skills and learning strategies centered on verification, specification, and judgment.'
 keywords: 'frontend in the AI era, developers in the AI era, vibe coding, agentic engineering, AI coding tools, Product Engineer, frontend career roadmap'
 locale: en

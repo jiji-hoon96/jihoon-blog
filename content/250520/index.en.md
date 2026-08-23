@@ -3,7 +3,7 @@ emoji: ⚛️
 title: 'Mastering React Fiber'
 seoTitle: 'Mastering React Fiber — Analyzing Its Architecture and Concurrent Rendering'
 date: '2025-05-20'
-categories: 프론트엔드 React
+categories: frontend React
 description: "An in-depth, React-source-based analysis of React Fiber architecture, from the Stack Reconciler to Lane priorities, double buffering, the MessageChannel scheduler, and Concurrent Features. A frequent frontend interview topic."
 keywords: "React Fiber, React Fiber architecture, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, React rendering, React source code analysis, Virtual DOM, Reconciliation, Lane priority, frontend interview"
 locale: en

@@ -3,7 +3,7 @@ emoji: ⚛️
 title: 'React Fiber完全攻略'
 seoTitle: 'React Fiber完全攻略 — アーキテクチャとConcurrent Renderingの仕組みを徹底分析'
 date: '2025-05-20'
-categories: 프론트엔드 React
+categories: フロントエンド React
 description: "React Fiberアーキテクチャを、Stack ReconcilerからLane優先度、ダブルバッファリング、MessageChannel Scheduler、Concurrent Featuresまで、Reactのソースコードを基に深く分析する。フロントエンド面接の頻出テーマ。"
 keywords: "React Fiber, React Fiberアーキテクチャ, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, Reactレンダリングの仕組み, Reactソースコード解析, Virtual DOM, Reconciliation, Lane優先度, フロントエンド面接"
 locale: ja

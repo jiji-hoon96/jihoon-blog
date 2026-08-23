@@ -3,7 +3,7 @@ emoji: 🤖
 title: 'Ingeniero frontend de IA'
 seoTitle: 'Cómo sobrevivir como ingeniero frontend en la era de la IA: nuevas competencias de verificación, especificación y criterio'
 date: '2026-03-02'
-categories: 프론트엔드 커리어 AI
+categories: frontend carrera IA
 description: 'En una era en la que la IA escribe el código, ¿cómo pueden los ingenieros frontend crecer y sobrevivir? A partir de fuentes contrastadas como el agentic engineering de Karpathy, Vercel v0, la encuesta de Stack Overflow y el estudio de METR, se presentan las nuevas competencias y estrategias de aprendizaje centradas en la verificación, la especificación y el criterio.'
 keywords: 'frontend en la era de la IA, desarrolladores en la era de la IA, vibe coding, agentic engineering, herramientas de programación con IA, Product Engineer, hoja de ruta profesional para frontend'
 locale: es
