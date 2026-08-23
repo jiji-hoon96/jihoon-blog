@@ -24,11 +24,11 @@ export default async function GuestbookPage({ params }: { params: Promise<{ lang
   if (!isLocale(lang)) notFound();
   const dictionary = getDictionary(lang);
   return (
-    <div className="py-12">
+    <div className="py-10 sm:py-16">
       {/* Guestbook Banner */}
-      <div className="mb-12 text-center">
-        <h1 className="text-4xl font-bold mb-4">{dictionary.guestbook.title}</h1>
-        <p className="text-lg text-light-gray80 dark:text-dark-gray80">
+      <div className="mb-12">
+        <h1 className="text-[2rem] sm:text-[2.5rem] font-bold leading-[1.18] tracking-[-0.03em] mb-3">{dictionary.guestbook.title}</h1>
+        <p className="text-[17px] leading-[1.75] text-stone">
           {dictionary.guestbook.description}
         </p>
       </div>

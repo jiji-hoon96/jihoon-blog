@@ -73,7 +73,7 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
   };
 
   return (
-    <div className="py-8 sm:py-12">
+    <div className="py-10 sm:py-16">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(profileLd) }}
@@ -84,7 +84,7 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
 
           {/* Profile Info */}
           <div className="flex-1 flex flex-col justify-center">
-            <h1 className="text-2xl sm:text-4xl font-bold mb-6">
+            <h1 className="text-[2rem] sm:text-[2.5rem] font-bold leading-[1.18] tracking-[-0.03em] mb-6">
               {interpolate(dictionary.about.greeting, { name: siteMetadata.author.name })}
             </h1>
 
@@ -124,7 +124,7 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
                 </svg>
                 <a
                   href={`mailto:${siteMetadata.author.bio.email}`}
-                  className="hover:text-light-black100 dark:hover:text-dark-black100 transition-colors"
+                  className="transition-colors hover:text-accent"
                 >
                   {siteMetadata.author.bio.email}
                 </a>
@@ -137,7 +137,7 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
                 href={siteMetadata.author.social.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2.5 rounded-lg bg-light-gray10 dark:bg-dark-gray10 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors"
+                className="p-2.5 rounded-md border border-mineral transition-colors hover:border-stone hover:text-accent"
                 aria-label="GitHub"
               >
                 <svg
@@ -153,7 +153,7 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
                 href={siteMetadata.author.social.linkedIn}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2.5 rounded-lg bg-light-gray10 dark:bg-dark-gray10 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors"
+                className="p-2.5 rounded-md border border-mineral transition-colors hover:border-stone hover:text-accent"
                 aria-label="LinkedIn"
               >
                 <svg

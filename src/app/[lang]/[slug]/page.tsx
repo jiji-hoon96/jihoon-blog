@@ -179,11 +179,11 @@ export default async function PostPage({ params }: Props) {
       <ReadingProgress />
       <article className="py-10 sm:py-16">
         {/* Post Header */}
-        <header className="mb-10 sm:mb-14 pb-8 border-b border-light-gray20 dark:border-dark-gray20">
-          <h1 className="text-2xl sm:text-[2.5rem] font-extrabold mb-5 leading-tight tracking-tight break-keep">
+        <header className="mb-10 sm:mb-14 pb-8 border-b border-mineral">
+          <h1 className="text-[2rem] sm:text-[2.75rem] font-bold mb-5 leading-[1.18] tracking-[-0.03em] break-keep">
             {post.title}
           </h1>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-light-gray60 dark:text-dark-gray60">
+          <div className="home-meta flex flex-wrap items-center gap-x-2 gap-y-1 text-stone">
             <time dateTime={post.date}>
               {new Date(post.date).toLocaleDateString(lang, {
                 year: 'numeric',
@@ -207,12 +207,12 @@ export default async function PostPage({ params }: Props) {
             <span aria-hidden="true">·</span>
             <span>{post.readingTime}</span>
           </div>
-          <div className="flex flex-wrap gap-2 mt-5">
+          <div className="home-meta mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-stone">
             {post.categoryArray.map((category: string) => (
               <a
                 key={category}
                 href={toPublicPath(lang, `/posts/${encodeURIComponent(category)}`)}
-                className="px-3 py-1 text-xs sm:text-sm rounded-full bg-light-gray10 dark:bg-dark-gray10 text-light-black60 dark:text-dark-black60 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-colors"
+                className="transition-colors hover:text-accent"
               >
                 {category}
               </a>
@@ -238,28 +238,24 @@ export default async function PostPage({ params }: Props) {
 
       {/* Related Posts */}
       {relatedPosts.length > 0 && (
-        <section className="mt-12 pt-8 border-t border-light-gray20 dark:border-dark-gray20">
-          <h2 className="text-xl sm:text-2xl font-bold mb-4">
-            <span className="mr-2">📚</span>
+        <section className="mt-12 pt-10 border-t border-mineral">
+          <h2 className="text-xl font-semibold tracking-[-0.02em] mb-1">
             {dictionary.post.relatedPosts}
           </h2>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col">
             {relatedPosts.map(related => (
               <a
                 key={related.slug}
                 href={related.slug}
-                className="block p-3 sm:p-4 border border-light-gray20 dark:border-dark-gray20 rounded-lg hover:border-light-gray40 dark:hover:border-dark-gray40 transition-colors"
+                className="group block border-t border-mineral py-5"
               >
-                <h3 className="text-base font-bold line-clamp-2 mb-2">
-                  {related.title}
-                </h3>
-                <p className="text-xs text-light-gray60 dark:text-dark-gray60 mb-2">
+                <p className="home-meta text-stone">
                   {new Date(related.date).toLocaleDateString(lang)} ·{' '}
                   {related.readingTime}
                 </p>
-                <p className="text-sm text-light-gray80 dark:text-dark-gray80 line-clamp-2">
-                  {related.excerpt}
-                </p>
+                <h3 className="mt-1.5 text-base font-semibold leading-snug line-clamp-2 transition-colors group-hover:text-accent">
+                  {related.title}
+                </h3>
               </a>
             ))}
           </div>
@@ -267,16 +263,16 @@ export default async function PostPage({ params }: Props) {
       )}
 
       {/* Post Navigation */}
-      <nav className="flex justify-between items-center py-8 border-t border-light-gray20 dark:border-dark-gray20">
+      <nav className="flex justify-between items-start gap-8 py-8 border-t border-mineral">
         {prev ? (
           <a
             href={prev.slug}
             className="flex-1 group text-left"
           >
-            <div className="text-sm text-light-gray60 dark:text-dark-gray60 mb-1">
+            <div className="home-meta text-stone mb-1.5">
               ← {dictionary.post.previousPost}
             </div>
-            <div className="font-medium group-hover:text-light-gray80 dark:group-hover:text-dark-gray80 transition-colors">
+            <div className="font-medium leading-snug transition-colors group-hover:text-accent">
               {prev.title}
             </div>
           </a>
@@ -289,10 +285,10 @@ export default async function PostPage({ params }: Props) {
             href={next.slug}
             className="flex-1 group text-right"
           >
-            <div className="text-sm text-light-gray60 dark:text-dark-gray60 mb-1">
+            <div className="home-meta text-stone mb-1.5">
               {dictionary.post.nextPost} →
             </div>
-            <div className="font-medium group-hover:text-light-gray80 dark:group-hover:text-dark-gray80 transition-colors">
+            <div className="font-medium leading-snug transition-colors group-hover:text-accent">
               {next.title}
             </div>
           </a>
@@ -303,7 +299,7 @@ export default async function PostPage({ params }: Props) {
 
       {/* Comments */}
       <div className="mt-12">
-        <h3 className="text-xl font-bold mb-4">{dictionary.post.comments}</h3>
+        <h3 className="text-xl font-semibold tracking-[-0.02em] mb-4">{dictionary.post.comments}</h3>
         <Utterances
           repo={siteMetadata.comments.utterances.repo}
           path={post.slug}

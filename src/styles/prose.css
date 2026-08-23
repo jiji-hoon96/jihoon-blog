@@ -115,9 +115,10 @@
 
 /* Links */
 .prose a {
-  @apply text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors;
+  color: var(--qa-accent);
+  transition: color 150ms;
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
@@ -247,18 +248,15 @@
    내부 첫/마지막 요소의 마진을 제거해 위아래 시각적 공백을 없앤다. */
 .prose blockquote {
   position: relative;
-  margin: 1.5rem 0;
-  padding: 0.625rem 1.125rem;
-  border-left: 3px solid var(--color-light-gray40);
-  background-color: var(--color-light-gray10);
-  border-radius: 0 0.375rem 0.375rem 0;
+  margin: 1.75rem 0;
+  padding: 0.125rem 0 0.125rem 1.25rem;
+  border-left: 2px solid var(--qa-mineral);
+  background-color: transparent;
   color: var(--color-light-black60);
   font-style: normal;
 }
 
 .dark .prose blockquote {
-  border-left-color: var(--color-dark-gray40);
-  background-color: var(--color-dark-gray10);
   color: var(--color-dark-black60);
 }
 
@@ -492,7 +490,7 @@
 }
 
 .prose .anchor:hover {
-  @apply text-blue-600 dark:text-blue-400;
+  color: var(--qa-accent);
 }
 
 /* Video */

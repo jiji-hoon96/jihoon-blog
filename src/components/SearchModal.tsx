@@ -103,8 +103,8 @@ export default function SearchModal({
         onClick={openSearch}
         className={
           trigger === "text"
-            ? "home-meta text-[11px] uppercase tracking-[0.06em] text-stone transition-colors hover:text-tide"
-            : "p-2 transition-colors hover:text-tide cursor-pointer"
+            ? "home-meta text-stone transition-colors hover:text-accent"
+            : "p-2 transition-colors hover:text-accent cursor-pointer"
         }
         aria-label={dictionary.actions.search}
       >

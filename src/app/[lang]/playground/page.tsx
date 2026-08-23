@@ -46,9 +46,9 @@ export default async function PlaygroundPage({ params }: { params: Promise<{ lan
   if (!isLocale(lang)) notFound()
   const dictionary = getDictionary(lang)
   return (
-    <div className="py-12">
+    <div className="py-10 sm:py-16">
       {/* Page Title */}
-      <h1 className="text-4xl font-bold mb-12">
+      <h1 className="text-[2rem] sm:text-[2.5rem] font-bold leading-[1.18] tracking-[-0.03em] mb-10">
         {dictionary.playground.title}
       </h1>
 
@@ -61,7 +61,7 @@ export default async function PlaygroundPage({ params }: { params: Promise<{ lan
 
       {/* Empty State */}
       {siteMetadata.projects.length === 0 && (
-        <div className="text-center py-12 text-light-gray60 dark:text-dark-gray60">
+        <div className="home-meta py-16 text-center text-stone">
           {dictionary.playground.empty}
         </div>
       )}

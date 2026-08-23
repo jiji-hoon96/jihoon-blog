@@ -8,59 +8,61 @@
 
 @import "../styles/prose.css";
 
+/* ── 팔레트 ────────────────────────────────────────────────
+   뉴트럴 화이트. 대비는 전부 WCAG AA(4.5:1) 이상으로 맞췄다.
+   accent 는 하나만 둔다. 링크와 hover 가 같은 색을 쓴다. */
 :root {
-  --qa-canvas: #f4f1ea;
-  --qa-ink: #171815;
-  --qa-stone: #6f716a;
-  --qa-mineral: #d8d4ca;
-  --qa-olive: #59634a;
-  --qa-tide: #286572;
-  --qa-persimmon: #c65a38;
+  --qa-canvas: #ffffff;
+  --qa-ink: #16181c;      /* 17.77:1 */
+  --qa-stone: #595d63;    /*  6.62:1 */
+  --qa-mineral: #e2e2e0;  /* 헤어라인 */
+  --qa-surface: #f5f6f7;  /* 코드·인용 배경 */
+  --qa-accent: #28518f;   /*  7.88:1 */
 }
 
 .dark {
-  --qa-canvas: #171815;
-  --qa-ink: #f4f1ea;
-  --qa-stone: #a9aaa4;
-  --qa-mineral: #3f403b;
-  --qa-olive: #a7b492;
-  --qa-tide: #72aebb;
-  --qa-persimmon: #da7657;
+  --qa-canvas: #16181c;
+  --qa-ink: #f2f3f4;      /* 16.00:1 */
+  --qa-stone: #9ea3a8;    /*  6.99:1 */
+  --qa-mineral: #2c2f34;
+  --qa-surface: #202428;
+  --qa-accent: #8ab6ef;   /*  8.48:1 */
 }
 
 @theme inline {
   /* Light theme colors */
-  --color-light-black100: #171815;
-  --color-light-black60: #444640;
-  --color-light-black40: #59605a;
-  --color-light-gray80: #6f716a;
-  --color-light-gray60: #81837b;
-  --color-light-gray40: #b5b2a9;
-  --color-light-gray20: #d8d4ca;
-  --color-light-gray10: #eae6de;
-  --color-light-white100: #f4f1ea;
+  --color-light-black100: #16181c;
+  --color-light-black60: #2f3339;
+  --color-light-black40: #4a4f56;
+  --color-light-gray80: #595d63;
+  --color-light-gray60: #6b7076;
+  --color-light-gray40: #a3a8ad;
+  --color-light-gray20: #e2e2e0;
+  --color-light-gray10: #f5f6f7;
+  --color-light-white100: #ffffff;
 
   /* Dark theme colors */
-  --color-dark-black100: #f4f1ea;
-  --color-dark-black60: #dcdbd4;
-  --color-dark-black40: #c8c7c0;
-  --color-dark-gray80: #b8b8b1;
-  --color-dark-gray60: #a9aaa4;
-  --color-dark-gray40: #72736d;
-  --color-dark-gray20: #3f403b;
-  --color-dark-gray10: #292a26;
-  --color-dark-white100: #171815;
+  --color-dark-black100: #f2f3f4;
+  --color-dark-black60: #d6d9dc;
+  --color-dark-black40: #bcc0c5;
+  --color-dark-gray80: #a8adb3;
+  --color-dark-gray60: #9ea3a8;
+  --color-dark-gray40: #6d7278;
+  --color-dark-gray20: #2c2f34;
+  --color-dark-gray10: #202428;
+  --color-dark-white100: #16181c;
 
   --color-canvas: var(--qa-canvas);
   --color-ink: var(--qa-ink);
   --color-stone: var(--qa-stone);
   --color-mineral: var(--qa-mineral);
-  --color-olive: var(--qa-olive);
-  --color-tide: var(--qa-tide);
-  --color-persimmon: var(--qa-persimmon);
+  --color-surface: var(--qa-surface);
+  --color-accent: var(--qa-accent);
 
   /* Font families */
   --font-wanted: "Wanted Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  /* mono 는 코드에만 쓴다. IBM Plex Mono 에는 한글 글리프가 없어서
+     UI 라벨에 걸면 한글이 줄 중간에 다른 서체로 폴백된다. */
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* Responsive */
@@ -69,9 +71,9 @@
   /* Content max width — 본문 측정값(measure):
      CJK 가독성 권장은 한 줄 40자이지만 17px 본문 + 한글에서는
      ~50~55자(820~860px)까지는 시선 회귀가 편안하다. */
+  /* 헤더·본문·푸터가 모두 같은 폭을 쓴다. 좌측 정렬선이 하나로 유지된다. */
   --width-content: 840px;
-  --width-home: 960px;
-  --width-shell: 1200px;
+  --width-shell: 840px;
 }
 
 body {
@@ -85,15 +87,13 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* 메타 라벨(날짜·카테고리·읽는 시간·내비게이션).
+   mono·uppercase·letter-spacing 을 쓰지 않는다. 한글에서 전부 역효과다. */
 .home-meta {
-  font-family: var(--font-mono);
-  word-break: normal;
-}
-
-.home-breakout {
-  position: relative;
-  left: 50%;
-  transform: translateX(-50%);
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: 0;
+  word-break: keep-all;
 }
 
 /* Utterances comment widget — 사이트 콘텐츠 폭과 통일 */

@@ -37,7 +37,7 @@ export default function LanguageSelector({ locale }: { locale: Locale }) {
 
   return (
     <details ref={selectorRef} className="relative">
-      <summary className="home-meta cursor-pointer list-none text-[11px] uppercase tracking-[0.06em] text-stone transition-colors hover:text-tide">
+      <summary className="home-meta cursor-pointer list-none text-stone transition-colors hover:text-accent">
         <span>{localeLabels[locale]}</span>
       </summary>
       <ul className="absolute right-0 z-50 mt-3 min-w-28 border border-mineral bg-light-white100 p-2 dark:bg-dark-white100">
@@ -49,7 +49,7 @@ export default function LanguageSelector({ locale }: { locale: Locale }) {
               hrefLang={HREF_LANG[targetLocale]}
               lang={targetLocale}
               aria-current={targetLocale === locale ? 'page' : undefined}
-              className="home-meta block px-3 py-2 text-[11px] tracking-[0.06em] text-stone hover:text-tide"
+              className="home-meta block px-3 py-2 text-stone transition-colors hover:text-accent"
               onClick={() => localStorage.setItem('preferred-locale', targetLocale)}
             >
               {localeLabels[targetLocale]}

@@ -31,11 +31,41 @@ function PostMeta({
   lang: string;
 }) {
   return (
-    <div className="home-meta flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] uppercase tracking-[0.08em] text-stone">
-      <span className="text-olive">{post.categoryArray[0] ?? "Writing"}</span>
+    <div className="home-meta flex flex-wrap items-center gap-x-2 gap-y-1 text-stone">
       <time dateTime={post.date}>{formatHomepageDate(post.date, lang)}</time>
+      <span aria-hidden="true" className="opacity-50">·</span>
+      <span>{post.categoryArray[0] ?? "Writing"}</span>
+      <span aria-hidden="true" className="opacity-50">·</span>
       <span>{post.readingTime}</span>
     </div>
+  );
+}
+
+/** 목록 행. expanded / compact 가 설명 유무만 다르고 메타 배치는 동일하다. */
+function PostRow({
+  post,
+  lang,
+  withDescription,
+}: {
+  post: (typeof allPosts)[number];
+  lang: string;
+  withDescription: boolean;
+}) {
+  return (
+    <Link
+      href={post.slug}
+      className="group block border-t border-mineral py-7 sm:py-8"
+    >
+      <PostMeta post={post} lang={lang} />
+      <h3 className="mt-2 text-lg font-semibold leading-[1.45] tracking-[-0.02em] text-ink transition-colors group-hover:text-accent sm:text-xl">
+        {post.title}
+      </h3>
+      {withDescription && (
+        <p className="mt-2 text-[15px] leading-[1.7] text-stone">
+          {post.description || post.excerpt}
+        </p>
+      )}
+    </Link>
   );
 }
 
@@ -99,46 +129,42 @@ export default async function HomePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="home-breakout mx-auto w-[min(960px,calc(100vw-2rem))] pb-20 sm:pb-28">
+      <div className="pb-20 sm:pb-28">
         {index.featured && (
-          <section className="border-b border-mineral pb-14 pt-14 sm:pb-20 sm:pt-24">
-            <p className="home-meta mb-6 text-[11px] uppercase tracking-[0.12em] text-stone">
-              Featured writing
-            </p>
+          <section className="border-b border-mineral pb-14 pt-16 sm:pb-16 sm:pt-24">
             <PostMeta post={index.featured} lang={lang} />
-            <Link href={index.featured.slug} className="group mt-5 block">
-              <h1 className="max-w-[850px] text-[2.4rem] font-semibold leading-[1.14] tracking-[-0.035em] text-ink transition-colors group-hover:text-tide sm:text-5xl">
+            <Link href={index.featured.slug} className="group mt-4 block">
+              <h1 className="text-[2.15rem] font-bold leading-[1.18] tracking-[-0.03em] text-ink transition-colors group-hover:text-accent sm:text-[2.75rem]">
                 {index.featured.title}
               </h1>
-              <p className="mt-6 max-w-[760px] text-base leading-7 text-stone sm:text-lg sm:leading-8">
+              <p className="mt-5 text-[17px] leading-[1.75] text-stone">
                 {index.featured.description || index.featured.excerpt}
               </p>
             </Link>
           </section>
         )}
 
-        <section id="writing" className="scroll-mt-24 pt-14 sm:pt-20">
-          <div className="flex flex-col justify-between gap-7 border-b border-ink pb-6 sm:flex-row sm:items-end">
-            <div>
-              <p className="home-meta mb-3 text-[11px] uppercase tracking-[0.12em] text-stone">
-                Archive · {sortedPosts.length} notes
-              </p>
-              <h2 className="text-2xl font-semibold tracking-[-0.025em] text-ink sm:text-[2rem]">
-                Writing Index
-              </h2>
-            </div>
+        <section id="writing" className="scroll-mt-24 pt-14 sm:pt-16">
+          <div className="flex flex-col justify-between gap-4 pb-4 sm:flex-row sm:items-baseline">
+            {/* 총 개수는 넣지 않는다. 여기 보이는 건 최근 몇 편이고, 전체는 아래 "전체보기" 다. */}
+            <h2 className="text-xl font-semibold tracking-[-0.02em] text-ink">
+              {dictionary.home.recentPosts}
+            </h2>
             <nav
               aria-label="Writing categories"
-              className="home-meta flex flex-wrap items-center gap-x-5 gap-y-3 text-[11px] uppercase tracking-[0.06em] text-stone"
+              className="home-meta flex flex-wrap items-center gap-x-4 gap-y-2 text-stone"
             >
-              <Link href={toPublicPath(lang, "/posts")} className="text-ink hover:text-tide">
-                All
+              <Link
+                href={toPublicPath(lang, "/posts")}
+                className="text-ink transition-colors hover:text-accent"
+              >
+                {dictionary.posts.allPosts}
               </Link>
               {featuredCategories.map((category) => (
                 <Link
                   key={category}
                   href={toPublicPath(lang, `/posts/${encodeURIComponent(category)}`)}
-                  className="hover:text-tide"
+                  className="transition-colors hover:text-accent"
                 >
                   {category}
                 </Link>
@@ -149,62 +175,24 @@ export default async function HomePage({
 
           <div>
             {index.expanded.map((post) => (
-              <Link
-                key={post.slug}
-                href={post.slug}
-                className="group grid gap-4 border-b border-mineral py-8 sm:grid-cols-[128px_1fr] sm:gap-8 sm:py-10"
-              >
-                <div className="home-meta text-[11px] uppercase tracking-[0.06em] text-stone">
-                  <time dateTime={post.date}>{formatHomepageDate(post.date, lang)}</time>
-                  <p className="mt-2 text-olive">{post.categoryArray[0] ?? "Writing"}</p>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold leading-snug tracking-[-0.02em] text-ink transition-colors group-hover:text-tide sm:text-2xl">
-                    {post.title}
-                  </h3>
-                  <p className="mt-3 max-w-[700px] text-[15px] leading-7 text-stone">
-                    {post.description || post.excerpt}
-                  </p>
-                  <p className="home-meta mt-4 text-[11px] uppercase tracking-[0.06em] text-stone">
-                    {post.readingTime}
-                  </p>
-                </div>
-              </Link>
+              <PostRow key={post.slug} post={post} lang={lang} withDescription />
             ))}
-
             {index.compact.map((post) => (
-              <Link
+              <PostRow
                 key={post.slug}
-                href={post.slug}
-                className="group grid gap-3 border-b border-mineral py-6 sm:grid-cols-[128px_1fr_auto] sm:items-center sm:gap-8 sm:py-7"
-              >
-                <time
-                  dateTime={post.date}
-                  className="home-meta text-[11px] uppercase tracking-[0.06em] text-stone"
-                >
-                  {formatHomepageDate(post.date, lang)}
-                </time>
-                <div>
-                  <p className="home-meta mb-2 text-[10px] uppercase tracking-[0.07em] text-olive">
-                    {post.categoryArray[0] ?? "Writing"}
-                  </p>
-                  <h3 className="text-lg font-medium leading-snug tracking-[-0.015em] text-ink transition-colors group-hover:text-tide sm:text-xl">
-                    {post.title}
-                  </h3>
-                </div>
-                <span className="home-meta text-[10px] uppercase tracking-[0.06em] text-stone">
-                  {post.readingTime}
-                </span>
-              </Link>
+                post={post}
+                lang={lang}
+                withDescription={false}
+              />
             ))}
           </div>
 
-          <div className="pt-8 text-right">
+          <div className="border-t border-mineral pt-6">
             <Link
               href={toPublicPath(lang, "/posts")}
-              className="home-meta inline-flex items-center gap-3 text-xs uppercase tracking-[0.06em] text-ink hover:text-tide"
+              className="home-meta inline-flex items-center gap-1.5 text-stone transition-colors hover:text-accent"
             >
-              View all writing <span aria-hidden="true">↗</span>
+              {dictionary.home.viewAll} <span aria-hidden="true">→</span>
             </Link>
           </div>
         </section>
