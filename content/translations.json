@@ -18,6 +18,6 @@
     { "key": "260617", "source": "content/260617/index.md", "sourceHash": "7ced7d6aab4ab2812c3b1665328a8e5693781ef894c6a997732d5ef3d273e831", "reviewed": ["en", "ja", "es", "pt-BR", "zh-CN"] },
     { "key": "260622", "source": "content/260622/index.md", "sourceHash": "3a4496827fcd34537ded61f9925a57116fbf16b6d28eee9508f66417f6d2345b", "reviewed": ["en", "ja", "es", "pt-BR", "zh-CN"] },
     { "key": "260703", "source": "content/260703/index.md", "sourceHash": "fbcca6aea45957ef4f0764f5fae07c02e1481844e6db69d481df25b28077fd44", "reviewed": ["en", "ja", "es", "pt-BR", "zh-CN"] },
-    { "key": "260723", "source": "content/260723/index.md", "sourceHash": "2577075c7c31a7debb0457c693d3c10157db4bbcf72d9bb033c5f58bdeb8e5a6", "reviewed": ["en", "ja", "es", "pt-BR", "zh-CN"] }
+    { "key": "260723", "source": "content/260723/index.md", "sourceHash": "1989680dd39ccc57941bfc61de1121dc3530540450048f9741bf0fc29267069a", "reviewed": ["en", "ja", "es", "pt-BR", "zh-CN"] }
   ]
 }

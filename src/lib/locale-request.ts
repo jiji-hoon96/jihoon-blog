@@ -5,7 +5,14 @@ export type LocaleRequestDecision =
   | { kind: 'rewrite'; pathname: string }
   | { kind: 'redirect'; pathname: string }
 
-export function classifyLocaleRequest(pathname: string): LocaleRequestDecision {
+type LocaleRequestContext = {
+  internalRewrite?: boolean
+}
+
+export function classifyLocaleRequest(
+  pathname: string,
+  { internalRewrite = false }: LocaleRequestContext = {},
+): LocaleRequestDecision {
   if (pathname === '/rss.xml' || pathname === '/llms.txt') {
     return { kind: 'rewrite', pathname: `/ko${pathname}` }
   }
@@ -21,6 +28,10 @@ export function classifyLocaleRequest(pathname: string): LocaleRequestDecision {
   }
 
   const firstSegment = pathname.split('/')[1]
+
+  if (firstSegment === 'ko' && internalRewrite) {
+    return { kind: 'next' }
+  }
 
   if (firstSegment === 'ko') {
     const canonicalPath = pathname.slice('/ko'.length)

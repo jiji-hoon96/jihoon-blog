@@ -249,9 +249,10 @@
 .prose blockquote {
   position: relative;
   margin: 1.75rem 0;
-  padding: 0.125rem 0 0.125rem 1.25rem;
+  padding: 1rem 1.25rem;
   border-left: 2px solid var(--qa-mineral);
-  background-color: transparent;
+  border-radius: 0.5rem;
+  background-color: var(--qa-surface);
   color: var(--color-light-black60);
   font-style: normal;
 }

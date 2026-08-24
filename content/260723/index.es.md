@@ -8,7 +8,7 @@ description: '¿Qué hacer cuando el product manager y el developer usan la mism
 keywords: 'ubiquitous language, lenguaje compartido dominio, comunicación entre disciplinas, cómo definir requisitos, comunicación product manager developer, grounding common ground, Example Mapping, breadboarding, bounded context, seguridad psicológica equipo de desarrollo'
 locale: es
 translationOf: '260723'
-sourceHash: 2577075c7c31a7debb0457c693d3c10157db4bbcf72d9bb033c5f58bdeb8e5a6
+sourceHash: 1989680dd39ccc57941bfc61de1121dc3530540450048f9741bf0fc29267069a
 ---
 
 En este artículo quiero hablar de la comunicación con otras disciplinas.
@@ -16,6 +16,8 @@ En este artículo quiero hablar de la comunicación con otras disciplinas.
 Mientras desarrollo, dedico tanto tiempo a averiguar qué hay que construir como a escribir código. Intercambio requisitos con el product manager, ajusto pantallas con el diseñador y pregunto a quien conoce el dominio qué significa cada término. Y he comprobado varias veces que el coste de que ese proceso falle es mucho mayor que el coste de escribir mal el código.
 
 Hace poco leí [Las actividades diarias de un líder de ingeniería](https://softwareleads.substack.com/p/engineering-leaders-day-to-day-activities), escrito por James Samuel. El autor divide el trabajo de un líder en seis apartados y el primero que aborda es la recopilación de información. Su razón es que toda decisión, toda dirección y toda acción dependen de una comprensión precisa de lo que está ocurriendo ahora mismo.
+
+![1.png](1.png)
 
 Aunque quiero asumir un rol de liderazgo algún día, lo que pensé al leer ese pasaje fue algo distinto. **Si lo primero que aborda un líder es recopilar información, el equivalente para quien está en la ejecución es entender los requisitos.** La forma en que manejo hoy los requisitos será la forma en que maneje mañana la información de una organización.
 
@@ -55,11 +57,9 @@ La otra explicación es algo más de fondo. Desde la ciencia cognitiva, la colab
 
 La perspectiva a la que llegué tras poner ambas líneas una junto a otra es esta. **Que los términos se desajusten no es un accidente, es el estado por defecto.** Estar alineados es la excepción, el estado que hay que mantener pagando un coste. Entonces la pregunta práctica pasa a ser quién paga ese coste y cómo.
 
-## La tarea del developer no es transcribir
+## Vigilancia activa
 
-La respuesta más clara que encontré a esa pregunta fue la de Eric Evans.
-
-En Domain-Driven Design, publicado en 2003, Evans presenta un patrón llamado ubiquitous language. Suele resumirse como poco más que «que developers y expertos de dominio usen los mismos términos», pero al leer el libro original la receta es mucho más concreta. Pide que el equipo tome el modelo como columna vertebral del lenguaje y se comprometa a usar ese lenguaje con insistencia en toda la comunicación del equipo y en el código. Y la frase que viene a continuación fue la más importante para mí.
+En Domain-Driven Design, publicado en 2003, Evans presenta un patrón llamado ubiquitous language, o **lenguaje compartido**. Suele resumirse como poco más que «que developers y expertos de dominio usen los mismos términos», pero al leer el libro original la receta es mucho más concreta. Pide que el equipo tome el modelo como columna vertebral del lenguaje y se comprometa a usar ese lenguaje con insistencia en toda la comunicación del equipo y en el código. Y la frase que viene a continuación fue la más importante para mí.
 
 ::::quote
 :::translation
@@ -77,11 +77,11 @@ Al leer esa frase corregí mi comprensión de mi propio papel. Hasta entonces me
 
 (Por cierto, Fowler tradujo esta frase en su artículo como «Domain experts **should** object ... developers **should** watch». El libro original no lleva verbo modal. Es una diferencia menor, pero el original se lee de forma más categórica: el tono no es que convenga hacerlo, sino que hacerlo es la definición del patrón.)
 
-¿Y cómo se detecta la ambigüedad? Evans también responde a eso: usar los términos repetidamente en la conversación es lo que revela las diferencias de interpretación. Yo leí esa frase así. La ambigüedad no se encuentra leyendo documentos con lupa. Por muy cuidadosamente que se lea una especificación, no aflora el hecho de que la palabra «socio» significa tres cosas distintas. Esa palabra tiene que usarse repetidamente contra casos concretos para que se bifurque. El momento en que surge una pregunta como «¿alguien que se dio de baja sigue siendo socio?» es justamente ese punto.
+¿Y cómo se detecta la ambigüedad? Evans también responde a eso: usar los términos repetidamente en la conversación es lo que revela las diferencias de interpretación. Yo leí esa frase así. La ambigüedad no se encuentra leyendo documentos con lupa. Por muy cuidadosamente que se lea una especificación, no aflora el hecho de que «meter» tiene varios significados. Esa palabra tiene que usarse repetidamente contra casos concretos para que se bifurque. El momento en que surge una pregunta como «¿Qué entienden los demás por meter?» es justamente ese punto.
 
-## ¿Y por qué esa conversación no funciona?
+## El principio del mínimo esfuerzo colaborativo
 
-Hasta aquí, la receta. El problema es que hubo una época en la que conocía esta receta y aun así no la practicaba. ¿Por qué no preguntaba una y otra vez?
+Puede que conozcamos este método y aun así no lo practiquemos. Entonces, ¿por qué no preguntamos una y otra vez?
 
 Volvamos al artículo de Clark y Brennan. Los autores dan el nombre de grounding al proceso de convertir lo dicho en parte del common ground. Y proponen un principio sobre cómo se comporta la gente durante ese proceso: el principio del mínimo esfuerzo colaborativo (the principle of least collaborative effort). Nace de la observación de que a la gente no le gusta trabajar más de lo necesario.
 
@@ -105,13 +105,13 @@ Aplicado así, se explica por qué yo no preguntaba una y otra vez. En un entorn
 
 Conviene distinguir aquí dos fuerzas. Una es que el medio encarece la confirmación, y eso es lo que dicen Clark y Brennan. La otra es el temor a parecer incompetente por preguntar varias veces, y eso no es lo que predice su principio, sino que pertenece a la seguridad psicológica de la que hablaremos después. Con precisión: lo que predice el principio del mínimo esfuerzo colaborativo es que **se elegirá una forma más barata de confirmar**, no que se dejará de confirmar. Renunciar a confirmar y pasar a la suposición no es el principio operando, es el grounding fracasando. Y el hecho de que esa interpretación fuera errónea aflora cuando la implementación ya está terminada.
 
-## ¿Hasta dónde hay que confirmar?
+## Alcanzar un nivel suficiente
 
 Entonces, ¿hay que preguntar por cada ambigüedad? No es realista y nunca he visto a nadie hacerlo. El artículo también ofrece un criterio para esta pregunta: el grounding criterion. Designa el estado en que ambas partes creen mutuamente que el oyente ha entendido lo que quería decir el hablante **hasta un nivel suficiente para el propósito actual**. Los autores lo preceden con la observación de que la comprensión perfecta es imposible de entrada.
 
 La razón por la que este criterio me resultó práctico es que rebaja el objetivo. No hace falta entender los requisitos a la perfección. **Basta con poder confiar mutuamente en que se entienden lo suficiente para lo que se va a hacer.** Y los autores dicen que, si cambia el propósito, el criterio debe cambiar con él.
 
-En la práctica, esto se convierte en el criterio para calibrar la intensidad de la confirmación. Si en una sesión que aún explora la dirección te enrocas en «¿alguien que se dio de baja sigue siendo socio?», la conversación no avanza. Lo que hace falta en esa etapa es acordar qué se quiere hacer y por qué, no fijar los valores límite. Al contrario, justo antes de entrar en implementación esa pregunta tiene que salir sí o sí. Ahí hay que poder confiar en que ambos están imaginando el mismo alcance para «socio»; si no, el código se apila sobre una premisa equivocada.
+En la práctica, esto se convierte en el criterio para calibrar la intensidad de la confirmación. Si en una sesión que aún explora la dirección te enrocas en «¿Qué significa meter aquí?», la conversación no avanza. Lo que hace falta en esa etapa es acordar qué se quiere hacer y por qué, no fijar los valores límite. Al contrario, justo antes de entrar en implementación esa pregunta tiene que salir sí o sí. Ahí hay que poder confiar en que ambos están imaginando el mismo alcance para «meter»; si no, el código se apila sobre una premisa equivocada.
 
 Por eso, ante la misma ambigüedad, **la trato de forma distinta según la etapa en la que estoy.** En la etapa de exploración la anoto en una lista y sigo; justo antes de implementar abro esa lista y voy cerrando los puntos uno a uno. Aplazar la confirmación y renunciar a ella son cosas distintas.
 
@@ -127,9 +127,9 @@ Aun con el modo alineado, queda un problema. Otro desajuste que he vivido a menu
 
 Los requisitos que el product manager entrega en prosa suelen ser demasiado abstractos. De una frase como «que el usuario pueda consultar cómodamente su historial de reservas» no se deduce cuántas pantallas hay ni qué lleva a dónde. Al contrario, la maqueta del diseñador es demasiado concreta. El color de los botones y los márgenes ya están decididos, así que resulta difícil discutir precisamente si este flujo es el correcto.
 
-Shape Up, escrito por Ryan Singer en Basecamp, señala este problema con precisión: empezar por wireframes o por maquetas visuales concretas te encierra en detalles innecesarios e impide explorar tan ampliamente como haga falta. Por eso, [lo que propone Shape Up](https://basecamp.com/shapeup/1.3-chapter-04) es una representación intermedia. Se llama breadboarding y toma prestado el concepto de la ingeniería eléctrica. Una breadboard es un prototipo que tiene todas las piezas y el cableado del aparato real, pero ningún diseño industrial. Por eso solo se dibujan tres cosas: los lugares a los que se puede navegar (places), aquello que el usuario puede accionar (affordances) y las líneas de conexión que muestran a dónde lleva esa acción al usuario (connection lines).
+![2.png](2.png)
 
-![Los tres niveles de resolución de un requisito: las preguntas que pueden responder la prosa, la breadboard y la maqueta](1.png?w=720)
+Shape Up, escrito por Ryan Singer en Basecamp, señala este problema con precisión: empezar por wireframes o por maquetas visuales concretas te encierra en detalles innecesarios e impide explorar tan ampliamente como haga falta. Por eso, [lo que propone Shape Up](https://basecamp.com/shapeup/1.3-chapter-04) es una representación intermedia. Se llama breadboarding y toma prestado el concepto de la ingeniería eléctrica. Una breadboard es un prototipo que tiene todas las piezas y el cableado del aparato real, pero ningún diseño industrial. Por eso solo se dibujan tres cosas: los lugares a los que se puede navegar (places), aquello que el usuario puede accionar (affordances) y las líneas de conexión que muestran a dónde lleva esa acción al usuario (connection lines).
 
 La razón por la que valoro esta técnica es que es un artefacto que puede producir el developer. En lugar de pedirle al product manager que escriba con más detalle o de esperar la maqueta del diseñador, puedes dibujar allí mismo el flujo tal como lo has entendido y devolverlo con un «lo he entendido así, ¿es correcto?». Es una forma concreta de ejecutar la vigilancia de la que hablaba Evans, la de devolver la ambigüedad. Y visto desde la sección anterior, es un dispositivo que abarata el grounding. Un dibujo sustituye varias rondas de confirmación por texto.
 
@@ -143,19 +143,19 @@ Que el propio nivel de abstracción pueda ser una herramienta de colaboración e
 
 Otra manera de igualar la resolución es estructurar la propia discusión.
 
-Es el caso de [Example Mapping](https://cucumber.io/blog/bdd/example-mapping-introduction/), presentado en 2015 por Matt Wynne, que lideró el proyecto Cucumber. Él diagnostica que la razón por la que a muchos equipos les cuesta discutir requisitos es que, al no haber estructura, la discusión se alarga y se vuelve aburrida. Y por eso dejan de hacerla con regularidad y con coherencia. A mí me pasaba exactamente eso: cuando una reunión de requisitos se alarga, la siguiente intentas acabarla rápido, y si la acabas rápido las ambigüedades se quedan tal cual.
+Veamos [Example Mapping](https://cucumber.io/blog/bdd/example-mapping-introduction/), presentado en 2015 por Matt Wynne, que lideró el proyecto Cucumber. Él diagnostica que la razón por la que a muchos equipos les cuesta discutir requisitos es que, al no haber estructura, la discusión se alarga y se vuelve aburrida. Y por eso dejan de hacerla con regularidad y con coherencia. A mí me pasaba exactamente eso: cuando una reunión de requisitos se alarga, la siguiente intentas acabarla rápido, y si la acabas rápido las ambigüedades se quedan tal cual.
 
 Example Mapping divide la discusión en tarjetas de cuatro colores. La amarilla es la historia que se está tratando, la azul es la regla o criterio de aceptación, la verde es el ejemplo concreto que ilustra esa regla y la roja es la pregunta cuya respuesta nadie conoce.
 
 De todas ellas, **creo que la tarjeta roja es la clave.** Las otras tres son técnicas de ordenación, pero la roja es el dispositivo que convierte el «no lo sé» en un producto oficial de la reunión. Decir que no se sabe deja de ser un acto que retrasa la reunión y pasa a ser un resultado que la reunión debe producir.
 
-Por qué esto importa se ve claro al imaginar el caso contrario. En una reunión sin tarjetas rojas, encontrarse con un punto ambiguo deja dos opciones: enrocarse ahora y alargar la reunión, o seguir adelante e interpretarlo uno mismo más tarde. Como vimos en la sección anterior, la gente suele elegir lo segundo. Pero con una tarjeta a mano aparece una tercera opción. **Anotarlo y seguir, sin que desaparezca.** La reunión continúa y la ambigüedad se queda en una lista en vez de esfumarse.
+Por qué esto importa se ve claro al imaginar el caso contrario. En una reunión sin tarjetas rojas, encontrarse con un punto ambiguo deja dos opciones: enrocarse ahora y alargar la reunión, o seguir adelante e interpretarlo uno mismo más tarde. Como vimos en la sección anterior, la gente suele elegir lo segundo. Pero con una tarjeta a mano aparece una tercera opción. **Anotarlo y seguir, sin que desaparezca.** La reunión continúa y la ambigüedad permanece en la lista.
 
 La tarjeta verde cumple un papel parecido. Cuando solo se escribe la regla, todo el mundo asiente; en el momento en que alguien intenta escribir un ejemplo concreto que la ilustre, las interpretaciones se separan. Es el «usarlos repetidamente en la conversación revela las diferencias» de Evans trasladado al formato de reunión. Si pides que se añadan tres ejemplos por cada regla, en uno de ellos suele salir un «espera, ¿y en este caso qué pasa?». (Por mi experiencia, la reunión en la que esa pregunta no aparece no es una reunión en la que todos entendieron, sino una en la que cada uno entendió algo distinto)
 
 Con una idea parecida existe también Three Amigos, usado desde hace tiempo en el ámbito de BDD. Consiste en que las tres perspectivas de negocio, desarrollo y pruebas plantean cada una una pregunta distinta, y el [glosario de Agile Alliance](https://www.agilealliance.org/glossary/three-amigos/) resume esas preguntas como qué problema se intenta resolver, cómo se construirá una solución para resolverlo y qué pasa con esto, qué podría llegar a ocurrir. Qué le sucede a una reunión donde la tercera pregunta nunca aparece probablemente no haga falta explicarlo.
 
-## Crear una casilla para anotar lo que no se sabe
+## Crear un proceso para comprobar lo que no se sabe
 
 Ahora bien, ¿por qué nos cuesta tanto sacar la tarjeta roja? Aquí no hay manera de esquivar el tema de la seguridad psicológica.
 
@@ -179,17 +179,21 @@ A partir de aquí es una conjetura mía. Lo que dice el artículo llega hasta qu
 
 Cabe una objeción, por supuesto. En un equipo que no es seguro, la casilla de la tarjeta roja se quedará simplemente vacía. Es una crítica justa y no pretendo afirmar que esta herramienta genere seguridad. Pero si la casilla existe, al menos **el hecho de que esté vacía se vuelve visible.** Aparece un lugar donde preguntar si está vacía porque nadie tiene dudas o porque cuesta decirlas.
 
+![3.jpg](3.jpg)
+
 La misma idea está incorporada en formatos de documento reales. Si miras el [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas) creado por la comunidad DDD, es una herramienta colaborativa para diseñar y documentar un contexto, y su reparto de casillas resulta interesante. Nombre y propósito, clasificación estratégica, rol de dominio, comunicación entrante y saliente, y luego **Ubiquitous Language**, decisiones de negocio, **Assumptions**, métricas de verificación y **Open Questions**.
 
 Hay una casilla aparte para escribir el lenguaje compartido, otra para los supuestos y otra para las preguntas abiertas. La descripción del canvas dice que el propio acto de escribir el propósito obliga a formular con claridad un pensamiento difuso y coloca a todo el equipo en la misma página.
 
-Creo que este planteamiento es el enfoque más realista para los problemas de comunicación. En vez de intentar cambiar la actitud de las personas, **crear una casilla para aquello que cuesta decir.** Algo parecido sentí al escribir [Retrospectiva de la refactorización de Toss Frontend Fundamentals](/260328): una buena estructura no exige que la gente lo haga bien, sino que se lo pone fácil.
+Creo que este planteamiento es el enfoque más realista para los problemas de comunicación. En vez de intentar cambiar la actitud de las personas, **crear una casilla para aquello que cuesta decir.** Una buena estructura no exige que la gente lo haga bien, sino que se lo pone fácil.
 
 ## Por qué esto no es una cuestión de gusto
 
 Llegados aquí, cabe una reacción: está bien, pero al final esto es «comuniquémonos con empeño», ¿no? ¿Y eso no es cuestión de carácter?
 
 Yo también lo pensé durante un tiempo. Pero sobre esta parte hay datos.
+
+![4.png](4.png)
 
 Cuando DORA aborda la cultura organizativa, toma la clasificación del sociólogo Ron Westrum: pathological, orientada al poder; bureaucratic, orientada a las reglas; y generative, orientada al resultado. Y [la documentación oficial de DORA](https://dora.dev/capabilities/generative-organizational-culture/) resume así sus hallazgos.
 
@@ -209,7 +213,7 @@ Ahora bien, «predecir» no debe leerse aquí como causalidad. Los datos de DORA
 
 El mismo documento recoge también las tres propiedades de la buena información según Westrum: responde a la pregunta que necesita quien la recibe, llega en el momento oportuno y se presenta de forma que quien la recibe pueda usarla con eficacia. Merece la pena fijarse en que las tres sitúan el criterio en **quien recibe**. Compartir mucho no es lo que hace bueno un flujo de información.
 
-El Project Aristotle de Google es otra fuente citada con frecuencia. Según [lo publicado en re:Work](https://rework.withgoogle.com/intl/en/guides/understand-team-effectiveness), estudiaron 180 equipos, aplicaron más de 35 modelos estadísticos a cientos de variables y propusieron cinco factores que influyen en la efectividad de un equipo: seguridad psicológica, fiabilidad, estructura y claridad, significado e impacto. Y la conclusión fue que importaba más cómo trabajaba junto ese equipo que quién estaba en él.
+El Project Aristotle de Google es otra fuente citada con frecuencia. Según [lo publicado en reWork](https://rework.withgoogle.com/intl/en/guides/understand-team-effectiveness), estudiaron 180 equipos, aplicaron más de 35 modelos estadísticos a cientos de variables y propusieron cinco factores que influyen en la efectividad de un equipo: seguridad psicológica, fiabilidad, estructura y claridad, significado e impacto. Y la conclusión fue que importaba más cómo trabajaba junto ese equipo que quién estaba en él.
 
 Aun así, quiero señalar una cosa. La página oficial declara que enumera los cinco factores por orden de importancia y coloca la seguridad psicológica en primer lugar. Pero las expresiones de magnitud del tipo «primero de forma abrumadora», que aparecen a menudo en artículos que citan esta investigación, no están en esa página. Que exista un orden y que uno arrase sobre los demás son cosas distintas. Por eso en este artículo no afirmo nada sobre la magnitud. Para argumentar la importancia de la seguridad psicológica, lo preciso es apoyarse en el artículo original de Edmondson de la sección anterior.
 
