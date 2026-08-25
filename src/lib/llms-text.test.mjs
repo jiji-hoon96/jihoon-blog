@@ -27,7 +27,6 @@ test('builds a Korean guide with canonical Korean links', () => {
     siteDescription: '한국어 설명',
     labels: {
       intro: '{authorName}({authorNickname})의 기술 블로그입니다.',
-      about: '저자 소개',
       rss: 'RSS 구독',
       sitemap: '사이트 전체 URL',
       posts: '글',
@@ -44,6 +43,7 @@ test('builds a Korean guide with canonical Korean links', () => {
     text,
     /\[SEO 제목\]\(https:\/\/example.com\/260818\): 글 설명/,
   )
+  assert.doesNotMatch(text, /\/about|## About/)
   assert.doesNotMatch(text, /English site description/)
 })
 
@@ -54,14 +54,13 @@ test('builds an English guide with localized links', () => {
     siteDescription: 'English site description',
     labels: {
       intro: 'Technical blog by {authorName} ({authorNickname}).',
-      about: 'Author profile',
       rss: 'RSS subscription',
       sitemap: 'All site URLs',
       posts: 'Posts',
     },
   })
 
-  assert.match(text, /https:\/\/example.com\/en\/about/)
+  assert.doesNotMatch(text, /\/about|## About/)
   assert.match(text, /https:\/\/example.com\/en\/rss.xml/)
   assert.match(text, /English site description/)
   assert.doesNotMatch(text, /한국어 설명/)

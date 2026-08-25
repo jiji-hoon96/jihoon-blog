@@ -82,7 +82,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const routeDefinitions = [
     { path: '/', changeFrequency: 'daily' as const, priority: 1, tracksPosts: true },
     { path: '/posts', changeFrequency: 'daily' as const, priority: 0.9, tracksPosts: true },
-    { path: '/about', changeFrequency: 'monthly' as const, priority: 0.7, tracksPosts: false },
     { path: '/guestbook', changeFrequency: 'weekly' as const, priority: 0.5, tracksPosts: false },
   ]
   const routes: MetadataRoute.Sitemap = routeDefinitions.flatMap(route =>

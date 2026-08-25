@@ -57,7 +57,7 @@ export function getLocaleSwitchPath(
     return toPublicPath(targetLocale, contentPath)
   }
 
-  const sharedPaths = new Set(['/', '/posts', '/about', '/guestbook', '/playground'])
+  const sharedPaths = new Set(['/', '/posts', '/guestbook', '/playground'])
   if (!sharedPaths.has(contentPath)) {
     return toPublicPath(targetLocale, '/posts')
   }

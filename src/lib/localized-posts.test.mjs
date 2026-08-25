@@ -49,7 +49,7 @@ test('switches shared routes directly and uses the post index as a safe fallback
     getLocaleSwitchPath('es', '/pt-BR/posts/AI'),
     '/es/posts',
   )
-  assert.equal(getLocaleSwitchPath('es', '/pt-BR/about'), '/es/about')
+  assert.equal(getLocaleSwitchPath('es', '/pt-BR/about'), '/es/posts')
   assert.equal(getLocaleSwitchPath('ko', '/en/posts'), '/posts')
   assert.equal(getLocaleSwitchPath('ko', '/ko/260703'), '/260703')
 })
@@ -83,7 +83,6 @@ test('provides shared navigation labels for every locale', () => {
     assert.ok(dictionary.siteDescription)
     assert.ok(dictionary.navigation.posts)
     assert.ok(dictionary.navigation.guestbook)
-    assert.ok(dictionary.navigation.about)
     assert.ok(dictionary.actions.openMenu)
     assert.equal(dictionary.home.values.length, 4)
     assert.ok(dictionary.home.values.every(value => value.length > 0))
@@ -95,10 +94,8 @@ test('provides shared navigation labels for every locale', () => {
     assert.ok(dictionary.post.relatedPosts)
     assert.ok(dictionary.post.updated)
     assert.ok(dictionary.category.label)
-    assert.ok(dictionary.about.greeting)
     assert.ok(dictionary.guestbook.title)
     assert.ok(dictionary.llms.intro)
-    assert.ok(dictionary.llms.about)
     assert.ok(dictionary.llms.rss)
     assert.ok(dictionary.llms.sitemap)
     assert.ok(dictionary.llms.posts)
@@ -126,7 +123,6 @@ test('provides descriptive metadata for category and guestbook pages', () => {
     assert.ok(categoryDescription.includes('3'))
     assert.ok(categoryDescription.length >= 70)
     assert.ok(dictionary.guestbook.description.length >= 70)
-    assert.ok(dictionary.about.description.length >= 70)
     assert.ok(dictionary.siteDescription.length >= 70)
     assert.ok(dictionary.playground.description.length >= 70)
   }

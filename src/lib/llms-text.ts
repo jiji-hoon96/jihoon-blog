@@ -10,7 +10,6 @@ export type LlmsPost = {
 
 export type LlmsLabels = {
   intro: string
-  about: string
   rss: string
   sitemap: string
   posts: string
@@ -42,7 +41,6 @@ export function buildLlmsText(input: LlmsTextInput): string {
     authorNickname: input.authorNickname,
     stack: input.stack.join(', '),
   })
-  const aboutUrl = `${siteUrl}${toPublicPath(input.locale, '/about')}`
   const rssUrl = `${siteUrl}${toPublicPath(input.locale, '/rss.xml')}`
 
   const header = [
@@ -52,9 +50,8 @@ export function buildLlmsText(input: LlmsTextInput): string {
     '',
     intro,
     '',
-    '## About',
+    '## Resources',
     '',
-    `- [About](${aboutUrl}): ${input.labels.about}`,
     `- [RSS Feed](${rssUrl}): ${input.labels.rss}`,
     `- [Sitemap](${siteUrl}/sitemap.xml): ${input.labels.sitemap}`,
     '',
