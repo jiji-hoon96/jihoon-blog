@@ -21,7 +21,7 @@ export async function GET(
     id: homeUrl,
     link: homeUrl,
     language: lang,
-    favicon: `${siteMetadata.siteUrl}/favicon.ico`,
+    favicon: `${siteMetadata.siteUrl}/icon.svg`,
     copyright: `All rights reserved ${new Date().getFullYear()}, ${siteMetadata.author.name}`,
     feedLinks: {
       rss2: feedUrl,
