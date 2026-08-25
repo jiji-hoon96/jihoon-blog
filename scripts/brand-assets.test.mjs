@@ -8,8 +8,8 @@ test('uses a transparent responsive Hunji wordmark favicon', () => {
 
     assert.match(svg, /훈지/)
     assert.match(svg, /prefers-color-scheme:\s*dark/)
-    assert.doesNotMatch(svg, /<rect|<circle|<path/)
-    assert.match(svg, /Wanted Sans/)
+    assert.match(svg, /<path/)
+    assert.doesNotMatch(svg, /<rect|<circle|<text/)
   }
 
   assert.equal(existsSync('src/app/favicon.ico'), false)
