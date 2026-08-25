@@ -72,7 +72,7 @@ export default async function HomePage({
         </section>
 
         <section id="writing" className="scroll-mt-24 pt-14 sm:pt-16">
-          <h2 className="pb-4 text-xl font-bold tracking-[-0.02em] text-ink">
+          <h2 className="mb-5 text-sm font-bold tracking-[-0.01em] text-stone">
             {dictionary.home.recentPosts}
           </h2>
 
