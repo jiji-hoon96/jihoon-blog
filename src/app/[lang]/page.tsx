@@ -61,9 +61,9 @@ export default async function HomePage({
           aria-label={siteMetadata.brand}
           className="border-b border-mineral pb-14 pt-16 sm:pb-20 sm:pt-24"
         >
-          <p className="max-w-[760px] text-[1.75rem] font-bold leading-[1.42] tracking-[-0.035em] text-ink sm:text-[2.2rem]">
+          <h1 className="max-w-[760px] text-[1.75rem] font-bold leading-[1.42] tracking-[-0.035em] text-ink sm:text-[2.2rem]">
             {dictionary.home.values[0]}
-          </p>
+          </h1>
           <div className="mt-10 max-w-[720px] space-y-7 text-[1.0625rem] leading-[1.9] tracking-[-0.01em] text-stone sm:mt-12">
             {dictionary.home.values.slice(1).map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
@@ -72,9 +72,9 @@ export default async function HomePage({
         </section>
 
         <section id="writing" className="scroll-mt-24 pt-14 sm:pt-16">
-          <h1 className="pb-4 text-xl font-bold tracking-[-0.02em] text-ink">
+          <h2 className="pb-4 text-xl font-bold tracking-[-0.02em] text-ink">
             {dictionary.home.recentPosts}
-          </h1>
+          </h2>
 
           <div className="border-b border-mineral">
             {latestPosts.map((post) => (
@@ -83,9 +83,9 @@ export default async function HomePage({
                 href={post.slug}
                 className="group flex flex-col gap-2 border-t border-mineral py-6 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8 sm:py-7"
               >
-                <h2 className="text-lg font-bold leading-[1.5] tracking-[-0.02em] text-ink transition-colors group-hover:text-accent sm:text-xl">
+                <h3 className="text-lg font-bold leading-[1.5] tracking-[-0.02em] text-ink transition-colors group-hover:text-accent sm:text-xl">
                   {post.title}
-                </h2>
+                </h3>
                 <time
                   dateTime={post.date}
                   className="home-meta shrink-0 text-stone"
