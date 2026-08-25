@@ -24,6 +24,8 @@ export default async function HomePage({
   );
   const homePath = toPublicPath(lang, "/");
   const homeUrl = `${siteMetadata.siteUrl}${homePath}`;
+  const valueParagraphClassName =
+    "max-w-[720px] text-[1.0625rem] font-normal leading-[1.9] tracking-[-0.01em] text-ink";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -61,10 +63,10 @@ export default async function HomePage({
           aria-label={siteMetadata.brand}
           className="border-b border-mineral pb-14 pt-16 sm:pb-20 sm:pt-24"
         >
-          <h1 className="max-w-[760px] text-[1.75rem] font-bold leading-[1.42] tracking-[-0.035em] text-ink sm:text-[2.2rem]">
+          <h1 className={valueParagraphClassName}>
             {dictionary.home.values[0]}
           </h1>
-          <div className="mt-10 max-w-[720px] space-y-7 text-[1.0625rem] leading-[1.9] tracking-[-0.01em] text-stone sm:mt-12">
+          <div className={`mt-7 space-y-7 ${valueParagraphClassName}`}>
             {dictionary.home.values.slice(1).map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}
