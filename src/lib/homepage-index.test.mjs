@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { formatHomepageDate, getHomepagePosts } from "./homepage-index.ts";
+import { siteMetadata } from "./site-metadata.ts";
 
 const posts = [
   { slug: "/latest", title: "Latest", translationKey: "latest" },
@@ -31,4 +32,8 @@ test("formats a content date without shifting it to the previous day", () => {
     formatHomepageDate("2025-05-20T00:00:00.000Z", "ko"),
     "2025. 05. 20.",
   );
+});
+
+test("uses the approved typographic brand", () => {
+  assert.equal(siteMetadata.brand, "훈지");
 });

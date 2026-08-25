@@ -24,8 +24,8 @@ export const viewport: Viewport = {
 	maximumScale: 5,
 	colorScheme: "light dark",
 	themeColor: [
-		{ media: "(prefers-color-scheme: light)", color: "#f4f1ea" },
-		{ media: "(prefers-color-scheme: dark)", color: "#171815" },
+		{ media: "(prefers-color-scheme: light)", color: "#ffffff" },
+		{ media: "(prefers-color-scheme: dark)", color: "#111315" },
 	],
 };
 
@@ -44,7 +44,7 @@ export async function generateMetadata({
 	return {
 		metadataBase: new URL(siteMetadata.siteUrl),
 		title: {
-			default: `${siteMetadata.author.name} · Frontend Engineering`,
+			default: `${siteMetadata.brand} · Frontend Engineering`,
 			template: `%s | ${siteMetadata.title}`,
 		},
 		description: dictionary.siteDescription,

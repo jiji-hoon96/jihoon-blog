@@ -2,6 +2,7 @@ export const siteMetadata = {
 	/**
 	 * basic Information
 	 */
+	brand: `훈지`,
 	title: `hooninedev.com`,
 	description: `프론트엔드 개발자 이지훈(후니)의 기술 블로그. React, TypeScript, Next.js 등 웹 개발 기록과 학습 노트를 공유합니다.`,
 	language: `ko`,
