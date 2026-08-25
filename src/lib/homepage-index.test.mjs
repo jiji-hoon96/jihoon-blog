@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildHomepageIndex, formatHomepageDate } from "./homepage-index.ts";
+import { formatHomepageDate, getHomepagePosts } from "./homepage-index.ts";
 
 const posts = [
   { slug: "/latest", title: "Latest", translationKey: "latest" },
@@ -14,44 +14,16 @@ const posts = [
   { slug: "/seventh", title: "Seventh", translationKey: "seventh" },
 ];
 
-test("builds one featured story and a non-duplicated chronological stream", () => {
-  const result = buildHomepageIndex(posts, "250520");
-
-  assert.equal(result.featured?.slug, "/fiber");
+test("returns the five newest posts in the supplied order", () => {
   assert.deepEqual(
-    result.expanded.map((post) => post.slug),
-    ["/latest", "/second"],
-  );
-  assert.deepEqual(
-    result.compact.map((post) => post.slug),
-    ["/third", "/fourth", "/fifth", "/sixth"],
-  );
-  assert.equal(
-    [...result.expanded, ...result.compact].some(
-      (post) => post.slug === result.featured?.slug,
-    ),
-    false,
+    getHomepagePosts(posts).map((post) => post.slug),
+    ["/latest", "/fiber", "/second", "/third", "/fourth"],
   );
 });
 
-test("falls back to the first post and handles short collections", () => {
-  const shortPosts = posts.slice(0, 3);
-  const result = buildHomepageIndex(shortPosts, "missing");
-
-  assert.equal(result.featured?.slug, "/latest");
-  assert.deepEqual(
-    result.expanded.map((post) => post.slug),
-    ["/fiber", "/second"],
-  );
-  assert.deepEqual(result.compact, []);
-});
-
-test("returns an empty model when there are no posts", () => {
-  assert.deepEqual(buildHomepageIndex([], "250520"), {
-    featured: undefined,
-    expanded: [],
-    compact: [],
-  });
+test("handles short and empty collections without padding", () => {
+  assert.deepEqual(getHomepagePosts(posts.slice(0, 2)), posts.slice(0, 2));
+  assert.deepEqual(getHomepagePosts([]), []);
 });
 
 test("formats a content date without shifting it to the previous day", () => {

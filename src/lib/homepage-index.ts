@@ -1,7 +1,3 @@
-type IndexablePost = {
-  translationKey: string;
-};
-
 export function formatHomepageDate(date: string, locale: string) {
   return new Intl.DateTimeFormat(locale, {
     year: "numeric",
@@ -13,19 +9,9 @@ export function formatHomepageDate(date: string, locale: string) {
     .replaceAll("/", ". ");
 }
 
-export function buildHomepageIndex<T extends IndexablePost>(
+export function getHomepagePosts<T>(
   posts: readonly T[],
-  featuredTranslationKey: string,
-) {
-  const featured =
-    posts.find((post) => post.translationKey === featuredTranslationKey) ?? posts[0];
-  const stream = posts
-    .filter((post) => post.translationKey !== featured?.translationKey)
-    .slice(0, 6);
-
-  return {
-    featured,
-    expanded: stream.slice(0, 2),
-    compact: stream.slice(2),
-  };
+  limit = 5,
+): T[] {
+  return posts.slice(0, limit);
 }
