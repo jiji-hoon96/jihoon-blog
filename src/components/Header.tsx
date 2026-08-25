@@ -62,19 +62,28 @@ export default function Header({ locale }: { locale: Locale }) {
             </li>
           </ul>
 
-          <button
-            className={`${utilityClass} sm:hidden`}
-            onClick={() => setIsMenuOpen((open) => !open)}
-            aria-expanded={isMenuOpen}
-            aria-label={dictionary.actions.openMenu}
-          >
-            {isMenuOpen ? "Close" : "Menu"}
-          </button>
+          <div className="flex items-center gap-4 sm:hidden">
+            <button
+              onClick={toggleTheme}
+              className={utilityClass}
+              aria-label={dictionary.actions.changeTheme}
+            >
+              {mounted && resolvedTheme === "dark" ? "Dark" : "Light"}
+            </button>
+            <button
+              className={utilityClass}
+              onClick={() => setIsMenuOpen((open) => !open)}
+              aria-expanded={isMenuOpen}
+              aria-label={dictionary.actions.openMenu}
+            >
+              {isMenuOpen ? "Close" : "Menu"}
+            </button>
+          </div>
         </div>
 
         {isMenuOpen && (
           <div className="mt-5 border-t border-mineral pt-5 sm:hidden">
-            <ul className="grid grid-cols-2 gap-x-6 gap-y-5">
+            <ul className="grid grid-cols-3 gap-5">
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className={utilityClass} onClick={() => setIsMenuOpen(false)}>
@@ -84,11 +93,6 @@ export default function Header({ locale }: { locale: Locale }) {
               ))}
               <li><SearchModal locale={locale} trigger="text" /></li>
               <li><LanguageSelector locale={locale} /></li>
-              <li>
-                <button onClick={toggleTheme} className={utilityClass}>
-                  {mounted && resolvedTheme === "dark" ? "Dark" : "Light"}
-                </button>
-              </li>
             </ul>
           </div>
         )}

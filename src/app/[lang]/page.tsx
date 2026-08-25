@@ -61,7 +61,7 @@ export default async function HomePage({
       <div className="pb-20 sm:pb-28">
         <section
           aria-label={siteMetadata.brand}
-          className="border-b border-mineral pb-14 pt-16 sm:pb-20 sm:pt-24"
+          className="pb-14 pt-16 sm:pb-20 sm:pt-24"
         >
           <h1 className={valueParagraphClassName}>
             {dictionary.home.values[0]}
