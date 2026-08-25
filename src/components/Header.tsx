@@ -20,10 +20,8 @@ export default function Header({ locale }: { locale: Locale }) {
 
   const dictionary = getDictionary(locale);
   const homePath = toPublicPath(locale, "/");
-  // 기존 "Writing"(#writing 앵커) 과 "Index"(/posts) 는 같은 목록으로 가서 중복이었다.
   const navLinks = [
     { href: toPublicPath(locale, "/posts"), label: dictionary.navigation.posts },
-    { href: toPublicPath(locale, "/about"), label: dictionary.navigation.about },
   ];
 
   const toggleTheme = () => {
@@ -35,14 +33,15 @@ export default function Header({ locale }: { locale: Locale }) {
 
   return (
     <header className="border-b border-mineral">
-      <nav className="mx-auto max-w-[var(--width-shell)] px-4 py-5 sm:py-6">
+      <nav className="mx-auto max-w-[var(--width-shell)] px-4 py-5">
         <div className="flex items-center justify-between gap-8">
-          <Link href={homePath} className="group min-w-0">
-            <span className="block text-base font-bold tracking-[-0.015em] text-ink transition-colors group-hover:text-accent">
-              {siteMetadata.author.name}
-            </span>
-            <span className="home-meta mt-0.5 block text-stone">
-              Frontend Engineer
+          <Link
+            href={homePath}
+            aria-label={`${siteMetadata.brand} home`}
+            className="group shrink-0"
+          >
+            <span className="block text-lg font-bold tracking-[-0.03em] text-ink transition-colors group-hover:text-accent">
+              {siteMetadata.brand}
             </span>
           </Link>
 

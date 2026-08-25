@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { formatHomepageDate, getHomepagePosts } from "./homepage-index.ts";
@@ -36,4 +37,21 @@ test("formats a content date without shifting it to the previous day", () => {
 
 test("uses the approved typographic brand", () => {
   assert.equal(siteMetadata.brand, "훈지");
+});
+
+test("keeps the global chrome minimal", () => {
+  const headerSource = readFileSync(
+    new URL("../components/Header.tsx", import.meta.url),
+    "utf8",
+  );
+  const footerSource = readFileSync(
+    new URL("../components/Footer.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(headerSource, /siteMetadata\.brand/);
+  assert.doesNotMatch(headerSource, /navigation\.about/);
+  assert.doesNotMatch(headerSource, /Frontend Engineer/);
+  assert.doesNotMatch(footerSource, /new Date\(\)/);
+  assert.doesNotMatch(footerSource, /mailto:/);
 });
