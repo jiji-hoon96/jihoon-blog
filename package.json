@@ -13,9 +13,10 @@
     "content:dates": "node scripts/validate-content-dates.mjs",
     "gsc": "node scripts/fetch-gsc.js",
     "test": "node --test src/lib/*.test.mjs scripts/*.test.mjs",
+    "content:glossary": "node scripts/validate-glossary.mjs",
     "content:terms": "node scripts/validate-terminology.mjs",
     "content:translations": "node scripts/validate-translations.mjs",
-    "build": "node scripts/validate-content-dates.mjs && node scripts/validate-translations.mjs && node scripts/copy-content-images.js && (npx contentlayer build || true) && next build",
+    "build": "node scripts/validate-content-dates.mjs && node scripts/validate-translations.mjs && node scripts/validate-glossary.mjs && node scripts/copy-content-images.js && (npx contentlayer build || true) && next build",
     "start": "next start",
     "lint": "eslint"
   },
