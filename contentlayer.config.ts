@@ -10,6 +10,7 @@ import { rehypeOpenLinksInNewTab } from './src/lib/rehype-open-links-in-new-tab'
 import { remarkDetails } from './src/lib/remark-details'
 import { remarkBilingualQuote } from './src/lib/remark-bilingual-quote'
 import { remarkRef } from './src/lib/remark-ref'
+import { remarkTerm } from './src/lib/remark-term'
 import { remarkWidget } from './src/lib/remark-widget'
 import { parseContentIdentity } from './src/lib/localized-posts'
 
@@ -105,7 +106,7 @@ export default makeSource({
   documentTypes: [Post],
   disableImportAliasWarning: true,
   markdown: {
-    remarkPlugins: [[remarkGfm, { singleTilde: false }], remarkDirective, remarkDetails, remarkRef, remarkWidget, remarkBilingualQuote],
+    remarkPlugins: [[remarkGfm, { singleTilde: false }], remarkDirective, remarkTerm, remarkDetails, remarkRef, remarkWidget, remarkBilingualQuote],
     rehypePlugins: [
       rehypeSlug,
       [
