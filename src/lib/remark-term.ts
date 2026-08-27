@@ -3,13 +3,22 @@ import { visit } from 'unist-util-visit'
 
 const KEY_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u
 
-export function remarkTerm() {
-  return (tree: any, file?: { path?: string }) => {
-    visit(tree, 'textDirective', (node: any) => {
-      if (node.name !== 'term') return
+type DirectiveNode = Parameters<typeof visit>[0] & {
+  name: string
+  attributes?: Record<string, string | null | undefined>
+  children: Array<{ type: string; value?: string }>
+  data?: Record<string, unknown>
+}
 
-      const label = toString(node).trim()
-      const attributes = node.attributes ?? {}
+export function remarkTerm() {
+  return (tree: Parameters<typeof visit>[0], file?: { path?: string }) => {
+    visit(tree, node => {
+      if (node.type !== 'textDirective') return
+      const directive = node as DirectiveNode
+      if (directive.name !== 'term') return
+
+      const label = toString(directive).trim()
+      const attributes = directive.attributes ?? {}
       const key = attributes.key
       const validAttributes = Object.keys(attributes).length === 1
 
@@ -24,8 +33,8 @@ export function remarkTerm() {
         )
       }
 
-      node.children = [{ type: 'text', value: label }]
-      node.data = {
+      directive.children = [{ type: 'text', value: label }]
+      directive.data = {
         hName: 'span',
         hProperties: {
           className: ['glossary-term-source'],
