@@ -51,6 +51,7 @@ English original.
     linkDestinations: ['https://example.com/docs'],
     imageDestinations: ['1.png?w=720'],
     directives: ['quote', 'translation', '/', 'original', '/', '/'],
+    termKeys: [],
     originalQuotes: ['English original.'],
   })
 })
@@ -76,6 +77,33 @@ test('keeps indented list fences separate from translatable prose', () => {
   assert.equal(structure.fencedCode[0].includes('번역해야 하는 본문'), false)
   assert.deepEqual(structure.headingLevels, [])
   assert.deepEqual(structure.inlineCode, ['inlineCode'])
+})
+
+test('protects glossary keys while allowing translated labels', () => {
+  const source = ':term[실제 사용자 모니터링]{key="rum"}'
+  const translation = ':term[Real User Monitoring]{key="rum"}'
+
+  assert.deepEqual(
+    extractProtectedStructure(source).termKeys,
+    extractProtectedStructure(translation).termKeys,
+  )
+  assert.deepEqual(extractProtectedStructure(source).termKeys, ['rum'])
+})
+
+test('detects reordered or changed glossary keys', () => {
+  const source = [
+    ':term[RUM]{key="rum"}',
+    ':term[Web Vitals]{key="web-vitals"}',
+  ].join('\n')
+  const translation = [
+    ':term[Web Vitals]{key="web-vitals"}',
+    ':term[RUM]{key="real-user-monitoring"}',
+  ].join('\n')
+
+  assert.notDeepEqual(
+    extractProtectedStructure(source).termKeys,
+    extractProtectedStructure(translation).termKeys,
+  )
 })
 
 test('every Korean post keeps current translations in all locales', async () => {

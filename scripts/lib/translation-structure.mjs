@@ -85,6 +85,11 @@ export function extractProtectedStructure(markdown) {
     ].map(match => match[1]),
     directives: [...normalized.matchAll(/^:::(\w+)?(?:\{[^}]*\})?\s*$/gmu)]
       .map(match => match[1] ?? '/'),
+    termKeys: [
+      ...prose.matchAll(
+        /:term\[[^\]\n]+\]\{key=(['"])([a-z0-9]+(?:-[a-z0-9]+)*)\1\}/gu,
+      ),
+    ].map(match => match[2]),
     originalQuotes: [
       ...normalized.matchAll(/^:::original\s*\n([\s\S]*?)\n^:::\s*$/gmu),
     ].map(match => match[1].trim()),
