@@ -19,6 +19,14 @@ import { buildLocalizedPostMetadata } from '@/lib/localized-metadata'
 import { getDictionary, interpolate } from '@/i18n/dictionaries'
 import { getPostModifiedDate } from '@/lib/post-dates'
 import { getAuthorEntityId } from '@/lib/author-identity'
+import glossarySource from '../../../../content/glossary.json'
+import GlossaryTerms from '@/components/GlossaryTerms'
+import {
+  assertGlossarySource,
+  getGlossaryForLocale,
+} from '@/lib/glossary'
+
+assertGlossarySource(glossarySource)
 
 type Props = {
   params: Promise<{ lang: string; slug: string }>
@@ -68,6 +76,7 @@ export default async function PostPage({ params }: Props) {
 
   const localePosts = getPostsForLocale(allPosts, lang)
   const dictionary = getDictionary(lang)
+  const glossary = getGlossaryForLocale(glossarySource, lang)
   const { prev, next } = getAdjacentPosts(post.slug, localePosts)
   const relatedPosts = getRelatedPosts(post.slug, 3, localePosts)
 
@@ -230,8 +239,14 @@ export default async function PostPage({ params }: Props) {
         />
 
         <div
+          id="post-content"
           className="prose dark:prose-invert max-w-none mb-16"
           dangerouslySetInnerHTML={{ __html: post.body.html }}
+        />
+        <GlossaryTerms
+          rootId="post-content"
+          entries={glossary}
+          closeLabel={dictionary.post.closeGlossary}
         />
         <CodeCopyButton />
         <InteractiveWidgets />

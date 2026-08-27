@@ -869,3 +869,155 @@
 .prose .tep-root input[type='range'] {
   width: 100%;
 }
+
+/* ── 본문 용어 설명: 데스크톱 툴팁 · 모바일 바텀시트 ── */
+.prose .glossary-term-source,
+.prose .glossary-term {
+  color: inherit;
+  font: inherit;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--qa-accent);
+  text-underline-offset: 0.22em;
+}
+
+.prose button.glossary-term {
+  appearance: none;
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: help;
+}
+
+.prose button.glossary-term:focus-visible {
+  border-radius: 0.2rem;
+  outline: 2px solid var(--qa-accent);
+  outline-offset: 0.18rem;
+}
+
+.prose button.glossary-term[aria-expanded='true'] {
+  border-radius: 0.2rem;
+  background: color-mix(in srgb, var(--qa-accent) 14%, transparent);
+}
+
+.glossary-tooltip {
+  position: fixed;
+  z-index: 60;
+  width: min(18rem, calc(100vw - 1rem));
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--qa-mineral);
+  border-radius: 0.625rem;
+  background: var(--qa-surface);
+  color: var(--qa-ink);
+  box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.16);
+  line-height: 1.55;
+}
+
+.glossary-tooltip strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.glossary-tooltip p {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.glossary-sheet-backdrop {
+  appearance: none;
+  position: fixed;
+  inset: 0;
+  z-index: 69;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: color-mix(in srgb, var(--qa-ink) 38%, transparent);
+  cursor: default;
+  animation: glossary-backdrop-in 160ms ease-out;
+}
+
+.glossary-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 70;
+  width: min(32rem, calc(100vw - 1rem));
+  max-height: min(70vh, 32rem);
+  padding: 0.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  border: 1px solid var(--qa-mineral);
+  border-bottom: 0;
+  border-radius: 1rem 1rem 0 0;
+  background: var(--qa-surface);
+  color: var(--qa-ink);
+  box-shadow: 0 -0.75rem 2.5rem rgb(0 0 0 / 0.18);
+  transform: translateX(-50%);
+  animation: glossary-sheet-in 180ms ease-out;
+}
+
+.glossary-sheet-handle {
+  width: 2.5rem;
+  height: 0.25rem;
+  margin: 0 auto 0.75rem;
+  border-radius: 9999px;
+  background: var(--qa-mineral);
+}
+
+.glossary-sheet h2 {
+  margin: 0 2.5rem 0.5rem 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.glossary-sheet p {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+
+.glossary-sheet-close {
+  appearance: none;
+  position: absolute;
+  top: 0.75rem;
+  right: 0.875rem;
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--qa-mineral);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--qa-ink);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.glossary-sheet-close:focus-visible {
+  outline: 2px solid var(--qa-accent);
+  outline-offset: 0.15rem;
+}
+
+@keyframes glossary-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes glossary-sheet-in {
+  from { transform: translate(-50%, 1.5rem); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glossary-sheet-backdrop,
+  .glossary-sheet {
+    animation: none;
+    transition: none;
+  }
+}
