@@ -1,8 +1,5 @@
-/*
-  Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
-  Content-Security-Policy: frame-ancestors 'none'; base-uri 'self'; form-action 'self'
-  X-Frame-Options: DENY
+# 보안 헤더는 next.config.ts 에 있다. 이 파일은 정적 자산에만 적용되고
+# HTML 은 Next 런타임이 내보내므로 여기에 두면 정작 페이지에 안 붙는다.
 
 # 글 이미지는 파일명에 해시가 없어 immutable 을 걸 수 없다.
 # 30일 캐시로 재방문 시 재검증 왕복만 없앤다.

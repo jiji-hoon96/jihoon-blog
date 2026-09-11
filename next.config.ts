@@ -17,6 +17,29 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  // public/_headers 는 정적 자산에만 적용된다. HTML 은 Next 런타임이 내보내므로
+  // 클릭재킹과 referrer 유출을 막으려면 여기에 둬야 한다. (실측으로 확인)
+  // script-src 는 넣지 않는다. layout 에 인라인 스크립트와 JSON-LD 가 있어
+  // 'unsafe-inline' 을 붙여야 하는데 그러면 막는 것이 없다. nonce 는 별도 작업이다.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: "frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+          },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 const hasSentryAuthToken = Boolean(process.env.SENTRY_AUTH_TOKEN);
