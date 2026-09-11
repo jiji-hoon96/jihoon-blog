@@ -8,7 +8,7 @@ description: "A practical comparison of ZIP, GZIP, ZSTD, and Brotli, from LZ77 f
 keywords: "compression algorithm comparison, GZIP vs ZSTD, tar.gz vs zip, Brotli, LZ77, frontend build optimization, lossless compression"
 locale: en
 translationOf: "240706"
-sourceHash: 213643b3263c486b07d4348eab5da7154726063eaf52dc0127dfd67d601aadc9
+sourceHash: b0f4cf10e7cb4a7b3147fd1db92aa156f536f0d3b22d0e83fc051ccd96cf3542
 ---
 
 In this post, I want to talk about software compression algorithms.

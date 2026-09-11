@@ -5,7 +5,7 @@ seoTitle: "フロントエンド状態管理の設計眼: ローカル・グロ�
 date: "2026-05-18"
 locale: ja
 translationOf: '260518'
-sourceHash: 496c69b05e1e1cbeadd0886cd6b0c63bd6854beb483d12f78ad309430766d43b
+sourceHash: a6207e949b7e05440dc8370606232bea53318b57319931f5cc038987a7495c4e
 categories: フロントエンド 状態管理 React アーキテクチャ
 description: "フロントエンド開発で特に難しい状態管理を、ローカル・グローバル・サーバー・フォーム・URL・外部・ガードの7分類で整理。Single Source of Truth、不可能な状態の排除、State Colocationなど4つの視点から、ツール選定とモデリングの基準を解説する。"
 keywords: "フロントエンド 状態管理, React 状態管理, Zustand Jotai 比較, TanStack Query, Server State Client State, State Colocation, Single Source of Truth, React 19 useOptimistic"

@@ -8,14 +8,14 @@ description: 'AI Token 既不是单词也不是字符。本文系统讲解 BPE t
 keywords: 'LLM Token 原理, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, 输入输出 Token 成本, 什么是 AI Token'
 locale: zh-CN
 translationOf: '260610'
-sourceHash: 'a40bef05afd5f7b4cc1894abc929ced40531509eb954c8e78284fc47b3e4b592'
+sourceHash: 916300304184bd08cac369236fce06eb4d3b01c7d958bc36d63fa6d4b4d9a8b1
 ---
 
 这篇文章想聊一聊：AI Token 究竟是什么，又按照怎样的原理工作。
 
 过去，我主要关注如何用好 AI 工具、哪些工具正在流行，以及它们为什么会流行。但在整理 [Token 节省方法](/260611)时，我重新意识到一件事：要讲清怎样降低成本，终究得先说明“Token 是什么、费用又是怎样计算的”，可我此前从未认真补上这块基础。（写着写着，光是 Token 工作原理就已经足够单独成篇了。）
 
-因此，本文是进入节省技巧前的基础篇。我们将依次梳理：如果 Token 既不是单词也不是字符，它到底是什么（BPE）；它以什么形式进入模型（embedding）；为什么输出比输入更贵（prefill/decode）；prompt caching 降低单价的原因来自 Transformer（神经网络架构）的哪个环节（KV cache）；以及上下文越长为什么越贵（注意力的平方成本）。如果更关心实践方法，可以读完本文后继续阅读 [Token 节省方法](/260611)。
+因此，本文是进入节省技巧前的基础篇。我们将依次梳理：如果 Token 既不是单词也不是字符，它到底是什么（BPE）；它以什么形式进入模型（embedding）；为什么输出比输入更贵（prefill/decode）；prompt caching 降低单价的原因来自 Transformer（神经网络架构）的哪个环节（KV cache）；以及上下文越长为什么越贵（注意力的平方成本）。如果更关心实践方法，可以读完本文后继续阅读 Token 节省方法。
 
 ---
 

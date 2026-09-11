@@ -8,7 +8,7 @@ description: "Gestión del estado en frontend en siete categorías (local, globa
 keywords: "gestión del estado frontend, gestión del estado React, comparativa Zustand Jotai, TanStack Query, Server State Client State, State Colocation, Single Source of Truth, React 19 useOptimistic"
 locale: es
 translationOf: '260518'
-sourceHash: 496c69b05e1e1cbeadd0886cd6b0c63bd6854beb483d12f78ad309430766d43b
+sourceHash: a6207e949b7e05440dc8370606232bea53318b57319931f5cc038987a7495c4e
 ---
 
 En esta publicación quiero hablar sobre la **gestión del estado (State Management)**. No es una comparativa de librerías. Más que decidir qué herramienta es mejor, el objetivo es ordenar el criterio con el que **entendemos el estado** y determinamos **dónde trazar sus límites**.

@@ -8,7 +8,7 @@ description: "从前端视角梳理领域、领域模型与领域对象的概念
 keywords: "前端领域模型, 领域驱动设计, DDD 前端, 前端 DDD, 领域对象, 实体 值对象, 贫血领域模型, Clean Architecture 前端, Eric Evans, Martin Fowler, 领域逻辑分离, React 设计模式, 前端架构, ViewModel 分离, 限界上下文"
 locale: zh-CN
 translationOf: '260418'
-sourceHash: bbd3d249509318418012792a0d5d87ab445407447555425792535c1d01e89d48
+sourceHash: 660b87cbe239f955599d8c796abc4990000f522521179fc4da3a1af1773a335e
 ---
 
 这篇文章想聊一聊**领域（Domain）**。
@@ -53,17 +53,7 @@ Eric Evans 在其著作 **Domain-Driven Design: Tackling Complexity in the Heart
 
 那么，什么是领域模型？领域和“领域模型”有什么区别？
 
-Martin Fowler 与 Eric Evans 对领域模型作出了如下定义。
-
-::::quote
-:::translation
-同时包含行为和数据的领域对象模型。—— Martin Fowler
-:::
-
-:::original
-An object model of the domain that incorporates both behavior and data.
-:::
-::::
+[Martin Fowler](https://martinfowler.com/eaaCatalog/domainModel.html) 把领域模型定义为同时包含行为和数据的领域对象模型。Eric Evans 的定义则更进一步。
 
 ::::quote
 :::translation

@@ -5,7 +5,7 @@ seoTitle: "AI Coding Agent Tools: Context Files, MCP, Code Intelligence"
 date: '2026-05-29'
 locale: en
 translationOf: '260529'
-sourceHash: f3263657aa0fd5463a3b16f7de0009fc1447e339bec1ee0a78aa9e711f8e5fec
+sourceHash: ac8d0775527258419f065e36b7d027f1a185e5fb48adb397eceacd38c8ae7a48
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "A practical map of AI coding agent tools: CLAUDE.md vs AGENTS.md vs SKILL.md, how MCP and Serena work, code intelligence, and GitHub Trending."
 keywords: 'CLAUDE.md, AGENTS.md, SKILL.md, MCP, Model Context Protocol, Serena MCP, CodeGraph, code intelligence, GitHub Trending, AI coding agents, Claude Code, Cursor rules, tree-sitter, LSP'

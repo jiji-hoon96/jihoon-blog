@@ -676,7 +676,6 @@ export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 ## 참고 자료
 
 :::ref
-- [docs] [React, Error Boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
 - [docs] [TanStack Query, Suspense](https://tanstack.com/query/latest/docs/framework/react/guides/suspense)
 - [docs] [TanStack Query, QueryErrorResetBoundary](https://tanstack.com/query/latest/docs/framework/react/reference/QueryErrorResetBoundary)
 - [docs] [TanStack Query, Important Defaults](https://tanstack.com/query/v5/docs/framework/react/guides/important-defaults)

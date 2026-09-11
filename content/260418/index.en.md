@@ -8,7 +8,7 @@ description: "A frontend guide to domains, domain models, and domain objects: En
 keywords: "frontend domain model, domain-driven design, frontend DDD, Frontend DDD, Domain Object, Entity Value Object, Anemic Domain Model, Clean Architecture frontend, Eric Evans, Martin Fowler, domain logic separation, React design patterns, frontend architecture, ViewModel separation, Bounded Context"
 locale: en
 translationOf: '260418'
-sourceHash: bbd3d249509318418012792a0d5d87ab445407447555425792535c1d01e89d48
+sourceHash: 660b87cbe239f955599d8c796abc4990000f522521179fc4da3a1af1773a335e
 ---
 
 In this post, I want to talk about the **domain**.
@@ -53,17 +53,7 @@ Each stage of this pipeline is a subdomain with its own rules and data. Within t
 
 Then what is a domain model? How is a domain different from a "domain model"?
 
-Martin Fowler and Eric Evans define a domain model as follows.
-
-::::quote
-:::translation
-An object model of the domain that incorporates both behavior and data. — Martin Fowler
-:::
-
-:::original
-An object model of the domain that incorporates both behavior and data.
-:::
-::::
+[Martin Fowler](https://martinfowler.com/eaaCatalog/domainModel.html) defines a domain model as an object model of the domain that incorporates both behavior and data. Eric Evans goes one step further.
 
 ::::quote
 :::translation

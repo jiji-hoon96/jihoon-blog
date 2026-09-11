@@ -8,7 +8,7 @@ description: "Comparamos los principios y el rendimiento de ZIP, GZIP, ZSTD, Bro
 keywords: "comparativa algoritmos de compresión, GZIP vs ZSTD, tar.gz vs zip, Brotli, LZ77, optimización de compilación frontend, compresión sin pérdida"
 locale: es
 translationOf: "240706"
-sourceHash: 213643b3263c486b07d4348eab5da7154726063eaf52dc0127dfd67d601aadc9
+sourceHash: b0f4cf10e7cb4a7b3147fd1db92aa156f536f0d3b22d0e83fc051ccd96cf3542
 ---
 
 En este artículo quiero hablar sobre los algoritmos de compresión de software.

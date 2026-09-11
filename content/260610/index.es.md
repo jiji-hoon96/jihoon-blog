@@ -8,14 +8,14 @@ description: 'Cómo BPE crea tokens, los embeddings alimentan los LLM, prefill y
 keywords: 'cómo funcionan los tokens LLM, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, coste tokens de entrada y salida, qué es un token de IA'
 locale: es
 translationOf: '260610'
-sourceHash: 'a40bef05afd5f7b4cc1894abc929ced40531509eb954c8e78284fc47b3e4b592'
+sourceHash: 916300304184bd08cac369236fce06eb4d3b01c7d958bc36d63fa6d4b4d9a8b1
 ---
 
 En este artículo quiero explicar qué son en realidad los tokens de IA y cómo funcionan.
 
 Hasta ahora he escrito sobre todo acerca de cómo aprovechar bien las herramientas de IA, cuáles están de moda y por qué. Sin embargo, mientras preparaba el artículo sobre [cómo ahorrar tokens](/260611), volví a reparar en algo: para hablar de reducir costes, primero hay que entender «qué es un token y cómo se factura», pero nunca había explicado con rigor esa base. (Al escribir la guía de ahorro, la parte dedicada al funcionamiento de los tokens creció lo suficiente como para merecer un artículo propio.)
 
-Este texto ofrece, por tanto, los fundamentos antes de entrar en las técnicas de ahorro. Veremos qué es exactamente un token si no es una palabra ni un carácter (BPE), en qué forma entra en el modelo (embedding), por qué la salida cuesta más que la entrada (prefill/decode), de qué parte del Transformer —la arquitectura de la red neuronal— nace el ahorro de prompt caching (KV cache) y por qué un contexto más largo resulta más caro (el coste cuadrático de la atención). Si buscas medidas prácticas, después puedes continuar con [Cómo ahorrar tokens](/260611).
+Este texto ofrece, por tanto, los fundamentos antes de entrar en las técnicas de ahorro. Veremos qué es exactamente un token si no es una palabra ni un carácter (BPE), en qué forma entra en el modelo (embedding), por qué la salida cuesta más que la entrada (prefill/decode), de qué parte del Transformer —la arquitectura de la red neuronal— nace el ahorro de prompt caching (KV cache) y por qué un contexto más largo resulta más caro (el coste cuadrático de la atención). Si buscas medidas prácticas, después puedes continuar con Cómo ahorrar tokens.
 
 ---
 

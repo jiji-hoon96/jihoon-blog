@@ -8,7 +8,7 @@ description: "フロントエンドの視点からドメイン、ドメインモ
 keywords: "フロントエンド ドメインモデル, ドメイン駆動設計, DDD フロントエンド, Frontend DDD, ドメインオブジェクト, Entity Value Object, Anemic Domain Model, 貧血ドメインモデル, Clean Architecture フロントエンド, Eric Evans, Martin Fowler, ドメインロジック分離, React 設計パターン, フロントエンドアーキテクチャ, ViewModel 分離, Bounded Context"
 locale: ja
 translationOf: '260418'
-sourceHash: bbd3d249509318418012792a0d5d87ab445407447555425792535c1d01e89d48
+sourceHash: 660b87cbe239f955599d8c796abc4990000f522521179fc4da3a1af1773a335e
 ---
 
 今回の記事では、**ドメイン（Domain）** について考えてみたい。
@@ -53,17 +53,7 @@ Eric Evansは著書 **Domain-Driven Design: Tackling Complexity in the Heart of 
 
 では、ドメインモデルとは何だろうか？ドメインと「ドメインモデル」はどう違うのだろう？
 
-Martin FowlerとEric Evansは、ドメインモデルを次のように定義している。
-
-::::quote
-:::translation
-振る舞いとデータの両方を含む、ドメインのオブジェクトモデル。— Martin Fowler
-:::
-
-:::original
-An object model of the domain that incorporates both behavior and data.
-:::
-::::
+[Martin Fowler](https://martinfowler.com/eaaCatalog/domainModel.html)は、ドメインモデルを振る舞いとデータの両方を含むドメインのオブジェクトモデルだと定義している。Eric Evansの定義はそこからもう一歩踏み込む。
 
 ::::quote
 :::translation

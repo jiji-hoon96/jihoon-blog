@@ -8,14 +8,14 @@ description: 'How BPE creates tokens, embeddings feed LLMs, prefill and decode s
 keywords: 'how LLM tokens work, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, input output token costs, what is an AI token'
 locale: en
 translationOf: '260610'
-sourceHash: 'a40bef05afd5f7b4cc1894abc929ced40531509eb954c8e78284fc47b3e4b592'
+sourceHash: 916300304184bd08cac369236fce06eb4d3b01c7d958bc36d63fa6d4b4d9a8b1
 ---
 
 In this post, I want to explore what AI tokens actually are and how they work.
 
 Until now, I have mainly written about how to use AI tools effectively, which tools are gaining popularity, and why. But while putting together my guide to [saving tokens](/260611), I was reminded of something important: before explaining how to reduce costs, I first needed to explain what tokens are and how they are billed. Yet I had never properly covered that foundation. (As I wrote the cost-saving guide, the explanation of how tokens work grew substantial enough to become a post of its own.)
 
-This post, then, lays the groundwork before we get into cost-saving techniques. We will go through what tokens actually are if they are neither words nor characters (BPE), what form they take when they enter a model (embeddings), why output is more expensive than input (prefill/decode), where inside the Transformer architecture prompt caching gets its cost advantage (KV cache), and why longer contexts become more expensive (the quadratic cost of attention). If you are looking for practical ways to save, continue with [How to Save Tokens](/260611) after this article.
+This post, then, lays the groundwork before we get into cost-saving techniques. We will go through what tokens actually are if they are neither words nor characters (BPE), what form they take when they enter a model (embeddings), why output is more expensive than input (prefill/decode), where inside the Transformer architecture prompt caching gets its cost advantage (KV cache), and why longer contexts become more expensive (the quadratic cost of attention). If you are looking for practical ways to save, continue with How to Save Tokens after this article.
 
 ---
 

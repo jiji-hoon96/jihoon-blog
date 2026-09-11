@@ -50,17 +50,7 @@ Eric Evans는 그의 저서 **Domain-Driven Design: Tackling Complexity in the H
 
 그렇다면 도메인 모델은 무엇일까? 도메인이랑 "도메인 모델"은 어떻게 다른 것일까?
 
-Martin Fowler와 Eric Evans는 도메인 모델을 이렇게 정의한다.
-
-::::quote
-:::translation
-행위와 데이터를 모두 포함하는 도메인의 객체 모델. — Martin Fowler
-:::
-
-:::original
-An object model of the domain that incorporates both behavior and data.
-:::
-::::
+[Martin Fowler](https://martinfowler.com/eaaCatalog/domainModel.html)는 도메인 모델을 행위와 데이터를 모두 포함하는 도메인의 객체 모델이라고 정의한다. Eric Evans의 정의는 여기서 한 걸음 더 들어간다.
 
 ::::quote
 :::translation

@@ -8,14 +8,14 @@ description: 'Como BPE cria tokens, embeddings alimentam LLMs, prefill e decode 
 keywords: 'como funcionam tokens LLM, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, custo de tokens de entrada e saída, o que é token de IA'
 locale: pt-BR
 translationOf: '260610'
-sourceHash: 'a40bef05afd5f7b4cc1894abc929ced40531509eb954c8e78284fc47b3e4b592'
+sourceHash: 916300304184bd08cac369236fce06eb4d3b01c7d958bc36d63fa6d4b4d9a8b1
 ---
 
 Neste artigo, quero explicar o que são, afinal, os tokens de IA e como eles funcionam.
 
 Até agora, escrevi principalmente sobre como usar bem as ferramentas de IA, quais estão em alta e por quê. Mas, ao preparar o texto sobre [como economizar tokens](/260611), percebi novamente algo importante: para falar em reduzir custos, primeiro é preciso entender “o que é um token e como ele é cobrado”, mas eu nunca havia explicado essa base de forma adequada. (Enquanto escrevia o guia de economia, a parte sobre o funcionamento dos tokens cresceu o bastante para virar um artigo próprio.)
 
-Este texto, portanto, estabelece os fundamentos antes das técnicas de economia. Vamos ver o que exatamente é um token, se não é palavra nem caractere (BPE); em que formato ele entra no modelo (embedding); por que a saída custa mais que a entrada (prefill/decode); de onde, dentro do Transformer — a arquitetura da rede neural — vem a redução de preço do prompt caching (KV cache); e por que um contexto mais longo fica mais caro (o custo quadrático da atenção). Para medidas práticas, depois deste artigo continue em [Como economizar tokens](/260611).
+Este texto, portanto, estabelece os fundamentos antes das técnicas de economia. Vamos ver o que exatamente é um token, se não é palavra nem caractere (BPE); em que formato ele entra no modelo (embedding); por que a saída custa mais que a entrada (prefill/decode); de onde, dentro do Transformer — a arquitetura da rede neural — vem a redução de preço do prompt caching (KV cache); e por que um contexto mais longo fica mais caro (o custo quadrático da atenção). Para medidas práticas, depois deste artigo continue em Como economizar tokens.
 
 ---
 

@@ -8,7 +8,7 @@ description: "梳理 React Error Boundary、try/catch 与 TanStack Query 的 thr
 keywords: "前端错误处理, React Error Boundary, react-error-boundary, TanStack Query throwOnError, React Query 错误处理, 错误边界 reset, try catch 错误, 异步错误处理, React 错误处理"
 locale: zh-CN
 translationOf: '251117'
-sourceHash: 5fe87036a7b9be7cef5da38d592dd86068d3b65d2f19599610dd3ffcd68b556b
+sourceHash: b5b3d46faa22b16584b8851265f733dd9cd3ca7184176b880668836d5ba0bd81
 ---
 
 这篇文章想谈一谈：**在前端，我们该如何捕获错误**。
@@ -679,7 +679,6 @@ export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 ## 参考资料
 
 :::ref
-- [文档] [React：错误边界](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
 - [文档] [TanStack Query：Suspense](https://tanstack.com/query/latest/docs/framework/react/guides/suspense)
 - [文档] [TanStack Query：QueryErrorResetBoundary](https://tanstack.com/query/latest/docs/framework/react/reference/QueryErrorResetBoundary)
 - [文档] [TanStack Query：重要默认配置](https://tanstack.com/query/v5/docs/framework/react/guides/important-defaults)

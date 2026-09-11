@@ -148,7 +148,7 @@ filteredUsers.forEach(user => {
 
 **추상화 수준이 높은 코드**는 비즈니스 도메인이나 문제 영역의 언어로 표현된 코드이다. `processPayment(order)`, `sendNotification(user, message)`, `validateUserInput(formData)` 같은 것들이 있다. 추상화 수준이 높은 코드는 **무엇을(What)** 하는지가 드러나 있고, 어떻게 하는지는 감춰져 있다.
 
-Robert C. Martin은 *Clean Code*에서 이 개념을 **"함수당 하나의 추상화 수준(One Level of Abstraction per Function)"** 이라는 원칙으로 정리했다. 하나의 함수 안에 높은 수준과 낮은 수준의 코드가 섞여 있으면, 읽는 사람은 "이게 핵심 로직인가, 아니면 세부 구현인가?"를 매 줄마다 판단해야 하기 때문이다.
+Robert C. Martin은 『Clean Code』에서 이 개념을 **"함수당 하나의 추상화 수준(One Level of Abstraction per Function)"** 이라는 원칙으로 정리했다. 하나의 함수 안에 높은 수준과 낮은 수준의 코드가 섞여 있으면, 읽는 사람은 "이게 핵심 로직인가, 아니면 세부 구현인가?"를 매 줄마다 판단해야 하기 때문이다.
 
 실제 코드로 보면 이 문제가 명확해진다.
 
@@ -210,7 +210,7 @@ async function registerUser(name: string, email: string, password: string) {
 
 Martin은 이것을 **"내리막 규칙(The Stepdown Rule)"** 이라고도 부른다. 코드를 위에서 아래로 읽을 때, 마치 신문 기사처럼 위에는 큰 그림이, 아래로 내려갈수록 세부사항이 나와야 한다는 것이다.
 
-Kent Beck도 *Smalltalk Best Practice Patterns*에서 동일한 원칙을 **Composed Method 패턴**으로 제시했다. 하나의 메서드는 같은 추상화 수준의 작업들로만 구성되어야하고, 각 단계는 한 줄의 메서드 호출로 표현되어야 한다는 것이다.
+Kent Beck도 『Smalltalk Best Practice Patterns』에서 동일한 원칙을 **Composed Method 패턴**으로 제시했다. 하나의 메서드는 같은 추상화 수준의 작업들로만 구성되어야하고, 각 단계는 한 줄의 메서드 호출로 표현되어야 한다는 것이다.
 
 결국 이 모든 이야기가 하나로 귀결된다. **하나의 함수는 하나의 추상화 수준에서만 이야기해야 한다.** 이것만 지켜도 코드의 가독성은 눈에 띄게 달라진다.
 
@@ -357,7 +357,7 @@ function registerUser(form: RegistrationForm): Promise<User>;
 function refundPayment(orderId: OrderId, amount: Money): Promise<Refund>;
 ```
 
-Robert C. Martin은 *Clean Code*에서 이에 대해 **"짧고 수수께끼 같은 이름보다 길고 서술적인 이름이 낫다"** 고 말했다. 또한 **"하나의 개념에는 하나의 단어를 사용하라"** 는 원칙도 제시했는데, 같은 맥락의 동작에 `fetch`, `retrieve`, `get`을 혼용하면 읽는 사람이 "이 셋이 다른 동작인가?"라고 혼란을 겪게 되기 때문이다.
+Robert C. Martin은 『Clean Code』에서 이에 대해 **"짧고 수수께끼 같은 이름보다 길고 서술적인 이름이 낫다"** 고 말했다. 또한 **"하나의 개념에는 하나의 단어를 사용하라"** 는 원칙도 제시했는데, 같은 맥락의 동작에 `fetch`, `retrieve`, `get`을 혼용하면 읽는 사람이 "이 셋이 다른 동작인가?"라고 혼란을 겪게 되기 때문이다.
 
 이 원칙은 React 컴포넌트와 훅의 네이밍에도 그대로 적용된다.
 

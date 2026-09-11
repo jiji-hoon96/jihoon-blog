@@ -8,7 +8,7 @@ description: "フロントエンドにおける抽象化とは何か、良い抽
 keywords: "フロントエンド抽象化, Reactコンポーネント抽象化, Clean Code抽象化, 抽象化レベル, Level of Abstraction, 良いコードの書き方, 意図が伝わる名前, Composed Method, 漏れのある抽象化の法則, コンポーネント設計, カスタムフック設計, フロントエンドアーキテクチャ, Kent Beck, Robert C. Martin"
 locale: ja
 translationOf: '260201'
-sourceHash: a19f7d199082c8401de3022b2afebf86096cd412b02855dd88544bd611d4ce53
+sourceHash: 5efbefc3d64dc594438caaa486c232919b92fc74e1211a9ba56fa124dbcef0c4
 ---
 
 今回の記事では、プログラミングにおける抽象化と、抽象化の観点から良いコードを書く方法について考えてみたい。

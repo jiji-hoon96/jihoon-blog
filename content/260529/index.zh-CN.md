@@ -5,7 +5,7 @@ seoTitle: 'AI 编程智能体工具全景图: Markdown 文件、MCP、代码智�
 date: '2026-05-29'
 locale: zh-CN
 translationOf: '260529'
-sourceHash: f3263657aa0fd5463a3b16f7de0009fc1447e339bec1ee0a78aa9e711f8e5fec
+sourceHash: ac8d0775527258419f065e36b7d027f1a185e5fb48adb397eceacd38c8ae7a48
 categories: AI 开发工具 Claude MCP CodeGraph
 description: '从四个角度梳理使用 Claude 进行前端开发时遇到的工具：CLAUDE.md、AGENTS.md 与 SKILL.md 的区别，MCP 的原理，Serena、CodeGraph 等代码智能工具的工作方式，以及如何阅读 GitHub Trending。'
 keywords: 'CLAUDE.md, AGENTS.md, SKILL.md, MCP, Model Context Protocol, Serena MCP, CodeGraph, 代码智能, GitHub Trending, AI 编程智能体, Claude Code, Cursor rules, tree-sitter, LSP'

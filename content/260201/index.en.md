@@ -8,7 +8,7 @@ description: "What abstraction means in frontend and how good abstractions diffe
 keywords: "frontend abstraction, React component abstraction, Clean Code abstraction, level of abstraction, Level of Abstraction, writing good code, intention-revealing names, Composed Method, Law of Leaky Abstractions, component design, custom hook design, frontend architecture, Kent Beck, Robert C. Martin"
 locale: en
 translationOf: '260201'
-sourceHash: a19f7d199082c8401de3022b2afebf86096cd412b02855dd88544bd611d4ce53
+sourceHash: 5efbefc3d64dc594438caaa486c232919b92fc74e1211a9ba56fa124dbcef0c4
 ---
 
 In this post, I want to talk about abstraction in programming and how to write good code from the perspective of abstraction.

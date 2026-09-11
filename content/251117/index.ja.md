@@ -8,7 +8,7 @@ description: "React Error Boundary、try/catch、TanStack Query の throwOnError
 keywords: "フロントエンドのエラーハンドリング, React Error Boundary, react-error-boundary, TanStack Query throwOnError, React Query のエラー処理, Error Boundary のリセット, try catch エラー, 非同期エラー処理, React のエラーハンドリング"
 locale: ja
 translationOf: '251117'
-sourceHash: 5fe87036a7b9be7cef5da38d592dd86068d3b65d2f19599610dd3ffcd68b556b
+sourceHash: b5b3d46faa22b16584b8851265f733dd9cd3ca7184176b880668836d5ba0bd81
 ---
 
 今回は、**フロントエンドでエラーをどう捉えるか**について考えてみたい。
@@ -679,7 +679,6 @@ export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 ## 参考資料
 
 :::ref
-- [ドキュメント] [React、Error Boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
 - [ドキュメント] [TanStack Query、Suspense](https://tanstack.com/query/latest/docs/framework/react/guides/suspense)
 - [ドキュメント] [TanStack Query、QueryErrorResetBoundary](https://tanstack.com/query/latest/docs/framework/react/reference/QueryErrorResetBoundary)
 - [ドキュメント] [TanStack Query、重要なデフォルト設定](https://tanstack.com/query/v5/docs/framework/react/guides/important-defaults)

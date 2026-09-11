@@ -310,7 +310,7 @@ Serena가 빠르게 채택된 진짜 이유는 **토큰 절약**이다. 텍스�
 
 **code2prompt**(Mufeed VH 제작)는 Rust 기반 CLI로, 템플릿 시스템을 통한 커스터마이징에 강점이 있다.
 
-흥미로운 변종으로 **rtk**(`rtk-ai/rtk`, 약 55k stars)도 짚어둘 만하다. 위 도구들이 "레포 전체를 한 번에 패킹"한다면, rtk는 **CLI 명령의 출력 자체를 실시간으로 압축**하는 도구다. Rust로 만든 단일 바이너리인데, Claude Code·Cursor·Copilot·Gemini CLI·Codex 등 13개 도구의 shell hook에 자동 등록되어 에이전트가 `git status`를 호출하면 내부적으로 `rtk git status`로 rewrite한다. (사용자가 워크플로를 바꿀 필요가 없는 게 핵심 차별점이다.) 100개 이상의 명령에 대해 smart filtering·grouping·truncation·deduplication 휴리스틱을 적용해서 출력 토큰을 60~90% 줄여준다. 공식 사이트의 한 줄이 이 카테고리를 잘 요약한다 — *"70% of your bill is noise the LLM doesn't need."* 위 도구들이 "들어가는 컨텍스트"의 양을 줄이는 쪽이라면, rtk는 "tool call 결과로 돌아오는 컨텍스트"의 양을 줄이는 쪽이다.
+흥미로운 변종으로 **rtk**(`rtk-ai/rtk`, 약 55k stars)도 짚어둘 만하다. 위 도구들이 "레포 전체를 한 번에 패킹"한다면, rtk는 **CLI 명령의 출력 자체를 실시간으로 압축**하는 도구다. Rust로 만든 단일 바이너리인데, Claude Code·Cursor·Copilot·Gemini CLI·Codex 등 13개 도구의 shell hook에 자동 등록되어 에이전트가 `git status`를 호출하면 내부적으로 `rtk git status`로 rewrite한다. (사용자가 워크플로를 바꿀 필요가 없는 게 핵심 차별점이다.) 100개 이상의 명령에 대해 smart filtering·grouping·truncation·deduplication 휴리스틱을 적용해서 출력 토큰을 60~90% 줄여준다. 공식 사이트의 한 줄이 이 카테고리를 잘 요약한다. "70% of your bill is noise the LLM doesn't need." 위 도구들이 "들어가는 컨텍스트"의 양을 줄이는 쪽이라면, rtk는 "tool call 결과로 돌아오는 컨텍스트"의 양을 줄이는 쪽이다.
 
 다만 이 계층의 한계는 명확하다. **대형 레포는 토큰 한도에 걸린다.** 그리고 코드를 "텍스트 덩어리"로만 전달할 뿐, 심볼 간 관계나 구조적 이해는 없다.
 

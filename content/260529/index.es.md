@@ -8,7 +8,7 @@ description: "Mapa práctico de herramientas para agentes de IA: CLAUDE.md, AGEN
 keywords: 'CLAUDE.md, AGENTS.md, SKILL.md, MCP, Model Context Protocol, Serena MCP, CodeGraph, inteligencia de código, GitHub Trending, agente de codificación con IA, Claude Code, Cursor rules, tree-sitter, LSP'
 locale: es
 translationOf: '260529'
-sourceHash: f3263657aa0fd5463a3b16f7de0009fc1447e339bec1ee0a78aa9e711f8e5fec
+sourceHash: ac8d0775527258419f065e36b7d027f1a185e5fb48adb397eceacd38c8ae7a48
 ---
 
 En esta publicación quiero hablar sobre el **ecosistema de herramientas que rodea a los agentes de codificación con IA**.

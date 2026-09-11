@@ -8,7 +8,7 @@ description: "How React Error Boundaries, try/catch, and TanStack Query throwOnE
 keywords: "frontend error handling, React Error Boundary, react-error-boundary, TanStack Query throwOnError, React Query error handling, Error Boundary reset, try catch errors, asynchronous error handling, React error handling"
 locale: en
 translationOf: '251117'
-sourceHash: 5fe87036a7b9be7cef5da38d592dd86068d3b65d2f19599610dd3ffcd68b556b
+sourceHash: b5b3d46faa22b16584b8851265f733dd9cd3ca7184176b880668836d5ba0bd81
 ---
 
 In this post, I want to discuss **how to catch errors on the frontend**.
@@ -679,7 +679,6 @@ I encourage readers to examine their own projects and ask, "Which errors does ou
 ## References
 
 :::ref
-- [docs] [React, Error Boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
 - [docs] [TanStack Query, Suspense](https://tanstack.com/query/latest/docs/framework/react/guides/suspense)
 - [docs] [TanStack Query, QueryErrorResetBoundary](https://tanstack.com/query/latest/docs/framework/react/reference/QueryErrorResetBoundary)
 - [docs] [TanStack Query, Important Defaults](https://tanstack.com/query/v5/docs/framework/react/guides/important-defaults)

@@ -8,7 +8,7 @@ description: "Dominio, modelo de dominio y objeto de dominio desde el frontend: 
 keywords: "modelo de dominio en frontend, diseño guiado por el dominio, DDD en frontend, Frontend DDD, objeto de dominio, Entity Value Object, Anemic Domain Model, modelo de dominio anémico, Clean Architecture en frontend, Eric Evans, Martin Fowler, separación de lógica de dominio, patrones de diseño en React, arquitectura frontend, separación del ViewModel, Bounded Context"
 locale: es
 translationOf: '260418'
-sourceHash: bbd3d249509318418012792a0d5d87ab445407447555425792535c1d01e89d48
+sourceHash: 660b87cbe239f955599d8c796abc4990000f522521179fc4da3a1af1773a335e
 ---
 
 En este artículo quiero hablar del **dominio (Domain)**.
@@ -53,17 +53,7 @@ Cada etapa de este flujo constituye un subdominio con reglas y datos propios. De
 
 Entonces, ¿qué es un modelo de dominio? ¿En qué se diferencia el dominio del «modelo de dominio»?
 
-Martin Fowler y Eric Evans definen el modelo de dominio de la siguiente manera.
-
-::::quote
-:::translation
-Un modelo de objetos del dominio que incorpora tanto comportamiento como datos. — Martin Fowler
-:::
-
-:::original
-An object model of the domain that incorporates both behavior and data.
-:::
-::::
+[Martin Fowler](https://martinfowler.com/eaaCatalog/domainModel.html) define el modelo de dominio como un modelo de objetos del dominio que incorpora tanto comportamiento como datos. La definición de Eric Evans va un paso más allá.
 
 ::::quote
 :::translation
