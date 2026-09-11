@@ -1,12 +1,12 @@
 ---
 emoji: 🛠️
 title: 'Toss Frontend Fundamentals 模拟考试第 2 期重构复盘'
-seoTitle: 'Toss Frontend Fundamentals 模拟考试第 2 期重构——拆分组件与提取领域逻辑'
+seoTitle: 'Toss Frontend Fundamentals 模拟考试第 2 期重构: 拆分组件与提取领域逻辑'
 date: '2026-03-28'
 categories: 前端 React 重构
 locale: zh-CN
 translationOf: '260328'
-sourceHash: e86e832b1598fe8ec2aadc4afd0647977190316292f2adb0fd1d520f28953ab4
+sourceHash: 7181f3bbbeacbdaa5d74c5e2910bfe3ff3e82df8d636a913e25019a03ff92c61
 description: "分享参加 Toss Frontend Fundamentals 模拟考试第 2 期时重构会议室预订应用的经历，并梳理单体组件拆分、领域逻辑提取以及基于测试的重构过程。"
 keywords: "Toss Frontend Fundamentals, 前端重构, React 组件拆分, 代码审查, Toss 模拟考试, 前端设计"
 ---

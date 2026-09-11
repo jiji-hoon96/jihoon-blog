@@ -1,14 +1,14 @@
 ---
 emoji: 🧩
 title: "ドメインモデル"
-seoTitle: "フロントエンドにおけるドメインモデル設計ガイド — DDD実践記"
+seoTitle: "フロントエンドにおけるドメインモデル設計ガイド: DDD実践記"
 date: "2026-04-18"
 categories: フロントエンド アーキテクチャ DDD
 description: "フロントエンドの視点からドメイン、ドメインモデル、ドメインオブジェクトの概念を整理し、EntityとValue Object、貧血ドメインモデル、ViewModelの分離まで扱う。総合所得税ドメインの例を通じて、Reactでドメインロジックを分離する実践的な方法を解説する。"
 keywords: "フロントエンド ドメインモデル, ドメイン駆動設計, DDD フロントエンド, Frontend DDD, ドメインオブジェクト, Entity Value Object, Anemic Domain Model, 貧血ドメインモデル, Clean Architecture フロントエンド, Eric Evans, Martin Fowler, ドメインロジック分離, React 設計パターン, フロントエンドアーキテクチャ, ViewModel 分離, Bounded Context"
 locale: ja
 translationOf: '260418'
-sourceHash: a1d3e0f7ef15a579dbf42aa51384cdd5203c46ecd7905a9859da49208df8e961
+sourceHash: bbd3d249509318418012792a0d5d87ab445407447555425792535c1d01e89d48
 ---
 
 今回の記事では、**ドメイン（Domain）** について考えてみたい。

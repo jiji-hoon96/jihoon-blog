@@ -1,11 +1,11 @@
 ---
 emoji: 🧭
 title: 'AIエージェントツール'
-seoTitle: 'AIコーディングエージェントのツール地図 — mdファイル、MCP、コードインテリジェンス、GitHub Trending'
+seoTitle: 'AIコーディングエージェントのツール地図: mdファイル、MCP、コードインテリジェンス、GitHub Trending'
 date: '2026-05-29'
 locale: ja
 translationOf: '260529'
-sourceHash: dcdf13a2067a0ae15b501b063ecf0c65202580351b7df388dad34849f41e1c3c
+sourceHash: c2f173df030c75f1a4dcb1328c640828dce6103e6b19e917c73376ea6d4e753c
 categories: AI 開発ツール Claude MCP CodeGraph
 description: 'Claudeを使ったフロントエンド開発で出会ったツールを、4つの視点から整理する。CLAUDE.md・AGENTS.md・SKILL.mdの違い、MCPの仕組みとSerena、CodeGraphなどコードインテリジェンスツールの動作原理、GitHub Trendingの読み方まで解説。'
 keywords: 'CLAUDE.md, AGENTS.md, SKILL.md, MCP, Model Context Protocol, Serena MCP, CodeGraph, コードインテリジェンス, GitHub Trending, AIコーディングエージェント, Claude Code, Cursor rules, tree-sitter, LSP'

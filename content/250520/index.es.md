@@ -1,12 +1,12 @@
 ---
 emoji: ⚛️
 title: 'React Fiber al completo'
-seoTitle: 'React Fiber al completo — análisis de su arquitectura y del renderizado concurrente'
+seoTitle: "React Fiber: arquitectura y renderizado concurrente"
 date: '2025-05-20'
 categories: frontend React
 locale: es
 translationOf: '250520'
-sourceHash: da152b27d26e4621cb1e554cd3d68e531f794e86f395ef9ee35e851f1f0aeff8
+sourceHash: 03b03964ecc49416cd4094fe6c75a2d33aa0e26153fcf9434f153632965e641c
 description: "Análisis profundo de la arquitectura de React Fiber a partir del código fuente de React: desde Stack Reconciler hasta la prioridad por Lanes, el doble búfer, el scheduler basado en MessageChannel y las Concurrent Features. Un tema habitual en entrevistas de frontend."
 keywords: "React Fiber, arquitectura de React Fiber, Stack Reconciler, Concurrent Mode, concurrencia en React 18, useTransition, useDeferredValue, Suspense, renderizado de React, análisis del código fuente de React, Virtual DOM, Reconciliation, prioridad por Lanes, entrevista de frontend"
 ---

@@ -8,7 +8,7 @@ description: "ZIP、GZIP、ZSTD、Brotliなど主要な圧縮形式の原理と�
 keywords: "圧縮アルゴリズム比較, GZIP vs ZSTD, tar.gz vs zip, Brotli, LZ77, フロントエンドビルド最適化, 可逆圧縮"
 locale: ja
 translationOf: "240706"
-sourceHash: "f22dd067bdfcbcb307ebd4df15776267b07fc845a1d9909b7aeee26c73e24d16"
+sourceHash: 213643b3263c486b07d4348eab5da7154726063eaf52dc0127dfd67d601aadc9
 ---
 
 今回は、ソフトウェアの圧縮アルゴリズムについて話してみたい。

@@ -1,14 +1,14 @@
 ---
 emoji: 🤯
 title: 'Zustand，你到底为什么是 ProviderLess？'
-seoTitle: '为什么 Zustand 不需要 Provider — 基于 useSyncExternalStore 的运行原理分析'
+seoTitle: '为什么 Zustand 不需要 Provider: 基于 useSyncExternalStore 的运行原理分析'
 date: '2024-08-18'
 categories: 前端 React
 description: "通过源码分析深入探究 Zustand 无需 Provider 即可管理状态的原理，以及它与 React Context API 的区别和基于模块作用域的设计。"
 keywords: "Zustand 原理, Zustand 不需要 Provider 的原因, React 状态管理库, Zustand 源码分析, useSyncExternalStore, React Context API"
 locale: zh-CN
 translationOf: '240818'
-sourceHash: 7e4c03efdbf0b5dead93870b853fa5c987ebfd96bb765663ebb98da138417e85
+sourceHash: 91250499c0cdecf71d9c15c2ccdd1ecb7e81d019b227a50af06d268d7a9d8a40
 ---
 
 这篇文章想聊一聊 Zustand 是如何在没有 Provider 的情况下完成状态管理的。

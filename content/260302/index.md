@@ -1,7 +1,7 @@
 ---
 emoji: 🤖
 title: 'AI 프론트엔드 엔지니어'
-seoTitle: 'AI 시대, 프론트엔드 엔지니어로 살아남는 법 : 검증·명세·판단력 새 역량'
+seoTitle: 'AI 시대, 프론트엔드 엔지니어로 살아남는 법: 검증·명세·판단력 새 역량'
 date: '2026-03-02'
 categories: 프론트엔드 커리어 AI
 description: 'AI가 코드를 대신 짜는 시대, 프론트엔드 엔지니어는 어떻게 성장하고 살아남을 수 있을까? Karpathy의 agentic engineering, Vercel v0, Stack Overflow Survey, METR 연구 등 검증된 자료를 바탕으로 검증·명세·판단력 중심의 새로운 역량과 학습 전략을 정리한다.'

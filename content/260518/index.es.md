@@ -1,14 +1,14 @@
 ---
 emoji: 🧠
 title: "Gestión del estado"
-seoTitle: "Criterio para gestionar el estado en frontend: 7 categorías y principios de diseño en React"
+seoTitle: "Estado en frontend: 7 categorías y diseño en React"
 date: "2026-05-18"
 categories: frontend gestión-del-estado React arquitectura
-description: "La gestión del estado es una de las tareas más complejas del frontend. Clasificamos el estado en siete categorías —local, global, de servidor, de formulario, de URL, externo y guards— y presentamos cuatro criterios para elegir herramientas y modelar correctamente: Single Source of Truth, eliminación de estados imposibles y State Colocation, entre otros."
+description: "La gestión del estado es una de las tareas más complejas del frontend. Clasificamos el estado en siete categorías: local, global, de servidor, de formulario, de URL, externo y guards: y presentamos cuatro criterios para elegir herramientas y modelar correctamente: Single Source of Truth, eliminación de estados imposibles y State Colocation, entre otros."
 keywords: "gestión del estado frontend, gestión del estado React, comparativa Zustand Jotai, TanStack Query, Server State Client State, State Colocation, Single Source of Truth, React 19 useOptimistic"
 locale: es
 translationOf: '260518'
-sourceHash: 7d2f8d18c54ae7f00c5922a4cb5cd7237792e4fce04be90a498fcdbaca0e3b41
+sourceHash: 496c69b05e1e1cbeadd0886cd6b0c63bd6854beb483d12f78ad309430766d43b
 ---
 
 En esta publicación quiero hablar sobre la **gestión del estado (State Management)**. No es una comparativa de librerías. Más que decidir qué herramienta es mejor, el objetivo es ordenar el criterio con el que **entendemos el estado** y determinamos **dónde trazar sus límites**.

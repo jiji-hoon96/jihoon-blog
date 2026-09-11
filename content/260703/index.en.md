@@ -1,7 +1,7 @@
 ---
 emoji: 🔭
 title: 'Observability'
-seoTitle: 'Observability Added with AI: Sentry Server Instrumentation, Silent Failures, and Core Web Vitals'
+seoTitle: "Observability with AI: Sentry, Silent Failures, Web Vitals"
 date: '2026-07-03'
 categories: observability frontend Sentry reliability
 description: 'I had long used Sentry at work, yet my personal blog had no error monitoring. This post records what I encountered while adding instrumentation with AI: failures hidden behind 200 responses, gray failure, a GA call hanging for 65 seconds, and even search data.'

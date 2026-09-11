@@ -1,7 +1,7 @@
 ---
 emoji: ⚛️
 title: 'React Fiber 완전 정복'
-seoTitle: 'React Fiber 완전 정복 — 아키텍처와 동시성 렌더링 원리 분석'
+seoTitle: 'React Fiber 완전 정복: 아키텍처와 동시성 렌더링 원리 분석'
 date: '2025-05-20'
 categories: 프론트엔드 React
 description: "React Fiber 아키텍처를 Stack Reconciler부터 Lane 우선순위, 더블 버퍼링, MessageChannel 스케줄러, Concurrent Features까지 React 소스코드 기반으로 깊이 분석한다. 프론트엔드 면접 단골 주제."

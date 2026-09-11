@@ -1,14 +1,14 @@
 ---
 emoji: 🧩
 title: "抽象"
-seoTitle: "前端抽象——编写好代码的设计原则"
+seoTitle: "前端抽象: 编写好代码的设计原则"
 date: "2026-02-01"
 categories: 前端 设计 抽象
 description: "前端开发中的抽象是什么，好的抽象与坏的抽象有何不同。本文从 React 组件与函数设计的角度，梳理抽象层级、揭示意图的命名以及部件组合方式。"
 keywords: "前端抽象, React 组件抽象, Clean Code 抽象, 抽象层级, 抽象层次, 编写好代码的方法, 揭示意图的命名, 组合方法模式, 抽象泄漏定律, 组件设计, 自定义 hook 设计, 前端架构, Kent Beck, Robert C. Martin"
 locale: zh-CN
 translationOf: '260201'
-sourceHash: 961247e1971eb4b679afa09b9c66891f16680b46208db88a15e5bb55f86e3e51
+sourceHash: a19f7d199082c8401de3022b2afebf86096cd412b02855dd88544bd611d4ce53
 ---
 
 这篇文章想谈谈编程中的抽象，以及如何从抽象的角度写出好代码。

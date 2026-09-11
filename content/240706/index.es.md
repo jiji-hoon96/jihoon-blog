@@ -1,14 +1,14 @@
 ---
 emoji: 🗜️
 title: "Cómo funcionan los algoritmos de compresión"
-seoTitle: "Comparativa de compresión: GZIP, Zstandard, Brotli y los fundamentos de LZ77"
+seoTitle: "Compresión comparada: GZIP, Zstandard, Brotli y LZ77"
 date: "2024-07-06"
 categories: curiosidades software
 description: "Comparamos los principios y el rendimiento de ZIP, GZIP, ZSTD, Brotli y otros formatos, desde LZ77 hasta la mejor opción para artefactos de compilación."
 keywords: "comparativa algoritmos de compresión, GZIP vs ZSTD, tar.gz vs zip, Brotli, LZ77, optimización de compilación frontend, compresión sin pérdida"
 locale: es
 translationOf: "240706"
-sourceHash: "f22dd067bdfcbcb307ebd4df15776267b07fc845a1d9909b7aeee26c73e24d16"
+sourceHash: 213643b3263c486b07d4348eab5da7154726063eaf52dc0127dfd67d601aadc9
 ---
 
 En este artículo quiero hablar sobre los algoritmos de compresión de software.

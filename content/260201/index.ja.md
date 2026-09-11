@@ -1,14 +1,14 @@
 ---
 emoji: 🧩
 title: "抽象化"
-seoTitle: "フロントエンドの抽象化 — 良いコードのための設計原則"
+seoTitle: "フロントエンドの抽象化: 良いコードのための設計原則"
 date: "2026-02-01"
 categories: フロントエンド 設計 抽象化
 description: "フロントエンドにおける抽象化とは何か、良い抽象化と悪い抽象化はどう違うのか。抽象化レベル、意図が伝わる名前、部品を組み立てるアプローチを、Reactコンポーネントと関数設計の観点から整理する。"
 keywords: "フロントエンド抽象化, Reactコンポーネント抽象化, Clean Code抽象化, 抽象化レベル, Level of Abstraction, 良いコードの書き方, 意図が伝わる名前, Composed Method, 漏れのある抽象化の法則, コンポーネント設計, カスタムフック設計, フロントエンドアーキテクチャ, Kent Beck, Robert C. Martin"
 locale: ja
 translationOf: '260201'
-sourceHash: 961247e1971eb4b679afa09b9c66891f16680b46208db88a15e5bb55f86e3e51
+sourceHash: a19f7d199082c8401de3022b2afebf86096cd412b02855dd88544bd611d4ce53
 ---
 
 今回の記事では、プログラミングにおける抽象化と、抽象化の観点から良いコードを書く方法について考えてみたい。

@@ -1,14 +1,14 @@
 ---
 emoji: 🛡️
 title: 'Error Handling'
-seoTitle: 'Frontend Error Handling — A Guide to Combining Error Boundaries with TanStack Query throwOnError'
+seoTitle: "Frontend Error Handling: Error Boundary and throwOnError"
 date: '2025-11-17'
 categories: frontend React TanStack-Query error-handling
 description: "This article explains the responsibilities of React Error Boundaries, try/catch, and TanStack Query's throwOnError, and how they work together. It distinguishes render-phase errors from asynchronous errors and covers how reset works in react-error-boundary."
 keywords: "frontend error handling, React Error Boundary, react-error-boundary, TanStack Query throwOnError, React Query error handling, Error Boundary reset, try catch errors, asynchronous error handling, React error handling"
 locale: en
 translationOf: '251117'
-sourceHash: 688aa8b21e8068e6d24e46e383d3dddbb24778dff87c065c19b3489cff0380fa
+sourceHash: 5fe87036a7b9be7cef5da38d592dd86068d3b65d2f19599610dd3ffcd68b556b
 ---
 
 In this post, I want to discuss **how to catch errors on the frontend**.

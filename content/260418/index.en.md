@@ -1,14 +1,14 @@
 ---
 emoji: 🧩
 title: "Domain Models"
-seoTitle: "A Guide to Frontend Domain Model Design — Applying DDD"
+seoTitle: "A Guide to Frontend Domain Model Design: Applying DDD"
 date: "2026-04-18"
 categories: frontend Architecture DDD
 description: "A frontend-focused guide to domains, domain models, and domain objects, covering Entities, Value Objects, the Anemic Domain Model, and separating ViewModels. Learn practical ways to separate domain logic in React through a comprehensive income tax example."
 keywords: "frontend domain model, domain-driven design, frontend DDD, Frontend DDD, Domain Object, Entity Value Object, Anemic Domain Model, Clean Architecture frontend, Eric Evans, Martin Fowler, domain logic separation, React design patterns, frontend architecture, ViewModel separation, Bounded Context"
 locale: en
 translationOf: '260418'
-sourceHash: a1d3e0f7ef15a579dbf42aa51384cdd5203c46ecd7905a9859da49208df8e961
+sourceHash: bbd3d249509318418012792a0d5d87ab445407447555425792535c1d01e89d48
 ---
 
 In this post, I want to talk about the **domain**.

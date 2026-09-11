@@ -1,14 +1,14 @@
 ---
 emoji: 🤖
 title: 'The AI Frontend Engineer'
-seoTitle: 'How Frontend Engineers Can Survive the AI Era: New Skills in Verification, Specification, and Judgment'
+seoTitle: "Surviving the AI Era as a Frontend Engineer: New Skills"
 date: '2026-03-02'
 categories: frontend career AI
 description: 'In an era when AI writes code for us, how can frontend engineers grow and survive? Drawing on verified sources including Karpathy’s agentic engineering, Vercel v0, the Stack Overflow Survey, and METR research, this article outlines the new skills and learning strategies centered on verification, specification, and judgment.'
 keywords: 'frontend in the AI era, developers in the AI era, vibe coding, agentic engineering, AI coding tools, Product Engineer, frontend career roadmap'
 locale: en
 translationOf: '260302'
-sourceHash: 8622877ee90352b24b0ec5131450def442d07449b2b669894ba2f674c2508509
+sourceHash: 31b528ec645dc672b413c2e78701b778b0bfd42cfce9b3817fcb3f36cd0dea2f
 ---
 
 In this post, I want to share my personal perspective on **how engineers can grow and survive alongside AI**.

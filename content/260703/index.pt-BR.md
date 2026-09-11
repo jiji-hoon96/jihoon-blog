@@ -1,7 +1,7 @@
 ---
 emoji: 🔭
 title: 'Observabilidade'
-seoTitle: 'Observabilidade com AI: instrumentação do Sentry no servidor, falhas silenciosas e Core Web Vitals'
+seoTitle: "Observabilidade com IA: Sentry, falhas silenciosas e Vitals"
 date: '2026-07-03'
 categories: observabilidade frontend Sentry confiabilidade
 description: 'Eu usava Sentry no trabalho, mas meu blog pessoal não tinha monitoramento de erros. Reúno aqui o que encontrei ao adicionar instrumentação com AI: falhas escondidas atrás de respostas 200, gray failure, uma chamada ao GA presa por 65 segundos e até dados de pesquisa.'

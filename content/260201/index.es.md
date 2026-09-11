@@ -1,14 +1,14 @@
 ---
 emoji: 🧩
 title: "Abstracción"
-seoTitle: "Abstracción en frontend — principios de diseño para escribir buen código"
+seoTitle: "Abstracción en frontend: principios de buen diseño"
 date: "2026-02-01"
 categories: frontend diseño abstracción
 description: "Qué es la abstracción en frontend y en qué se diferencian una buena y una mala abstracción. Un repaso, desde el diseño de componentes y funciones de React, por los niveles de abstracción, los nombres que revelan la intención y la composición de piezas."
 keywords: "abstracción en frontend, abstracción de componentes React, abstracción en Clean Code, nivel de abstracción, Level of Abstraction, cómo escribir buen código, nombres que revelan la intención, Composed Method, ley de las abstracciones con fugas, diseño de componentes, diseño de hooks personalizados, arquitectura frontend, Kent Beck, Robert C. Martin"
 locale: es
 translationOf: '260201'
-sourceHash: 961247e1971eb4b679afa09b9c66891f16680b46208db88a15e5bb55f86e3e51
+sourceHash: a19f7d199082c8401de3022b2afebf86096cd412b02855dd88544bd611d4ce53
 ---
 
 En este artículo quiero hablar de la abstracción en programación y de cómo escribir buen código desde la perspectiva de la abstracción.

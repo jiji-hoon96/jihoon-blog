@@ -1,14 +1,14 @@
 ---
 emoji: 🛡️
 title: 'エラーハンドリング'
-seoTitle: 'フロントエンドのエラーハンドリング — Error Boundary と TanStack Query の throwOnError を組み合わせるためのガイド'
+seoTitle: "フロントエンドのエラーハンドリング: Error Boundary と throwOnError"
 date: '2025-11-17'
 categories: フロントエンド React TanStack-Query エラーハンドリング
 description: "React Error Boundary、try/catch、TanStack Query の throwOnError がそれぞれどこまでを担い、どう組み合わせるのかを整理する。レンダー段階のエラーと非同期エラーを区別し、react-error-boundary のリセットの仕組みまで解説する。"
 keywords: "フロントエンドのエラーハンドリング, React Error Boundary, react-error-boundary, TanStack Query throwOnError, React Query のエラー処理, Error Boundary のリセット, try catch エラー, 非同期エラー処理, React のエラーハンドリング"
 locale: ja
 translationOf: '251117'
-sourceHash: 688aa8b21e8068e6d24e46e383d3dddbb24778dff87c065c19b3489cff0380fa
+sourceHash: 5fe87036a7b9be7cef5da38d592dd86068d3b65d2f19599610dd3ffcd68b556b
 ---
 
 今回は、**フロントエンドでエラーをどう捉えるか**について考えてみたい。

@@ -1,7 +1,7 @@
 ---
 emoji: 🧭
 title: 'Engenharia de Harness (Sistemas)'
-seoTitle: 'Agentes de IA depois do contexto: design de harness, eval e containment'
+seoTitle: "Agentes de IA após o contexto: harness, eval e containment"
 date: '2026-06-22'
 categories: IA Agentes
 description: 'Do prompt ao context engineering: o que vem depois? A partir das tendências recentes do blog de engenharia da Anthropic, este artigo conecta a economia de tokens a três direções: design de harness, eval e containment (isolamento).'

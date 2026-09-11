@@ -1,14 +1,14 @@
 ---
 emoji: 🛡️
 title: 'Tratamento de erros'
-seoTitle: 'Tratamento de erros no frontend — guia para combinar Error Boundary e throwOnError do TanStack Query'
+seoTitle: "Erros no frontend: Error Boundary e throwOnError"
 date: '2025-11-17'
 categories: frontend React TanStack-Query tratamento-de-erros
 description: "Uma análise de até onde vão as responsabilidades de React Error Boundary, try/catch e throwOnError do TanStack Query, e de como combiná-los. O texto diferencia erros de renderização e erros assíncronos e explica até o funcionamento interno do reset em react-error-boundary."
 keywords: "tratamento de erros no frontend, React Error Boundary, react-error-boundary, TanStack Query throwOnError, tratamento de erros no React Query, reset de error boundary, erros com try catch, tratamento de erros assíncronos, tratamento de erros no React"
 locale: pt-BR
 translationOf: '251117'
-sourceHash: 688aa8b21e8068e6d24e46e383d3dddbb24778dff87c065c19b3489cff0380fa
+sourceHash: 5fe87036a7b9be7cef5da38d592dd86068d3b65d2f19599610dd3ffcd68b556b
 ---
 
 Neste post, quero falar sobre **como capturar erros no frontend**.

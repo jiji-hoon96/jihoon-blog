@@ -4,7 +4,7 @@ title: 'Kalyx'
 seoTitle: 'Kalyx: Four React 19 Headless DatePicker Design Decisions'
 date: '2026-06-17'
 categories: ignore Library React DatePicker Open-Source
-description: 'Why existing DatePickers forced tradeoffs—and how Kalyx answers them with 7 primitives, a 16KB bundle, ISO APIs, adapters, and 4 design decisions.'
+description: 'Why existing DatePickers forced tradeoffs: and how Kalyx answers them with 7 primitives, a 16KB bundle, ISO APIs, adapters, and 4 design decisions.'
 keywords: 'Kalyx, React DatePicker, headless DatePicker, react-day-picker, react-datepicker, headless library, bundle size, ISO-8601 timezone, Composition pattern, adapter pattern, Radix dot notation, Ark UI, MUI X DatePicker'
 locale: en
 translationOf: '260617'

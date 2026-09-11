@@ -1,14 +1,14 @@
 ---
 emoji: 🧩
 title: "Abstraction"
-seoTitle: "Frontend Abstraction — Design Principles for Good Code"
+seoTitle: "Frontend Abstraction: Design Principles for Good Code"
 date: "2026-02-01"
 categories: frontend design abstraction
 description: "What abstraction means in frontend development and how good abstractions differ from bad ones, covering levels of abstraction, intention-revealing names, and composition from parts through the lens of React component and function design."
 keywords: "frontend abstraction, React component abstraction, Clean Code abstraction, level of abstraction, Level of Abstraction, writing good code, intention-revealing names, Composed Method, Law of Leaky Abstractions, component design, custom hook design, frontend architecture, Kent Beck, Robert C. Martin"
 locale: en
 translationOf: '260201'
-sourceHash: 961247e1971eb4b679afa09b9c66891f16680b46208db88a15e5bb55f86e3e51
+sourceHash: a19f7d199082c8401de3022b2afebf86096cd412b02855dd88544bd611d4ce53
 ---
 
 In this post, I want to talk about abstraction in programming and how to write good code from the perspective of abstraction.

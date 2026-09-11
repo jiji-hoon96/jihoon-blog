@@ -1,7 +1,7 @@
 ---
 emoji: 🗣️
 title: 'Shared Language'
-seoTitle: 'Cross-Functional Communication: Ubiquitous Language and Grounding Requirements'
+seoTitle: "Cross-Functional Communication: Ubiquitous Language"
 date: '2026-07-23'
 categories: collaboration domain DDD communication
 description: 'What do you do when a product manager and a developer use the same word to mean different things? Using Evans on ubiquitous language and Clark on grounding, this post examines the structure behind cross-functional communication failures and the practical tools that align resolution.'

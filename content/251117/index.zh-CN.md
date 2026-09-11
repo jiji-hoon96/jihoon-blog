@@ -1,14 +1,14 @@
 ---
 emoji: 🛡️
 title: '错误处理'
-seoTitle: '前端错误处理——Error Boundary 与 TanStack Query throwOnError 组合指南'
+seoTitle: '前端错误处理: Error Boundary 与 TanStack Query throwOnError 组合指南'
 date: '2025-11-17'
 categories: 前端 React TanStack-Query 错误处理
 description: "梳理 React Error Boundary、try/catch 与 TanStack Query 的 throwOnError 各自负责的范围及其组合方式，并区分渲染阶段错误与异步错误，深入说明 react-error-boundary 的 reset 工作原理。"
 keywords: "前端错误处理, React Error Boundary, react-error-boundary, TanStack Query throwOnError, React Query 错误处理, 错误边界 reset, try catch 错误, 异步错误处理, React 错误处理"
 locale: zh-CN
 translationOf: '251117'
-sourceHash: 688aa8b21e8068e6d24e46e383d3dddbb24778dff87c065c19b3489cff0380fa
+sourceHash: 5fe87036a7b9be7cef5da38d592dd86068d3b65d2f19599610dd3ffcd68b556b
 ---
 
 这篇文章想谈一谈：**在前端，我们该如何捕获错误**。

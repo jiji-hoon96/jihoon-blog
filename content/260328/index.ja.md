@@ -1,14 +1,14 @@
 ---
 emoji: 🛠️
 title: 'Toss Frontend Fundamentals 模擬試験 第2回のリファクタリングを終えて'
-seoTitle: 'Toss Frontend Fundamentals 模擬試験 第2回のリファクタリング — コンポーネント分割とドメインロジックの抽出'
+seoTitle: "Toss Frontend Fundamentals 模擬試験 第2回のリファクタリング"
 date: '2026-03-28'
 categories: フロントエンド React リファクタリング
 description: "Toss Frontend Fundamentals 模擬試験 第2回の会議室予約アプリをリファクタリングした経験を共有する。モノリシックなコンポーネントの分割、ドメインロジックの抽出、テストを基盤としたリファクタリングの過程をまとめた。"
 keywords: "Toss Frontend Fundamentals, フロントエンドのリファクタリング, Reactコンポーネントの分割, コードレビュー, Toss模擬試験, フロントエンド設計"
 locale: ja
 translationOf: '260328'
-sourceHash: e86e832b1598fe8ec2aadc4afd0647977190316292f2adb0fd1d520f28953ab4
+sourceHash: 7181f3bbbeacbdaa5d74c5e2910bfe3ff3e82df8d636a913e25019a03ff92c61
 ---
 
 今回の記事では、Toss Frontend Fundamentals 模擬試験の第2回に参加し、取り組んだリファクタリングについて振り返ってみたい。

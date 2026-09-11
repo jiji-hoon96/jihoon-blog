@@ -1,14 +1,14 @@
 ---
 emoji: 🔑
 title: "queryKey"
-seoTitle: "Mastering TanStack Query's queryKey — From Query Key Factories to queryOptions"
+seoTitle: "Mastering TanStack Query queryKey and queryOptions"
 date: "2026-01-04"
 categories: frontend React TanStack-Query queryKey
 description: "An in-depth look at how TanStack Query's queryKey works and why its management evolved from inline arrays to query key factories and queryOptions. Covers the TkDodo pattern, v5 queryOptions, setQueryData, and query invalidation from a practical perspective."
 keywords: "queryKey, query key factory, TanStack Query queryKey, React Query cache key, queryOptions, setQueryData, TkDodo query keys, query-key-factory, React Query v5, query invalidation"
 locale: en
 translationOf: '260104'
-sourceHash: beee9a6d46fea46ddca7ab57b452f0182cf37efe534445726d0f3b9d81190400
+sourceHash: f3056a824e46cda129912bb531066116db92d6347d1275c7d3ed985f216de218
 ---
 
 In this post, I want to explore **TanStack Query's queryKey**.

@@ -1,14 +1,14 @@
 ---
 emoji: 🔧
 title: 'Biome 能取代 ESLint 和 Prettier 吗？'
-seoTitle: 'Biome vs ESLint vs Prettier — Rust 一体化工具链的性能对比与迁移指南'
+seoTitle: 'Biome vs ESLint vs Prettier: Rust 一体化工具链的性能对比与迁移指南'
 date: '2024-12-01'
 categories: 前端 JavaScript
 description: "对比 Biome 与 ESLint、Prettier 的 lint 和格式化性能，并总结这款 Rust 一体化工具链的实际引入经验与迁移指南。"
 keywords: "Biome vs ESLint, Biome vs Prettier, Biome 迁移, JavaScript linter 对比, Rust linter, 前端开发工具"
 locale: zh-CN
 translationOf: '241201'
-sourceHash: 16af1949a7c5575b586c919af82c78646819b783ebee024a579d48a0c0ac5032
+sourceHash: 49263616d316d9e1ca434e3dc7a281c0c4fef7a27c76d0cb06d518a671d3baea
 ---
 
 这篇文章想聊聊一款名为 Biome 的工具。

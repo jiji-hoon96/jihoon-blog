@@ -1,14 +1,14 @@
 ---
 emoji: 🧠
 title: "状态管理"
-seoTitle: "前端状态管理的判断力——局部、全局、服务端、表单、URL 等 7 类状态与 React 设计准则"
+seoTitle: "前端状态管理的判断力: 局部、全局、服务端、表单、URL 等 7 类状态与 React 设计准则"
 date: "2026-05-18"
 categories: 前端 状态管理 React 架构
 description: "状态管理被视为前端开发中最棘手的工作之一。本文将状态分为局部、全局、服务端、表单、URL、外部和守卫 7 类，并从 Single Source of Truth、消除不可能状态、State Colocation 等 4 个判断维度，梳理工具选择与状态建模的准则。"
 keywords: "前端状态管理, React 状态管理, Zustand Jotai 对比, TanStack Query, Server State Client State, State Colocation, Single Source of Truth, React 19 useOptimistic"
 locale: zh-CN
 translationOf: '260518'
-sourceHash: 7d2f8d18c54ae7f00c5922a4cb5cd7237792e4fce04be90a498fcdbaca0e3b41
+sourceHash: 496c69b05e1e1cbeadd0886cd6b0c63bd6854beb483d12f78ad309430766d43b
 ---
 
 这篇文章想聊一聊**状态管理（State Management）**。它不是一篇库的横向对比。相比判断哪个工具更好，本文更想梳理一种感觉：应该**如何看待**状态，又该在哪里**划定边界**。

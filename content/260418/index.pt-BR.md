@@ -1,14 +1,14 @@
 ---
 emoji: 🧩
 title: "Modelo de domínio"
-seoTitle: "Guia de modelagem de domínio no frontend — aplicando DDD"
+seoTitle: "Guia de modelagem de domínio no frontend: aplicando DDD"
 date: "2026-04-18"
 categories: frontend arquitetura DDD
 description: "Uma visão dos conceitos de domínio, modelo de domínio e objeto de domínio sob a perspectiva do frontend, incluindo Entity, Value Object, modelo de domínio anêmico e separação de ViewModel. Veja, com um exemplo do domínio do imposto de renda global, como separar a lógica de domínio no React na prática."
 keywords: "modelo de domínio no frontend, design orientado a domínio, DDD no frontend, Frontend DDD, objeto de domínio, Entity Value Object, Anemic Domain Model, modelo de domínio anêmico, Clean Architecture no frontend, Eric Evans, Martin Fowler, separação da lógica de domínio, padrões de design React, arquitetura frontend, separação de ViewModel, Bounded Context"
 locale: pt-BR
 translationOf: '260418'
-sourceHash: a1d3e0f7ef15a579dbf42aa51384cdd5203c46ecd7905a9859da49208df8e961
+sourceHash: bbd3d249509318418012792a0d5d87ab445407447555425792535c1d01e89d48
 ---
 
 Neste post, quero falar sobre **domínio (Domain)**.

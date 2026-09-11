@@ -1,14 +1,14 @@
 ---
 emoji: ⚛️
 title: 'React Fiber完全攻略'
-seoTitle: 'React Fiber完全攻略 — アーキテクチャとConcurrent Renderingの仕組みを徹底分析'
+seoTitle: 'React Fiber完全攻略: アーキテクチャとConcurrent Renderingの仕組みを徹底分析'
 date: '2025-05-20'
 categories: フロントエンド React
 description: "React Fiberアーキテクチャを、Stack ReconcilerからLane優先度、ダブルバッファリング、MessageChannel Scheduler、Concurrent Featuresまで、Reactのソースコードを基に深く分析する。フロントエンド面接の頻出テーマ。"
 keywords: "React Fiber, React Fiberアーキテクチャ, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, Reactレンダリングの仕組み, Reactソースコード解析, Virtual DOM, Reconciliation, Lane優先度, フロントエンド面接"
 locale: ja
 translationOf: '250520'
-sourceHash: da152b27d26e4621cb1e554cd3d68e531f794e86f395ef9ee35e851f1f0aeff8
+sourceHash: 03b03964ecc49416cd4094fe6c75a2d33aa0e26153fcf9434f153632965e641c
 ---
 
 今回は、Reactの心臓部ともいえる**Fiberアーキテクチャ**について話したい。

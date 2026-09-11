@@ -1,14 +1,14 @@
 ---
 emoji: ⚛️
 title: 'Mastering React Fiber'
-seoTitle: 'Mastering React Fiber — Analyzing Its Architecture and Concurrent Rendering'
+seoTitle: "Mastering React Fiber: Architecture and Concurrent Rendering"
 date: '2025-05-20'
 categories: frontend React
 description: "An in-depth, React-source-based analysis of React Fiber architecture, from the Stack Reconciler to Lane priorities, double buffering, the MessageChannel scheduler, and Concurrent Features. A frequent frontend interview topic."
 keywords: "React Fiber, React Fiber architecture, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, React rendering, React source code analysis, Virtual DOM, Reconciliation, Lane priority, frontend interview"
 locale: en
 translationOf: '250520'
-sourceHash: da152b27d26e4621cb1e554cd3d68e531f794e86f395ef9ee35e851f1f0aeff8
+sourceHash: 03b03964ecc49416cd4094fe6c75a2d33aa0e26153fcf9434f153632965e641c
 ---
 
 In this post, I want to talk about the **Fiber architecture**, which could be called the heart of React.

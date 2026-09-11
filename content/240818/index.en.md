@@ -1,14 +1,14 @@
 ---
 emoji: 🤯
 title: 'Zustand, What Makes You ProviderLess?'
-seoTitle: 'Why Does Zustand Have No Provider? — An Analysis of How It Works with useSyncExternalStore'
+seoTitle: "Why Zustand Has No Provider: useSyncExternalStore"
 date: '2024-08-18'
 categories: frontend React
 description: "A source-code analysis of how Zustand manages state without a Provider, including how its module-scoped design differs from the React Context API."
 keywords: "how Zustand works, why Zustand has no Provider, React state management library, Zustand source code analysis, useSyncExternalStore, React Context API"
 locale: en
 translationOf: '240818'
-sourceHash: 7e4c03efdbf0b5dead93870b853fa5c987ebfd96bb765663ebb98da138417e85
+sourceHash: 91250499c0cdecf71d9c15c2ccdd1ecb7e81d019b227a50af06d268d7a9d8a40
 ---
 
 In this post, I want to explore how Zustand manages state without a Provider.

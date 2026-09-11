@@ -1,14 +1,14 @@
 ---
 emoji: 🤯
 title: 'Zustand、お前は何者で、なぜProviderLessなんだ？'
-seoTitle: 'なぜZustandにはProviderがないのか — useSyncExternalStoreに基づく動作原理の分析'
+seoTitle: 'なぜZustandにはProviderがないのか: useSyncExternalStoreに基づく動作原理の分析'
 date: '2024-08-18'
 categories: フロントエンド React
 description: "ZustandがProviderなしで状態管理を実現する仕組みを、ソースコード分析を通じて掘り下げる。React Context APIとの違いと、モジュールスコープに基づく設計を見ていこう。"
 keywords: "Zustandの仕組み, ZustandにProviderがない理由, React状態管理ライブラリ, Zustandソースコード分析, useSyncExternalStore, React Context API"
 locale: ja
 translationOf: '240818'
-sourceHash: 7e4c03efdbf0b5dead93870b853fa5c987ebfd96bb765663ebb98da138417e85
+sourceHash: 91250499c0cdecf71d9c15c2ccdd1ecb7e81d019b227a50af06d268d7a9d8a40
 ---
 
 今回の記事では、ZustandがどのようにProviderなしで状態管理を実現しているのかを取り上げる。

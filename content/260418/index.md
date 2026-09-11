@@ -1,7 +1,7 @@
 ---
 emoji: 🧩
 title: "도메인 모델"
-seoTitle: "프론트엔드 도메인 모델 설계 가이드 — DDD 적용기"
+seoTitle: "프론트엔드 도메인 모델 설계 가이드: DDD 적용기"
 date: "2026-04-18"
 categories: 프론트엔드 아키텍처 DDD
 description: "프론트엔드 관점에서 도메인, 도메인 모델, 도메인 오브젝트의 개념을 정리하고, Entity와 Value Object, 빈약한 도메인 모델, ViewModel 분리까지 다룬다. 종합소득세 도메인 예시로 React에서 도메인 로직을 분리하는 실전 방법을 알아보자."

@@ -1,14 +1,14 @@
 ---
 emoji: 🔑
 title: "queryKey"
-seoTitle: "Dominando queryKey no TanStack Query — de fábricas de chaves de consulta a queryOptions"
+seoTitle: "queryKey no TanStack Query: fábricas e queryOptions"
 date: "2026-01-04"
 categories: frontend React TanStack-Query queryKey
 description: "Uma análise de como queryKey funciona no TanStack Query e por que seu gerenciamento evoluiu de vetores declarados diretamente para fábricas de chaves de consulta e queryOptions. Aborda, sob uma perspectiva prática, o padrão de TkDodo, queryOptions da v5, setQueryData e a invalidação de consultas."
 keywords: "queryKey, fábrica de chaves de consulta, queryKey do TanStack Query, chave de cache do React Query, queryOptions, setQueryData, chaves de consulta de TkDodo, query-key-factory, React Query v5, invalidação de consultas"
 locale: pt-BR
 translationOf: '260104'
-sourceHash: beee9a6d46fea46ddca7ab57b452f0182cf37efe534445726d0f3b9d81190400
+sourceHash: f3056a824e46cda129912bb531066116db92d6347d1275c7d3ed985f216de218
 ---
 
 Neste artigo, quero falar sobre a **queryKey do TanStack Query**.

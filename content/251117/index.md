@@ -1,7 +1,7 @@
 ---
 emoji: 🛡️
 title: '에러 핸들링'
-seoTitle: '프론트엔드 에러 핸들링 — Error Boundary와 TanStack Query throwOnError 결합 가이드'
+seoTitle: "프론트엔드 에러 핸들링: Error Boundary와 throwOnError 결합"
 date: '2025-11-17'
 categories: 프론트엔드 React TanStack-Query 에러핸들링
 description: "React Error Boundary, try/catch, TanStack Query의 throwOnError가 각각 어디까지 책임지고 어떻게 결합하는지 정리한다. 렌더 단계 에러와 비동기 에러를 구분하고 react-error-boundary의 reset 동작 원리까지 다룬다."

@@ -1,7 +1,7 @@
 ---
 emoji: 🗣️
 title: 'Lenguaje compartido'
-seoTitle: 'Comunicación entre disciplinas: ubiquitous language y grounding de requisitos'
+seoTitle: "Comunicación entre disciplinas: ubiquitous language"
 date: '2026-07-23'
 categories: colaboración dominio DDD comunicación
 description: '¿Qué hacer cuando el product manager y el developer usan la misma palabra para cosas distintas? Con el ubiquitous language de Evans y la teoría del grounding de Clark, repaso la estructura del fallo de comunicación entre disciplinas y las herramientas prácticas para igualar la resolución.'

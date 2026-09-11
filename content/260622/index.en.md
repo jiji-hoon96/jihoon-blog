@@ -1,7 +1,7 @@
 ---
 emoji: 🧭
 title: 'Harness (Systems) Engineering'
-seoTitle: 'AI Agents After Context: Harness Design, Evals, and Containment'
+seoTitle: "AI Agents After Context: Harness Design, Evals, Containment"
 date: '2026-06-22'
 categories: AI Agents
 description: 'After the shift from prompts to context engineering, what comes next? Using recent themes from the Anthropic engineering blog as clues, this article connects token efficiency with three emerging directions: harness design, evals, and containment.'

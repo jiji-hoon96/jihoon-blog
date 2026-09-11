@@ -1,14 +1,14 @@
 ---
 emoji: 🔧
 title: 'BiomeはESLintとPrettierを置き換えられるのか？'
-seoTitle: 'Biome vs ESLint vs Prettier — Rust製オールインワンツールチェーンの性能比較と移行'
+seoTitle: 'Biome vs ESLint vs Prettier: Rust製オールインワンツールチェーンの性能比較と移行'
 date: '2024-12-01'
 categories: フロントエンド JavaScript
 description: "BiomeのLintとフォーマット性能をESLint、Prettierと比較する。Rust製オールインワンツールチェーンの実務導入経験と移行ガイドをまとめた。"
 keywords: "Biome vs ESLint, Biome vs Prettier, Biome移行, JavaScriptリンター比較, Rust製リンター, フロントエンド開発ツール"
 locale: ja
 translationOf: '241201'
-sourceHash: 16af1949a7c5575b586c919af82c78646819b783ebee024a579d48a0c0ac5032
+sourceHash: 49263616d316d9e1ca434e3dc7a281c0c4fef7a27c76d0cb06d518a671d3baea
 ---
 
 今回は、Biomeというツールについて紹介したい。

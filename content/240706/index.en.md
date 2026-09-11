@@ -1,14 +1,14 @@
 ---
 emoji: 🗜️
 title: "Understanding Compression Algorithms"
-seoTitle: "Compression Algorithms Compared: GZIP, Zstandard, Brotli, and How LZ77 Works"
+seoTitle: "Compression Algorithms Compared: GZIP, Zstandard, Brotli"
 date: "2024-07-06"
 categories: curiosities software
 description: "A practical comparison of ZIP, GZIP, ZSTD, Brotli, and other major compression formats, from LZ77 fundamentals to choosing the right option for build artifacts."
 keywords: "compression algorithm comparison, GZIP vs ZSTD, tar.gz vs zip, Brotli, LZ77, frontend build optimization, lossless compression"
 locale: en
 translationOf: "240706"
-sourceHash: "f22dd067bdfcbcb307ebd4df15776267b07fc845a1d9909b7aeee26c73e24d16"
+sourceHash: 213643b3263c486b07d4348eab5da7154726063eaf52dc0127dfd67d601aadc9
 ---
 
 In this post, I want to talk about software compression algorithms.
