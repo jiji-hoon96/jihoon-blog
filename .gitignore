@@ -49,3 +49,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# pnpm content-addressable store (로컬 캐시, 800MB+)
+.pnpm-store/
+
+# superpowers 세션 상태 (도구가 관리)
+.superpowers/
