@@ -8,7 +8,7 @@ description: '¿Qué hacer cuando el product manager y el developer usan la mism
 keywords: 'ubiquitous language, lenguaje compartido dominio, comunicación entre disciplinas, cómo definir requisitos, comunicación product manager developer, grounding common ground, Example Mapping, breadboarding, bounded context, seguridad psicológica equipo de desarrollo'
 locale: es
 translationOf: '260723'
-sourceHash: 1989680dd39ccc57941bfc61de1121dc3530540450048f9741bf0fc29267069a
+sourceHash: 25017392eb79f1a4a39ea4b1d5f494e88cbdd908ca984d3a3c69e1ca299d7d3f
 ---
 
 En este artículo quiero hablar de la comunicación con otras disciplinas.
@@ -127,8 +127,6 @@ Aun con el modo alineado, queda un problema. Otro desajuste que he vivido a menu
 
 Los requisitos que el product manager entrega en prosa suelen ser demasiado abstractos. De una frase como «que el usuario pueda consultar cómodamente su historial de reservas» no se deduce cuántas pantallas hay ni qué lleva a dónde. Al contrario, la maqueta del diseñador es demasiado concreta. El color de los botones y los márgenes ya están decididos, así que resulta difícil discutir precisamente si este flujo es el correcto.
 
-![2.png](2.png)
-
 Shape Up, escrito por Ryan Singer en Basecamp, señala este problema con precisión: empezar por wireframes o por maquetas visuales concretas te encierra en detalles innecesarios e impide explorar tan ampliamente como haga falta. Por eso, [lo que propone Shape Up](https://basecamp.com/shapeup/1.3-chapter-04) es una representación intermedia. Se llama breadboarding y toma prestado el concepto de la ingeniería eléctrica. Una breadboard es un prototipo que tiene todas las piezas y el cableado del aparato real, pero ningún diseño industrial. Por eso solo se dibujan tres cosas: los lugares a los que se puede navegar (places), aquello que el usuario puede accionar (affordances) y las líneas de conexión que muestran a dónde lleva esa acción al usuario (connection lines).
 
 La razón por la que valoro esta técnica es que es un artefacto que puede producir el developer. En lugar de pedirle al product manager que escriba con más detalle o de esperar la maqueta del diseñador, puedes dibujar allí mismo el flujo tal como lo has entendido y devolverlo con un «lo he entendido así, ¿es correcto?». Es una forma concreta de ejecutar la vigilancia de la que hablaba Evans, la de devolver la ambigüedad. Y visto desde la sección anterior, es un dispositivo que abarata el grounding. Un dibujo sustituye varias rondas de confirmación por texto.
@@ -192,8 +190,6 @@ Creo que este planteamiento es el enfoque más realista para los problemas de co
 Llegados aquí, cabe una reacción: está bien, pero al final esto es «comuniquémonos con empeño», ¿no? ¿Y eso no es cuestión de carácter?
 
 Yo también lo pensé durante un tiempo. Pero sobre esta parte hay datos.
-
-![4.png](4.png)
 
 Cuando DORA aborda la cultura organizativa, toma la clasificación del sociólogo Ron Westrum: pathological, orientada al poder; bureaucratic, orientada a las reglas; y generative, orientada al resultado. Y [la documentación oficial de DORA](https://dora.dev/capabilities/generative-organizational-culture/) resume así sus hallazgos.
 

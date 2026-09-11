@@ -8,7 +8,7 @@ description: 'What do you do when a product manager and a developer use the same
 keywords: 'ubiquitous language, shared domain language, cross-functional communication, gathering requirements, product manager developer communication, grounding common ground, Example Mapping, breadboarding, bounded context, psychological safety engineering team'
 locale: en
 translationOf: '260723'
-sourceHash: 1989680dd39ccc57941bfc61de1121dc3530540450048f9741bf0fc29267069a
+sourceHash: 25017392eb79f1a4a39ea4b1d5f494e88cbdd908ca984d3a3c69e1ca299d7d3f
 ---
 
 In this post, I want to talk about communicating across functions.
@@ -127,8 +127,6 @@ Even with the mode aligned, a problem remains. Another misalignment I have run i
 
 Requirements handed over as prose from a product manager are usually too abstract. A sentence like “so users can conveniently check their reservation history” does not say how many screens there are or what leads where. Conversely, a designer's mockup is too concrete. Button colors and spacing are already decided, which makes it hard to discuss the very question of whether this flow is right.
 
-![2.png](2.png)
-
 Shape Up, written by Ryan Singer at Basecamp, names this problem precisely. Starting from wireframes or concrete visual layouts traps you in unnecessary detail and prevents you from exploring as broadly as you need to. So what [Shape Up proposes](https://basecamp.com/shapeup/1.3-chapter-04) is a representation in between. It is called breadboarding, a concept borrowed from electrical engineering. A breadboard is a prototype that has all the components and wiring of the real device but none of the industrial design. So there are exactly three things you draw: the places you can navigate to, the affordances the user can act on, and the connection lines that show where those actions take the user.
 
 The reason I liked this technique is that it is an artifact a developer can produce. Instead of asking the product manager to write in more detail or waiting on the designer for a mockup, you can draw the flow as you currently understand it, right there, and hand it back with “this is how I understood it, is that right?” It is a concrete way of executing the watching Evans described, the handing back of ambiguity. And seen through the lens of the previous section, it is a device that lowers grounding cost. One picture stands in for several rounds of confirmation over text.
@@ -192,8 +190,6 @@ I think this is the most realistic approach to communication problems. Instead o
 Reading this far, one reaction is available: nice ideas, but isn't this ultimately just “communicate diligently”? And isn't that a personality trait?
 
 I thought that for a while too. But there is data on this part.
-
-![4.png](4.png)
 
 When DORA addresses organizational culture, it borrows the sociologist Ron Westrum's typology: power-oriented pathological, rule-oriented bureaucratic, and performance-oriented generative. And [DORA's official documentation](https://dora.dev/capabilities/generative-organizational-culture/) summarizes their research findings this way.
 

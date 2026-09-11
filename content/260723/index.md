@@ -124,8 +124,6 @@ By the principle of least collaborative effort, people should try to ground with
 
 기획자가 문장으로 준 요구사항은 대체로 너무 추상적이다. "사용자가 예약 내역을 편하게 확인할 수 있게" 같은 문장에서는 화면이 몇 개인지, 어디서 어디로 넘어가는지가 나오지 않는다. 반대로 디자이너가 준 시안은 너무 구체적이다. 버튼의 색과 여백까지 정해져 있어서, 정작 "이 흐름이 맞는가"를 논의하기 어렵다.
 
-![2.png](2.png)
-
 Basecamp의 Ryan Singer가 쓴 Shape Up이 이 문제를 정확히 짚는다. 와이어프레임이나 구체적인 시각 레이아웃부터 시작하면 불필요한 디테일에 갇혀서 필요한 만큼 넓게 탐색할 수 없게 된다는 것이다. 그래서 [Shape Up이 제안하는 것](https://basecamp.com/shapeup/1.3-chapter-04)은 그 사이의 표현이다. breadboarding이라고 부르는데, 전기공학에서 개념을 빌려왔다. 브레드보드는 실제 기기의 부품과 배선은 다 갖췄지만 산업 디자인은 없는 시제품이다. 그래서 그리는 것도 딱 세 가지다. 넘어갈 수 있는 장소(places), 사용자가 조작할 수 있는 것(affordances), 그리고 그 조작이 사용자를 어디로 데려가는지 보여주는 연결선(connection lines)이다.
 
 필자가 이 기법을 좋게 본 이유는, 개발자가 만들 수 있는 산출물이기 때문이다. 기획자에게 더 자세히 써 달라고 요청하거나 디자이너에게 시안을 기다리지 않고, 지금 이해한 흐름을 그 자리에서 그려서 "이렇게 이해했는데 맞나요" 라고 되돌려줄 수 있다. Evans가 말한 감시(모호함을 되돌려주기)를 실행하는 구체적 방법인 셈이다. 그리고 앞 절의 관점에서 보면, 이건 grounding 비용을 낮추는 장치다. 그림 한 장이 텍스트로 주고받는 확인 여러 번을 대신한다.
@@ -189,8 +187,6 @@ For the most part, this belief tends to be tacit—taken for granted and not giv
 여기까지 읽으면 이런 반응이 나올 수 있다. 좋은 얘기지만 결국 커뮤니케이션을 열심히 하자는 것 아닌가. 그건 성향 아닌가.
 
 필자도 한동안 그렇게 생각했다. 그런데 이 부분에 데이터가 있다.
-
-![4.png](4.png)
 
 DORA는 조직 문화를 다룰 때 사회학자 Ron Westrum의 분류를 가져온다. 권력 지향의 pathological, 규칙 지향의 bureaucratic, 성과 지향의 generative 세 가지다. 그리고 [DORA의 공식 문서](https://dora.dev/capabilities/generative-organizational-culture/)는 자신들의 연구 결과를 이렇게 요약한다.
 

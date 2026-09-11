@@ -8,7 +8,7 @@ description: '企画者とdeveloperが同じ単語で違うものを指してい
 keywords: 'ubiquitous language, 共有言語 ドメイン, 他職種 コミュニケーション, 要件定義 方法, 企画者 開発者 コミュニケーション, grounding common ground, Example Mapping, breadboarding, bounded context, 心理的安全性 開発チーム'
 locale: ja
 translationOf: '260723'
-sourceHash: 1989680dd39ccc57941bfc61de1121dc3530540450048f9741bf0fc29267069a
+sourceHash: 25017392eb79f1a4a39ea4b1d5f494e88cbdd908ca984d3a3c69e1ca299d7d3f
 ---
 
 今回は、他職種とのコミュニケーションについて書いてみたい。
@@ -127,8 +127,6 @@ By the principle of least collaborative effort, people should try to ground with
 
 企画者が文章で渡してくる要件は、たいてい抽象的すぎる。「ユーザーが予約履歴を手軽に確認できるように」といった文からは、画面が何枚あるのか、どこからどこへ遷移するのかが出てこない。逆にデザイナーが渡してくる案は具体的すぎる。ボタンの色と余白まで決まっているので、肝心の「この流れは正しいのか」を議論しにくい。
 
-![2.png](2.png)
-
 BasecampのRyan Singerが書いたShape Upが、この問題を正確に突いている。ワイヤーフレームや具体的な視覚レイアウトから始めると、不要なディテールに囚われて必要なだけ広く探索できなくなる、というのだ。そこで[Shape Upが提案するもの](https://basecamp.com/shapeup/1.3-chapter-04)は、その中間の表現である。breadboardingと呼ばれ、電気工学から概念を借りている。ブレッドボードは実機の部品と配線はすべて揃っているが、工業デザインはない試作品だ。だから描くものもちょうど三つだ。遷移できる場所（places）、ユーザーが操作できるもの（affordances）、そしてその操作がユーザーをどこへ連れていくかを示す接続線（connection lines）である。
 
 私がこの技法を良いと思った理由は、developerが作れる成果物だからだ。企画者にもっと詳しく書いてくれと頼んだり、デザイナーの案を待ったりせずに、いま理解した流れをその場で描いて「こう理解しましたが合っていますか」と返せる。Evansの言う監視（曖昧さを返すこと）を実行する具体的な方法というわけだ。そして前節の視点から見れば、これはgroundingコストを下げる装置である。一枚の図が、テキストでやり取りする何度もの確認を代替する。
@@ -192,8 +190,6 @@ For the most part, this belief tends to be tacit—taken for granted and not giv
 ここまで読むと、こういう反応が出るかもしれない。良い話だが、結局はコミュニケーションを頑張ろうということではないか。それは性格の問題ではないか。
 
 私もしばらくはそう考えていた。ところがこの部分にはデータがある。
-
-![4.png](4.png)
 
 DORAは組織文化を扱うとき、社会学者Ron Westrumの分類を持ち込む。権力志向のpathological、規則志向のbureaucratic、成果志向のgenerativeの三つだ。そして[DORAの公式文書](https://dora.dev/capabilities/generative-organizational-culture/)は、自分たちの研究結果をこう要約している。
 

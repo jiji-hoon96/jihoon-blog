@@ -8,7 +8,7 @@ description: '当产品经理和 developer 用同一个词指代不同事物时�
 keywords: 'ubiquitous language, 共享语言 领域, 跨职能沟通, 需求梳理方法, 产品经理 开发者 沟通, grounding common ground, Example Mapping, breadboarding, bounded context, 开发团队 心理安全感'
 locale: zh-CN
 translationOf: '260723'
-sourceHash: 1989680dd39ccc57941bfc61de1121dc3530540450048f9741bf0fc29267069a
+sourceHash: 25017392eb79f1a4a39ea4b1d5f494e88cbdd908ca984d3a3c69e1ca299d7d3f
 ---
 
 这篇文章想聊聊与其他职能的沟通。
@@ -127,8 +127,6 @@ By the principle of least collaborative effort, people should try to ground with
 
 产品经理用文字给出的需求，大多太过抽象。像“让用户能方便地查看预约记录”这样的句子，看不出有几个界面，也看不出从哪里跳到哪里。反过来，设计师给的稿子又太过具体。连按钮颜色和留白都定好了，反倒难以讨论“这个流程对不对”。
 
-![2.png](2.png)
-
 Basecamp 的 Ryan Singer 所写的 Shape Up 精准地点出了这个问题：一上来就从线框图或具体的视觉布局入手，就会被不必要的细节困住，无法按需要的广度去探索。因此[Shape Up 提出的方案](https://basecamp.com/shapeup/1.3-chapter-04)是介于两者之间的表达。它被称为 breadboarding，概念借自电气工程。面包板是一种具备实机全部元件与接线、却没有工业设计的原型。所以要画的东西也正好三样：可以跳转到的位置（places）、用户可以操作的东西（affordances），以及展示该操作把用户带往何处的连接线（connection lines）。
 
 我看好这个技法的原因，是它是 developer 做得出来的产出物。不必请产品经理写得更详细，也不必等设计师出稿，就可以当场把自己理解的流程画出来，反问一句“我是这么理解的，对吗”。这可以说是执行 Evans 所说的监视（把歧义交还回去）的具体方法。而从上一节的视角看，这是一个降低 grounding 成本的装置。一张图，抵得上用文字来回确认好几轮。
@@ -192,8 +190,6 @@ For the most part, this belief tends to be tacit—taken for granted and not giv
 读到这里，可能会有这样的反应：说得挺好，可归根结底不就是“好好沟通”吗？那不是性格问题吗？
 
 我也曾这样想过一阵子。但这部分是有数据的。
-
-![4.png](4.png)
 
 DORA 在讨论组织文化时，引用了社会学家 Ron Westrum 的分类：权力导向的 pathological、规则导向的 bureaucratic，以及绩效导向的 generative。而[DORA 的官方文档](https://dora.dev/capabilities/generative-organizational-culture/)是这样总结自身研究结果的。
 
