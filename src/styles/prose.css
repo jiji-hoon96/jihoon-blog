@@ -1,13 +1,16 @@
 /* Prose styles for markdown content
    본문 가독성 원칙
    - 한 줄 35~45자(약 38em) 유지로 시선 회귀 부담 최소화
-   - Pretendard 기반 본문 weight 400, 헤딩은 700~800로 대비 확보
+   - 본문 weight 400, 헤딩은 700~800로 대비 확보
    - CJK 가독성을 위해 word-break: keep-all, line-height 1.8
    - 단락 간격을 행간보다 넓혀 단락 분리를 시각화 */
 
 .prose {
   @apply text-light-black100 dark:text-dark-black100;
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  /* Pretendard 는 이 리포 어디에서도 로드하지 않는다. 그대로 두면 본문만
+     시스템 폰트로 떨어져 사이트의 나머지와 글꼴이 달라진다. body 와 같은
+     Wanted Sans 를 쓴다. */
+  font-family: var(--font-wanted);
   font-weight: 400;
   font-size: 16px;
   line-height: 1.8;
@@ -411,7 +414,8 @@
   color: var(--color-dark-gray60);
 }
 
-.prose pre:hover .copy-button {
+.prose pre:hover .copy-button,
+.prose pre .copy-button:focus-visible {
   opacity: 1;
 }
 

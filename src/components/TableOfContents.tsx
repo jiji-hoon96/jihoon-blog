@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
-interface TocItem {
-  id: string;
-  text: string;
-  level: number;
-}
+import type { TocItem } from "@/lib/toc";
 
 interface TableOfContentsProps {
-  content: string;
+  /**
+   * 서버에서 미리 뽑은 목차. 예전에는 본문 HTML 전체를 받아 DOMParser 로 파싱했는데,
+   * 그 prop 때문에 같은 본문이 RSC flight 에 한 벌 더 실려 페이지가 크게 불었다.
+   */
+  toc: TocItem[];
   labels: {
     title: string;
     open: string;
@@ -17,29 +16,12 @@ interface TableOfContentsProps {
   };
 }
 
-export default function TableOfContents({ content, labels }: TableOfContentsProps) {
-  const [toc, setToc] = useState<TocItem[]>([]);
+export default function TableOfContents({ toc, labels }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
   const [proximity, setProximity] = useState(0);
   const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map());
   const buttonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(content, "text/html");
-    const parsedHeadings = doc.querySelectorAll("h2, h3");
-
-    const items: TocItem[] = Array.from(parsedHeadings).map((heading) => {
-      const id = heading.id || heading.textContent?.trim().toLowerCase().replace(/\s+/g, "-") || "";
-      const text = heading.textContent || "";
-      const level = parseInt(heading.tagName.charAt(1));
-
-      return { id, text, level };
-    });
-
-    setToc(items);
-  }, [content]);
 
   useEffect(() => {
     if (toc.length === 0) return;
@@ -166,7 +148,10 @@ export default function TableOfContents({ content, labels }: TableOfContentsProp
 
       <aside
         role="dialog"
+        aria-modal="true"
         aria-label={labels.title}
+        aria-hidden={!isOpen}
+        inert={!isOpen}
         className={`fixed right-0 top-0 z-50 h-screen w-[22rem] sm:w-96 max-w-[90vw] bg-white dark:bg-dark-gray10 shadow-xl border-l border-light-gray20 dark:border-dark-gray20 transition-transform duration-200 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}

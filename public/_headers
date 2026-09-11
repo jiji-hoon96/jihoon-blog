@@ -1,0 +1,10 @@
+/*
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+  Content-Security-Policy: frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  X-Frame-Options: DENY
+
+# 글 이미지는 파일명에 해시가 없어 immutable 을 걸 수 없다.
+# 30일 캐시로 재방문 시 재검증 왕복만 없앤다.
+/content/*
+  Cache-Control: public, max-age=2592000

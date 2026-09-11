@@ -5,6 +5,7 @@ import { isHiddenPost } from '@/lib/filter-posts'
 import { siteMetadata } from '@/lib/site-metadata'
 import Utterances from '@/components/Utterances'
 import TableOfContents from '@/components/TableOfContents'
+import { extractToc } from '@/lib/toc'
 import ReadingProgress from '@/components/ReadingProgress'
 import CodeCopyButton from '@/components/CodeCopyButton'
 import InteractiveWidgets from '@/components/InteractiveWidgets'
@@ -31,6 +32,10 @@ assertGlossarySource(glossarySource)
 type Props = {
   params: Promise<{ lang: string; slug: string }>
 }
+
+// 이 세그먼트의 slug 는 generateStaticParams 가 전부 만든다. 열어 두면 없는
+// slug 로도 opengraph-image 라우트가 Satori 렌더를 돌아 함수 시간을 태운다.
+export const dynamicParams = false
 
 export async function generateStaticParams() {
   return getLocalizedPostParams(allPosts.filter(post => !isHiddenPost(post)))
@@ -230,7 +235,7 @@ export default async function PostPage({ params }: Props) {
         </header>
 
         <TableOfContents
-          content={post.body.html}
+          toc={extractToc(post.body.html)}
           labels={{
             title: dictionary.post.tableOfContents,
             open: dictionary.post.openTableOfContents,
