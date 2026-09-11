@@ -19,8 +19,31 @@ async function copyAllImages() {
     },
   })
 
+  const removed = await pruneOrphans()
   const folders = await fs.readdir(PUBLIC_DIR)
-  console.log(`✅ Images copied successfully! 📁 Total folders: ${folders.length}`)
+  const prunedNote = removed.length ? ` 🧹 Pruned: ${removed.length}` : ''
+  console.log(`✅ Images copied successfully! 📁 Total folders: ${folders.length}${prunedNote}`)
+}
+
+/**
+ * content/ 에서 사라진 글의 이미지를 public/content/ 에서도 지운다.
+ *
+ * fs.copy 는 더하기만 해서, 글을 지워도 public/content 에는 그대로 남았다.
+ * 실제로 글 44개 분량 295MB 가 아무도 안 읽는 채로 저장소와 배포에 실려 있었다.
+ */
+async function pruneOrphans() {
+  const published = new Set(await fs.readdir(CONTENT_DIR))
+  const copied = await fs.readdir(PUBLIC_DIR)
+  const removed = []
+
+  for (const name of copied) {
+    if (published.has(name)) continue
+    if (!(await fs.stat(path.join(PUBLIC_DIR, name))).isDirectory()) continue
+    await fs.remove(path.join(PUBLIC_DIR, name))
+    removed.push(name)
+  }
+
+  return removed
 }
 
 function startWatching() {
