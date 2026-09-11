@@ -39,11 +39,6 @@ export interface AnalyticsStats {
   todayVisitors: number;
 }
 
-export interface PopularPage {
-  slug: string;
-  views: number;
-}
-
 /**
  * 전체 조회수와 오늘 방문자 수 조회 (내부 함수)
  */
@@ -125,60 +120,6 @@ export async function getAnalyticsStats(): Promise<AnalyticsStats> {
     todayVisitors: addDailyVisitorBaseline(stats.todayVisitors),
   };
 }
-
-/**
- * 인기 페이지 목록 조회 (내부 함수)
- */
-async function fetchPopularPages(limit: number = 10): Promise<PopularPage[]> {
-  const client = getClient();
-  if (!client) {
-    return [];
-  }
-
-  try {
-    const [response] = await client.runReport({
-      property: `properties/${propertyId}`,
-      dateRanges: [{ startDate: "2020-01-01", endDate: "today" }],
-      dimensions: [{ name: "pagePath" }],
-      metrics: [{ name: "screenPageViews" }],
-      orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
-      limit,
-    }, gaCallOptions());
-
-    if (!response.rows) {
-      return [];
-    }
-
-    return response.rows
-      .map((row) => ({
-        slug: row.dimensionValues?.[0]?.value || "",
-        views: parseInt(row.metricValues?.[0]?.value || "0", 10),
-      }))
-      .filter((page) => {
-        // 블로그 글 경로만 필터링 (6자리 날짜 형식: /YYMMDD/ 또는 /YYMMDD)
-        const slugMatch = page.slug.match(/^\/(\d{6})\/?$/);
-        return slugMatch !== null;
-      })
-      .map((page) => ({
-        ...page,
-        // 끝 슬래시 제거하여 일관된 형식으로 반환
-        slug: page.slug.replace(/\/$/, ""),
-      }));
-  } catch (error) {
-    console.error("Error fetching popular pages:", error);
-    captureServerException(error, { routeKind: "analytics", operation: "popular" });
-    return [];
-  }
-}
-
-/**
- * 인기 페이지 목록 조회 (캐시 적용)
- */
-export const getPopularPages = unstable_cache(
-  fetchPopularPages,
-  ["analytics-popular"],
-  { revalidate: REVALIDATE_TIME }
-);
 
 /**
  * 특정 페이지의 조회수 조회

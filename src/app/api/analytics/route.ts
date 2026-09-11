@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { captureServerException } from "@/lib/sentry-server";
 import {
   getAnalyticsStats,
-  getPopularPages,
   getPageViews,
   getMultiplePageViews,
 } from "@/lib/google-analytics";
@@ -16,12 +15,6 @@ export async function GET(request: NextRequest) {
       case "stats": {
         const stats = await getAnalyticsStats();
         return NextResponse.json(stats);
-      }
-
-      case "popular": {
-        const limit = parseInt(searchParams.get("limit") || "10", 10);
-        const popularPages = await getPopularPages(limit);
-        return NextResponse.json({ popularPages });
       }
 
       case "page": {
@@ -51,13 +44,13 @@ export async function GET(request: NextRequest) {
 
       default:
         return NextResponse.json(
-          { error: "Invalid type parameter. Use: stats, popular, page, or pages" },
+          { error: "Invalid type parameter. Use: stats, page, or pages" },
           { status: 400 }
         );
     }
   } catch (error) {
     console.error("Analytics API error:", error);
-    const operation = ["stats", "popular", "page", "pages"].includes(type ?? "")
+    const operation = ["stats", "page", "pages"].includes(type ?? "")
       ? `route-${type}`
       : "route-invalid";
     captureServerException(error, { routeKind: "analytics", operation });
