@@ -4,6 +4,7 @@ import { getAllCategories, getPostsByCategory } from '@/lib/categories'
 import { getSortedPublishedPosts } from '@/lib/filter-posts'
 import { siteMetadata } from '@/lib/site-metadata'
 import { getPostsForLocale } from '@/lib/localized-posts'
+import { findCategoryTranslations } from '@/lib/category-alternates'
 import { buildTranslationAlternates } from '@/lib/localized-metadata'
 import {
   getLatestPostModifiedDate,
@@ -14,7 +15,12 @@ import {
   HREF_LANG,
   LOCALES,
   toPublicPath,
+  type Locale,
 } from '@/i18n/locales'
+
+function categoryUrl(locale: Locale, category: string): string {
+  return `${siteMetadata.siteUrl}${toPublicPath(locale, `/posts/${encodeURIComponent(category)}`)}`
+}
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const publishedPosts = getSortedPublishedPosts(allPosts)
@@ -52,25 +58,29 @@ export default function sitemap(): MetadataRoute.Sitemap {
       .map(category => {
         const categoryPosts = getPostsByCategory(category, localePosts)
         const latest = getLatestPostModifiedDate(categoryPosts)
+        const categoryTranslations = findCategoryTranslations(
+          publishedPosts,
+          locale,
+          category,
+        )
         const languages = Object.fromEntries(
           LOCALES.flatMap(candidateLocale => {
-            const candidatePosts = getPostsForLocale(
-              publishedPosts,
-              candidateLocale,
-            )
-            return getAllCategories(candidatePosts).includes(category)
+            const candidateCategory = categoryTranslations[candidateLocale]
+            return candidateCategory
               ? [[
                   HREF_LANG[candidateLocale],
-                  `${siteMetadata.siteUrl}${toPublicPath(candidateLocale, `/posts/${encodeURIComponent(category)}`)}`,
+                  categoryUrl(candidateLocale, candidateCategory),
                 ]]
               : []
           }),
         )
 
-        if (languages.ko) languages['x-default'] = languages.ko
+        if (categoryTranslations.ko) {
+          languages['x-default'] = categoryUrl('ko', categoryTranslations.ko)
+        }
 
         return {
-          url: `${siteMetadata.siteUrl}${toPublicPath(locale, `/posts/${encodeURIComponent(category)}`)}`,
+          url: categoryUrl(locale, category),
           lastModified: latest,
           changeFrequency: 'monthly' as const,
           priority: 0.6,
