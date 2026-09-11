@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation'
 import { CategoryNav, PostList } from '@/components/PostList'
 import { getAllCategories, getPostsByCategory } from '@/lib/categories'
+import { findCategoryTranslations } from '@/lib/category-alternates'
+import { filterPublishedPosts } from '@/lib/filter-posts'
 import { siteMetadata } from '@/lib/site-metadata'
 import type { Metadata } from 'next'
 import { allPosts } from 'contentlayer/generated'
@@ -10,6 +12,7 @@ import {
   isLocale,
   LOCALES,
   toPublicPath,
+  type Locale,
 } from '@/i18n/locales'
 import {
   getLocalizedOpenGraphImageUrl,
@@ -47,19 +50,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     count: posts.length,
   })
   const title = `${decodedCategory} · ${dictionary.category.label}`
+  const categoryTranslations = findCategoryTranslations(
+    filterPublishedPosts(allPosts),
+    lang,
+    decodedCategory,
+  )
+  const categoryUrlFor = (candidateLocale: Locale, candidateCategory: string) =>
+    `${siteMetadata.siteUrl}${toPublicPath(candidateLocale, `/posts/${encodeURIComponent(candidateCategory)}`)}`
   const languages = Object.fromEntries(
     LOCALES.flatMap(candidateLocale => {
-      const candidatePosts = getPostsForLocale(allPosts, candidateLocale)
-      return getAllCategories(candidatePosts).includes(decodedCategory)
-        ? [[
-            HREF_LANG[candidateLocale],
-            `${siteMetadata.siteUrl}${toPublicPath(candidateLocale, `/posts/${encodeURIComponent(decodedCategory)}`)}`,
-          ]]
+      const candidateCategory = categoryTranslations[candidateLocale]
+      return candidateCategory
+        ? [[HREF_LANG[candidateLocale], categoryUrlFor(candidateLocale, candidateCategory)]]
         : []
     }),
   )
 
-  if (languages.ko) languages['x-default'] = languages.ko
+  if (categoryTranslations.ko) {
+    languages['x-default'] = categoryUrlFor('ko', categoryTranslations.ko)
+  }
 
   return {
     title,
