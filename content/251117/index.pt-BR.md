@@ -4,7 +4,7 @@ title: 'Tratamento de erros'
 seoTitle: "Erros no frontend: Error Boundary e throwOnError"
 date: '2025-11-17'
 categories: frontend React TanStack-Query tratamento-de-erros
-description: "Uma análise de até onde vão as responsabilidades de React Error Boundary, try/catch e throwOnError do TanStack Query, e de como combiná-los. O texto diferencia erros de renderização e erros assíncronos e explica até o funcionamento interno do reset em react-error-boundary."
+description: "Como React Error Boundary, try/catch e o throwOnError do TanStack Query dividem responsabilidades, e como funciona o reset internamente."
 keywords: "tratamento de erros no frontend, React Error Boundary, react-error-boundary, TanStack Query throwOnError, tratamento de erros no React Query, reset de error boundary, erros com try catch, tratamento de erros assíncronos, tratamento de erros no React"
 locale: pt-BR
 translationOf: '251117'

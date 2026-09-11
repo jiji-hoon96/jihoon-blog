@@ -4,7 +4,7 @@ title: "Gestión del estado"
 seoTitle: "Estado en frontend: 7 categorías y diseño en React"
 date: "2026-05-18"
 categories: frontend gestión-del-estado React arquitectura
-description: "La gestión del estado es una de las tareas más complejas del frontend. Clasificamos el estado en siete categorías: local, global, de servidor, de formulario, de URL, externo y guards: y presentamos cuatro criterios para elegir herramientas y modelar correctamente: Single Source of Truth, eliminación de estados imposibles y State Colocation, entre otros."
+description: "Gestión del estado en frontend en siete categorías (local, global, servidor, formulario, URL, externo y guards) y cuatro criterios de diseño en React."
 keywords: "gestión del estado frontend, gestión del estado React, comparativa Zustand Jotai, TanStack Query, Server State Client State, State Colocation, Single Source of Truth, React 19 useOptimistic"
 locale: es
 translationOf: '260518'

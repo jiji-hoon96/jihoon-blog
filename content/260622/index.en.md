@@ -4,7 +4,7 @@ title: 'Harness (Systems) Engineering'
 seoTitle: "AI Agents After Context: Harness Design, Evals, Containment"
 date: '2026-06-22'
 categories: AI Agents
-description: 'After the shift from prompts to context engineering, what comes next? Using recent themes from the Anthropic engineering blog as clues, this article connects token efficiency with three emerging directions: harness design, evals, and containment.'
+description: "After prompts gave way to context engineering, what comes next? Anthropic engineering points to harness design, evals, and containment."
 keywords: 'context engineering, harness design, AI agent evals, agent evaluation, containment, agent isolation, AI trends 2026, prompt engineering, LLM agents, beyond token efficiency'
 locale: en
 translationOf: '260622'

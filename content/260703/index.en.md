@@ -4,7 +4,7 @@ title: 'Observability'
 seoTitle: "Observability with AI: Sentry, Silent Failures, Web Vitals"
 date: '2026-07-03'
 categories: observability frontend Sentry reliability
-description: 'I had long used Sentry at work, yet my personal blog had no error monitoring. This post records what I encountered while adding instrumentation with AI: failures hidden behind 200 responses, gray failure, a GA call hanging for 65 seconds, and even search data.'
+description: "I used Sentry at work but had no error monitoring on my own blog. What I found while instrumenting with AI: silent failures behind 200 responses."
 keywords: 'Sentry Next.js setup, frontend observability, observability vs monitoring, gray failure, differential observability, GA Data API timeout, Core Web Vitals measurement, PerformanceObserver, Search Console data analysis, server-only Sentry'
 locale: en
 translationOf: '260703'

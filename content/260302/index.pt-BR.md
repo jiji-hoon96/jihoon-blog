@@ -6,8 +6,8 @@ date: '2026-03-02'
 categories: frontend carreira IA
 locale: pt-BR
 translationOf: '260302'
-sourceHash: 31b528ec645dc672b413c2e78701b778b0bfd42cfce9b3817fcb3f36cd0dea2f
-description: 'Em uma era em que a IA escreve código por nós, como engenheiros frontend podem crescer e sobreviver? Com base em fontes verificadas, como o agentic engineering de Karpathy, o v0 da Vercel, a pesquisa do Stack Overflow e os estudos da METR, este artigo apresenta novas competências e estratégias de aprendizado centradas em validação, especificação e discernimento.'
+sourceHash: ea34a6b4ab472b80bbc813f947f4659d62063c3d4156c38e33495ab6ca1c0bbe
+description: "Como crescer como engenheiro frontend quando a IA escreve o código: validação, especificação e discernimento, a partir de Karpathy, Vercel v0 e METR."
 keywords: 'frontend na era da IA, desenvolvedor na era da IA, vibe coding, agentic engineering, ferramentas de programação com IA, Product Engineer, plano de carreira para frontend'
 ---
 

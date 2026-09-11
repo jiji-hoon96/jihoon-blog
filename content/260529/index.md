@@ -4,7 +4,7 @@ title: 'AI 에이전트 도구'
 seoTitle: 'AI 코딩 에이전트 도구 지형도: md 파일, MCP, 코드 인텔리전스, GitHub Trending'
 date: '2026-05-29'
 categories: AI 개발도구 Claude MCP CodeGraph
-description: 'Claude로 프론트엔드 개발을 하며 마주친 도구들을 네 가지 관점에서 정리해본다. CLAUDE.md·AGENTS.md·SKILL.md의 차이, MCP의 원리와 Serena, CodeGraph 같은 코드 인텔리전스 도구의 동작 원리, 그리고 GitHub Trending을 읽는 법까지.'
+description: "Claude로 프론트엔드 개발을 하며 마주친 도구들을 네 관점에서 정리한다. CLAUDE.md·AGENTS.md·SKILL.md의 차이, MCP의 원리, CodeGraph 같은 코드 인텔리전스, GitHub Trending 읽는 법."
 keywords: 'CLAUDE.md, AGENTS.md, SKILL.md, MCP, Model Context Protocol, Serena MCP, CodeGraph, 코드 인텔리전스, GitHub Trending, AI 코딩 에이전트, Claude Code, Cursor rules, tree-sitter, LSP'
 ---
 

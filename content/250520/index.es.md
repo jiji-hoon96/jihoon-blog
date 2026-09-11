@@ -7,7 +7,7 @@ categories: frontend React
 locale: es
 translationOf: '250520'
 sourceHash: 03b03964ecc49416cd4094fe6c75a2d33aa0e26153fcf9434f153632965e641c
-description: "Análisis profundo de la arquitectura de React Fiber a partir del código fuente de React: desde Stack Reconciler hasta la prioridad por Lanes, el doble búfer, el scheduler basado en MessageChannel y las Concurrent Features. Un tema habitual en entrevistas de frontend."
+description: "Análisis de React Fiber desde el código fuente: Stack Reconciler, prioridades por Lanes, doble búfer, scheduler con MessageChannel y Concurrent Features."
 keywords: "React Fiber, arquitectura de React Fiber, Stack Reconciler, Concurrent Mode, concurrencia en React 18, useTransition, useDeferredValue, Suspense, renderizado de React, análisis del código fuente de React, Virtual DOM, Reconciliation, prioridad por Lanes, entrevista de frontend"
 ---
 

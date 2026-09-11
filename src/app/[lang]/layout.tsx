@@ -44,7 +44,9 @@ export async function generateMetadata({
 	return {
 		metadataBase: new URL(siteMetadata.siteUrl),
 		title: {
-			default: `${siteMetadata.brand} · Frontend Engineering`,
+			// 로케일마다 다른 제목을 준다. 전에는 6개 로케일 홈이 전부 같은
+			// 한국어 제목이라 검색엔진에 언어 신호가 하나도 없었다.
+			default: dictionary.siteTitle,
 			template: `%s | ${siteMetadata.title}`,
 		},
 		description: dictionary.siteDescription,
@@ -60,16 +62,19 @@ export async function generateMetadata({
 			},
 		},
 		openGraph: {
-			title: siteMetadata.title,
+			title: dictionary.siteTitle,
 			description: dictionary.siteDescription,
 			url: homeUrl,
 			siteName: siteMetadata.title,
 			locale: getOpenGraphLocale(lang),
+			alternateLocale: LOCALES.filter(candidate => candidate !== lang).map(
+				getOpenGraphLocale,
+			),
 			type: "website",
 		},
 		twitter: {
 			card: "summary_large_image",
-			title: siteMetadata.title,
+			title: dictionary.siteTitle,
 			description: dictionary.siteDescription,
 		},
 		robots: {

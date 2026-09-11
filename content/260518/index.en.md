@@ -4,7 +4,7 @@ title: "State Management"
 seoTitle: "Frontend State Management: 7 Categories and React Design"
 date: "2026-05-18"
 categories: frontend State-Management React Architecture
-description: "A practical framework for frontend state management across seven categories: Local, Global, Server, Form, URL, External State, and State Guards: with clear principles for Single Source of Truth, impossible states, State Colocation, tool selection, and modeling."
+description: "A framework for frontend state management across seven categories (local, global, server, form, URL, external, guards) with React modeling criteria."
 keywords: "frontend state management, React state management, Zustand vs Jotai, TanStack Query, Server State vs Client State, State Colocation, Single Source of Truth, React 19 useOptimistic"
 locale: en
 translationOf: '260518'

@@ -4,7 +4,7 @@ title: "Understanding Compression Algorithms"
 seoTitle: "Compression Algorithms Compared: GZIP, Zstandard, Brotli"
 date: "2024-07-06"
 categories: curiosities software
-description: "A practical comparison of ZIP, GZIP, ZSTD, Brotli, and other major compression formats, from LZ77 fundamentals to choosing the right option for build artifacts."
+description: "A practical comparison of ZIP, GZIP, ZSTD, and Brotli, from LZ77 fundamentals to choosing the right format for build artifacts."
 keywords: "compression algorithm comparison, GZIP vs ZSTD, tar.gz vs zip, Brotli, LZ77, frontend build optimization, lossless compression"
 locale: en
 translationOf: "240706"

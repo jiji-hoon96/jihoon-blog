@@ -4,7 +4,7 @@ title: 'Shared Language'
 seoTitle: "Cross-Functional Communication: Ubiquitous Language"
 date: '2026-07-23'
 categories: collaboration domain DDD communication
-description: 'What do you do when a product manager and a developer use the same word to mean different things? Using Evans on ubiquitous language and Clark on grounding, this post examines the structure behind cross-functional communication failures and the practical tools that align resolution.'
+description: "What to do when a product manager and a developer use the same word differently: ubiquitous language from Evans and grounding theory from Clark."
 keywords: 'ubiquitous language, shared domain language, cross-functional communication, gathering requirements, product manager developer communication, grounding common ground, Example Mapping, breadboarding, bounded context, psychological safety engineering team'
 locale: en
 translationOf: '260723'

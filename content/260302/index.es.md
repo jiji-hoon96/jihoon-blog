@@ -4,11 +4,11 @@ title: 'Ingeniero frontend de IA'
 seoTitle: "Sobrevivir como ingeniero frontend en la era de la IA"
 date: '2026-03-02'
 categories: frontend carrera IA
-description: 'En una era en la que la IA escribe el código, ¿cómo pueden los ingenieros frontend crecer y sobrevivir? A partir de fuentes contrastadas como el agentic engineering de Karpathy, Vercel v0, la encuesta de Stack Overflow y el estudio de METR, se presentan las nuevas competencias y estrategias de aprendizaje centradas en la verificación, la especificación y el criterio.'
+description: "Cómo crecer como ingeniero frontend cuando la IA escribe el código: verificación, especificación y criterio, a partir de Karpathy, Vercel v0 y METR."
 keywords: 'frontend en la era de la IA, desarrolladores en la era de la IA, vibe coding, agentic engineering, herramientas de programación con IA, Product Engineer, hoja de ruta profesional para frontend'
 locale: es
 translationOf: '260302'
-sourceHash: 31b528ec645dc672b413c2e78701b778b0bfd42cfce9b3817fcb3f36cd0dea2f
+sourceHash: ea34a6b4ab472b80bbc813f947f4659d62063c3d4156c38e33495ab6ca1c0bbe
 ---
 
 En esta publicación quiero hablar, desde una perspectiva personal, de **cómo pueden crecer y sobrevivir los ingenieros en la era de la IA**.

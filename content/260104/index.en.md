@@ -4,7 +4,7 @@ title: "queryKey"
 seoTitle: "Mastering TanStack Query queryKey and queryOptions"
 date: "2026-01-04"
 categories: frontend React TanStack-Query queryKey
-description: "An in-depth look at how TanStack Query's queryKey works and why its management evolved from inline arrays to query key factories and queryOptions. Covers the TkDodo pattern, v5 queryOptions, setQueryData, and query invalidation from a practical perspective."
+description: "How queryKey works in TanStack Query and why it evolved from inline arrays to query key factories and queryOptions, with the TkDodo pattern."
 keywords: "queryKey, query key factory, TanStack Query queryKey, React Query cache key, queryOptions, setQueryData, TkDodo query keys, query-key-factory, React Query v5, query invalidation"
 locale: en
 translationOf: '260104'

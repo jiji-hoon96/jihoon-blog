@@ -4,7 +4,7 @@ title: 'Dominando o React Fiber por completo'
 seoTitle: "React Fiber: arquitetura e renderização concorrente"
 date: '2025-05-20'
 categories: frontend React
-description: "Uma análise aprofundada da arquitetura React Fiber com base no código-fonte do React, do Stack Reconciler às prioridades de Lane, double buffering, scheduler baseado em MessageChannel e Concurrent Features. Um tema recorrente em entrevistas de frontend."
+description: "Análise do React Fiber pelo código-fonte: Stack Reconciler, prioridades de Lane, double buffering, scheduler MessageChannel e Concurrent Features."
 keywords: "React Fiber, arquitetura React Fiber, Stack Reconciler, Concurrent Mode, concorrência no React 18, useTransition, useDeferredValue, Suspense, renderização do React, análise do código-fonte do React, Virtual DOM, Reconciliation, prioridade de Lane, entrevista de frontend"
 locale: pt-BR
 translationOf: '250520'

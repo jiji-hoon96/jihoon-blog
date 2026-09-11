@@ -4,7 +4,7 @@ title: "Abstracción"
 seoTitle: "Abstracción en frontend: principios de buen diseño"
 date: "2026-02-01"
 categories: frontend diseño abstracción
-description: "Qué es la abstracción en frontend y en qué se diferencian una buena y una mala abstracción. Un repaso, desde el diseño de componentes y funciones de React, por los niveles de abstracción, los nombres que revelan la intención y la composición de piezas."
+description: "Qué es la abstracción en frontend y en qué se diferencian una buena y una mala: niveles de abstracción, nombres que revelan intención y composición."
 keywords: "abstracción en frontend, abstracción de componentes React, abstracción en Clean Code, nivel de abstracción, Level of Abstraction, cómo escribir buen código, nombres que revelan la intención, Composed Method, ley de las abstracciones con fugas, diseño de componentes, diseño de hooks personalizados, arquitectura frontend, Kent Beck, Robert C. Martin"
 locale: es
 translationOf: '260201'

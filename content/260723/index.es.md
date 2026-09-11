@@ -4,7 +4,7 @@ title: 'Lenguaje compartido'
 seoTitle: "Comunicación entre disciplinas: ubiquitous language"
 date: '2026-07-23'
 categories: colaboración dominio DDD comunicación
-description: '¿Qué hacer cuando el product manager y el developer usan la misma palabra para cosas distintas? Con el ubiquitous language de Evans y la teoría del grounding de Clark, repaso la estructura del fallo de comunicación entre disciplinas y las herramientas prácticas para igualar la resolución.'
+description: "Qué hacer cuando product manager y developer usan la misma palabra con distinto sentido: ubiquitous language de Evans y grounding de Clark."
 keywords: 'ubiquitous language, lenguaje compartido dominio, comunicación entre disciplinas, cómo definir requisitos, comunicación product manager developer, grounding common ground, Example Mapping, breadboarding, bounded context, seguridad psicológica equipo de desarrollo'
 locale: es
 translationOf: '260723'

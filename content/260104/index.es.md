@@ -4,7 +4,7 @@ title: "queryKey"
 seoTitle: "queryKey en TanStack Query: fábricas y queryOptions"
 date: "2026-01-04"
 categories: frontend React TanStack-Query queryKey
-description: "Explicamos cómo funciona queryKey en TanStack Query y por qué ha evolucionado desde los arreglos en línea hasta las fábricas de claves de consulta y queryOptions. También abordamos desde una perspectiva práctica los patrones de TkDodo, queryOptions de v5, setQueryData y la invalidación de consultas."
+description: "Cómo funciona queryKey en TanStack Query y por qué evolucionó de arreglos en línea a fábricas de claves y queryOptions, con el patrón de TkDodo."
 keywords: "queryKey, fábrica de claves de consulta, queryKey de TanStack Query, clave de caché de React Query, queryOptions, setQueryData, claves de consulta de TkDodo, query-key-factory, React Query v5, invalidación de consultas"
 locale: es
 translationOf: '260104'

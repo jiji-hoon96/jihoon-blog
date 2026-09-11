@@ -4,7 +4,7 @@ title: "Modelo de dominio"
 seoTitle: "Modelos de dominio en frontend: aplicar DDD"
 date: "2026-04-18"
 categories: frontend arquitectura DDD
-description: "Una explicación, desde la perspectiva del frontend, de los conceptos de dominio, modelo de dominio y objeto de dominio, que también aborda Entity y Value Object, el modelo de dominio anémico y la separación del ViewModel. Veamos cómo separar en React la lógica de dominio con un ejemplo práctico del impuesto sobre la renta global."
+description: "Dominio, modelo de dominio y objeto de dominio desde el frontend: Entity, Value Object, modelo anémico y separación del ViewModel en React."
 keywords: "modelo de dominio en frontend, diseño guiado por el dominio, DDD en frontend, Frontend DDD, objeto de dominio, Entity Value Object, Anemic Domain Model, modelo de dominio anémico, Clean Architecture en frontend, Eric Evans, Martin Fowler, separación de lógica de dominio, patrones de diseño en React, arquitectura frontend, separación del ViewModel, Bounded Context"
 locale: es
 translationOf: '260418'

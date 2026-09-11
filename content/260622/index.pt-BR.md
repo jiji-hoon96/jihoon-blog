@@ -4,7 +4,7 @@ title: 'Engenharia de Harness (Sistemas)'
 seoTitle: "Agentes de IA após o contexto: harness, eval e containment"
 date: '2026-06-22'
 categories: IA Agentes
-description: 'Do prompt ao context engineering: o que vem depois? A partir das tendências recentes do blog de engenharia da Anthropic, este artigo conecta a economia de tokens a três direções: design de harness, eval e containment (isolamento).'
+description: "Do prompt ao context engineering, o que vem depois? O blog de engenharia da Anthropic aponta harness, eval e containment (isolamento)."
 keywords: 'context engineering, design de harness, eval de agentes de IA, agent evaluation, containment, isolamento de agentes, tendências de IA 2026, prompt engineering, agentes LLM, depois da economia de tokens'
 locale: pt-BR
 translationOf: '260622'

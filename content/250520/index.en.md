@@ -4,7 +4,7 @@ title: 'Mastering React Fiber'
 seoTitle: "Mastering React Fiber: Architecture and Concurrent Rendering"
 date: '2025-05-20'
 categories: frontend React
-description: "An in-depth, React-source-based analysis of React Fiber architecture, from the Stack Reconciler to Lane priorities, double buffering, the MessageChannel scheduler, and Concurrent Features. A frequent frontend interview topic."
+description: "A source-based analysis of React Fiber: Stack Reconciler, Lane priorities, double buffering, the MessageChannel scheduler, and Concurrent Features."
 keywords: "React Fiber, React Fiber architecture, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, React rendering, React source code analysis, Virtual DOM, Reconciliation, Lane priority, frontend interview"
 locale: en
 translationOf: '250520'

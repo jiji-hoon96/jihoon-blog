@@ -1,6 +1,7 @@
 import type { Locale } from './locales.ts'
 
 type Dictionary = {
+  siteTitle: string
   siteDescription: string
   navigation: {
     posts: string
@@ -69,6 +70,7 @@ type Dictionary = {
 
 const dictionaries: Record<Locale, Dictionary> = {
   ko: {
+    siteTitle: '훈지 · 프론트엔드 엔지니어링 기술 블로그',
     siteDescription: '프론트엔드 개발자 이지훈(후니)의 기술 블로그. React, TypeScript, Next.js 등 웹 개발 기록과 학습 노트를 공유합니다.',
     navigation: { posts: '글', guestbook: '방명록' },
     actions: { search: '검색', changeTheme: '테마 변경', openMenu: '메뉴 열기', subscribeRss: 'RSS 구독' },
@@ -82,6 +84,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     llms: { intro: '프론트엔드 개발자 {authorName}({authorNickname})의 기술 블로그입니다. 주요 스택: {stack}', rss: 'RSS 구독', sitemap: '사이트 전체 URL', posts: '글' },
   },
   en: {
+    siteTitle: 'hooninedev · Frontend Engineering Blog by Jihoon Lee',
     siteDescription: 'Jihoon Lee’s frontend engineering blog, sharing practical notes on React, TypeScript, Next.js, and web development.',
     navigation: { posts: 'Posts', guestbook: 'Guestbook' },
     actions: { search: 'Search', changeTheme: 'Change theme', openMenu: 'Open menu', subscribeRss: 'Subscribe via RSS' },
@@ -95,6 +98,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     llms: { intro: 'Technical blog by frontend engineer {authorName} ({authorNickname}). Main stack: {stack}', rss: 'RSS subscription', sitemap: 'All site URLs', posts: 'Posts' },
   },
   ja: {
+    siteTitle: 'hooninedev · イ・ジフンのフロントエンド技術ブログ',
     siteDescription: 'フロントエンドエンジニア、イ・ジフンの技術ブログです。React、TypeScript、Next.jsを使ったWeb開発の実践、設計上の判断、問題解決の過程、継続的な学びを詳しく共有します。',
     navigation: { posts: '記事', guestbook: 'ゲストブック' },
     actions: { search: '検索', changeTheme: 'テーマを変更', openMenu: 'メニューを開く', subscribeRss: 'RSSを購読' },
@@ -108,6 +112,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     llms: { intro: 'フロントエンドエンジニア{authorName}（{authorNickname}）の技術ブログです。主な技術: {stack}', rss: 'RSS購読', sitemap: 'サイト全体のURL', posts: '記事' },
   },
   es: {
+    siteTitle: 'hooninedev · Blog de ingeniería frontend de Jihoon Lee',
     siteDescription: 'Blog de ingeniería frontend de Jihoon Lee con experiencias sobre React, TypeScript, Next.js y desarrollo web.',
     navigation: { posts: 'Artículos', guestbook: 'Libro de visitas' },
     actions: { search: 'Buscar', changeTheme: 'Cambiar tema', openMenu: 'Abrir menú', subscribeRss: 'Suscribirse por RSS' },
@@ -121,6 +126,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     llms: { intro: 'Blog técnico del ingeniero frontend {authorName} ({authorNickname}). Stack principal: {stack}', rss: 'Suscripción RSS', sitemap: 'Todas las URL del sitio', posts: 'Artículos' },
   },
   'pt-BR': {
+    siteTitle: 'hooninedev · Blog de engenharia frontend de Jihoon Lee',
     siteDescription: 'Blog de engenharia frontend de Jihoon Lee, com experiências sobre React, TypeScript, Next.js e desenvolvimento web.',
     navigation: { posts: 'Artigos', guestbook: 'Livro de visitas' },
     actions: { search: 'Pesquisar', changeTheme: 'Alterar tema', openMenu: 'Abrir menu', subscribeRss: 'Assinar via RSS' },
@@ -134,6 +140,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     llms: { intro: 'Blog técnico do engenheiro frontend {authorName} ({authorNickname}). Stack principal: {stack}', rss: 'Assinatura RSS', sitemap: 'Todas as URLs do site', posts: 'Artigos' },
   },
   'zh-CN': {
+    siteTitle: 'hooninedev · 李智勋的前端工程技术博客',
     siteDescription: '前端工程师李智勋的技术博客，深入分享使用 React、TypeScript、Next.js 进行 Web 开发的实践记录、架构判断、问题排查过程、性能优化经验以及持续学习获得的技术见解。',
     navigation: { posts: '文章', guestbook: '留言簿' },
     actions: { search: '搜索', changeTheme: '切换主题', openMenu: '打开菜单', subscribeRss: '订阅 RSS' },

@@ -4,7 +4,7 @@ title: 'Reflexiones sobre la refactorización del segundo simulacro de Toss Fron
 seoTitle: "Refactorización del 2º simulacro de Toss Frontend"
 date: '2026-03-28'
 categories: frontend React refactorización
-description: "Comparto mi experiencia al refactorizar la aplicación de reserva de salas del segundo simulacro de Toss Frontend Fundamentals. Repaso la separación de componentes monolíticos, la extracción de la lógica de dominio y el proceso de refactorización guiado por pruebas."
+description: "Refactorización de la app de reserva de salas del segundo simulacro de Toss Frontend Fundamentals: separación de componentes y lógica de dominio."
 keywords: "Toss Frontend Fundamentals, refactorización frontend, separación de componentes React, revisión de código, simulacro de Toss, diseño frontend"
 locale: es
 translationOf: '260328'

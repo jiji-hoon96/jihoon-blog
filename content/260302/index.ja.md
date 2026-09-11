@@ -4,11 +4,11 @@ title: 'AIフロントエンドエンジニア'
 seoTitle: 'AI時代、フロントエンドエンジニアとして生き残る方法：検証・仕様化・判断力という新たな能力'
 date: '2026-03-02'
 categories: フロントエンド キャリア AI
-description: 'AIがコードを書く時代に、フロントエンドエンジニアはどのように成長し、生き残ればよいのか。Karpathyのagentic engineering、Vercel v0、Stack Overflow Survey、METRの研究など、検証された資料をもとに、検証・仕様化・判断力を軸とした新たな能力と学習戦略を整理する。'
+description: "AIがコードを書く時代に、フロントエンドエンジニアはどう成長できるのか。Karpathyのagentic engineering、Vercel v0、METRの研究をもとに、検証・仕様化・判断力を軸とした新たな能力を整理する。"
 keywords: 'AI時代のフロントエンド, AI時代の開発者, vibe coding, agentic engineering, AIコーディングツール, Product Engineer, フロントエンドのキャリアロードマップ'
 locale: ja
 translationOf: '260302'
-sourceHash: 31b528ec645dc672b413c2e78701b778b0bfd42cfce9b3817fcb3f36cd0dea2f
+sourceHash: ea34a6b4ab472b80bbc813f947f4659d62063c3d4156c38e33495ab6ca1c0bbe
 ---
 
 今回の記事では、**AI時代にエンジニアがどのように成長し、生き残れるのか**について、個人的な視点から考えてみたい。

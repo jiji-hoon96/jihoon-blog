@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { CategoryNav, PostList } from '@/components/PostList'
 import { getAllCategories, getPostsByCategory } from '@/lib/categories'
-import { findCategoryTranslations } from '@/lib/category-alternates'
+import { ALL_CATEGORY, findCategoryTranslations } from '@/lib/category-alternates'
 import { filterPublishedPosts } from '@/lib/filter-posts'
 import { siteMetadata } from '@/lib/site-metadata'
 import type { Metadata } from 'next'
@@ -24,6 +24,10 @@ type Props = {
   params: Promise<{ lang: string; category: string }>
 }
 
+// 카테고리는 글에서 파생되므로 generateStaticParams 가 전부 만든다.
+// 열어 두면 /posts/All 이나 임의 문자열이 온디맨드로 렌더된다.
+export const dynamicParams = false
+
 export async function generateStaticParams({
   params,
 }: {
@@ -31,10 +35,14 @@ export async function generateStaticParams({
 }) {
   if (!isLocale(params.lang)) return []
 
+  // encodeURIComponent 를 직접 걸면 Next 가 한 번 더 인코딩해서 이중 인코딩된
+  // 경로가 prerender 된다. 한글/일본어/중국어 카테고리 65개가 404 shell 로
+  // 빌드되고 첫 요청마다 콜드 렌더로 떨어졌다. 인코딩은 Next 에 맡긴다.
+  // 'All' 은 /posts 와 같은 목록이고 아무 데서도 링크하지 않으므로 만들지 않는다.
   const categories = getAllCategories(getPostsForLocale(allPosts, params.lang))
-  return categories.map(category => ({
-    category: encodeURIComponent(category),
-  }))
+  return categories
+    .filter(category => category !== ALL_CATEGORY)
+    .map(category => ({ category }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

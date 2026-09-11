@@ -4,7 +4,7 @@ title: 'Zustand, afinal, por que você é ProviderLess?'
 seoTitle: "Por que o Zustand não usa Provider: useSyncExternalStore"
 date: '2024-08-18'
 categories: frontend React
-description: "Uma análise do código-fonte revela como o Zustand gerencia estado sem Provider, as diferenças em relação à Context API do React e seu design baseado em escopo de módulo."
+description: "Uma análise do código-fonte do Zustand: como ele gerencia estado sem Provider e no que difere da Context API do React."
 keywords: "como o Zustand funciona, por que o Zustand não precisa de Provider, biblioteca de gerenciamento de estado React, análise do código-fonte do Zustand, useSyncExternalStore, React Context API"
 locale: pt-BR
 translationOf: '240818'

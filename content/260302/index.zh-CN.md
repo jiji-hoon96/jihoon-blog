@@ -8,7 +8,7 @@ description: '在 AI 代替人编写代码的时代，前端工程师该如何�
 keywords: 'AI 时代前端, AI 时代开发者, vibe coding, agentic engineering, AI 编程工具, Product Engineer, 前端职业路线图'
 locale: zh-CN
 translationOf: '260302'
-sourceHash: 31b528ec645dc672b413c2e78701b778b0bfd42cfce9b3817fcb3f36cd0dea2f
+sourceHash: ea34a6b4ab472b80bbc813f947f4659d62063c3d4156c38e33495ab6ca1c0bbe
 ---
 
 这篇文章想从个人视角聊一聊：**在 AI 时代，工程师该如何成长并生存下去**。
