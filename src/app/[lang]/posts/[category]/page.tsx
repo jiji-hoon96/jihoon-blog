@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { CategoryNav, PostList } from '@/components/PostList'
 import { getAllCategories, getPostsByCategory } from '@/lib/categories'
 import { ALL_CATEGORY, findCategoryTranslations } from '@/lib/category-alternates'
+import { isIndexableCategory } from '@/lib/category-indexing'
 import { filterPublishedPosts } from '@/lib/filter-posts'
 import { siteMetadata } from '@/lib/site-metadata'
 import type { Metadata } from 'next'
@@ -81,6 +82,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    // 글 하나짜리 카테고리는 그 글과 겹치므로 색인에서 뺀다. 내부 링크는 계속 따라간다.
+    ...(isIndexableCategory(posts.length)
+      ? {}
+      : { robots: { index: false, follow: true } }),
     alternates: {
       canonical: url,
       languages,

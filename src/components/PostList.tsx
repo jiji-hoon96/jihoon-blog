@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ALL_CATEGORY } from '@/lib/category-alternates'
 import type { allPosts } from 'contentlayer/generated'
 import { toPublicPath, type Locale } from '@/i18n/locales'
 import { formatHomepageDate } from '@/lib/homepage-index'
@@ -24,10 +25,10 @@ export function CategoryNav({
   allLabel: string
   label: string
 }) {
-  // getAllCategories 는 단순 정렬이라 'All' 이 'AI' 뒤로 밀린다. 노출 순서만 바로잡는다.
+  // getAllCategories 는 단순 정렬이라 All 이 AI 뒤로 밀린다. 노출 순서만 바로잡는다.
   const ordered = [
-    ...categories.filter(cat => cat === 'All'),
-    ...categories.filter(cat => cat !== 'All'),
+    ...categories.filter(cat => cat === ALL_CATEGORY),
+    ...categories.filter(cat => cat !== ALL_CATEGORY),
   ]
 
   return (
@@ -36,13 +37,13 @@ export function CategoryNav({
       className="home-meta flex flex-wrap gap-x-4 gap-y-2 border-b border-mineral pb-5 text-stone"
     >
       {ordered.map(cat => {
-        const isActive = activeCategory ? cat === activeCategory : cat === 'All'
+        const isActive = activeCategory ? cat === activeCategory : cat === ALL_CATEGORY
         return (
           <Link
             key={cat}
             href={toPublicPath(
               lang,
-              cat === 'All' ? '/posts' : `/posts/${encodeURIComponent(cat)}`,
+              cat === ALL_CATEGORY ? '/posts' : `/posts/${encodeURIComponent(cat)}`,
             )}
             aria-current={isActive ? 'page' : undefined}
             className={
@@ -51,7 +52,7 @@ export function CategoryNav({
                 : 'transition-colors hover:text-accent'
             }
           >
-            {cat === 'All' ? allLabel : cat}
+            {cat === ALL_CATEGORY ? allLabel : cat}
           </Link>
         )
       })}

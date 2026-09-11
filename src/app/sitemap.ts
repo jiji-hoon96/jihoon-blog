@@ -4,7 +4,8 @@ import { getAllCategories, getPostsByCategory } from '@/lib/categories'
 import { getSortedPublishedPosts } from '@/lib/filter-posts'
 import { siteMetadata } from '@/lib/site-metadata'
 import { getPostsForLocale } from '@/lib/localized-posts'
-import { findCategoryTranslations } from '@/lib/category-alternates'
+import { ALL_CATEGORY, findCategoryTranslations } from '@/lib/category-alternates'
+import { isIndexableCategory } from '@/lib/category-indexing'
 import { buildTranslationAlternates } from '@/lib/localized-metadata'
 import {
   getLatestPostModifiedDate,
@@ -54,7 +55,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const localePosts = getPostsForLocale(publishedPosts, locale)
 
     return getAllCategories(localePosts)
-      .filter(category => category !== 'All')
+      .filter(category => category !== ALL_CATEGORY)
+      // noindex 인 페이지는 sitemap 에 넣지 않는다. 판단 기준은 페이지와 공유한다.
+      .filter(category =>
+        isIndexableCategory(getPostsByCategory(category, localePosts).length),
+      )
       .map(category => {
         const categoryPosts = getPostsByCategory(category, localePosts)
         const latest = getLatestPostModifiedDate(categoryPosts)
