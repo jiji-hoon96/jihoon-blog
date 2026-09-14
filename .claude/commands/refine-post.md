@@ -76,7 +76,7 @@
 - [ ] `content/terminology.yml` 기준과 `pnpm content:terms` 검사를 통과하는가?
 - [ ] 해설이 필요한 핵심 용어만 첫 의미 있는 등장에 `:term[표시 이름]{key="stable-key"}`로 표시했는가?
 - [ ] 용어 키가 `content/glossary.json`에 있고, 설명 패널을 열지 않아도 본문 핵심 논리를 이해할 수 있는가?
-- [ ] 운영 글은 `pnpm content:glossary`, 관측 시리즈 초안은 `pnpm content:glossary -- --drafts`를 통과하는가?
+- [ ] `pnpm content:glossary`를 통과하는가?
 - [ ] 개발자가 직관적으로 이해할 수 있는 비유가 사용되었는가?
 - [ ] 비유의 한계가 적절히 언급되는가?
 - [ ] 모든 기술적 주장이 검증된 자료와 출처에 근거하는가?

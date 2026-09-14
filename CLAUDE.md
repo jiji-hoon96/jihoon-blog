@@ -51,7 +51,7 @@
 - 독자에게 낯선 핵심어는 첫 등장에만 `wall-clock time(실제 경과 시간)`처럼 짧게 설명할 수 있다. 설명이 뜻을 흐리거나 문장을 무겁게 만들면 영어만 쓴다.
 - 외부 원문 인용과 코드 안의 명칭은 번역하지 않는다. 기술 용어 기준은 `content/terminology.yml`, 검증은 `pnpm content:terms`를 사용한다.
 - 본문 흐름 안에서 짧은 해설이 필요한 핵심 용어는 첫 의미 있는 등장에 `:term[RUM]{key="rum"}` 형식으로 표시한다. 키는 `content/glossary.json`의 소문자 kebab-case 값을 사용한다.
-- 용어 해설은 본문 설명을 대체하지 않는다. 운영 글은 `pnpm content:glossary`, 관측 시리즈 초안은 `pnpm content:glossary -- --drafts`로 검증한다.
+- 용어 해설은 본문 설명을 대체하지 않는다. `pnpm content:glossary`로 검증한다.
 
 ### 링크 사용 규칙
 

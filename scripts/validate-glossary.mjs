@@ -8,11 +8,6 @@ const LOCALES = new Set(['ko', 'en', 'ja', 'es', 'pt-BR', 'zh-CN'])
 const KEY_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u
 const TERM_PATTERN = /:term(?:\[([^\]\n]*)\])?(?:\{([^}\n]*)\})?/gu
 const ATTRIBUTE_PATTERN = /^key=(['"])([^'"]*)\1$/u
-const OBSERVABILITY_DRAFTS = [
-  'docs/research/observability-series/260703.md',
-  'docs/research/observability-series/260704.md',
-  'docs/research/observability-series/260705.md',
-]
 
 function fenceMarker(line) {
   const match = line.match(/^\s*(`{3,}|~{3,})/u)
@@ -111,7 +106,6 @@ async function markdownPaths(directory) {
 }
 
 function localeFromPath(file) {
-  if (file.startsWith('docs/research/observability-series/')) return 'ko'
   const suffix = file.match(/\/index(?:\.([^.\/]+))?\.md$/u)?.[1]
   const locale = suffix ?? 'ko'
   return LOCALES.has(locale) ? locale : undefined
@@ -119,7 +113,6 @@ function localeFromPath(file) {
 
 export async function validateRepository({
   rootDirectory = process.cwd(),
-  includeDrafts = false,
 } = {}) {
   const glossaryPath = path.join(rootDirectory, 'content/glossary.json')
   const glossary = JSON.parse(await readFile(glossaryPath, 'utf8'))
@@ -129,11 +122,6 @@ export async function validateRepository({
   }
 
   const files = await markdownPaths(path.join(rootDirectory, 'content'))
-  if (includeDrafts) {
-    files.push(
-      ...OBSERVABILITY_DRAFTS.map(file => path.join(rootDirectory, file)),
-    )
-  }
 
   const errors = []
   for (const absolutePath of files.sort()) {
@@ -152,9 +140,7 @@ export async function validateRepository({
 }
 
 async function main() {
-  const errors = await validateRepository({
-    includeDrafts: process.argv.includes('--drafts'),
-  })
+  const errors = await validateRepository()
 
   if (errors.length === 0) {
     console.log('Glossary validation passed.')
