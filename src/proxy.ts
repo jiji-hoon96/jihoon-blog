@@ -25,7 +25,9 @@ export function proxy(request: NextRequest) {
     })
   }
 
-  return NextResponse.redirect(destination)
+  // 내려간 글은 영구 이전이므로 308 로 보내 색인을 옮기게 한다. 로케일 접두사를
+  // 떼는 정규화 리다이렉트는 기존대로 307 이다.
+  return NextResponse.redirect(destination, decision.permanent ? 308 : undefined)
 }
 
 export const config = {

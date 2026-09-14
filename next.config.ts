@@ -21,22 +21,6 @@ const nextConfig: NextConfig = {
   // 클릭재킹과 referrer 유출을 막으려면 여기에 둬야 한다. (실측으로 확인)
   // script-src 는 넣지 않는다. layout 에 인라인 스크립트와 JSON-LD 가 있어
   // 'unsafe-inline' 을 붙여야 하는데 그러면 막는 것이 없다. nonce 는 별도 작업이다.
-  // 통합본이던 /260703 을 관측 3부작으로 쪼개면서 원글을 내렸다. 색인된 URL 이
-  // 404 가 되지 않도록 6개 로케일 전부 시리즈 1편으로 보낸다.
-  async redirects() {
-    return [
-      {
-        source: "/260703",
-        destination: "/260914",
-        permanent: true,
-      },
-      {
-        source: "/:locale(en|ja|es|pt-BR|zh-CN)/260703",
-        destination: "/:locale/260914",
-        permanent: true,
-      },
-    ];
-  },
   async headers() {
     return [
       {

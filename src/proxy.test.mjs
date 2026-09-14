@@ -10,9 +10,9 @@ test('rewrites legacy Korean page URLs to the internal ko locale tree', () => {
     kind: 'rewrite',
     pathname: '/ko',
   })
-  assert.deepEqual(classifyLocaleRequest('/260703'), {
+  assert.deepEqual(classifyLocaleRequest('/260723'), {
     kind: 'rewrite',
-    pathname: '/ko/260703',
+    pathname: '/ko/260723',
   })
   assert.deepEqual(classifyLocaleRequest('/posts'), {
     kind: 'rewrite',
@@ -29,7 +29,7 @@ test('rewrites legacy Korean page URLs to the internal ko locale tree', () => {
 })
 
 test('leaves supported foreign locale URLs unchanged', () => {
-  assert.deepEqual(classifyLocaleRequest('/en/260703'), { kind: 'next' })
+  assert.deepEqual(classifyLocaleRequest('/en/260723'), { kind: 'next' })
   assert.deepEqual(classifyLocaleRequest('/pt-BR/posts'), { kind: 'next' })
   assert.deepEqual(classifyLocaleRequest('/zh-CN'), { kind: 'next' })
 })
@@ -39,9 +39,9 @@ test('redirects visible ko-prefixed URLs to canonical legacy URLs', () => {
     kind: 'redirect',
     pathname: '/',
   })
-  assert.deepEqual(classifyLocaleRequest('/ko/260703'), {
+  assert.deepEqual(classifyLocaleRequest('/ko/260723'), {
     kind: 'redirect',
-    pathname: '/260703',
+    pathname: '/260723',
   })
 })
 
@@ -54,13 +54,13 @@ test('does not localize APIs, Next assets, or file-like paths', () => {
 
 test('does not redirect a ko path produced by an internal rewrite', () => {
   assert.deepEqual(
-    classifyLocaleRequest('/ko/260703', { internalRewrite: true }),
+    classifyLocaleRequest('/ko/260723', { internalRewrite: true }),
     { kind: 'next' },
   )
 })
 
 test('marks internal locale rewrites so they are not canonicalized again', () => {
-  const response = proxy(new NextRequest('http://localhost/260703'))
+  const response = proxy(new NextRequest('http://localhost/260723'))
 
   assert.equal(
     response.headers.get('x-middleware-request-x-internal-locale-rewrite'),
@@ -70,4 +70,41 @@ test('marks internal locale rewrites so they are not canonicalized again', () =>
     response.headers.get('x-middleware-override-headers') ?? '',
     /x-internal-locale-rewrite/,
   )
+})
+
+test('redirects retired post slugs to the article that replaced them', () => {
+  assert.deepEqual(classifyLocaleRequest('/260703'), {
+    kind: 'redirect',
+    pathname: '/260914',
+    permanent: true,
+  })
+  assert.deepEqual(classifyLocaleRequest('/en/260703'), {
+    kind: 'redirect',
+    pathname: '/en/260914',
+    permanent: true,
+  })
+  assert.deepEqual(classifyLocaleRequest('/pt-BR/260703'), {
+    kind: 'redirect',
+    pathname: '/pt-BR/260914',
+    permanent: true,
+  })
+  // /ko 는 정규 경로가 아니므로 두 번 튀지 않고 한 번에 간다.
+  assert.deepEqual(classifyLocaleRequest('/ko/260703'), {
+    kind: 'redirect',
+    pathname: '/260914',
+    permanent: true,
+  })
+  assert.deepEqual(classifyLocaleRequest('/260703/'), {
+    kind: 'redirect',
+    pathname: '/260914',
+    permanent: true,
+  })
+})
+
+test('leaves live post slugs alone', () => {
+  assert.deepEqual(classifyLocaleRequest('/260914'), {
+    kind: 'rewrite',
+    pathname: '/ko/260914',
+  })
+  assert.deepEqual(classifyLocaleRequest('/en/260914'), { kind: 'next' })
 })

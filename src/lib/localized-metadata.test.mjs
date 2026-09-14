@@ -7,15 +7,15 @@ import {
 } from './localized-metadata.ts'
 
 const translations = [
-  ['ko', '/260703'],
-  ['en', '/en/260703'],
-  ['ja', '/ja/260703'],
-  ['es', '/es/260703'],
-  ['pt-BR', '/pt-BR/260703'],
-  ['zh-CN', '/zh-CN/260703'],
+  ['ko', '/260723'],
+  ['en', '/en/260723'],
+  ['ja', '/ja/260723'],
+  ['es', '/es/260723'],
+  ['pt-BR', '/pt-BR/260723'],
+  ['zh-CN', '/zh-CN/260723'],
 ].map(([contentLocale, slug]) => ({
   contentLocale,
-  translationKey: '260703',
+  translationKey: '260723',
   slug,
   title: `${contentLocale} title`,
   description: `${contentLocale} description`,
@@ -36,19 +36,19 @@ test('builds a self-canonical with reciprocal language alternates', () => {
   const metadata = buildLocalizedPostMetadata(translations[1], translations, site)
 
   assert.deepEqual(metadata.title, { absolute: 'en title' })
-  assert.equal(metadata.alternates.canonical, 'https://example.com/en/260703')
+  assert.equal(metadata.alternates.canonical, 'https://example.com/en/260723')
   assert.deepEqual(metadata.alternates.languages, {
-    ko: 'https://example.com/260703',
-    en: 'https://example.com/en/260703',
-    ja: 'https://example.com/ja/260703',
-    es: 'https://example.com/es/260703',
-    'pt-BR': 'https://example.com/pt-BR/260703',
-    'zh-Hans': 'https://example.com/zh-CN/260703',
-    'x-default': 'https://example.com/260703',
+    ko: 'https://example.com/260723',
+    en: 'https://example.com/en/260723',
+    ja: 'https://example.com/ja/260723',
+    es: 'https://example.com/es/260723',
+    'pt-BR': 'https://example.com/pt-BR/260723',
+    'zh-Hans': 'https://example.com/zh-CN/260723',
+    'x-default': 'https://example.com/260723',
   })
   assert.equal(metadata.openGraph.locale, 'en_US')
   assert.deepEqual(metadata.openGraph.images, [
-    'https://example.com/en/260703/opengraph-image',
+    'https://example.com/en/260723/opengraph-image',
   ])
   assert.equal(metadata.openGraph.publishedTime, '2026-07-03T00:00:00.000Z')
   assert.equal(metadata.openGraph.modifiedTime, '2026-07-05T00:00:00.000Z')
@@ -57,9 +57,9 @@ test('builds a self-canonical with reciprocal language alternates', () => {
 test('uses Simplified Chinese locale metadata without changing its public URL', () => {
   const metadata = buildLocalizedPostMetadata(translations[5], translations, site)
 
-  assert.equal(metadata.alternates.canonical, 'https://example.com/zh-CN/260703')
+  assert.equal(metadata.alternates.canonical, 'https://example.com/zh-CN/260723')
   assert.equal(metadata.openGraph.locale, 'zh_CN')
-  assert.equal(metadata.openGraph.url, 'https://example.com/zh-CN/260703')
+  assert.equal(metadata.openGraph.url, 'https://example.com/zh-CN/260723')
 })
 
 test('shortens metadata at a word boundary without changing short text', () => {
