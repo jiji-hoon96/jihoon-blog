@@ -3,108 +3,468 @@
     "ko": {
       "name": "PerformanceEntry",
       "definition": "브라우저가 탐색, 리소스, 렌더링, 사용자 입력 같은 성능 사건을 공통 시간축에 기록한 항목"
+    },
+    "en": {
+      "name": "PerformanceEntry",
+      "definition": "An item the browser records on a common timeline for performance events such as navigation, resources, rendering, and user input"
+    },
+    "ja": {
+      "name": "PerformanceEntry",
+      "definition": "ナビゲーション、リソース、レンダリング、ユーザー入力といった性能イベントをブラウザが共通の時間軸に記録した項目"
+    },
+    "es": {
+      "name": "PerformanceEntry",
+      "definition": "Elemento que el navegador registra en una línea de tiempo común para eventos de rendimiento como navegación, recursos, renderizado y entrada del usuario"
+    },
+    "pt-BR": {
+      "name": "PerformanceEntry",
+      "definition": "Item que o navegador registra em uma linha do tempo comum para eventos de desempenho como navegação, recursos, renderização e entrada do usuário"
+    },
+    "zh-CN": {
+      "name": "PerformanceEntry",
+      "definition": "浏览器把导航、资源、渲染、用户输入等性能事件记录在统一时间轴上的条目"
     }
   },
   "performance-observer": {
     "ko": {
       "name": "PerformanceObserver",
       "definition": "브라우저가 생성하는 성능 항목을 실행 중에 구독해 전달받는 표준 인터페이스"
+    },
+    "en": {
+      "name": "PerformanceObserver",
+      "definition": "The standard interface for subscribing at runtime to the performance entries the browser creates"
+    },
+    "ja": {
+      "name": "PerformanceObserver",
+      "definition": "ブラウザが生成する性能エントリを実行中に購読して受け取る標準インターフェース"
+    },
+    "es": {
+      "name": "PerformanceObserver",
+      "definition": "Interfaz estándar para suscribirse en tiempo de ejecución a las entradas de rendimiento que genera el navegador"
+    },
+    "pt-BR": {
+      "name": "PerformanceObserver",
+      "definition": "Interface padrão para assinar em tempo de execução as entradas de desempenho que o navegador gera"
+    },
+    "zh-CN": {
+      "name": "PerformanceObserver",
+      "definition": "在运行时订阅并接收浏览器生成的性能条目的标准接口"
     }
   },
   "web-vitals": {
     "ko": {
       "name": "Web Vitals",
       "definition": "로딩, 상호작용, 시각적 안정성을 사용자 경험 관점에서 요약한 웹 성능 지표"
+    },
+    "en": {
+      "name": "Web Vitals",
+      "definition": "Web performance metrics that summarize loading, interactivity, and visual stability from the user experience perspective"
+    },
+    "ja": {
+      "name": "Web Vitals",
+      "definition": "読み込み、インタラクション、視覚的安定性をユーザー体験の観点から要約したウェブ性能指標"
+    },
+    "es": {
+      "name": "Web Vitals",
+      "definition": "Métricas de rendimiento web que resumen la carga, la interactividad y la estabilidad visual desde la perspectiva de la experiencia del usuario"
+    },
+    "pt-BR": {
+      "name": "Web Vitals",
+      "definition": "Métricas de desempenho web que resumem carregamento, interatividade e estabilidade visual do ponto de vista da experiência do usuário"
+    },
+    "zh-CN": {
+      "name": "Web Vitals",
+      "definition": "从用户体验角度概括加载、交互和视觉稳定性的网页性能指标"
     }
   },
   "rum": {
     "ko": {
       "name": "RUM",
       "definition": "실제 사용자의 브라우저 환경에서 성능과 경험 데이터를 지속적으로 수집하는 방식"
+    },
+    "en": {
+      "name": "RUM",
+      "definition": "A practice of continuously collecting performance and experience data from real users' browser environments"
+    },
+    "ja": {
+      "name": "RUM",
+      "definition": "実際のユーザーのブラウザ環境から性能と体験のデータを継続的に収集する方式"
+    },
+    "es": {
+      "name": "RUM",
+      "definition": "Práctica de recopilar continuamente datos de rendimiento y experiencia en los navegadores de usuarios reales"
+    },
+    "pt-BR": {
+      "name": "RUM",
+      "definition": "Prática de coletar continuamente dados de desempenho e experiência nos navegadores de usuários reais"
+    },
+    "zh-CN": {
+      "name": "RUM",
+      "definition": "在真实用户的浏览器环境中持续收集性能与体验数据的方式"
     }
   },
   "bfcache": {
     "ko": {
       "name": "bfcache",
       "definition": "뒤로 가기와 앞으로 가기 때 페이지 상태를 메모리에 보존해 빠르게 복원하는 브라우저 캐시"
+    },
+    "en": {
+      "name": "bfcache",
+      "definition": "A browser cache that keeps page state in memory so back and forward navigation can restore it quickly"
+    },
+    "ja": {
+      "name": "bfcache",
+      "definition": "戻る・進む操作の際にページ状態をメモリに保持して素早く復元するブラウザキャッシュ"
+    },
+    "es": {
+      "name": "bfcache",
+      "definition": "Caché del navegador que conserva el estado de la página en memoria para restaurarla rápidamente al navegar atrás o adelante"
+    },
+    "pt-BR": {
+      "name": "bfcache",
+      "definition": "Cache do navegador que mantém o estado da página em memória para restaurá-la rapidamente ao voltar ou avançar"
+    },
+    "zh-CN": {
+      "name": "bfcache",
+      "definition": "在前进和后退时把页面状态保存在内存中以便快速恢复的浏览器缓存"
     }
   },
   "cardinality": {
     "ko": {
       "name": "Cardinality",
       "definition": "한 필드에 존재하는 서로 다른 값의 개수로, 값이 지나치게 다양하면 저장과 조회 비용이 커진다"
+    },
+    "en": {
+      "name": "Cardinality",
+      "definition": "The number of distinct values in a field; when values vary too widely, storage and query costs grow"
+    },
+    "ja": {
+      "name": "Cardinality",
+      "definition": "一つのフィールドに存在する異なる値の数。値が多様すぎると保存と照会のコストが大きくなる"
+    },
+    "es": {
+      "name": "Cardinalidad",
+      "definition": "Cantidad de valores distintos en un campo; cuando varían demasiado, crecen los costos de almacenamiento y consulta"
+    },
+    "pt-BR": {
+      "name": "Cardinalidade",
+      "definition": "Quantidade de valores distintos em um campo; quando variam demais, os custos de armazenamento e consulta crescem"
+    },
+    "zh-CN": {
+      "name": "Cardinality",
+      "definition": "一个字段中不同取值的数量。取值过于多样时，存储和查询成本会随之增大"
     }
   },
   "issue-grouping": {
     "ko": {
       "name": "Issue grouping",
       "definition": "유사한 오류 이벤트를 스택과 예외 정보 같은 기준으로 하나의 문제 묶음으로 합치는 과정"
+    },
+    "en": {
+      "name": "Issue grouping",
+      "definition": "The process of merging similar error events into one issue based on signals like the stack trace and exception details"
+    },
+    "ja": {
+      "name": "Issue grouping",
+      "definition": "スタックや例外情報などを基準に、類似したエラーイベントを一つの問題の束にまとめる過程"
+    },
+    "es": {
+      "name": "Issue grouping",
+      "definition": "Proceso de agrupar eventos de error similares en un mismo issue según criterios como el stack y la información de la excepción"
+    },
+    "pt-BR": {
+      "name": "Issue grouping",
+      "definition": "Processo de agrupar eventos de erro semelhantes em um mesmo issue com base em critérios como o stack e as informações da exceção"
+    },
+    "zh-CN": {
+      "name": "Issue grouping",
+      "definition": "依据栈信息和异常信息等标准,把相似的错误事件合并为同一个问题分组的过程"
     }
   },
   "breadcrumb": {
     "ko": {
       "name": "Breadcrumb",
       "definition": "오류가 발생하기 전의 사용자 행동, 요청, 로그와 상태 변화를 시간 순서로 남긴 짧은 기록"
+    },
+    "en": {
+      "name": "Breadcrumb",
+      "definition": "A short chronological record of user actions, requests, logs, and state changes leading up to an error"
+    },
+    "ja": {
+      "name": "Breadcrumb",
+      "definition": "エラー発生前のユーザー行動、リクエスト、ログや状態変化を時系列で残した短い記録"
+    },
+    "es": {
+      "name": "Breadcrumb",
+      "definition": "Registro breve y cronológico de acciones del usuario, solicitudes, logs y cambios de estado previos a un error"
+    },
+    "pt-BR": {
+      "name": "Breadcrumb",
+      "definition": "Registro breve e cronológico de ações do usuário, requisições, logs e mudanças de estado anteriores a um erro"
+    },
+    "zh-CN": {
+      "name": "Breadcrumb",
+      "definition": "按时间顺序记录错误发生前的用户行为、请求、日志和状态变化的简短记录"
     }
   },
   "distributed-trace": {
     "ko": {
       "name": "Distributed trace",
       "definition": "하나의 요청이 브라우저와 여러 서비스를 지나는 경로와 소요 시간을 연결한 기록"
+    },
+    "en": {
+      "name": "Distributed trace",
+      "definition": "A record linking the path and time a single request takes across the browser and multiple services"
+    },
+    "ja": {
+      "name": "Distributed trace",
+      "definition": "一つのリクエストがブラウザと複数のサービスを通る経路と所要時間をつなげた記録"
+    },
+    "es": {
+      "name": "Distributed trace",
+      "definition": "Registro que conecta el recorrido y el tiempo de una misma solicitud a través del navegador y varios servicios"
+    },
+    "pt-BR": {
+      "name": "Distributed trace",
+      "definition": "Registro que conecta o percurso e o tempo de uma mesma requisição pelo navegador e por vários serviços"
+    },
+    "zh-CN": {
+      "name": "Distributed trace",
+      "definition": "把一次请求经过浏览器和多个服务的路径与耗时串联起来的记录"
     }
   },
   "span": {
     "ko": {
       "name": "Span",
       "definition": "트레이스 안에서 하나의 작업 구간과 시작 시각, 소요 시간, 속성, 상태를 표현하는 단위"
+    },
+    "en": {
+      "name": "Span",
+      "definition": "A unit inside a trace representing one operation with its start time, duration, attributes, and status"
+    },
+    "ja": {
+      "name": "Span",
+      "definition": "トレースの中で一つの作業区間と開始時刻、所要時間、属性、状態を表す単位"
+    },
+    "es": {
+      "name": "Span",
+      "definition": "Unidad dentro de un trace que representa una operación con su inicio, duración, atributos y estado"
+    },
+    "pt-BR": {
+      "name": "Span",
+      "definition": "Unidade dentro de um trace que representa uma operação com seu início, duração, atributos e estado"
+    },
+    "zh-CN": {
+      "name": "Span",
+      "definition": "trace 中表示一个工作区间及其开始时刻、耗时、属性和状态的单位"
     }
   },
   "session-replay": {
     "ko": {
       "name": "Session Replay",
       "definition": "DOM 변화와 입력, 탐색, 네트워크 기록을 모아 사용자가 겪은 화면 상태를 재구성하는 기능"
+    },
+    "en": {
+      "name": "Session Replay",
+      "definition": "A feature that reconstructs what the user experienced on screen by collecting DOM changes, input, navigation, and network records"
+    },
+    "ja": {
+      "name": "Session Replay",
+      "definition": "DOMの変化と入力、ナビゲーション、ネットワーク記録を集めて、ユーザーが経験した画面状態を再構成する機能"
+    },
+    "es": {
+      "name": "Session Replay",
+      "definition": "Función que reconstruye lo que el usuario vio en pantalla reuniendo cambios del DOM, entradas, navegación y registros de red"
+    },
+    "pt-BR": {
+      "name": "Session Replay",
+      "definition": "Recurso que reconstrói o que o usuário viu na tela reunindo mudanças do DOM, entradas, navegação e registros de rede"
+    },
+    "zh-CN": {
+      "name": "Session Replay",
+      "definition": "汇集 DOM 变化、输入、导航和网络记录,重构用户所经历界面状态的功能"
     }
   },
   "sampling": {
     "ko": {
       "name": "Sampling",
       "definition": "전체 관측 데이터 중 저장하거나 분석할 일부를 규칙에 따라 선택하는 과정"
+    },
+    "en": {
+      "name": "Sampling",
+      "definition": "The process of selecting, by rule, which portion of all observability data to store or analyze"
+    },
+    "ja": {
+      "name": "Sampling",
+      "definition": "観測データ全体のうち、保存または分析する一部を規則に従って選ぶ過程"
+    },
+    "es": {
+      "name": "Sampling",
+      "definition": "Proceso de seleccionar según reglas qué parte de todos los datos de observación se almacena o se analiza"
+    },
+    "pt-BR": {
+      "name": "Sampling",
+      "definition": "Processo de selecionar por regras qual parte de todos os dados de observação será armazenada ou analisada"
+    },
+    "zh-CN": {
+      "name": "Sampling",
+      "definition": "按照规则从全部观测数据中选出要存储或分析的一部分的过程"
     }
   },
   "ga4-event": {
     "ko": {
       "name": "GA4 event",
       "definition": "GA4에서 조회, 클릭, 구매 같은 사용자 상호작용을 이름과 매개변수로 표현하는 기본 단위"
+    },
+    "en": {
+      "name": "GA4 event",
+      "definition": "The basic unit in GA4 that expresses a user interaction such as a view, click, or purchase through a name and parameters"
+    },
+    "ja": {
+      "name": "GA4 event",
+      "definition": "GA4 で閲覧、クリック、購入といったユーザーの相互作用を名前とパラメータで表す基本単位"
+    },
+    "es": {
+      "name": "GA4 event",
+      "definition": "Unidad básica de GA4 que expresa una interacción del usuario, como una vista, un clic o una compra, mediante un nombre y parámetros"
+    },
+    "pt-BR": {
+      "name": "GA4 event",
+      "definition": "Unidade básica do GA4 que expressa uma interação do usuário, como visualização, clique ou compra, por meio de um nome e parâmetros"
+    },
+    "zh-CN": {
+      "name": "GA4 event",
+      "definition": "GA4 中以名称和参数表示浏览、点击、购买等用户交互的基本单位"
     }
   },
   "raw-event": {
     "ko": {
       "name": "Raw event",
       "definition": "보고서 집계나 요약이 적용되기 전의 개별 이벤트와 매개변수 기록"
+    },
+    "en": {
+      "name": "Raw event",
+      "definition": "The individual event and parameter record as it stands before report aggregation or summarization is applied"
+    },
+    "ja": {
+      "name": "Raw event",
+      "definition": "レポートの集計や要約が適用される前の、個々のイベントとパラメータの記録"
+    },
+    "es": {
+      "name": "Raw event",
+      "definition": "Registro individual de evento y parámetros tal como está antes de aplicar la agregación o el resumen de los informes"
+    },
+    "pt-BR": {
+      "name": "Raw event",
+      "definition": "Registro individual de evento e parâmetros como está antes de aplicar a agregação ou o resumo dos relatórios"
+    },
+    "zh-CN": {
+      "name": "Raw event",
+      "definition": "在报表聚合或汇总处理之前的单条事件与参数记录"
     }
   },
   "search-console": {
     "ko": {
       "name": "Search Console",
       "definition": "Google 검색 결과에서 사이트가 노출되고 클릭된 검색어와 페이지 성과를 집계해 보여주는 도구"
+    },
+    "en": {
+      "name": "Search Console",
+      "definition": "A tool that aggregates the queries and pages through which a site was shown and clicked in Google search results"
+    },
+    "ja": {
+      "name": "Search Console",
+      "definition": "Google の検索結果でサイトが表示され、クリックされた検索語とページの成果を集計して示すツール"
+    },
+    "es": {
+      "name": "Search Console",
+      "definition": "Herramienta que agrega las consultas y páginas por las que un sitio se mostró y recibió clics en los resultados de búsqueda de Google"
+    },
+    "pt-BR": {
+      "name": "Search Console",
+      "definition": "Ferramenta que agrega as consultas e páginas pelas quais um site apareceu e recebeu cliques nos resultados de busca do Google"
+    },
+    "zh-CN": {
+      "name": "Search Console",
+      "definition": "汇总网站在 Google 搜索结果中获得曝光与点击的查询词和页面表现的工具"
     }
   },
   "consent-mode": {
     "ko": {
       "name": "Consent Mode",
       "definition": "사용자의 동의 상태에 따라 Google 태그의 저장과 전송 동작을 조정하는 방식"
+    },
+    "en": {
+      "name": "Consent Mode",
+      "definition": "A scheme that adjusts how Google tags store and send data according to the user's consent state"
+    },
+    "ja": {
+      "name": "Consent Mode",
+      "definition": "ユーザーの同意状態に応じて、Google タグの保存と送信の動作を調整する仕組み"
+    },
+    "es": {
+      "name": "Consent Mode",
+      "definition": "Mecanismo que ajusta cómo las etiquetas de Google almacenan y envían datos según el estado de consentimiento del usuario"
+    },
+    "pt-BR": {
+      "name": "Consent Mode",
+      "definition": "Mecanismo que ajusta como as tags do Google armazenam e enviam dados conforme o estado de consentimento do usuário"
+    },
+    "zh-CN": {
+      "name": "Consent Mode",
+      "definition": "根据用户的同意状态调整 Google 代码存储与发送行为的机制"
     }
   },
   "modeled-data": {
     "ko": {
       "name": "Modeled data",
       "definition": "직접 관측되지 않은 구간을 동의된 신호와 통계 모델을 이용해 추정한 데이터"
+    },
+    "en": {
+      "name": "Modeled data",
+      "definition": "Data that estimates unobserved gaps using consented signals and statistical models rather than direct measurement"
+    },
+    "ja": {
+      "name": "Modeled data",
+      "definition": "直接観測されていない区間を、同意された信号と統計モデルを用いて推定したデータ"
+    },
+    "es": {
+      "name": "Modeled data",
+      "definition": "Datos que estiman los tramos no observados directamente a partir de señales consentidas y modelos estadísticos"
+    },
+    "pt-BR": {
+      "name": "Modeled data",
+      "definition": "Dados que estimam os trechos não observados diretamente a partir de sinais consentidos e modelos estatísticos"
+    },
+    "zh-CN": {
+      "name": "Modeled data",
+      "definition": "利用已获同意的信号与统计模型，对未被直接观测的部分进行估计所得的数据"
     }
   },
   "feedback-loop": {
     "ko": {
       "name": "Feedback loop",
       "definition": "변경, 관측, 해석, 다음 판단을 반복하며 제품을 개선하는 순환 과정"
+    },
+    "en": {
+      "name": "Feedback loop",
+      "definition": "The cycle of changing, observing, interpreting, and deciding again that drives a product forward"
+    },
+    "ja": {
+      "name": "Feedback loop",
+      "definition": "変更、観測、解釈、次の判断を繰り返しながらプロダクトを改善していく循環"
+    },
+    "es": {
+      "name": "Feedback loop",
+      "definition": "Ciclo de cambiar, observar, interpretar y volver a decidir con el que se mejora un producto"
+    },
+    "pt-BR": {
+      "name": "Feedback loop",
+      "definition": "Ciclo de mudar, observar, interpretar e decidir de novo com o qual se melhora um produto"
+    },
+    "zh-CN": {
+      "name": "Feedback loop",
+      "definition": "通过变更、观测、解读与下一次判断不断循环来改进产品的过程"
     }
   }
 }
