@@ -124,7 +124,7 @@ Chrome UX Report(CrUX)도 RUM이지만 서비스 내부 RUM과는 성격이 다�
 
 이 문제를 해결하려고 각 RUM 도구와 프레임워크가 자체 휴리스틱을 사용해왔다. 하지만 구현마다 "새 화면"의 정의가 달라 비교하기 어려웠다. Chrome 팀은 [Soft Navigations API](https://developer.chrome.com/docs/web-platform/soft-navigations)를 통해 사용자 입력, URL 변화, 화면 갱신을 묶어 브라우저가 soft navigation을 직접 인식하는 방향을 추진해왔다.
 
-이 API는 2026년 8월에 나온 Chrome 151부터 기본 제공된다. `web-vitals` 라이브러리도 6.0부터 `reportSoftNavs` 옵션으로 soft navigation 단위의 지표 보고를 지원하기 시작했다. 다만 아직 Chromium 계열에서만 동작하고 Firefox와 Safari에는 대응 구현이 없으므로, 기존 route 계측을 즉시 대체할 수는 없다. 필자의 블로그도 Next.js의 client-side navigation으로 글 사이를 이동하는데, 수집 코드는 아직 5.x 기반이라 그 전환이 별도의 페이지 경험으로 잡히지 않는다. 이 사례가 보여주는 더 중요한 사실은 SPA 성능 측정이 단순한 라이브러리 설정 문제가 아니라 **페이지의 경계를 누가 정의할 것인가**의 문제라는 점이다.
+이 API는 2026년 8월에 나온 Chrome 151부터 기본 제공된다. `web-vitals` 라이브러리도 6.0부터 `reportSoftNavs` 옵션으로 soft navigation 단위의 지표 보고를 지원하기 시작했다. 다만 아직 Chromium 계열에서만 동작하고 Firefox와 Safari에는 대응 구현이 없으므로, 기존 route 계측을 즉시 대체할 수는 없다. 필자의 블로그도 Next.js의 client-side navigation으로 글 사이를 이동하는데, 수집 코드가 5.x 기반이던 동안에는 그 전환이 별도의 페이지 경험으로 잡히지 않았다. 이 글을 쓰면서 6.2.1로 올리고 `reportSoftNavs`를 켰다. 다만 옵션 하나로 끝나지는 않았다. 소프트 내비게이션에서 온 값과 최초 문서 로드에서 온 값이 GA4에서 같은 자리에 섞이면 분포가 무엇을 뜻하는지 알 수 없으므로, 지표마다 함께 오는 `navigationType`을 이벤트 파라미터로 같이 보내도록 고쳐야 했다. 관측을 하나 늘리면 그것을 구분할 차원도 같이 늘어난다. 이 사례가 보여주는 더 중요한 사실은 SPA 성능 측정이 단순한 라이브러리 설정 문제가 아니라 **페이지의 경계를 누가 정의할 것인가**의 문제라는 점이다.
 
 페이지 경계를 정하면 route, metric id, session 문맥을 어떤 단위로 저장할지도 정할 수 있다. 이제 그 질문을 RUM 데이터 모델로 옮겨보자.
 
