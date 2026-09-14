@@ -8,7 +8,7 @@ description: '从 Performance Timeline 和 Web Vitals 的计算原理到 RUM 的
 keywords: '前端可观测性, 浏览器性能监控, PerformanceObserver 用法, Web Vitals 测量, RUM 搭建, LCP INP CLS 优化, web-vitals GA4 上报, Soft Navigations API'
 locale: zh-CN
 translationOf: '260914'
-sourceHash: 8b1ddfa951db604b5f16fc4dc56013d11f88263aacd5ddff5102a8a3f2fc7be5
+sourceHash: 8777b7334d208ef6328ddb366d187cd5dd7af88a5c4e5368606f2ae46b2e2afb
 ---
 
 这篇文章想聊聊浏览器可观测性。
@@ -111,7 +111,9 @@ Chrome UX Report(CrUX) 也是 RUM，但性质与服务内部的 RUM 不同。[Cr
 
 反过来，自建 RUM 可以附加任何想要的上下文，但样本偏差和实现错误也要自己负责。广告拦截器挡掉采集请求、排除未同意的用户、某些浏览器不支持某个 API，被观测到的用户就会和全体用户不一样。
 
-我的博客就是这个选择的一个小例子。这个博客里，一个叫 `WebVitalsReporter` 的客户端组件动态加载 `web-vitals`，测量 LCP、INP、CLS、FCP、TTFB，并作为一个名为 `web_vitals` 的单一事件发给 GA4。指标名用 `event_label` 区分，同时带上 `metric.id`，避免把同一页面生命周期内更新的值重复统计。GA4 事件的 value 是整数，所以 CLS 乘以 1000 后四舍五入。这是在已经运营的 GA4 上叠加的配置，没有单独的采集服务器，界面比不上专门的 RUM 产品，但用来看按页面和设备划分的分布已经够了。当然，上面说的偏差它也原样继承。广告拦截器挡掉 GA 请求，那位访客就会从我的分布中消失。
+我的博客就是这个选择的一个小例子。这个博客里，一个叫 `WebVitalsReporter` 的客户端组件动态加载 `web-vitals`，测量 LCP、INP、CLS、FCP、TTFB，并作为一个名为 `web_vitals` 的单一事件发给 GA4。指标名用 `event_label` 区分，同时带上 `metric.id`，避免把同一页面生命周期内更新的值重复统计。GA4 事件的 value 是整数，所以 CLS 乘以 1000 后四舍五入。这是在已经运营的 GA4 上叠加的配置，没有单独的采集服务器。
+
+诚实地记一笔：到目前为止，我用这套配置确认到的只是值确实被发送了这一步。专门的 RUM 产品默认就给的 p75 分布或慢页面排行，要想在 GA4 里看到，得另外搭一份探索报告，而那件事我还没做。也就是说，这一层是开着的，数据在积累，但读取它的那一侧还是空的。而且上面说的偏差它也原样继承。广告拦截器挡掉 GA 请求，那位访客就会从我的分布中消失。
 
 两者并非谁对谁错，而是回答的问题不同。
 
@@ -127,7 +129,21 @@ Chrome UX Report(CrUX) 也是 RUM，但性质与服务内部的 RUM 不同。[Cr
 
 为了解决这个问题，各个 RUM 工具和框架一直在用自己的启发式规则。但每种实现对"新画面"的定义不同，难以互相比较。Chrome 团队通过 [Soft Navigations API](https://developer.chrome.com/docs/web-platform/soft-navigations)，把用户输入、URL 变化、画面更新捆在一起，推动由浏览器直接识别 soft navigation 的方向。
 
-这个 API 从 2026 年 8 月发布的 Chrome 151 起默认提供。`web-vitals` 库也从 6.0 开始通过 `reportSoftNavs` 选项支持按 soft navigation 为单位上报指标。不过它目前只在 Chromium 系浏览器上工作，Firefox 和 Safari 没有对应实现，所以还不能立刻替换现有的 route 埋点。我的博客也是用 Next.js 的 client-side navigation 在文章之间跳转的，在采集代码还基于 5.x 的那段时间里，这些切换并没有被算作单独的页面体验。写这篇文章时我升级到了 6.2.1 并开启了 `reportSoftNavs`。不过事情没有停在一个选项上。来自软导航的值和来自首次文档加载的值如果在 GA4 里混进同一个位置，就无法知道分布意味着什么，所以我还得把每个指标附带的 `navigationType` 作为事件参数一起发送。观测每多一项，用来区分它的维度也会跟着增加。这个案例揭示的更重要的事实是，SPA 性能测量不是单纯的库配置问题，而是**由谁来定义页面边界**的问题。
+这个 API 从 2026 年 8 月发布的 Chrome 151 起默认提供。`web-vitals` 库也从 6.0 开始通过 `reportSoftNavs` 选项支持按 soft navigation 为单位上报指标。不过它目前只在 Chromium 系浏览器上工作，Firefox 和 Safari 没有对应实现，所以还不能立刻替换现有的 route 埋点。我的博客也是用 Next.js 的 client-side navigation 从文章列表进入文章的，在采集代码还基于 5.x 的那段时间里，这个切换并没有被算作单独的页面体验。写这篇文章时我升级到 6.2.1、开启 `reportSoftNavs` 之后，把无头 Chrome 接到生产环境，原样打开了发往 GA4 的请求。一次会话里发出了这些值。
+
+| 指标 | 值 | `navigationType` |
+|---|---|---|
+| TTFB | 798ms | `navigate` |
+| FCP | 1680ms | `navigate` |
+| LCP | 1680ms | `navigate` |
+| FCP | 542ms | `soft-navigation` |
+| TTFB | 0ms | `soft-navigation` |
+
+如愿以偿，从列表进入文章的切换被算作了单独的体验。但同一张表也展示了为什么一个选项解决不了问题。**soft navigation 的 TTFB 是 0。**从没向服务器发过请求，这个值理所当然，但如果这个 0 和首次加载的 798ms 堆在同一个位置，TTFB 的平均值就会在没人改代码的情况下悄悄下降。所以我还得把每个指标附带的 `navigationType` 作为事件参数一起发送。观测每多一项，用来区分它的维度也会跟着增加。
+
+重新测量时又弄清了两件事。一是浏览器要认定一次 soft navigation，**必须有用户输入**。用脚本调用 `click()` 时，即使 URL 变了、画面也更新了，`soft-navigation` entry 也没有生成，直到发送真实的鼠标输入才被捕捉到。二是在这个博客上，这种切换发生的位置比想象中窄。列表和页头的链接是 Next 的 `Link`，属于 client-side navigation，但**文章正文里的内部链接是 Markdown 生成的普通 `a` 标签，走的是整页加载**。即使在同一个网站内，有的跳转是 soft navigation，有的不是。
+
+这个案例揭示的更重要的事实是，SPA 性能测量不是单纯的库配置问题，而是**由谁来定义页面边界**的问题。
 
 定下页面边界之后，route、metric id、session 上下文按什么单位存储也就能定下来了。现在把这个问题搬到 RUM 数据模型上。
 

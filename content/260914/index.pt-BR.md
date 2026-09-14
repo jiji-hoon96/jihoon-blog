@@ -8,7 +8,7 @@ description: 'Um guia em três etapas da observabilidade do navegador: do Perfor
 keywords: 'observabilidade frontend, medir desempenho web, PerformanceObserver exemplo, medir Web Vitals, monitoramento de usuários reais RUM, LCP INP CLS explicado, web-vitals GA4, Soft Navigations API'
 locale: pt-BR
 translationOf: '260914'
-sourceHash: 8b1ddfa951db604b5f16fc4dc56013d11f88263aacd5ddff5102a8a3f2fc7be5
+sourceHash: 8777b7334d208ef6328ddb366d187cd5dd7af88a5c4e5368606f2ae46b2e2afb
 ---
 
 Neste post, quero falar sobre observabilidade do navegador.
@@ -111,7 +111,9 @@ O Chrome UX Report (CrUX) também é RUM, mas seu caráter difere do RUM interno
 
 Na direção oposta, um RUM próprio permite anexar o contexto que você quiser, mas o viés da amostra e os erros de implementação ficam por sua conta. Se bloqueadores de anúncios barram as requisições de coleta, se você exclui usuários que não consentiram, ou se determinado navegador não suporta uma API, os usuários observados deixam de corresponder ao total de usuários.
 
-Meu blog é um pequeno exemplo dessa escolha. Neste blog, um único componente de cliente chamado `WebVitalsReporter` carrega dinamicamente o `web-vitals`, mede LCP, INP, CLS, FCP e TTFB, e os envia ao GA4 como um único evento chamado `web_vitals`. Os nomes das métricas são distinguidos por `event_label`, e `metric.id` vai junto para não contar duas vezes valores atualizados dentro da mesma vida de página. Como o value de um evento do GA4 é um inteiro, o CLS é multiplicado por 1000 e arredondado. É uma configuração montada sobre o GA4 que eu já operava, sem servidor de coleta separado, então as telas ficam aquém de um produto RUM dedicado, mas foi suficiente para ver a distribuição por página e dispositivo. Claro, ela herda como estão os vieses acima. Se um bloqueador de anúncios barrar a requisição do GA, aquele visitante some da minha distribuição.
+Meu blog é um pequeno exemplo dessa escolha. Neste blog, um único componente de cliente chamado `WebVitalsReporter` carrega dinamicamente o `web-vitals`, mede LCP, INP, CLS, FCP e TTFB, e os envia ao GA4 como um único evento chamado `web_vitals`. Os nomes das métricas são distinguidos por `event_label`, e `metric.id` vai junto para não contar duas vezes valores atualizados dentro da mesma vida de página. Como o value de um evento do GA4 é um inteiro, o CLS é multiplicado por 1000 e arredondado. É uma configuração montada sobre o GA4 que eu já operava, sem servidor de coleta separado.
+
+Sendo honesto, o que confirmei até agora com essa configuração vai só até o fato de que os valores estão sendo enviados. Para ver no GA4 a distribuição p75 ou o ranking de páginas lentas que um produto RUM dedicado entrega por padrão, eu teria que montar à parte um relatório de exploração, e esse trabalho ainda não fiz. Ou seja, essa camada está ligada e os dados estão se acumulando, mas o lado que os lê está vazio. E ela herda como estão os vieses acima. Se um bloqueador de anúncios barrar a requisição do GA, aquele visitante some da minha distribuição.
 
 Nenhum dos dois é a resposta certa; eles respondem perguntas diferentes.
 
@@ -127,7 +129,21 @@ Na navegação tradicional, o navegador sabe onde um documento começa e termina
 
 Para resolver esse problema, cada ferramenta de RUM e cada framework vem usando suas próprias heurísticas. Mas cada implementação definia "tela nova" de um jeito, o que dificultava a comparação. Por meio da [Soft Navigations API](https://developer.chrome.com/docs/web-platform/soft-navigations), o time do Chrome vem empurrando a direção de o navegador reconhecer diretamente uma soft navigation, amarrando entrada do usuário, mudança de URL e atualização da tela.
 
-Essa API passa a vir por padrão a partir do Chrome 151, lançado em agosto de 2026. A biblioteca `web-vitals` também começou a suportar, a partir da 6.0, o relatório de métricas por unidade de soft navigation com a opção `reportSoftNavs`. Porém, por enquanto ela só funciona nos navegadores da família Chromium, e Firefox e Safari não têm implementação correspondente, então não dá para substituir de imediato a instrumentação de rotas existente. Meu blog também navega entre posts com a client-side navigation do Next.js, e enquanto o código de coleta era baseado na 5.x, essas transições não eram capturadas como experiências de página separadas. Ao escrever este artigo, subi para a 6.2.1 e liguei o `reportSoftNavs`. Mas não terminou com uma opção só. Se os valores vindos de soft navigations e os vindos do carregamento inicial do documento se misturam no mesmo lugar no GA4, não dá para saber o que a distribuição significa, então tive que alterar o código para enviar como parâmetro do evento o `navigationType` que chega com cada métrica. Você adiciona uma observação e crescem junto as dimensões necessárias para distingui-la. O fato mais importante que este caso mostra é que medir o desempenho de uma SPA não é um simples problema de configuração de biblioteca, mas a questão de **quem define a fronteira da página**.
+Essa API passa a vir por padrão a partir do Chrome 151, lançado em agosto de 2026. A biblioteca `web-vitals` também começou a suportar, a partir da 6.0, o relatório de métricas por unidade de soft navigation com a opção `reportSoftNavs`. Porém, por enquanto ela só funciona nos navegadores da família Chromium, e Firefox e Safari não têm implementação correspondente, então não dá para substituir de imediato a instrumentação de rotas existente. Meu blog também entra da lista de posts para um post com a client-side navigation do Next.js, e enquanto o código de coleta era baseado na 5.x, essa transição não era capturada como uma experiência de página separada. Ao escrever este artigo, subi para a 6.2.1, liguei o `reportSoftNavs` e então conectei um Chrome headless à produção para abrir como estavam as requisições que saíam para o GA4. Em uma sessão, saíram estes valores.
+
+| Métrica | Valor | `navigationType` |
+|---|---|---|
+| TTFB | 798ms | `navigate` |
+| FCP | 1680ms | `navigate` |
+| LCP | 1680ms | `navigate` |
+| FCP | 542ms | `soft-navigation` |
+| TTFB | 0ms | `soft-navigation` |
+
+Como pretendido, a transição da lista para o post foi capturada como uma experiência separada. Mas a mesma tabela também mostra por que não termina com uma opção só. **O TTFB de uma soft navigation é 0.** É um valor óbvio, já que nenhuma requisição foi feita ao servidor, mas se esse 0 se acumula no mesmo lugar que os 798ms do carregamento inicial, a média de TTFB cai em silêncio sem ninguém mexer no código. Por isso tive que alterar o código para enviar como parâmetro do evento o `navigationType` que chega com cada métrica. Você adiciona uma observação e crescem junto as dimensões necessárias para distingui-la.
+
+Ao medir de novo, aprendi mais duas coisas. Uma é que, para o navegador reconhecer uma soft navigation, **precisa haver entrada do usuário**. Quando chamei `click()` por script, o entry `soft-navigation` não foi gerado mesmo com a URL mudando e a tela atualizando; ele só foi capturado depois que enviei uma entrada real de mouse. A outra é que os lugares onde essa transição acontece neste blog são mais estreitos do que eu pensava. Os links da lista e do cabeçalho são o `Link` do Next, então são client-side navigation, mas **os links internos dentro do corpo do post são tags `a` comuns geradas pelo Markdown, então são carregamentos de página completos**. Mesmo dentro do mesmo site, alguns movimentos são soft navigations e outros não.
+
+O fato mais importante que este caso mostra é que medir o desempenho de uma SPA não é um simples problema de configuração de biblioteca, mas a questão de **quem define a fronteira da página**.
 
 Definida a fronteira da página, também dá para decidir em que unidade armazenar rota, metric id e contexto de sessão. Agora vamos levar essa pergunta para o modelo de dados do RUM.
 
