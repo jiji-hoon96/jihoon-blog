@@ -4,7 +4,7 @@ title: "圧縮アルゴリズムを理解する"
 seoTitle: "圧縮アルゴリズム比較：GZIP、Zstandard、BrotliとLZ77の仕組み"
 date: "2024-07-06"
 categories: 素朴な疑問 ソフトウェア
-description: "ZIP、GZIP、ZSTD、Brotliなど主要な圧縮形式の原理と性能を比較します。LZ77の基礎、可逆圧縮の仕組み、速度と圧縮率の違いから、フロントエンドのビルド成果物に適した形式を選ぶ実践的な基準まで整理します。"
+description: "ZIP、GZIP、ZSTD、Brotliなど主要な圧縮形式の原理と性能を比較する。LZ77から始まる可逆圧縮の仕組み、圧縮率と速度のトレードオフ、対応環境の違いを整理し、フロントエンドのビルド成果物にどの形式を選ぶべきかまで実測を交えて解説する。"
 keywords: "圧縮アルゴリズム比較, GZIP vs ZSTD, tar.gz vs zip, Brotli, LZ77, フロントエンドビルド最適化, 可逆圧縮"
 locale: ja
 translationOf: "240706"

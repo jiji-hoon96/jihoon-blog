@@ -4,7 +4,7 @@ title: 'Zustand、お前は何者で、なぜProviderLessなんだ？'
 seoTitle: 'なぜZustandにはProviderがないのか: useSyncExternalStoreに基づく動作原理の分析'
 date: '2024-08-18'
 categories: フロントエンド React
-description: "ZustandがProviderなしで状態管理を実現する仕組みを、ソースコード分析を通じて掘り下げる。React Context APIとの違いと、モジュールスコープに基づく設計を見ていこう。"
+description: "ZustandがProviderなしで状態管理を実現する仕組みを、ソースコードを読み解きながら掘り下げる。React Context APIとの違い、モジュールスコープに基づくストア設計、useSyncExternalStoreによる購読までを順に追いかける。"
 keywords: "Zustandの仕組み, ZustandにProviderがない理由, React状態管理ライブラリ, Zustandソースコード分析, useSyncExternalStore, React Context API"
 locale: ja
 translationOf: '240818'

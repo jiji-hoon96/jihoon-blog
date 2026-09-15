@@ -4,7 +4,7 @@ title: 'AI Token 节省方法'
 seoTitle: 'AI Token 节省方法：降低 Claude Code 与 Cursor 成本的实证模式'
 date: '2026-06-11'
 categories: AI Token
-description: '用 React POC 测量 AI 编程的 Token 成本，并通过 prompt caching、subagent、精简 MCP、context engineering 与 Cursor Composer 降低成本。'
+description: "AI 编程工具的 Token 成本从哪里产生，又该如何降低。文章结合 Anthropic 价格表，用 React POC 实测 prompt caching、subagent、精简 MCP、context engineering 与 Cursor Composer 等已验证的节省策略。"
 keywords: 'AI Token 节省, Claude Code 成本, Token 成本优化, prompt caching, context engineering, subagent, MCP Token, Cursor Composer, model routing, context rot, LLM 成本优化'
 locale: zh-CN
 translationOf: '260611'

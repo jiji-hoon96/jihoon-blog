@@ -3,7 +3,7 @@ emoji: 🔭
 title: '浏览器可观测性'
 seoTitle: '前端浏览器可观测性：PerformanceObserver、Web Vitals 与 RUM'
 date: '2026-09-14'
-categories: 可观测性 前端 浏览器 RUM
+categories: 观测 前端 浏览器 RUM
 description: '从 Performance Timeline 和 Web Vitals 的计算原理到 RUM 的设计标准，分三个阶段梳理浏览器可观测性。文中还记录了我在自己的博客上接入 web-vitals 采集、并放弃 79KB 客户端埋点时实测得到的依据。'
 keywords: '前端可观测性, 浏览器性能监控, PerformanceObserver 用法, Web Vitals 测量, RUM 搭建, LCP INP CLS 优化, web-vitals GA4 上报, Soft Navigations API'
 locale: zh-CN

@@ -3,7 +3,7 @@ emoji: 🔭
 title: 'ブラウザの可観測性'
 seoTitle: 'フロントエンドのブラウザ可観測性：PerformanceObserver、Web Vitals、RUM'
 date: '2026-09-14'
-categories: 可観測性 フロントエンド ブラウザ RUM
+categories: 観測 フロントエンド ブラウザ RUM
 description: 'Performance TimelineとWeb Vitalsの計算原理からRUM設計の基準まで、ブラウザの可観測性を三段階で整理する。筆者が自分のブログにweb-vitals収集を組み込み、クライアント計測の79KBを断念しながら実測した根拠も併せて記す。'
 keywords: 'フロントエンド 可観測性, ブラウザ パフォーマンス計測, PerformanceObserver 使い方, Web Vitals 計測, RUM 構築, LCP INP CLS 改善, web-vitals GA4 送信, Soft Navigations API'
 locale: ja

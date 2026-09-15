@@ -16,7 +16,8 @@
     "content:glossary": "node scripts/validate-glossary.mjs",
     "content:terms": "node scripts/validate-terminology.mjs",
     "content:translations": "node scripts/validate-translations.mjs",
-    "build": "node scripts/validate-content-dates.mjs && node scripts/validate-translations.mjs && node scripts/validate-glossary.mjs && node scripts/copy-content-images.js && (npx contentlayer build || true) && next build",
+    "content:hreflang": "node scripts/validate-hreflang.mjs",
+    "build": "node scripts/validate-content-dates.mjs && node scripts/validate-translations.mjs && node scripts/validate-glossary.mjs && node scripts/validate-hreflang.mjs && node scripts/copy-content-images.js && (npx contentlayer build || true) && next build",
     "start": "next start",
     "lint": "eslint"
   },

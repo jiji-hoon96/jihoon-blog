@@ -4,7 +4,7 @@ title: 'Biome 能取代 ESLint 和 Prettier 吗？'
 seoTitle: 'Biome vs ESLint vs Prettier: Rust 一体化工具链的性能对比与迁移指南'
 date: '2024-12-01'
 categories: 前端 JavaScript
-description: "对比 Biome 与 ESLint、Prettier 的 lint 和格式化性能，并总结这款 Rust 一体化工具链的实际引入经验与迁移指南。"
+description: "对比 Biome 与 ESLint、Prettier 组合的 lint 与格式化性能。基于把这款 Rust 一体化工具链引入实际项目的经验，整理配置迁移的具体步骤、容易卡住的地方，以及它目前能替代的范围和仍然遗留下来的问题，帮助你判断现在是否值得迁移。"
 keywords: "Biome vs ESLint, Biome vs Prettier, Biome 迁移, JavaScript linter 对比, Rust linter, 前端开发工具"
 locale: zh-CN
 translationOf: '241201'

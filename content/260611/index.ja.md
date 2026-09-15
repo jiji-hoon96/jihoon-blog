@@ -4,7 +4,7 @@ title: 'AIトークン節約術'
 seoTitle: 'AIトークン節約術：Claude CodeとCursorのコストを抑える実証パターン'
 date: '2026-06-11'
 categories: AI トークン
-description: 'AIコーディングのトークン費用をReact POCで測定し、prompt caching、subagent、MCP整理、context engineering、Cursor Composerで削減する方法を解説する。'
+description: "AIコーディングツールのトークン費用はどこで発生し、どう減らせるのか。Anthropicの価格表とprompt caching、subagent、MCPの整理、context engineering、Cursor Composerまで、検証済みの節約パターンをReactのPOCで実測する。"
 keywords: 'AIトークン節約, Claude Code費用, トークンコスト削減, prompt caching, context engineering, subagent, MCPトークン, Cursor Composer, model routing, context rot, LLMコスト最適化'
 locale: ja
 translationOf: '260611'

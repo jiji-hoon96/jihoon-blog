@@ -4,7 +4,7 @@ title: "领域模型"
 seoTitle: "前端领域模型设计指南: DDD 实践"
 date: "2026-04-18"
 categories: 前端 架构 DDD
-description: "从前端视角梳理领域、领域模型与领域对象的概念，并讨论实体与值对象、贫血领域模型以及 ViewModel 的分离。通过综合所得税领域的示例，了解如何在 React 中分离领域逻辑。"
+description: "从前端视角梳理领域、领域模型与领域对象的概念，并讨论实体与值对象、贫血领域模型以及 ViewModel 的分离。文中通过韩国综合所得税领域的示例，说明如何在 React 项目中把领域逻辑与视图拆开的实战方法，以及拆分之后测试与维护会发生什么变化。"
 keywords: "前端领域模型, 领域驱动设计, DDD 前端, 前端 DDD, 领域对象, 实体 值对象, 贫血领域模型, Clean Architecture 前端, Eric Evans, Martin Fowler, 领域逻辑分离, React 设计模式, 前端架构, ViewModel 分离, 限界上下文"
 locale: zh-CN
 translationOf: '260418'

@@ -4,7 +4,7 @@ title: "理解压缩算法"
 seoTitle: "压缩算法对比：GZIP、Zstandard、Brotli 与 LZ77 原理"
 date: "2024-07-06"
 categories: 随想 软件
-description: "深入对比 ZIP、GZIP、ZSTD、Brotli 等主流压缩格式的工作原理与性能差异，从 LZ77 和无损压缩基础讲到速度、压缩率与兼容性的取舍，并给出为前端构建产物选择合适压缩格式的实用判断标准。"
+description: "对比 ZIP、GZIP、ZSTD、Brotli 等主流压缩格式的原理与性能。从 LZ77 出发讲清无损压缩的机制，再比较压缩率、速度与兼容性之间的取舍，并结合实测数据给出为前端构建产物选择压缩格式的判断标准与常见误区，帮助你在打包流程中做出更合适的选择。"
 keywords: "压缩算法对比, GZIP vs ZSTD, tar.gz vs zip, Brotli, LZ77, 前端构建优化, 无损压缩"
 locale: zh-CN
 translationOf: "240706"
