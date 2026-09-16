@@ -45,6 +45,29 @@ test('redirects visible ko-prefixed URLs to canonical legacy URLs', () => {
   })
 })
 
+test('redirects ko-prefixed feeds so they do not duplicate the canonical ones', () => {
+  // 점이 든 경로는 파일처럼 보여서 아래 규칙에 걸린다. 명시적으로 처리하지 않으면
+  // /ko/rss.xml 이 /rss.xml 과 같은 바이트를 내주는 중복 콘텐츠가 된다.
+  assert.deepEqual(classifyLocaleRequest('/ko/rss.xml'), {
+    kind: 'redirect',
+    pathname: '/rss.xml',
+  })
+  assert.deepEqual(classifyLocaleRequest('/ko/llms.txt'), {
+    kind: 'redirect',
+    pathname: '/llms.txt',
+  })
+
+  // 내부 rewrite 로 들어온 같은 경로는 그대로 통과해야 한다. 아니면 무한 루프다.
+  assert.deepEqual(
+    classifyLocaleRequest('/ko/rss.xml', { internalRewrite: true }),
+    { kind: 'next' },
+  )
+
+  // 다른 로케일의 피드는 그 자체가 정규 경로다.
+  assert.deepEqual(classifyLocaleRequest('/en/rss.xml'), { kind: 'next' })
+  assert.deepEqual(classifyLocaleRequest('/pt-BR/llms.txt'), { kind: 'next' })
+})
+
 test('does not localize APIs, Next assets, or file-like paths', () => {
   assert.deepEqual(classifyLocaleRequest('/api/search'), { kind: 'next' })
   assert.deepEqual(classifyLocaleRequest('/_next/static/app.js'), { kind: 'next' })

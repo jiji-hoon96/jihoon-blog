@@ -32,8 +32,11 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // 점이 든 경로는 아래 패턴이 통째로 제외하므로 하나씩 적어 준다.
     '/rss.xml',
     '/llms.txt',
+    '/ko/rss.xml',
+    '/ko/llms.txt',
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
   ],
 }

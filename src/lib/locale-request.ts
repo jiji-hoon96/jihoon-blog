@@ -16,6 +16,9 @@ const RETIRED_POST_PATTERN = new RegExp(
   'u',
 )
 
+// 한국어는 접두사 없는 경로가 정규 경로다. 다른 로케일은 /en/rss.xml 처럼 그대로 쓴다.
+const FEED_PATHS = ['/rss.xml', '/llms.txt']
+
 export type LocaleRequestDecision =
   | { kind: 'next' }
   | { kind: 'rewrite'; pathname: string }
@@ -41,8 +44,17 @@ export function classifyLocaleRequest(
     }
   }
 
-  if (pathname === '/rss.xml' || pathname === '/llms.txt') {
+  // 피드 경로에는 점이 들어 있어서 아래 정적 파일 규칙에 먼저 걸린다.
+  // 그래서 여기서 명시적으로 처리한다. 빠뜨리면 /ko/rss.xml 이 /rss.xml 과
+  // 바이트 단위로 같은 응답을 내주는 중복 콘텐츠가 된다. route handler 라
+  // canonical 태그를 달 수단도 없다. (프로덕션에서 확인)
+  if (FEED_PATHS.includes(pathname)) {
     return { kind: 'rewrite', pathname: `/ko${pathname}` }
+  }
+
+  const koFeed = FEED_PATHS.find(feed => pathname === `/ko${feed}`)
+  if (koFeed) {
+    return internalRewrite ? { kind: 'next' } : { kind: 'redirect', pathname: koFeed }
   }
 
   if (
