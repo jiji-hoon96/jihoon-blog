@@ -21,7 +21,7 @@ keywords: '브라우저 메인 스레드, long task 50ms, Long Animation Frames 
 
 브라우저의 메인 스레드는 JavaScript 실행, 스타일 계산, 레이아웃, 사용자 입력 처리를 한 줄로 처리한다. 한 태스크가 도는 동안에는 다른 일이 끼어들 수 없어서, 그 사이에 사용자가 버튼을 누르면 입력 이벤트는 태스크가 끝날 때까지 기다린다.
 
-이 기다림을 자르는 기준이 50ms다. W3C의 [Long Tasks API 명세](https://w3c.github.io/longtasks/)는 50ms 이상 메인 스레드를 점유한 태스크를 long task로 정의하고 근거도 적는다. 입력에 100ms 안에 반응하려면 입력 순간 실행 중이던 태스크가 50ms 안에 끝나고, 그 입력을 처리하는 태스크도 50ms 안에 끝나야 한다는 것이다. 50ms는 100ms 반응 목표를 둘로 나눈 값인 것이다.
+이 기다림을 자르는 기준이 50ms다. W3C의 [Long Tasks API 명세](https://w3c.github.io/longtasks/)는 50ms를 넘게 메인 스레드를 점유한 태스크를 long task로 정의하고(서론에서는 "50ms or more"라고 적어 경계값 표현이 조금 다르다) 근거도 적는다. 입력에 100ms 안에 반응하려면 입력 순간 실행 중이던 태스크가 50ms 안에 끝나고, 그 입력을 처리하는 태스크도 50ms 안에 끝나야 한다.
 
 ### TBT는 long task의 초과분을 더한다
 
@@ -29,7 +29,7 @@ keywords: '브라우저 메인 스레드, long task 50ms, Long Animation Frames 
 
 ![메인 스레드 타임라인의 태스크 다섯 개 중 50ms를 넘은 세 개의 초과분이 각각 200, 40, 105ms로 표시된 그림](1.png?w=720)
 
-(그림 출처: [web.dev, Total Blocking Time (TBT)](https://web.dev/articles/tbt), CC BY 4.0)
+(그림 출처: [web.dev, Total Blocking Time (TBT)](https://web.dev/articles/tbt), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), SVG를 흰 배경의 PNG로 변환)
 
 노란 부분이 각 태스크의 처음 50ms, 붉은 부분이 blocking time이다. 같은 문서의 예시에서 태스크 실행 시간 합은 560ms지만 TBT는 345ms다. 50ms보다 짧은 태스크는 아무리 자주 와도 TBT에 기여하지 않는다.
 
@@ -37,7 +37,7 @@ keywords: '브라우저 메인 스레드, long task 50ms, Long Animation Frames 
 
 TBT는 lab 지표이고, Core Web Vitals의 반응성 지표는 INP다. web.dev의 [INP 문서](https://web.dev/articles/inp)는 상호작용 없이 로딩만 보는 lab 도구에서 TBT가 합리적인 대리 지표일 수는 있어도 대체물은 아니라고 선을 긋는다.
 
-TBT는 사용자가 언제 무엇을 눌렀는지 모르기 때문이다. 메인 스레드가 많이 막혀도 사용자가 스크립트가 끝난 뒤에 누르면 INP는 낮을 수 있다. long task가 INP에 닿는 경로는 누른 순간 실행 중이던 태스크의 남은 시간만큼 앞 글에서 본 input delay를 늘리는 것이다. 그러니 낮은 TBT는 "로딩 중 메인 스레드가 크게 막히지 않았다"까지만 말해 준다. 실제 입력이 무엇에 막혔는지는 field에서 태스크와 프레임을 봐야 안다.
+TBT는 사용자가 언제 무엇을 눌렀는지 모르기 때문이다. 메인 스레드가 많이 막혀도 사용자가 스크립트가 끝난 뒤에 누르면 INP는 낮을 수 있다. long task가 INP를 늘리는 경로는 여럿이지만(핸들러 자체가 길면 processing duration, 뒤따르는 렌더링이 길면 presentation delay), TBT와 가장 직접 이어지는 경로는 누른 순간 실행 중이던 태스크의 남은 시간만큼 앞 글에서 본 input delay를 늘리는 것이다. 그러니 낮은 TBT는 "로딩 중 메인 스레드가 크게 막히지 않았다"까지만 말해 준다. 실제 입력이 무엇에 막혔는지는 field에서 태스크와 프레임을 봐야 안다.
 
 ## Long Tasks와 Long Animation Frames
 
@@ -45,7 +45,7 @@ field에서 메인 스레드를 보는 브라우저 API는 두 개다. Chrome 58
 
 ### LoAF는 대체가 아니라 대안이다
 
-Chrome 팀의 LoAF 문서(아래 그림 출처)는 LoAF를 Long Tasks API의 "update"이자 "alternative"로 소개하고, replacement라는 말은 쓰지 않는다. MDN 호환성 데이터에서도 `PerformanceLongTaskTiming`에 deprecated 표시는 없고, 두 API 모두 experimental이며 Firefox와 Safari는 지원하지 않는다.
+Chrome 팀의 LoAF 문서(아래 그림 출처)는 LoAF를 Long Tasks API의 "update"이자 "alternative"로 소개하고, FAQ에서는 "at this time, there are no plans to deprecate the Long Tasks API"라고 답한다. MDN 호환성 데이터에서도 `PerformanceLongTaskTiming`에 deprecated 표시는 없고, 두 API 모두 experimental이며 Firefox와 Safari는 지원하지 않는다.
 
 새 API가 필요했던 이유는 귀속(attribution)이다. 같은 문서에 따르면 Long Tasks API의 귀속은 "at best only tells you the container", 곧 최상위 문서인지 어떤 iframe인지까지이고 어떤 스크립트가 시간을 썼는지는 알려주지 않는다.
 
@@ -57,17 +57,17 @@ LoAF에서 INP와 직접 이어지는 필드는 `blockingDuration`이다. 프레
 
 ![페이지 타임라인에 여러 long frame이 있고, 그중 INP로 선택된 상호작용과 겹치는 프레임이 점선으로 강조된 그림](2.png?w=720)
 
-(그림 출처: [Chrome for Developers, Long Animation Frames API](https://developer.chrome.com/docs/web-platform/long-animation-frames), CC BY 4.0)
+(그림 출처: [Chrome for Developers, Long Animation Frames API](https://developer.chrome.com/docs/web-platform/long-animation-frames), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), 크기 축소)
 
 페이지에는 long frame이 여러 개 생기지만 INP 값을 설명하는 것은 INP 상호작용과 겹친 프레임이다. 그 프레임의 `scripts` 배열에는 5ms를 넘게 실행된 스크립트마다 호출 지점, 소스 URL, 실행 시간이 들어 있다. Long Tasks API에 없던 "누가"가 여기서 생긴다.
 
-다만 스크립트 귀속은 메인 스레드와 same-origin iframe에만 붙는다. cross-origin iframe, worker, 확장 프로그램 코드는 프레임을 길게 만들어도 이름이 없다. 이 블로그의 글 페이지에 있는 utteranc.es 댓글 iframe 안의 일은 LoAF로도 귀속되지 않는 것이다.
+다만 스크립트 귀속은 메인 스레드와 same-origin iframe에만 붙는다. cross-origin iframe, worker, 확장 프로그램 코드는 프레임을 길게 만들어도 이름이 없다. 이 블로그의 글 페이지에 있는 utteranc.es 댓글 iframe 안의 일은 LoAF로도 귀속되지 않는다.
 
 ### 이 블로그는 LoAF를 수집하지 않는다
 
 LoAF를 직접 구독하지 않고 쓰는 방법도 있다. `web-vitals`는 [v4.0.0(2024-05-13) 체인지로그](https://github.com/GoogleChrome/web-vitals/blob/main/CHANGELOG.md)에서 "Add INP breakdown timings and LoAF attribution"을 넣었고, 이후 가장 긴 스크립트(`longestScript`)와 스크립트, 레이아웃, 페인트 시간 합계를 더했다. 단 이것은 attribution 빌드(`web-vitals/attribution`)에서만 온다.
 
-앞 글에서 봤듯 이 블로그의 `src/components/WebVitalsReporter.tsx`는 `import('web-vitals')`로 standard 빌드를 쓴다. **INP 값은 수집하지만 그 INP가 어떤 스크립트에 막혔는지는 수집하지 않는다.** 설치된 `web-vitals@6.2.1`에서 `long-animation-frame` 문자열은 `dist/web-vitals.js`에 0번, `dist/web-vitals.attribution.js`에 1번 나온다. standard 빌드는 LoAF observer를 아예 등록하지 않는 것이다. (이 사실은 메모리 절에서 다시 중요해진다)
+앞 글에서 봤듯 이 블로그의 `src/components/WebVitalsReporter.tsx`는 `import('web-vitals')`로 standard 빌드를 쓴다. **INP 값은 수집하지만 그 INP가 어떤 스크립트에 막혔는지는 수집하지 않는다.** 설치된 `web-vitals@6.2.1`에서 `long-animation-frame` 문자열은 `dist/web-vitals.js`에 0번, `dist/web-vitals.attribution.js`에 1번 나온다. standard 빌드는 LoAF observer를 아예 등록하지 않는다. (이 사실은 메모리 절에서 다시 중요해진다)
 
 attribution 빌드는 [README](https://github.com/GoogleChrome/web-vitals#attribution-build) 기준 brotli 약 1.5K 더 크지만, 필자가 망설인 이유는 크기보다 목적지다. 이 블로그 트래픽으로 GA4에서 스크립트별 분포가 의미 있게 나올지 확인하지 않았으므로, 수집을 늘리기 전에 lab부터 보기로 했다.
 
@@ -93,7 +93,7 @@ long task는 두 번 모두 네 개, 순서도 같았다. 문서 태스크(104ms
 
 TBT는 FCP 이후 세 태스크의 초과분으로 정확히 맞아떨어진다. 1회차는 (68 - 50) + (66 - 50) + (56 - 50) = 40ms, 2회차는 (69 - 50) + (69 - 50) + (59 - 50) = 47ms다. 낮은 TBT는 "long task가 없다"가 아니라 "FCP 이후 초과분이 작다"는 뜻이다.
 
-다음은 gtag의 위치다. layout에서 gtag는 `next/script`의 `strategy="afterInteractive"`로 로드되고, LCP보다 2.8초 남짓 뒤에 연달아 실행되고, 이 마지막 long task가 끝나는 지점이 곧 TTI로 잡힌다. 로딩 지표보다 **페이지가 뜬 직후 누른 입력의 input delay**와 겹칠 수 있는 자리다. 다만 lab 시간축 위의 추론이고, 실제 사용자가 그때 무엇을 눌렀는지는 이 블로그가 수집하지 않는다.
+다음은 gtag의 위치다. 루트 레이아웃(`src/app/[lang]/layout.tsx`)은 gtag를 `next/script`의 `strategy="afterInteractive"`로 불러온다. 그래서 gtag 태스크 두 개는 LCP보다 2.8초 남짓 뒤에 연달아 실행되고, 마지막 태스크가 끝나는 지점이 TTI로 잡힌다. 로딩 지표보다 **페이지가 뜬 직후 누른 입력의 input delay**와 겹칠 수 있는 자리다. 다만 lab 시간축 위의 추론이고, 실제 사용자가 그때 무엇을 눌렀는지는 이 블로그가 수집하지 않는다.
 
 그리고 이것은 n=2 lab 측정이다. 같은 모양의 재현은 이 구조가 우연이 아니라는 약한 근거일 뿐, 실제 사용자의 기기와 네트워크 분포를 대신하지 못한다.
 
@@ -105,7 +105,7 @@ TBT는 FCP 이후 세 태스크의 초과분으로 정확히 맞아떨어진다.
 
 ### JS Self-Profiling API
 
-WICG의 [JS Self-Profiling 명세](https://wicg.github.io/js-self-profiling/)는 웹 앱이 브라우저의 샘플링 프로파일러를 제어하는 API를 정의한다. 예시는 `new Profiler({ sampleInterval: 10, maxBufferSize: 10000 })`로, 10ms마다 콜 스택을 찍어 최대 1만 개를 모은다는 뜻이다. 모든 호출을 계측하지 않고 :term[샘플링]{key="sampling"}하므로 오버헤드가 작은 대신 간격보다 짧은 호출은 놓칠 수 있다. 명세는 CORS로 허용되지 않은 cross-origin 스크립트의 스택 프레임을 결과에서 뺀다. gtag처럼 다른 origin의 스크립트 내부는 이 API로도 보이지 않을 수 있는 것이다.
+WICG의 [JS Self-Profiling 명세](https://wicg.github.io/js-self-profiling/)는 웹 앱이 브라우저의 샘플링 프로파일러를 제어하는 API를 정의한다. 예시는 `new Profiler({ sampleInterval: 10, maxBufferSize: 10000 })`로, 10ms마다 콜 스택을 찍어 최대 1만 개를 모은다는 뜻이다. 모든 호출을 계측하지 않고 :term[샘플링]{key="sampling"}하므로 오버헤드가 작은 대신 간격보다 짧은 호출은 놓칠 수 있다. 명세는 CORS로 허용되지 않은 cross-origin 스크립트의 스택 프레임을 결과에서 뺀다. gtag처럼 다른 origin의 스크립트 내부는 이 API로도 보이지 않을 수 있다.
 
 명세 상태는 표준 트랙이 아닌 WICG Community Group Draft이고, MDN 호환성 데이터 기준 `Profiler`는 Chrome 94부터 Chromium 계열에서만 동작한다. 그리고 [MDN](https://developer.mozilla.org/en-US/docs/Web/API/JS_Self-Profiling_API)이 적은 대로 문서가 `js-profiling`을 포함한 Document Policy와 함께 응답되어야 한다. HTML 응답에 `Document-Policy: js-profiling` 헤더가 있어야 한다는 뜻이다.
 
@@ -113,11 +113,11 @@ WICG의 [JS Self-Profiling 명세](https://wicg.github.io/js-self-profiling/)는
 
 조사 중 문서끼리 어긋난 지점이 있었다. 2026년 1월 명세 리포에 들어간 변경으로 `js-profiling`은 **deprecated**가 되었고, 대신 `js-profiling-mode`(`eager`, `lazy`)가 정의되었다. 구현은 하위 호환을 위해 `js-profiling`을 지원해야 하지만(SHOULD) 제거할 수도 있다(MAY).
 
-명세에 따르면 `eager`(기존 `js-profiling`과 같은 의미)는 로드 중 프로파일링 인프라를 미리 준비하므로 프로파일러를 쓰지 않아도 FCP와 LCP에 영향을 줄 수 있다. `lazy`는 첫 `Profiler` 생성까지 준비를 미루지만, 그 초기화가 상호작용 처리 중에 일어나면 INP에 영향을 줄 수 있다. **측정하려고 켠 헤더가 측정 대상 지표에 비용을 줄 수 있다**는 것을 명세가 인정한 것이다. 반면 Sentry 문서는 2026-09-16 조회 기준 여전히 `Document-Policy: js-profiling`만 안내한다. Chrome이 `js-profiling-mode`를 구현했는지는 확인하지 않았으므로, 지금 어느 헤더를 써야 하는지까지는 말할 수 없다.
+명세에 따르면 `eager`(기존 `js-profiling`과 같은 의미)는 로드 중 프로파일링 인프라를 미리 준비하므로 프로파일러를 쓰지 않아도 FCP와 LCP에 영향을 줄 수 있다. `lazy`는 첫 `Profiler` 생성까지 준비를 미루지만, 그 초기화가 상호작용 처리 중에 일어나면 INP에 영향을 줄 수 있다. **측정하려고 켠 헤더가 측정 대상 지표에 비용을 줄 수 있다**는 것을 명세가 인정한 셈이다. 반면 Sentry 문서는 2026-09-16 조회 기준 여전히 `Document-Policy: js-profiling`만 안내한다. ChromeStatus에서 `js-profiling-mode` 항목은 Proposed 상태이고 출시 마일스톤이 없지만, Chrome이 이를 구현했는지 직접 확인하지는 않았으므로, 지금 어느 헤더를 써야 하는지까지는 말할 수 없다.
 
 ### Sentry 브라우저 profiling의 조건
 
-Sentry의 [JavaScript profiling 문서](https://docs.sentry.io/platforms/javascript/profiling/)는 조건을 분명히 적는다. 브라우저 profiling은 beta이고, JS Self-Profiling API를 쓰므로 Chrome과 Edge 같은 Chromium 계열에서만 동작하며, 서버가 `Document-Policy: js-profiling`을 보내야 한다. 헤더를 못 바꾸는 호스팅이면 쓸 수 없다고 명시한다. SDK는 `@sentry/browser` 10.27.0 이상에 `browserProfilingIntegration()`과 세션 단위 비율 `profileSessionSampleRate`를 쓴다. FAQ는 Chrome 사용자에게서만 프로파일이 오는 것이 정상이라고 답한다. 모인 프로파일을 전체 사용자의 대표로 읽으면 안 되는 것이다.
+Sentry의 [JavaScript profiling 문서](https://docs.sentry.io/platforms/javascript/profiling/)는 조건을 분명히 적는다. 브라우저 profiling은 beta이고, JS Self-Profiling API를 쓰므로 Chrome과 Edge 같은 Chromium 계열에서만 동작하며, 서버가 `Document-Policy: js-profiling`을 보내야 한다. 헤더를 못 바꾸는 호스팅이면 쓸 수 없다고 명시한다. SDK는 `@sentry/browser` 10.27.0 이상에 `browserProfilingIntegration()`과 세션 단위 비율 `profileSessionSampleRate`를 쓴다. FAQ는 Chrome 사용자에게서만 프로파일이 오는 것이 정상이라고 답한다. 그러니 모인 프로파일을 전체 사용자의 대표로 읽으면 안 된다.
 
 과금은 [UI Profile Hours](https://docs.sentry.io/pricing/quotas/manage-ui-profile-hours/) 단위이고, 번들은 `sentry-javascript` 리포 `.size-limit.js`(develop 브랜치, 2026-09-16 조회)의 gzip 상한값 기준으로 Tracing 조합 56 KB에 Profiling을 더하면 59 KB다.
 
@@ -127,7 +127,7 @@ Sentry의 [JavaScript profiling 문서](https://docs.sentry.io/platforms/javascr
 
 둘째, 헤더가 없다. 2026-09-16T09:10:42Z에 `curl -sI https://hooninedev.com/260914`로 확인한 응답에 `document-policy`가 없다. 이 리포가 HTML에 붙이는 헤더는 `next.config.ts`의 `headers()`에 있는 `Content-Security-Policy`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` 네 개이고, 응답에서도 그 네 개가 확인된다. (`public/_headers`는 정적 자산에만 적용되고 HTML에는 닿지 않는다는 것을 이 리포에서 실측해 두었다)
 
-그러니 이 블로그에서 브라우저 profiling을 켜는 일은 옵션 하나가 아니다. 79KB 결정을 되돌리고, 모든 HTML에 헤더를 붙이고, 그 헤더가 FCP, LCP, INP에 주는 비용을 새로 재는 일이다. 앞에서 본 gtag 태스크 두 개가 그 비용을 정당화할 문제라는 근거는 아직 없다.
+그러니 이 블로그에서 브라우저 profiling을 켜는 일은 옵션 하나가 아니다. 78.8KB 결정을 되돌리고, 모든 HTML에 헤더를 붙이고, 그 헤더가 FCP, LCP, INP에 주는 비용을 새로 재는 일이다. 앞에서 본 gtag 태스크 두 개가 그 비용을 정당화할 문제라는 근거는 아직 없다.
 
 ## 메모리를 측정한다는 것
 
@@ -153,7 +153,7 @@ field가 막혀 있으면 남는 것은 DevTools Memory 패널로 하는 로컬 
 
 [이슈 #795](https://github.com/GoogleChrome/web-vitals/issues/795) 설명에 따르면 attribution 빌드의 `onINP`는 INP와 겹치는 LoAF를 찾으려고 LoAF entry를 `pendingLoAFs`에 모은다. 정리 기준인 "가장 최근 처리된 이벤트" 시각은 사용자 입력이 있어야만 앞으로 가서, 영상 재생처럼 오래 입력 없이 보는 페이지에서는 LoAF가 쌓이기만 했다. [수정 PR #796](https://github.com/GoogleChrome/web-vitals/pull/796)은 이벤트 그룹 목록에 이미 쓰던 상한 `MAX_PENDING_FRAMES`(10)를 LoAF 목록에도 적용해, INP 후보와 겹치는 프레임이 아니면 최근 10개까지만 남기게 했다.
 
-이 블로그는 6.2.1인데, 이 누수를 안고 있을까? 그렇지 않다. PR이 고친 소스 파일은 `src/attribution/onINP.ts` 하나(나머지는 테스트 파일)이고, 앞에서 봤듯 이 블로그의 standard 빌드에는 LoAF observer가 없다. **LoAF attribution을 수집하지 않기로 한 같은 결정이 이 누수의 경로도 막고 있었던 것이다.** 그렇다고 "수집하지 말자"는 결론은 아니다. 관측 코드의 비용도 체인지로그에서야 드러날 때가 있고, attribution 빌드로 바꾼다면 6.2.2 이상이 전제라는 것이다.
+이 블로그는 6.2.1인데, 이 누수를 안고 있을까? 그렇지 않다. PR이 고친 소스 파일은 `src/attribution/onINP.ts` 하나(나머지는 테스트 파일)이고, 앞에서 봤듯 이 블로그의 standard 빌드에는 LoAF observer가 없다. **LoAF attribution을 수집하지 않기로 한 같은 결정이 이 누수의 경로도 막고 있었던 것이다.** 그렇다고 "수집하지 말자"는 결론은 아니다. 관측 코드의 비용도 체인지로그에서야 드러날 때가 있고, attribution 빌드로 바꾼다면 6.2.2 이상이 전제가 된다.
 
 ## 브라우저가 죽었을 때
 
@@ -169,7 +169,7 @@ WICG의 [Crash Reporting 명세](https://wicg.github.io/crash-reporting/)는 rep
 
 > Crash reports are not observable to JavaScript, as the page which would receive them is, by definition, not able to.
 
-보고를 받아야 할 페이지는 바로 그 crash로 이미 죽었으므로, JavaScript가 이 보고를 관찰할 방법이 정의상 없다는 것이다. 브라우저가 페이지 밖에서 서버 엔드포인트로 POST할 뿐이다.
+보고를 받아야 할 페이지는 바로 그 crash로 이미 죽었으므로, JavaScript가 이 보고를 관찰할 방법은 정의상 없다. 브라우저가 페이지 밖에서 서버 엔드포인트로 POST할 뿐이다.
 
 이것이 브라우저 SDK에 주는 의미는 코드로 볼 수 있다. `sentry-javascript`의 [`reportingObserverIntegration` 소스](https://github.com/getsentry/sentry-javascript/blob/develop/packages/browser/src/integrations/reportingobserver.ts)는 기본 구독 타입에 `'crash'`, `'deprecation'`, `'intervention'`을 두고 `report.type === 'crash'` 분기도 있다. 그러나 이 통합은 페이지 안의 `ReportingObserver`를 쓰므로, 명세대로라면 실제 OOM crash에서 그 분기가 실행될 경로는 없다. (명세에서 끌어낸 필자의 추론이고, crash를 일으켜 확인하지는 않았다)
 
@@ -181,13 +181,13 @@ WICG의 [Crash Reporting 명세](https://wicg.github.io/crash-reporting/)는 rep
 
 긴 정적 글을 읽는 페이지라 당장 바꿀 생각은 없다. 다만 "crash가 없다"와 "crash를 볼 수단이 없다"는 대시보드에서 똑같이 빈 화면이라는 점은 적어 둔다.
 
-## 결론
+## 조건부로 열리는 관측
 
-브라우저의 CPU와 메모리 관측은 대부분 **조건부로 열리는 관측**이다. long task와 LoAF는 Chromium에서만 오고, LoAF의 스크립트 귀속은 cross-origin iframe을 보지 못한다. 샘플링 프로파일러는 `Document-Policy` 헤더를 요구하는데, 그 헤더 이름은 명세에서 바뀌는 중이고 헤더 자체가 지표에 비용을 줄 수 있다. 메모리 측정 API는 cross-origin isolation을, crash report는 JavaScript 밖의 서버 엔드포인트를 요구한다.
+브라우저의 CPU와 메모리 관측은 대부분 **조건이 맞아야 열린다**. long task와 LoAF는 Chromium에서만 오고, LoAF의 스크립트 귀속은 cross-origin iframe을 보지 못한다. 샘플링 프로파일러는 `Document-Policy` 헤더를 요구하는데, 그 헤더 이름은 명세에서 바뀌는 중이고 헤더 자체가 지표에 비용을 줄 수 있다. 메모리 측정 API는 cross-origin isolation을, crash report는 JavaScript 밖의 서버 엔드포인트를 요구한다.
 
-이 블로그는 그 조건 중 어느 것도 켜지 않았다. 그 상태는 방치가 아니라 79KB 결정, standard 빌드, 헤더를 늘리지 않은 선택이 쌓인 결과이고, 그중 standard 빌드는 web-vitals의 LoAF 누수를 피하는 결과로도 이어졌다. 관측을 늘리는 일도 비용이 드는 코드를 페이지에 싣는 일이라는 점이 이 영역에서 특히 선명하다.
+이 블로그는 그 조건 중 어느 것도 켜지 않았다. 그 상태는 방치가 아니라 78.8KB 결정, standard 빌드, 헤더를 늘리지 않은 선택이 쌓인 결과이고, 그중 standard 빌드는 web-vitals의 LoAF 누수를 피하는 결과로도 이어졌다. 관측을 늘리는 일도 비용이 드는 코드를 페이지에 싣는 일이라는 점이 이 영역에서 특히 선명하다.
 
-이 글의 수치는 전부 lab이거나 필자의 로컬 확인이었다. 실제 사용자에게서 모인 field data가 브라우저 밖으로 나가 CrUX와 Search Console, 검색에서 어떤 의미를 갖는지는 [다음 글](/260916)에서 이어가려고 한다. 이 글을 읽는 독자 분들도 자신의 서비스에서 켜 두지 않은 관측이 무엇이고, 그것이 결정의 결과인지 그냥 지나친 것인지 한 번 나눠 보기를 바란다.
+이 글의 수치는 전부 lab이거나 필자의 로컬 확인이었다. 실제 사용자에게서 모인 field data가 브라우저 밖으로 나가 CrUX와 Search Console, 검색에서 어떤 의미를 갖는지는 [다음 글](/260916)에서 이어가려고 한다.
 
 :::ref
 - [docs] [MDN, PerformanceLongAnimationFrameTiming](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming)

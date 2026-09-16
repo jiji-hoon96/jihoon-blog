@@ -1,15 +1,15 @@
 ---
 emoji: 🔭
 title: 'Reabrindo o Sentry'
-seoTitle: 'Como usar o Sentry: consultar dados reais com MCP primeiro'
+seoTitle: 'Recursos do Sentry pelo Sentry MCP: Crons, Logs e Metrics'
 date: '2026-09-13'
 updatedAt: '2026-09-16'
 categories: observabilidade Sentry IA
-description: 'Consultei com o Sentry MCP dados reais antes de usar Logs, Crons ou Uptime: uma falha do GA oculta num 200, um timeout de 338 s e um veredito por recurso.'
+description: 'Dados reais via Sentry MCP antes de usar Logs, Crons ou Uptime: falha do GA num 200, um timeout de 5 s que disparou após 338 s e um veredito por recurso.'
 keywords: 'Sentry MCP, como usar Sentry, Sentry breadcrumbs, monitoramento com Sentry Crons, Sentry Logs, timeout DEADLINE_EXCEEDED, monitoramento de erros serverless, gray failure'
 locale: pt-BR
 translationOf: '260913'
-sourceHash: 4fc62ebb4cae2683757b5c91e7f7428870ce3c242b9cdc1e0e0679fe2e489011
+sourceHash: d5cf7b57be76beb05bd0e287fc534b7cb869b2fc3ff74239f87e976c42ec3876
 ---
 
 Neste post, quero falar sobre reabrir o Sentry, uma ferramenta que uso há muito tempo.
@@ -18,7 +18,7 @@ Na empresa, trabalho há anos com monitoramento de erros baseado no Sentry. Quan
 
 O motivo não era conhecimento, e sim o **custo de exploração**. Para verificar se um recurso serve para o meu problema, preciso ler e cruzar documentação espalhada, desenhar um experimento, ligar a configuração e interpretar os resultados. Nos dias em que a resposta a incidentes era urgente, não havia motivo para pagar esse custo. Desde que passei a usar o Sentry MCP conectado ao Claude Code, boa parte desse custo caiu, e a minha ordem de trabalho mudou. Agora, antes de ativar um recurso, **primeiro pergunto aos dados reais desta conta.**
 
-Este artigo é o primeiro de uma série de quatro sobre observabilidade. Ele acompanha uma falha capturada pela instrumentação de servidor deste blog, registra o que ficou visível ao reabrir esses dados via MCP e dá um veredito sobre onde usar cada recurso. Rede e renderização dentro do navegador continuam em [Observabilidade do navegador](/260914), CPU e memória em [CPU e memória do navegador](/260915), e a leitura dos dados coletados junto com o desempenho de busca em [Da observação ao julgamento](/260916).
+Este artigo é o primeiro de uma série de quatro sobre observabilidade. Ele acompanha uma falha capturada pela instrumentação de servidor deste blog, registra o que ficou visível ao reabrir esses dados via MCP e dá um veredito sobre onde usar cada recurso. A série começa no servidor, passa por renderização, CPU e memória dentro do navegador e termina nos dados de busca.
 
 ## Falha dentro de uma resposta de sucesso
 
@@ -50,7 +50,7 @@ Por isso desci o ponto de instrumentação da rota para quatro `catch` do módul
 Sentry.captureException(error, { tags: { gaQuery: 'stats' } })
 ```
 
-O código atual tem outra forma. O commit `f348d4c`, de 17 de agosto, concentrou o reporte num único `captureServerException` e limitou as chaves de tag a três: `locale`, `routeKind` e `operation`. Tags são a unidade de busca e filtro, então incluir atributos cujos valores crescem sem limite faz crescer juntos a :term[cardinalidade]{key="cardinality"} e o custo. A decisão é manter como tags apenas as perguntas que farei repetidamente.
+No código atual, o commit `f348d4c`, de 17 de agosto, concentrou o reporte num único `captureServerException` e, para a :term[cardinalidade]{key="cardinality"} não crescer, limitou as chaves de tag a três: `locale`, `routeKind` e `operation`.
 
 ```ts
 // 현재 src/lib/google-analytics.ts
@@ -63,7 +63,7 @@ Hoje o módulo de estatísticas reporta a partir de três `catch` e de um caminh
 
 Depois de descer a instrumentação, a issue de produção que apareceu, JIHOON-BLOG-2, era uma chamada ao GA que falhou com `DEADLINE_EXCEEDED` após **65,877 segundos**. A resposta continuava sendo 200. A causa estava no arquivo de configuração da biblioteca cliente do GA. O timeout RPC padrão de `runReport` é `timeout_millis: 60000`, e o meu código não passava timeout em nenhum dos seus cinco pontos de chamada. É exatamente o erro contra o qual o [post sobre deadlines no blog oficial do gRPC](https://grpc.io/blog/deadlines/), escrito por Gráinne Sheerin, do Google SRE, alerta já na primeira linha: "Always set a deadline".
 
-O commit de correção `927c85b` fez todas as chamadas passarem 5 segundos. Reproduzindo com um servidor TCP local que nunca responde, o resultado bateu com a explicação.
+O commit de correção `927c85b` fez todas as chamadas passarem um timeout de 5 segundos. Reproduzindo com um servidor TCP local que nunca responde, o resultado bateu com a explicação.
 
 | Condição | Tempo decorrido | Mensagem de erro |
 |---|---|---|
@@ -88,7 +88,7 @@ Enquanto escrevia este artigo, em 16 de setembro de 2026, consultei de novo os m
 
 ### Por que as ocorrências pararam
 
-A última ocorrência de JIHOON-BLOG-8 foi em 18 de agosto às 13:45 UTC, e desde então são 0. Olhando só o gráfico, parece que o problema sumiu, mas eu nunca validei a hipótese nem corrigi nada. Cruzando com o histórico de deploys, no mesmo dia (em UTC) o commit `417d3b4` tirou da home as áreas de estatísticas de visitantes e de posts populares como parte da reformulação multilíngue. As telas que chamavam `stats` e `popular` eram exatamente essas duas. A mensagem do commit `5752e09`, que em setembro removeu o caminho de posts populares que restava, também registra que "o motivo direto de os eventos terem parado foi o desaparecimento dos pontos de chamada, não o timeout de 5 segundos".
+A última ocorrência de JIHOON-BLOG-8 foi em 18 de agosto às 13:45 UTC, e desde então são 0. Olhando só o gráfico, parece que o problema sumiu, mas eu nunca validei a hipótese nem o corrigi. No mesmo dia, o commit `417d3b4` tirou da home as áreas de estatísticas de visitantes e de posts populares como parte da reformulação multilíngue, e as telas que chamavam `stats` e `popular` eram exatamente essas duas. A mensagem do commit `5752e09`, que em setembro removeu o caminho de posts populares que restava, descreve isso assim: "o motivo direto de os eventos terem parado foi o desaparecimento dos pontos de chamada, não o timeout de 5 segundos". Alinhando os horários, porém, esse commit foi enviado para a main às 22:07 UTC, mais de oito horas depois do último evento. Com só uns dez eventos por dia, um intervalo de oito horas não é estranho em si, e também não contradiz o fato de não ter havido nenhuma ocorrência desde o deploy. Ainda assim, os horários sozinhos não permitem afirmar que a remoção dos pontos de chamada foi o que fez parar, então leio essa mensagem apenas como a explicação mais provável.
 
 Uma issue resolved não é prova de que a causa foi identificada. Há três caminhos para as ocorrências chegarem a zero: foi de fato corrigido, ninguém passa mais por aquele caminho ou a instrumentação desapareceu. Só o sinal de erro não distingue essas três situações.
 
@@ -102,9 +102,9 @@ Os fatos são estes. A função começou às 13:40:02, e às 13:40:07 houve 6 co
 
 O que dá para tirar daqui é limitado. Um timer que deveria disparar após 5 segundos disparou após 5 minutos e 39 segundos, e nesse meio-tempo essa requisição não deixou registro algum. Isso não contradiz a hipótese do congelamento, mas também não elimina a hipótese do event loop ocupado. Ainda assim, surgiu uma informação que eu não tinha antes: o horário de início, que mostra que a falha foi **uma chamada que partiu da revalidação de cache logo após um cold start**.
 
-### 144 contra 14
+### Eventos apagados pela retenção
 
-O contador de ocorrências da issue JIHOON-BLOG-8 marca **144**. Agregando a mesma issue no dataset errors em 90 dias, aparecem só **14**. Esses 14 restantes vão de 17 de agosto às 10:45 a 18 de agosto às 13:45 UTC, quase exatamente dentro dos 30 dias anteriores à consulta.
+O contador de ocorrências da issue JIHOON-BLOG-8 marca **144**. Agregando a mesma issue no dataset errors em 90 dias, aparecem só **10** numa consulta feita em 16 de setembro de 2026 às 14:26 UTC. Esses 10 restantes vão de 17 de agosto às 15:03 a 18 de agosto às 13:45 UTC, quase exatamente dentro dos 30 dias anteriores à consulta. Uma consulta no mesmo dia às 08:45 UTC retornou 14, então esse número diminui a cada consulta.
 
 Como inferência, parece que o período de retenção de eventos é de 30 dias, de modo que os eventos antigos foram apagados e só o contador da issue ficou. A [página de preços](https://sentry.io/pricing/) do Sentry informa 30 dias de consulta para o Developer, o plano gratuito. Porém, não verifiquei o tipo de plano desta conta nem como o contador é mantido. O que é certo é o resultado. A distribuição de 100 eventos acima não pode ser extraída de novo, e dados que não foram armazenados não são restaurados por ferramenta nenhuma.
 
@@ -118,7 +118,9 @@ Agrupando por domínio os spans `http.client` dos últimos 30 dias, o domínio d
 
 JIHOON-BLOG-B, aberta em 16 de setembro, é `Google Analytics credentials missing: GA_PROPERTY_ID`. Ao abrir o evento, a URL era `http://localhost:3117/api/analytics`, o navegador era `curl 8.7.1` e o nome do servidor era o meu MacBook. Mesmo assim, o `environment` era `production`.
 
-É um evento gerado quando segui o procedimento de verificação local da documentação do repositório (`pnpm build` seguido de `pnpm start`). Em `src/lib/sentry-options.ts`, se não houver `SENTRY_ENVIRONMENT`, o ambiente é definido pelo `CONTEXT` do Netlify. É um mecanismo criado para separar os Deploy Previews da produção, mas localmente, onde não existe nenhum dos dois, nenhum valor de ambiente é passado, e o evento acabou marcado como `production`. Ele barrou os previews, mas não o ambiente local. Se eu configurar alertas com base em production nesse estado, meus experimentos vão disparar alertas. Por isso adicionei `SENTRY_ENVIRONMENT=local` ao comando de verificação na documentação do repositório. O motivo de não ter mudado o valor padrão no código é que ainda não confirmei que `CONTEXT` fica sempre visível no runtime de funções do Netlify. Se eu definir o padrão como `local` sem confirmar, desta vez eventos de produção poderiam se esconder sob `local`.
+É um evento gerado quando segui o procedimento de verificação local da documentação do repositório (`pnpm build` seguido de `pnpm start`). Em `src/lib/sentry-options.ts`, se não houver `SENTRY_ENVIRONMENT`, o ambiente é definido pelo `CONTEXT` do Netlify. É um mecanismo criado para separar os Deploy Previews da produção, mas localmente, onde não existe nenhum dos dois, nenhum valor de ambiente é passado, e o evento acabou marcado como `production`. Ele barrou os previews, mas não o ambiente local. Se eu configurar alertas com base em production nesse estado, meus experimentos vão disparar alertas.
+
+Por isso adicionei `SENTRY_ENVIRONMENT=local` ao comando de verificação na documentação do repositório. O motivo de não ter mudado o valor padrão no código é que ainda não confirmei que `CONTEXT` fica sempre visível no runtime de funções do Netlify. Se eu definir o padrão como `local` sem confirmar, desta vez eventos de produção poderiam se esconder sob `local`.
 
 ## O que usar e onde
 
@@ -127,8 +129,9 @@ Do mesmo jeito, verifiquei a partir dos dados os recursos que eu não tinha ativ
 | Recurso | Pergunta que responde | Pré-requisito | Custo | Veredito para este blog |
 |---|---|---|---|---|
 | Issues e grouping | Esses eventos são um mesmo incidente? | SDK, source maps | Cota de erros | Em uso |
-| Crons | O job agendado rodou no horário? | Envio de check-ins | 1 incluído, extra $0.78/mês | **Ativar** |
-| Uptime | A URL responde 2xx de fora? | Nenhum | 1 incluído, extra $1/mês | Considerar como apoio |
+| Crons | O job agendado rodou no horário? | Envio de check-ins | 1 incluído, adicionais via PAYG em planos pagos | **Ativar** |
+| Uptime | A URL responde 2xx de fora? | Nenhum | 1 incluído, adicionais via PAYG em planos pagos | Considerar como apoio |
+| Alerts | Quando acordar alguém? | Separar environment | Sem cobrança própria na tabela de preços | Se ocorreu, não um limite de quantidade |
 | Logs | Quando e quanto o fallback foi executado? | Configuração do SDK | 5GB incluídos | Candidato para chamadas ao GA |
 | Application Metrics | Qual é a distribuição independente da amostragem? | Versão compatível do SDK de JS | 5GB incluídos | Candidato para chamadas ao GA |
 | custom span | Qual trecho da requisição foi lento? | tracing | Cota de spans, amostragem de 10% | Candidato |
@@ -141,9 +144,9 @@ Do mesmo jeito, verifiquei a partir dos dados os recursos que eu não tinha ativ
 
 ### O que vou ativar: Crons
 
-O primeiro a ativar é o Crons. Este blog coleta dados do Search Console toda segunda-feira com GitHub Actions, e, se numa semana esse job deixar de rodar silenciosamente, nem sequer ocorre um erro. Porque não é uma falha, e sim **a ausência de um evento esperado**. Conforme a [documentação de Crons do Sentry CLI](https://docs.sentry.io/cli/crons/), envolvendo o comando existente no formato `sentry-cli monitors run <monitor_slug> --schedule "<cron>" -- <command>`, o início e o fim são enviados como check-ins, e a autenticação é feita pelo DSN do projeto. Segundo a documentação de preços, um cron monitor já vem incluído, então esse uso não tem custo.
+O primeiro a ativar é o Crons. Este blog coleta dados do Search Console toda segunda-feira com GitHub Actions, e, se numa semana esse job deixar de rodar silenciosamente, nem sequer ocorre um erro. Porque não é uma falha, e sim **a ausência de um evento esperado**. Conforme a [documentação de Crons do Sentry CLI](https://docs.sentry.io/cli/crons/), envolvendo o comando existente no formato `sentry-cli monitors run --schedule "<expected schedule>" <monitor-slug> -- <command>`, o início e o fim são enviados como check-ins, e a autenticação é feita pelo DSN do projeto. Segundo a documentação de preços, todos os planos incluem um cron monitor e os adicionais só podem ser comprados com o orçamento PAYG de um plano pago, mas para esse uso basta um.
 
-O Uptime oferece um contraste claro. É um recurso que acessa periodicamente uma URL de fora e verifica se ela retorna 2xx, então **por princípio não consegue capturar a falha dentro de uma resposta 200** que vimos antes. Faz sentido como apoio para quando o site inteiro cai, mas está numa camada diferente da falha que este blog realmente viveu.
+O Uptime oferece um contraste claro. É um recurso que acessa periodicamente uma URL de fora e, por padrão, aceita qualquer 2xx, então **com a configuração padrão não consegue capturar a falha dentro de uma resposta 200** que vimos antes. Com o Verification, disponível para o programa Early Adopter, dá para verificar até o corpo JSON, mas neste blog isso ainda ajudaria pouco. A maioria das falhas veio do caminho de revalidação de cache, não de requisições de visitantes, e nenhum cliente chama mais a rota da API de estatísticas. Faz sentido como apoio para quando o site inteiro cai, mas está numa camada diferente da falha que este blog realmente viveu.
 
 ### Logs e Metrics para as chamadas ao GA
 
@@ -151,21 +154,23 @@ Há um motivo para eventos de erro não bastarem nas chamadas ao GA. Como o `uns
 
 A [documentação de breadcrumbs](https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/breadcrumbs/) do Sentry para Next.js recomenda logo no início usar Logs em vez de breadcrumbs manuais. O Logs ficou [GA em setembro de 2025](https://sentry.io/changelog/logs-are-generally-available/) e é adequado para registrar cada execução do fallback junto com o tempo decorrido. Se o objetivo é a distribuição em si, o [Application Metrics, GA desde maio de 2026](https://sentry.io/changelog/application-metrics-are-now-ga/), é mais direto. A [documentação de span metrics](https://docs.sentry.io/platforms/javascript/tracing/span-metrics/) também encaminha para o Application Metrics as agregações que não são afetadas pela amostragem de traces. Custom spans são bons para ver trechos dentro de uma requisição, mas, sendo uma amostra de 10%, deixam escapar falhas raras. Ainda não ativei nenhum dos três, e, se ativar, começaria pela distribuição no Metrics.
 
+Pelo mesmo motivo, não coloco alertas em quantidades. Um limite de "N ou mais" sobre eventos achatados a no máximo um por hora fica em silêncio enquanto subestima o impacto. Por isso o veredito deste blog é se ocorreu ou não. [My Philosophy on Alerting](https://docs.google.com/document/d/199PqyG3UsyXlwieHaqbGiWVa8eMWi8zzAn0YfcApr8Q/), de Rob Ewaschuk, recomenda alertar sobre os sintomas que o usuário sente e não sobre as causas, mas esse princípio parte da premissa de que o sintoma aparece em algum lugar. Neste blog a falha fica escondida atrás de uma resposta 200 e de um 0, então só instrumentando o fato de o fallback ter rodado surge um sintoma sobre o qual alertar.
+
 ### Recursos que exigem o SDK do navegador
 
 Session Replay e User Feedback pressupõem o SDK do navegador. Este blog decidiu não incluir esse SDK, então o veredito atual é "desativado", e o fundamento do custo de bundle fica para a parte 2. O profiling do navegador também precisa do SDK, além de estar em beta e vir com várias condições; o que essas condições realmente mostram é analisado na parte 3.
 
-### Seer pago e Agent Tracing que não se aplica
+### Recursos que não rodei
 
-Segundo a [documentação de preços](https://docs.sentry.io/pricing/), o Seer é um add-on pago de $40 por mês por colaborador ativo. Desta vez considerei rodá-lo na issue `InvariantError` interna do Next.js aberta em 11 de setembro (JIHOON-BLOG-A), mas não rodei, porque é uma chamada que toca a cobrança. Por isso este artigo não traz experiência de primeira mão com o Seer. O Agent Tracing ficou [GA em 11 de setembro de 2026](https://sentry.io/changelog/agent-tracing-is-now-ga/). É um item fácil de descrever erroneamente como beta quando se confia na memória de um modelo ou em artigos antigos, mas este blog não tem caminhos de chamada a LLM, então não se aplica.
+Segundo a [documentação de preços](https://docs.sentry.io/pricing/), o Seer é um add-on pago que, além de uma assinatura, custa $40 por mês por colaborador ativo. Desta vez considerei rodá-lo na issue `InvariantError` interna do Next.js aberta em 11 de setembro (JIHOON-BLOG-A), mas não rodei, porque ele exige essa assinatura. Não verifiquei se esta conta a tem. Por isso este artigo não traz experiência de primeira mão com o Seer. O Agent Tracing ficou [GA em 11 de setembro de 2026](https://sentry.io/changelog/agent-tracing-is-now-ga/). É um item fácil de descrever erroneamente como beta quando se confia na memória de um modelo ou em artigos antigos, mas este blog não tem caminhos de chamada a LLM, então não se aplica.
 
 ## O que a IA reduziu e o que não reduziu
 
-Os custos que a IA reduziu neste trabalho são claros. Reunir condições em documentação espalhada (se o profiling do navegador está em beta, os cabeçalhos, as restrições de navegador), aprender a sintaxe de consulta para ir trocando o group by, a conta de subtrair e somar horários de breadcrumbs e o rascunho da tabela de recursos: tudo se resolveu em poucas trocas de mensagens. Com a barreira da exploração mais baixa, ficou possível perguntar primeiro "o que os dados atuais dizem" antes de decidir "ativo ou não".
+Os custos que a IA reduziu neste trabalho são claros. Reunir condições em documentação espalhada (se o profiling do navegador está em beta, os cabeçalhos, as restrições de navegador), aprender a sintaxe de consulta para ir trocando o group by, a conta de subtrair e somar horários de breadcrumbs e o rascunho da tabela de recursos: tudo se resolveu em poucas trocas de mensagens. Por exemplo, a linha do tempo de breadcrumbs saiu de uma única chamada a `get_issue_breadcrumbs`, e confirmar que não havia monitores levou duas chamadas, `find_monitors` e `find_uptime_monitors`. Com a barreira da exploração mais baixa, ficou possível perguntar primeiro "o que os dados atuais dizem" antes de decidir "ativo ou não".
 
 O que ela não reduziu é igualmente claro.
 
-- **Dados que não foram armazenados.** Dos 144 eventos, 130 sumiram, e os spans que ficaram fora da amostra nunca existiram. Um agente não restaura dados que não existem.
+- **Dados que não foram armazenados.** Dos 144 eventos, 134 (às 14:26 UTC de 16 de setembro) sumiram, e os spans que ficaram fora da amostra nunca existiram. Um agente não restaura dados que não existem.
 - **Experimentos que exigem deploy.** Se chamadas gRPC são capturadas como spans, e se é possível distinguir congelamento de event loop ocupado, só se descobre adicionando instrumentação de verdade e fazendo deploy.
 - **As condições de interpretação.** Nem o aviso sobre valores extrapolados nem o fato de um evento local ter sido marcado como production apareceram nas respostas. Percebi porque li eu mesmo a URL e o nome do servidor do evento.
 - **A defasagem entre datas e ferramentas.** Em recursos como o Agent Tracing, cujo status mudou cinco dias antes, precisei abrir o changelog para confirmar. As ferramentas de MCP também ainda estão correndo atrás do produto. Colocar `OR` numa busca de issues retornou 400, e a ferramenta de consulta de regras de alerta retornou 410 `This API no longer exists`.
@@ -173,9 +178,11 @@ O que ela não reduziu é igualmente claro.
 
 ## Conclusão
 
-Resumindo, o motivo de eu ter deixado desativada a maior parte dos recursos do Sentry não era desconhecimento, e sim o custo de verificar. A IA reduziu bastante esse custo, e graças a isso minha ordem mudou: antes de ativar recursos, pergunto primeiro aos dados desta conta. Os dados que reabri assim mostraram, antes de qualquer recurso novo, alguns fatos incômodos. A falha que eu acreditava ter corrigido só parou porque seus pontos de chamada sumiram, a distribuição daquela época não pode mais ser redesenhada porque passou do período de retenção, e a minha verificação local estava se misturando às issues de production.
+Resumindo, o motivo de eu ter deixado desativada a maior parte dos recursos do Sentry não era desconhecimento, e sim o custo de verificar. A IA reduziu bastante esse custo, e graças a isso minha ordem mudou: antes de ativar recursos, pergunto primeiro aos dados desta conta. Os dados que reabri assim mostraram, antes de qualquer recurso novo, alguns fatos incômodos. A falha que eu acreditava ter corrigido só parou sem nunca ter sido corrigida, a distribuição daquela época não pode mais ser redesenhada porque passou do período de retenção, e a minha verificação local estava se misturando às issues de production.
 
 Por isso os próximos passos deste blog não foram definidos por uma lista de recursos, e sim pelas lacunas. Colocar o Crons na coleta semanal, escolher para as chamadas ao GA sinais menos abalados por retenção e amostragem, e começar corrigindo o nome do ambiente local. Espero que quem lê este artigo também pense nos recursos que nunca ativou numa ferramenta que usa há muito tempo. Se aquele recurso realmente não era necessário, ou se só era caro verificar, agora é algo que dá para perguntar diretamente aos dados.
+
+O próximo artigo passa para o lugar do SDK de navegador que este blog decidiu não instalar e, em [Observabilidade do navegador](/260914), vê como enxergar o que acontece na tela do visitante.
 
 :::ref
 - [docs] [Sentry, Issue Grouping](https://docs.sentry.io/concepts/data-management/event-grouping/)

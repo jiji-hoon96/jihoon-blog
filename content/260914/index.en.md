@@ -1,15 +1,15 @@
 ---
 emoji: 🔭
 title: 'Browser Observability'
-seoTitle: 'Browser Observability: PerformanceObserver and Soft Navs'
+seoTitle: 'Browser Performance: Web Vitals and Soft Navigations'
 date: '2026-09-14'
 updatedAt: '2026-09-16'
 categories: observability frontend browser RUM
-description: 'What you can see in the browser without an SDK: Performance Timeline, network phases, how LCP, INP and CLS are computed, and web-vitals reportSoftNavs.'
+description: 'Browser signals without an SDK: Performance Timeline, network phases, how LCP, INP and CLS are computed, reportSoftNavs, and what this blog sends to GA4.'
 keywords: 'browser performance monitoring, PerformanceObserver, how Web Vitals are calculated, measure INP, CLS session window, Soft Navigations API, web-vitals reportSoftNavs, Timing-Allow-Origin resource timing'
 locale: en
 translationOf: '260914'
-sourceHash: 3976b490db6bef1a28388bab84a42d789e23e2df6fc503abd0ac827c7b892867
+sourceHash: 7fbc5d940fc1ec9f571c6f14c22b7e64fd03a46e3853265b7f3000e6c169ed6a
 ---
 
 In this post, I want to talk about browser observability.
@@ -35,7 +35,7 @@ This table was measured on 2026-08-04 against Next 16.1.4. Server instrumentatio
 
 I also measured the current state again. Measuring the same way on 2026-09-16 gave 206.1KB. That is 23.8KB above the baseline, but in the meantime Next moved up to 16.3.4 and the soft navigation reporting covered later in this post was added. The Sentry configuration is still server only, so this increase is not caused by Sentry. (I don't know how much each of the two accounts for, because I did not rebuild at each commit)
 
-On this blog, loading performance is the visitor experience, and the one paying for 78.8KB is not me but the visitor. I judged that browser errors on a personal blog would not pay that cost back. Once you decide that, though, you have to look at the browser side some other way. The starting point is the record the browser is already keeping.
+On this blog, loading performance is the visitor experience, and the one paying about 79KB is not me but the visitor. I judged that browser errors on a personal blog would not pay that cost back. Once you decide that, though, you have to look at the browser side some other way. The starting point is the record the browser is already keeping.
 
 ## The record the browser keeps
 
@@ -81,9 +81,9 @@ A slow page is often translated into a network problem. But a single `duration` 
 
 The W3C [Navigation Timing](https://www.w3.org/TR/navigation-timing-2/) specification has a diagram showing the order in which these timestamps are recorded. If the phase names are unfamiliar, looking at that diagram once is faster than reading the table.
 
-One trap is cross-origin resources. Under the W3C [Resource Timing specification](https://www.w3.org/TR/resource-timing/), for a resource from another origin, detailed timestamps such as DNS, connection, and the start of request and response are hidden as 0 unless the serving server allows them with the `Timing-Allow-Origin` response header. If an external CDN image seemed slow and you opened it up only to find DNS and connection all at 0, it was not fast; you simply did not have permission to see. **In this area, 0 may not mean fast.**
+One trap is cross-origin resources. Under the W3C [Resource Timing specification](https://www.w3.org/TR/resource-timing/), for a resource from another origin, detailed timestamps such as DNS, connection, and the start of request and response are hidden as 0 unless the serving server allows them with the `Timing-Allow-Origin` response header. If an external CDN image seemed slow and you opened it up only to find DNS and connection all at 0, it was not fast; you simply did not have permission to see. **In this area, 0 may not mean fast.** Some values inflate instead. Take `responseEnd`, which is not masked, minus the zeroed `responseStart`, and you get not the body transfer time but the time from page start until the response ended. The same specification sets separate conditions for size fields too. `encodedBodySize` and `decodedBodySize` are 0 when the response is cross-origin without passing CORS, and `transferSize` is affected by both `Timing-Allow-Origin` and CORS.
 
-This blog's time to first byte is not light either. On 2026-09-16, when I requested two posts and the home page once each with `curl` from one location in Korea, `time_starttransfer` ranged from 0.95 to 2.43 seconds (a value that includes DNS, connection, and TLS time), and the response headers showed a Netlify Durable cache hit and an edge cache miss. With only three samples I will not generalize, but it is on the same scale as the 798ms TTFB in the measurement later in this post. Only with this kind of phase breakdown can you choose, when LCP is late, whether to shrink the image or bring document arrival forward.
+This blog's time to first byte is not negligible either. On 2026-09-16, when I requested two posts and the home page once each with `curl` from one location in Korea, `time_starttransfer` ranged from 0.95 to 2.43 seconds (a value that includes DNS, connection, and TLS time), and the response headers showed a Netlify Durable cache hit and an edge cache miss. With only three samples I will not generalize, but it is on the same scale as the 798ms TTFB in the measurement later in this post. Only with this kind of phase breakdown can you choose, when LCP is late, whether to shrink the image or bring document arrival forward.
 
 ## How Web Vitals are calculated
 
@@ -127,7 +127,7 @@ Until now, RUM tools and frameworks have each defined a "new screen" with their 
 
 ### Values measured with reportSoftNavs on
 
-This blog also goes from the post list into a post through Next.js's `Link`. On 2026-09-14, after upgrading `web-vitals` to 6.2.1 and turning on `reportSoftNavs` (`cc21a0d`), I attached over CDP to a headless Chrome that had opened the production page and looked directly at the requests going out to GA4. These were the values sent in one session. (Metrics not in the table were absent from this session's requests, and I did not look into why)
+This blog also goes from the post list into a post through Next.js's `Link`. On 2026-09-14, after upgrading `web-vitals` to 6.2.1 and turning on `reportSoftNavs` (`cc21a0d`), I attached over CDP to a headless Chrome that had opened the production page and looked directly at the requests going out to GA4. These were the values sent in one session. (Metrics not in the table were absent from this session's requests. In particular, the list page's CLS should have been reported once at the moment of the first soft navigation, even with a value of 0, because the `web-vitals` reporting function sends 0 too if it is the first report. I think the capture most likely ended before GA4's batched send, but that is a guess and I did not verify it)
 
 | Metric | Value | `navigationType` |
 |---|---|---|
@@ -155,7 +155,7 @@ So the distribution of first-load metrics can differ before and after turning on
 
 ### A bfcache restore is also a new experience
 
-There is one more path that blurs the page boundary. :term[bfcache]{key="bfcache"} restores a whole page from memory on back and forward navigation. web.dev's [bfcache article](https://web.dev/articles/bfcache) says that in Chrome usage data, 1 in 10 navigations on desktop and 1 in 5 on mobile are back or forward. A restore is not a new load, so repeat visits that would have been the fastest drop out of the load distribution, and the collected distribution can lean toward slow even though the real experience improved. The same article recommends looking at metrics like TTFB split by navigation type. `web-vitals` reports `navigationType` as `back-forward-cache` in this case, so the parameter this blog added for soft navigations also distinguishes bfcache restores.
+There is one more path that blurs the page boundary. :term[bfcache]{key="bfcache"} restores a whole page from memory on back and forward navigation. web.dev's [bfcache article](https://web.dev/articles/bfcache) says that in Chrome usage data, 1 in 10 navigations on desktop and 1 in 5 on mobile are back or forward. A restore is not a new load, so in collectors that do not count restores separately, repeat visits that would have been the fastest drop out of the load distribution, and the collected distribution can lean toward slow even though the real experience improved. The same article recommends looking at metrics like TTFB split by navigation type. `web-vitals` 6.2.1, by contrast, does not drop restores. Opening the installed code shows that on a restore it reports TTFB anew as 0, starts FCP, LCP, CLS, and INP over as new metrics, and sets `navigationType` to `back-forward-cache`. So this blog's TTFB mixes in not only the 0 from soft navigations but also the 0 from bfcache restores. Fortunately, the parameter added for soft navigations tells both apart.
 
 ## What this blog actually sends
 
@@ -164,22 +164,25 @@ Translated into this blog's code, everything so far is a single `src/components/
 | Parameter | Content |
 |---|---|
 | `event_label` | Metric name (`LCP`, `INP`, etc.) |
-| `value` | Metric value. GA4 value is an integer, so CLS is multiplied by 1000 and rounded |
+| `value` | Metric value rounded to an integer. Only CLS is multiplied by 1000. GA4 accepts non-integer values, so this is not required; it has the same shape as the integer convention in examples from the Universal Analytics era |
 | `metric_id` | An id identifying one metric within one page lifetime. When the same metric is reported again, it is grouped by this value |
 | `metric_rating` | good, needs-improvement, or poor as judged by the library |
 | `metric_navigation_type` | `navigate`, `soft-navigation`, `back-forward-cache`, etc. |
+| `page_location` | URL of the screen the value measured (overridden only when `navigationURL` exists) |
+
+The `page_location` row was added on 2026-09-16 (`597ca5b`). As the previous section showed, when a soft navigation happens, the list page's CLS and INP are finalized and reported only after the URL has changed. The `web-vitals` code, too, force-reports the previous screen's CLS and starts a new metric the moment it receives a `soft-navigation` entry. gtag attaches the URL at the time of sending to the event, so without the override, the list page's values get recorded under the post URL. That is also why the README's GA4 example includes `page_location: navigationURL`. This blog originally sent only `navigationType`, so in GA4 data collected before the fix, the list page's CLS and INP may be attached to post URLs.
 
 It is a :term[RUM]{key="rum"} setup layered on the GA4 I was already running, with no separate collection server. If loading the module itself fails, it leaves a single `web_vitals_unavailable` event. That failure happens right after a deployment when old HTML requests a chunk that no longer exists, and since there is no browser Sentry, without this event collection could stop entirely and leave no trace.
 
-What it does not send is just as clear. Because it uses the standard build of `web-vitals` rather than the attribution build, it does not collect which element was the LCP element, how long each of the three INP phases took, or which element pushed the layout. Recalling the INP figure from earlier, this blog knows only the sum of the three phases, not which phase was long. And JS errors that occur only in the browser are not recorded anywhere. That is the price of saving 79KB.
+What it does not send is just as clear. Because it uses the standard build of `web-vitals` rather than the attribution build, it does not collect which element was the LCP element, how long each of the three INP phases took, or which element pushed the layout. Recalling the INP figure from earlier, this blog knows only the sum of the three phases, not which phase was long. And JS errors that occur only in the browser are not recorded anywhere. That is the price of saving about 79KB.
 
-One more thing to note. I am sending `metric_navigation_type`, but while writing this post I did not check whether this parameter is registered as a custom dimension in GA4 and actually being broken down. The GA4 Admin API is disabled in this GCP project, so there was no immediate way to check either. Sending something and being able to read it split out are different problems.
+Whether these values can actually be split out and read in GA4 is covered in the final post. Sending something and being able to read it split out are different problems.
 
 ## The browser is already recording
 
 To sum up, even without turning on a browser SDK, the browser is already recording network phases, paints, layout shifts, and input delay. `PerformanceObserver` is the entrance for reading that record, and Web Vitals are metrics that put calculation rules on top of it, such as candidate updates, the sum of three phases, and session windows.
 
-And these calculation rules assume a unit called a page. Turning on soft navigation gives new screens their own metrics, but in exchange the first page's observation window gets shorter, 0 gets mixed into TTFB, and bfcache restores drop out of the load distribution. What I newly understood this time is that a single option changes not only the values but **what counts as one experience**. So before comparing numbers, you first have to see at which boundary those numbers were cut. If you are reading this, it may be worth pausing once to check at what point the performance numbers you are looking at right now were finalized.
+And these calculation rules assume a unit called a page. Turning on soft navigation gives new screens their own metrics, but in exchange the first page's observation window gets shorter, 0 gets mixed into TTFB. bfcache restores also mix into TTFB as 0 (and depending on the collector, drop out entirely). What I newly understood this time is that a single option changes not only the values but **what counts as one experience**. So before comparing numbers, you first have to see at which boundary those numbers were cut.
 
 That said, this post only went as far as the sum of the three phases. What work was holding the main thread when an input arrived, and how much memory a page left open for a long time uses, require other APIs. I plan to continue that story in the next post, [Browser CPU and Memory](/260915).
 

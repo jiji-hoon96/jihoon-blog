@@ -9,7 +9,7 @@ description: '梳理浏览器主线程与内存的观测方法。long task 与 T
 keywords: '浏览器主线程, long task 50ms, Long Animation Frames API, Total Blocking Time, JS Self-Profiling API, Sentry 浏览器性能分析, measureUserAgentSpecificMemory, 浏览器内存泄漏'
 locale: zh-CN
 translationOf: '260915'
-sourceHash: 4e0b5c34d77d4e96bcc9d368f60407b6ed8ce76dd252e63bf908cd37e0a68225
+sourceHash: e3099827d3ce62d6111f68e8a70bca3c1d37a5f8550f952482939e5c286405ce
 ---
 
 这篇文章想聊聊如何观测浏览器的主线程和内存。
@@ -24,7 +24,7 @@ sourceHash: 4e0b5c34d77d4e96bcc9d368f60407b6ed8ce76dd252e63bf908cd37e0a68225
 
 浏览器的主线程把 JavaScript 执行、样式计算、布局和用户输入处理排成一列依次处理。一个任务运行期间，其他工作无法插入，所以如果用户在这时按下按钮，输入事件就要等到该任务结束。
 
-划分这段等待的标准是 50ms。W3C 的 [Long Tasks API 规范](https://w3c.github.io/longtasks/)把占用主线程 50ms 以上的任务定义为 long task，并写明了依据。要在 100ms 内响应输入，输入那一刻正在运行的任务必须在 50ms 内结束，处理该输入的任务也必须在 50ms 内结束。也就是说，50ms 是把 100ms 的响应目标一分为二得到的值。
+划分这段等待的标准是 50ms。W3C 的 [Long Tasks API 规范](https://w3c.github.io/longtasks/)把占用主线程超过 50ms 的任务定义为 long task(引言部分写的是"50ms or more"，边界的表述略有不同)，并写明了依据。要在 100ms 内响应输入，输入那一刻正在运行的任务必须在 50ms 内结束，处理该输入的任务也必须在 50ms 内结束。
 
 ### TBT 累加 long task 的超出部分
 
@@ -32,7 +32,7 @@ sourceHash: 4e0b5c34d77d4e96bcc9d368f60407b6ed8ce76dd252e63bf908cd37e0a68225
 
 ![主线程时间线上的五个任务中，超过 50ms 的三个任务的超出部分分别标为 200、40、105ms 的示意图](1.png?w=720)
 
-(图片来源：[web.dev, Total Blocking Time (TBT)](https://web.dev/articles/tbt), CC BY 4.0)
+(图片来源：[web.dev, Total Blocking Time (TBT)](https://web.dev/articles/tbt), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，已将 SVG 转换为白色背景的 PNG)
 
 黄色部分是每个任务的前 50ms，红色部分是 blocking time。在同一篇文章的例子中，任务执行时间总和是 560ms，但 TBT 是 345ms。短于 50ms 的任务无论出现得多频繁，都不会计入 TBT。
 
@@ -40,15 +40,15 @@ sourceHash: 4e0b5c34d77d4e96bcc9d368f60407b6ed8ce76dd252e63bf908cd37e0a68225
 
 TBT 是 lab 指标，而 Core Web Vitals 中的响应性指标是 INP。web.dev 的 [INP 文章](https://web.dev/articles/inp)划清了界限：在不做交互、只看加载的 lab 工具里，TBT 可以是合理的代理指标，但不是替代品。
 
-因为 TBT 不知道用户什么时候按了什么。即使主线程被严重阻塞，只要用户在脚本执行完之后才按，INP 也可能很低。long task 影响 INP 的路径，是按下那一刻正在运行的任务还剩多少时间，就把上一篇文章里讲过的 input delay 拉长多少。所以低 TBT 只能告诉你"加载期间主线程没有被严重阻塞"。实际输入被什么阻塞了，要在 field 中观察任务和帧才能知道。
+因为 TBT 不知道用户什么时候按了什么。即使主线程被严重阻塞，只要用户在脚本执行完之后才按，INP 也可能很低。long task 拉长 INP 的路径不止一条(处理函数本身很长时是 processing duration，随后的渲染很长时是 presentation delay)，但与 TBT 最直接相关的路径，是按下那一刻正在运行的任务还剩多少时间，就把上一篇文章里讲过的 input delay 拉长多少。所以低 TBT 只能告诉你"加载期间主线程没有被严重阻塞"。实际输入被什么阻塞了，要在 field 中观察任务和帧才能知道。
 
 ## Long Tasks 与 Long Animation Frames
 
 在 field 中观察主线程的浏览器 API 有两个：从 Chrome 58 就有的 Long Tasks API(`PerformanceLongTaskTiming`)，以及在 Chrome 123 中发布的 Long Animation Frames API(`PerformanceLongAnimationFrameTiming`，简称 LoAF)。两者都通过 :term[PerformanceObserver]{key="performance-observer"} 订阅。
 
-### LoAF 是替代方案，而不是取代
+### LoAF 是另一种选择，而不是取而代之
 
-Chrome 团队的 LoAF 文章(下图来源)把 LoAF 介绍为 Long Tasks API 的"update"和"alternative"，并没有使用 replacement 这个词。在 MDN 的兼容性数据中，`PerformanceLongTaskTiming` 也没有 deprecated 标记，两个 API 都是 experimental，Firefox 和 Safari 都不支持。
+Chrome 团队的 LoAF 文章(下图来源)把 LoAF 介绍为 Long Tasks API 的"update"和"alternative"，并在 FAQ 中回答"at this time, there are no plans to deprecate the Long Tasks API"。在 MDN 的兼容性数据中，`PerformanceLongTaskTiming` 也没有 deprecated 标记，两个 API 都是 experimental，Firefox 和 Safari 都不支持。
 
 之所以需要新 API，原因在于归因(attribution)。根据同一篇文章，Long Tasks API 的归因"at best only tells you the container"，也就是只能告诉你是顶层文档还是某个 iframe，却不会告诉你是哪个脚本花掉了时间。
 
@@ -60,7 +60,7 @@ LoAF 中与 INP 直接相关的字段是 `blockingDuration`。它累加帧内超
 
 ![页面时间线上有多个 long frame，其中与被选为 INP 的交互重叠的那一帧用虚线突出显示的示意图](2.png?w=720)
 
-(图片来源：[Chrome for Developers, Long Animation Frames API](https://developer.chrome.com/docs/web-platform/long-animation-frames), CC BY 4.0)
+(图片来源：[Chrome for Developers, Long Animation Frames API](https://developer.chrome.com/docs/web-platform/long-animation-frames), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，已缩小尺寸)
 
 页面上会产生很多 long frame，但能解释 INP 数值的，是与 INP 交互重叠的那一帧。该帧的 `scripts` 数组里，对每个执行超过 5ms 的脚本都记录了调用位置、源 URL 和执行时间。Long Tasks API 所缺少的"是谁"，在这里出现了。
 
@@ -96,7 +96,7 @@ LoAF 中与 INP 直接相关的字段是 `blockingDuration`。它累加帧内超
 
 TBT 与 FCP 之后三个任务的超出部分完全吻合。第 1 次是 (68 - 50) + (66 - 50) + (56 - 50) = 40ms，第 2 次是 (69 - 50) + (69 - 50) + (59 - 50) = 47ms。低 TBT 的意思不是"没有 long task"，而是"FCP 之后的超出部分很小"。
 
-接下来是 gtag 的位置。在 layout 中，gtag 通过 `next/script` 的 `strategy="afterInteractive"` 加载，在 LCP 之后 2.8 秒多一点连续执行，而最后这个 long task 结束的时间点，正好被记为 TTI。比起加载指标，这个位置更可能与**页面刚显示出来时按下的输入的 input delay** 重叠。不过这是在 lab 时间轴上的推论，真实用户当时按了什么，这个博客并没有采集。
+接下来是 gtag 的位置。根布局(`src/app/[lang]/layout.tsx`)通过 `next/script` 的 `strategy="afterInteractive"` 加载 gtag。因此两个 gtag 任务在 LCP 之后 2.8 秒多一点连续执行，最后一个任务结束的时间点被记为 TTI。比起加载指标，这个位置更可能与**页面刚显示出来时按下的输入的 input delay** 重叠。不过这是在 lab 时间轴上的推论，真实用户当时按了什么，这个博客并没有采集。
 
 而且这只是 n=2 的 lab 测量。同样的形态再次出现，只是说明这个结构并非偶然的弱证据，无法代替真实用户的设备和网络分布。
 
@@ -116,7 +116,7 @@ WICG 的 [JS Self-Profiling 规范](https://wicg.github.io/js-self-profiling/)�
 
 调研过程中，我遇到了文档之间互相矛盾的地方。2026 年 1 月合入规范仓库的一项变更把 `js-profiling` 标为 **deprecated**，并改为定义 `js-profiling-mode`(`eager`、`lazy`)。实现应当为了向后兼容而支持 `js-profiling`(SHOULD)，但也可以将其移除(MAY)。
 
-根据规范，`eager`(与原先的 `js-profiling` 含义相同)会在加载过程中预先准备分析基础设施，所以即使不使用分析器，也可能影响 FCP 和 LCP。`lazy` 会把准备工作推迟到第一次创建 `Profiler` 时，但如果这次初始化发生在处理交互的过程中，就可能影响 INP。这等于规范承认了**为测量而开启的响应头，可能给被测量的指标带来代价**。另一方面，截至 2026-09-16 查阅时，Sentry 的文档仍然只介绍 `Document-Policy: js-profiling`。我没有确认 Chrome 是否实现了 `js-profiling-mode`，所以没法断言现在应该用哪个响应头。
+根据规范，`eager`(与原先的 `js-profiling` 含义相同)会在加载过程中预先准备分析基础设施，所以即使不使用分析器，也可能影响 FCP 和 LCP。`lazy` 会把准备工作推迟到第一次创建 `Profiler` 时，但如果这次初始化发生在处理交互的过程中，就可能影响 INP。这等于规范承认了**为测量而开启的响应头，可能给被测量的指标带来代价**。另一方面，截至 2026-09-16 查阅时，Sentry 的文档仍然只介绍 `Document-Policy: js-profiling`。ChromeStatus 上 `js-profiling-mode` 条目的状态是 Proposed，也没有发布里程碑，但我没有直接确认 Chrome 是否实现了它，所以没法断言现在应该用哪个响应头。
 
 ### Sentry 浏览器 profiling 的前提条件
 
@@ -130,7 +130,7 @@ Sentry 的 [JavaScript profiling 文档](https://docs.sentry.io/platforms/javasc
 
 第二，没有响应头。2026-09-16T09:10:42Z 用 `curl -sI https://hooninedev.com/260914` 确认的响应里没有 `document-policy`。这个仓库给 HTML 添加的响应头，是 `next.config.ts` 的 `headers()` 里的 `Content-Security-Policy`、`X-Frame-Options`、`Referrer-Policy`、`Permissions-Policy` 这四个，响应中也能确认到这四个。(我已经在这个仓库里实测过，`public/_headers` 只作用于静态资源，碰不到 HTML)
 
-所以，在这个博客里开启浏览器 profiling 并不是改一个选项的事。它意味着推翻 79KB 的决定，给所有 HTML 加上响应头，再重新测量这个响应头给 FCP、LCP、INP 带来的代价。目前还没有证据表明，前面看到的两个 gtag 任务是值得付出这种代价的问题。
+所以，在这个博客里开启浏览器 profiling 并不是改一个选项的事。它意味着推翻 78.8KB 的决定，给所有 HTML 加上响应头，再重新测量这个响应头给 FCP、LCP、INP 带来的代价。目前还没有证据表明，前面看到的两个 gtag 任务是值得付出这种代价的问题。
 
 ## 测量内存意味着什么
 
@@ -184,13 +184,13 @@ WICG 的 [Crash Reporting 规范](https://wicg.github.io/crash-reporting/)定义
 
 这是用来阅读长篇静态文章的页面，所以我暂时不打算改动。只是想记下一点："没有 crash"和"没有观测 crash 的手段"，在仪表盘上是一模一样的空白画面。
 
-## 结论
+## 有条件才能打开的观测
 
-浏览器 CPU 与内存的观测，大多是**有条件才能打开的观测**。long task 和 LoAF 只来自 Chromium，LoAF 的脚本归因看不到 cross-origin iframe。采样分析器要求 `Document-Policy` 响应头，而这个响应头的名称在规范中正在变化，响应头本身也可能给指标带来代价。内存测量 API 要求 cross-origin isolation，crash report 则要求 JavaScript 之外的服务器端点。
+浏览器 CPU 与内存的观测，大多**要满足条件才能打开**。long task 和 LoAF 只来自 Chromium，LoAF 的脚本归因看不到 cross-origin iframe。采样分析器要求 `Document-Policy` 响应头，而这个响应头的名称在规范中正在变化，响应头本身也可能给指标带来代价。内存测量 API 要求 cross-origin isolation，crash report 则要求 JavaScript 之外的服务器端点。
 
-这个博客一个条件都没有开启。这种状态不是放任不管，而是 79KB 的决定、standard 构建、不增加响应头的选择累积起来的结果，其中 standard 构建还顺带避开了 web-vitals 的 LoAF 泄漏。扩大观测本身也是把有代价的代码放进页面，这一点在这个领域里尤其清楚。
+这个博客一个条件都没有开启。这种状态不是放任不管，而是 78.8KB 的决定、standard 构建、不增加响应头的选择累积起来的结果，其中 standard 构建还顺带避开了 web-vitals 的 LoAF 泄漏。扩大观测本身也是把有代价的代码放进页面，这一点在这个领域里尤其清楚。
 
-这篇文章里的数字全部来自 lab 或我在本地的确认。从真实用户那里收集的 field data 离开浏览器之后，在 CrUX、Search Console 和搜索中有什么意义，我打算在[下一篇文章](/260916)里继续讲。也希望读到这里的你，能把自己服务里没有开启的观测梳理一遍，分清哪些是决策的结果，哪些只是被忽略了。
+这篇文章里的数字全部来自 lab 或我在本地的确认。从真实用户那里收集的 field data 离开浏览器之后，在 CrUX、Search Console 和搜索中有什么意义，我打算在[下一篇文章](/260916)里继续讲。
 
 :::ref
 - [docs] [MDN, PerformanceLongAnimationFrameTiming](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming)

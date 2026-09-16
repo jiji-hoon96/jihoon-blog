@@ -9,7 +9,7 @@ description: 'What long tasks, TBT, LoAF, JS Self-Profiling, memory APIs, and cr
 keywords: 'browser main thread, long task 50ms, Long Animation Frames API, Total Blocking Time, JS Self-Profiling API, Sentry browser profiling, measureUserAgentSpecificMemory, browser memory leak'
 locale: en
 translationOf: '260915'
-sourceHash: 4e0b5c34d77d4e96bcc9d368f60407b6ed8ce76dd252e63bf908cd37e0a68225
+sourceHash: e3099827d3ce62d6111f68e8a70bca3c1d37a5f8550f952482939e5c286405ce
 ---
 
 In this post, I want to talk about how to observe the browser's main thread and memory.
@@ -24,7 +24,7 @@ What I checked myself were two Lighthouse runs, the production response headers,
 
 The browser's main thread handles JavaScript execution, style calculation, layout, and user input in a single line. While one task runs, nothing else can cut in, so if the user presses a button in the meantime, the input event waits until that task finishes.
 
-The threshold that cuts this wait is 50ms. The W3C [Long Tasks API specification](https://w3c.github.io/longtasks/) defines a task that occupies the main thread for 50ms or more as a long task, and it also gives the reasoning. To respond to input within 100ms, the task running at the moment of input has to finish within 50ms, and the task that handles that input also has to finish within 50ms. In other words, 50ms is the 100ms response target split in two.
+The threshold that cuts this wait is 50ms. The W3C [Long Tasks API specification](https://w3c.github.io/longtasks/) defines a task that occupies the main thread for more than 50ms as a long task (its introduction says "50ms or more", so the wording of the boundary differs slightly), and it also gives the reasoning. To respond to input within 100ms, the task running at the moment of input has to finish within 50ms, and the task that handles that input also has to finish within 50ms.
 
 ### TBT adds up the excess of long tasks
 
@@ -32,7 +32,7 @@ If you only count them, a 60ms task and a 600ms task look the same, so lab tools
 
 ![A figure showing five tasks on a main thread timeline, where the three that exceed 50ms have excess portions of 200, 40, and 105ms](1.png?w=720)
 
-(Figure source: [web.dev, Total Blocking Time (TBT)](https://web.dev/articles/tbt), CC BY 4.0)
+(Figure source: [web.dev, Total Blocking Time (TBT)](https://web.dev/articles/tbt), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), SVG converted to PNG on a white background)
 
 The yellow part is the first 50ms of each task, and the red part is the blocking time. In the same article's example, the tasks run for 560ms in total, but TBT is 345ms. Tasks shorter than 50ms contribute nothing to TBT, no matter how often they occur.
 
@@ -40,7 +40,7 @@ The yellow part is the first 50ms of each task, and the red part is the blocking
 
 TBT is a lab metric, and the responsiveness metric in Core Web Vitals is INP. web.dev's [INP article](https://web.dev/articles/inp) draws the line: in lab tools that only look at loading without interaction, TBT can be a reasonable proxy, but it is not a replacement.
 
-That is because TBT does not know when the user pressed what. Even if the main thread is heavily blocked, INP can be low if the user presses after the scripts are done. The path by which a long task reaches INP is by lengthening the input delay from the previous post by however much time remains in the task that was running at the moment of the press. So a low TBT only tells you "the main thread was not heavily blocked during loading." To know what actual input was blocked by, you have to look at tasks and frames in the field.
+That is because TBT does not know when the user pressed what. Even if the main thread is heavily blocked, INP can be low if the user presses after the scripts are done. A long task can raise INP along several paths (processing duration if the handler itself is long, presentation delay if the rendering after it is long), but the path most directly tied to TBT is lengthening the input delay from the previous post by however much time remains in the task that was running at the moment of the press. So a low TBT only tells you "the main thread was not heavily blocked during loading." To know what actual input was blocked by, you have to look at tasks and frames in the field.
 
 ## Long Tasks and Long Animation Frames
 
@@ -48,7 +48,7 @@ There are two browser APIs for watching the main thread in the field: the Long T
 
 ### LoAF is an alternative, not a replacement
 
-The Chrome team's LoAF article (source of the figure below) introduces LoAF as an "update" and an "alternative" to the Long Tasks API, and never uses the word replacement. In MDN's compatibility data, `PerformanceLongTaskTiming` carries no deprecated mark either, both APIs are experimental, and Firefox and Safari support neither.
+The Chrome team's LoAF article (source of the figure below) introduces LoAF as an "update" and an "alternative" to the Long Tasks API, and its FAQ answers that "at this time, there are no plans to deprecate the Long Tasks API." In MDN's compatibility data, `PerformanceLongTaskTiming` carries no deprecated mark either, both APIs are experimental, and Firefox and Safari support neither.
 
 The reason a new API was needed is attribution. According to the same article, Long Tasks API attribution "at best only tells you the container", meaning whether it was the top-level document or some iframe, and it does not tell you which script spent the time.
 
@@ -60,7 +60,7 @@ The LoAF field that connects directly to INP is `blockingDuration`. It adds up t
 
 ![A figure showing several long frames on a page timeline, with the frame that overlaps the interaction chosen as INP highlighted by a dotted line](2.png?w=720)
 
-(Figure source: [Chrome for Developers, Long Animation Frames API](https://developer.chrome.com/docs/web-platform/long-animation-frames), CC BY 4.0)
+(Figure source: [Chrome for Developers, Long Animation Frames API](https://developer.chrome.com/docs/web-platform/long-animation-frames), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), resized)
 
 A page produces many long frames, but the one that explains the INP value is the frame overlapping the INP interaction. That frame's `scripts` array holds, for each script that ran for more than 5ms, the invocation point, source URL, and execution time. The "who" that the Long Tasks API lacked appears here.
 
@@ -96,7 +96,7 @@ Both runs had four long tasks, in the same order: the document task (104ms, 122m
 
 TBT matches the excess of the three tasks after FCP exactly. Run 1 is (68 - 50) + (66 - 50) + (56 - 50) = 40ms, and run 2 is (69 - 50) + (69 - 50) + (59 - 50) = 47ms. A low TBT does not mean "there are no long tasks" but "the excess after FCP is small."
 
-Next is where gtag sits. In the layout, gtag is loaded with `next/script` using `strategy="afterInteractive"`, runs back to back a little over 2.8 seconds after LCP, and the point where this last long task ends is exactly what gets recorded as TTI. It is a spot that can overlap less with loading metrics and more with **the input delay of an input pressed right after the page appears**. Still, this is inference on a lab timeline, and this blog does not collect what real users pressed at that moment.
+Next is where gtag sits. The root layout (`src/app/[lang]/layout.tsx`) loads gtag with `next/script` using `strategy="afterInteractive"`. So the two gtag tasks run back to back a little over 2.8 seconds after LCP, and the point where the last one ends is recorded as TTI. Rather than loading metrics, this is a spot that can overlap with **the input delay of an input pressed right after the page appears**. Still, this is inference on a lab timeline, and this blog does not collect what real users pressed at that moment.
 
 And this is an n=2 lab measurement. Reproducing the same shape is only weak evidence that this structure is not a coincidence, and it cannot stand in for the distribution of real users' devices and networks.
 
@@ -116,7 +116,7 @@ The specification is a WICG Community Group Draft, not on the standards track, a
 
 During research I hit a point where documents disagreed. A change merged into the specification repository in January 2026 made `js-profiling` **deprecated** and defined `js-profiling-mode` (`eager`, `lazy`) in its place. Implementations should support `js-profiling` for backward compatibility (SHOULD) but may remove it (MAY).
 
-According to the specification, `eager` (equivalent to the old `js-profiling`) prepares the profiling infrastructure during load, so it can affect FCP and LCP even if the profiler is never used. `lazy` defers that preparation until the first `Profiler` is created, but if that initialization happens while an interaction is being handled, it can affect INP. The specification is admitting that **a header turned on in order to measure can impose a cost on the very metrics being measured**. Sentry's documentation, on the other hand, still only mentions `Document-Policy: js-profiling` as of 2026-09-16. I have not checked whether Chrome implements `js-profiling-mode`, so I cannot say which header you should use right now.
+According to the specification, `eager` (equivalent to the old `js-profiling`) prepares the profiling infrastructure during load, so it can affect FCP and LCP even if the profiler is never used. `lazy` defers that preparation until the first `Profiler` is created, but if that initialization happens while an interaction is being handled, it can affect INP. The specification is admitting that **a header turned on in order to measure can impose a cost on the very metrics being measured**. Sentry's documentation, on the other hand, still only mentions `Document-Policy: js-profiling` as of 2026-09-16. On ChromeStatus the `js-profiling-mode` entry is Proposed with no shipping milestone, but I have not directly checked whether Chrome implements it, so I cannot say which header you should use right now.
 
 ### Conditions for Sentry browser profiling
 
@@ -130,7 +130,7 @@ First, there is no browser SDK. This blog's Sentry is server-only, and there is 
 
 Second, there is no header. The response I checked with `curl -sI https://hooninedev.com/260914` at 2026-09-16T09:10:42Z has no `document-policy`. The headers this repository attaches to HTML are the four in the `next.config.ts` `headers()` function: `Content-Security-Policy`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy`, and those four show up in the response as well. (I had already measured in this repository that `public/_headers` applies only to static assets and does not reach HTML)
 
-So turning on browser profiling for this blog is not a matter of one option. It means reversing the 79KB decision, attaching a header to every HTML response, and measuring anew the cost that header imposes on FCP, LCP, and INP. There is no evidence yet that the two gtag tasks seen earlier are a problem worth that cost.
+So turning on browser profiling for this blog is not a matter of one option. It means reversing the 78.8KB decision, attaching a header to every HTML response, and measuring anew the cost that header imposes on FCP, LCP, and INP. There is no evidence yet that the two gtag tasks seen earlier are a problem worth that cost.
 
 ## What measuring memory means
 
@@ -184,13 +184,13 @@ The earlier `curl` response has no `reporting-endpoints` header either. Under th
 
 Since these are pages for reading long static posts, I have no plans to change this right away. Still, I want to note that "there are no crashes" and "there is no means to see crashes" look like the same empty screen on a dashboard.
 
-## Conclusion
+## Observation that opens only under conditions
 
-Observing the browser's CPU and memory is mostly **observation that opens only under conditions**. Long tasks and LoAF come only from Chromium, and LoAF's script attribution cannot see cross-origin iframes. Sampling profilers require a `Document-Policy` header, whose name is changing in the specification, and the header itself can impose a cost on metrics. The memory measurement API requires cross-origin isolation, and crash reports require a server endpoint outside JavaScript.
+Observing the browser's CPU and memory mostly **opens up only when conditions are met**. Long tasks and LoAF come only from Chromium, and LoAF's script attribution cannot see cross-origin iframes. Sampling profilers require a `Document-Policy` header, whose name is changing in the specification, and the header itself can impose a cost on metrics. The memory measurement API requires cross-origin isolation, and crash reports require a server endpoint outside JavaScript.
 
-This blog has turned on none of those conditions. That state is not neglect but the accumulated result of the 79KB decision, the standard build, and the choice not to add headers, and among those, the standard build also ended up avoiding the web-vitals LoAF leak. The fact that expanding observability also means shipping code that has a cost onto the page is especially clear in this area.
+This blog has turned on none of those conditions. That state is not neglect but the accumulated result of the 78.8KB decision, the standard build, and the choice not to add headers, and among those, the standard build also ended up avoiding the web-vitals LoAF leak. The fact that expanding observability also means shipping code that has a cost onto the page is especially clear in this area.
 
-Every number in this post came from the lab or from my own local checks. What field data collected from real users means once it leaves the browser, in CrUX, Search Console, and search, is something I plan to continue in [the next post](/260916). I hope readers will also take a moment to sort out which observations they have not turned on in their own services, and whether each is the result of a decision or something they simply passed by.
+Every number in this post came from the lab or from my own local checks. What field data collected from real users means once it leaves the browser, in CrUX, Search Console, and search, is something I plan to continue in [the next post](/260916).
 
 :::ref
 - [docs] [MDN, PerformanceLongAnimationFrameTiming](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming)

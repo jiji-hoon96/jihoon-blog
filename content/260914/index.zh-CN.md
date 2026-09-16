@@ -9,7 +9,7 @@ description: '梳理不借助浏览器 SDK 就能在页面内看到的信号：P
 keywords: '浏览器性能监测, PerformanceObserver 用法, Web Vitals 计算方式, INP 测量, CLS 会话窗口, Soft Navigations API, web-vitals reportSoftNavs, Resource Timing Timing-Allow-Origin'
 locale: zh-CN
 translationOf: '260914'
-sourceHash: 3976b490db6bef1a28388bab84a42d789e23e2df6fc503abd0ac827c7b892867
+sourceHash: 7fbc5d940fc1ec9f571c6f14c22b7e64fd03a46e3853265b7f3000e6c169ed6a
 ---
 
 这篇文章想聊聊浏览器可观测性。
@@ -35,7 +35,7 @@ sourceHash: 3976b490db6bef1a28388bab84a42d789e23e2df6fc503abd0ac827c7b892867
 
 我也重新测了当前状态。2026-09-16 用同样的方法再测，结果是 206.1KB。比基准线大了 23.8KB，但这期间 Next 升到了 16.3.4，后文要讲的 soft navigation 上报也加了进来。Sentry 配置仍然是仅服务端，所以这部分增量不是 Sentry 造成的。（两者各占多少，我没有逐个提交重新构建，所以不知道）
 
-在这个博客上，加载性能就是访客体验，而为 78.8KB 买单的不是我，是访客。我判断个人博客的浏览器错误换不回这笔开销。不过既然这样决定了，浏览器这一侧就得换一种方式来看。出发点是浏览器本来就在留下的记录。
+在这个博客上，加载性能就是访客体验，而为约 79KB 买单的不是我，是访客。我判断个人博客的浏览器错误换不回这笔开销。不过既然这样决定了，浏览器这一侧就得换一种方式来看。出发点是浏览器本来就在留下的记录。
 
 ## 浏览器留下的记录
 
@@ -81,9 +81,9 @@ observer.observe({ type: 'resource', buffered: true })
 
 W3C 的 [Navigation Timing](https://www.w3.org/TR/navigation-timing-2/) 规范里有一张图，展示这些时间戳按什么顺序被记录。如果对阶段名称不熟，看一眼那张图比看表更快。
 
-一个陷阱是 cross-origin 资源。按照 W3C 的 [Resource Timing 规范](https://www.w3.org/TR/resource-timing/)，来自其他 origin 的资源，除非提供它的服务器用 `Timing-Allow-Origin` 响应头放行，否则 DNS、连接、请求与响应开始这类详细时间戳都会被置为 0 隐藏起来。如果觉得外部 CDN 的图片慢，打开一看 DNS 和连接全是 0，那不是它快，而是你没有查看的权限。**在这个领域，0 不一定意味着快。**
+一个陷阱是 cross-origin 资源。按照 W3C 的 [Resource Timing 规范](https://www.w3.org/TR/resource-timing/)，来自其他 origin 的资源，除非提供它的服务器用 `Timing-Allow-Origin` 响应头放行，否则 DNS、连接、请求与响应开始这类详细时间戳都会被置为 0 隐藏起来。如果觉得外部 CDN 的图片慢，打开一看 DNS 和连接全是 0，那不是它快，而是你没有查看的权限。**在这个领域，0 不一定意味着快。** 反过来也有会被放大的值。用不会被隐藏的 `responseEnd` 减去被置为 0 的 `responseStart`，得到的不是正文传输时间，而是从页面开始到响应结束的时刻。同一规范对大小字段也另有条件。响应是未通过 CORS 的 cross-origin 时，`encodedBodySize` 和 `decodedBodySize` 为 0，而 `transferSize` 同时受 `Timing-Allow-Origin` 和 CORS 两方面影响。
 
-这个博客的首字节时间也不轻。2026-09-16 我在韩国的一个地点用 `curl` 各请求了两篇文章和首页一次，`time_starttransfer` 在 0.95 秒到 2.43 秒之间（这个值包含 DNS、连接和 TLS 时间），响应头显示 Netlify Durable 缓存 hit、边缘缓存 miss。样本只有三个，我不做推广，但它和后文实测中 798ms 的 TTFB 是同一量级。有了这样的阶段拆分，才能在 LCP 慢的时候选择是缩小图片，还是让文档更早到达。
+这个博客的首字节时间也不算短。2026-09-16 我在韩国的一个地点用 `curl` 各请求了两篇文章和首页一次，`time_starttransfer` 在 0.95 秒到 2.43 秒之间（这个值包含 DNS、连接和 TLS 时间），响应头显示 Netlify Durable 缓存 hit、边缘缓存 miss。样本只有三个，我不做推广，但它和后文实测中 798ms 的 TTFB 是同一量级。有了这样的阶段拆分，才能在 LCP 慢的时候选择是缩小图片，还是让文档更早到达。
 
 ## Web Vitals 的计算
 
@@ -97,7 +97,7 @@ W3C 的 [Navigation Timing](https://www.w3.org/TR/navigation-timing-2/) 规范�
 
 ### LCP 的候选会不断变化
 
-根据 [LCP 文档](https://web.dev/articles/lcp)，每当更大的内容元素被绘制出来，浏览器就会发出一个新的 `largest-contentful-paint` entry。先绘制文本时 `<p>` 成为候选，之后大图加载完成就换成 `<img>`。而在用户点按、滚动或按键的那一刻，浏览器会停止上报新的 entry。所以 LCP 不是第一个 entry，而是输入之前上报的最后一个有效候选，确定这个定稿时间点就成了采集代码的职责。
+根据 [LCP 文档](https://web.dev/articles/lcp)，每当更大的内容元素被绘制出来，浏览器就会发出一个新的 `largest-contentful-paint` entry。先绘制文本时 `<p>` 成为候选，之后大图加载完成就换成 `<img>`。而在用户点按、滚动或按键的那一刻，浏览器会停止上报新的 entry。所以 LCP 不是第一个 entry，而是输入之前上报的最后一个有效候选，判断何时最终确定就成了采集代码的职责。
 
 ### INP 是输入三个阶段的总和
 
@@ -127,7 +127,7 @@ web.dev 的 INP 文档把一次交互分成三个阶段。输入进来到事件�
 
 ### 开启 reportSoftNavs 后测得的数值
 
-这个博客也是通过 Next.js 的 `Link` 从文章列表进入文章的。2026-09-14 我把 `web-vitals` 升级到 6.2.1 并开启 `reportSoftNavs`（`cc21a0d`）之后，用 CDP 连上打开了生产页面的无头 Chrome，原样查看发往 GA4 的请求。一次会话里发出的数值如下。（表中没有的指标是这次会话的请求里本来就没有的，原因我没有另行确认）
+这个博客也是通过 Next.js 的 `Link` 从文章列表进入文章的。2026-09-14 我把 `web-vitals` 升级到 6.2.1 并开启 `reportSoftNavs`（`cc21a0d`）之后，用 CDP 连上打开了生产页面的无头 Chrome，原样查看发往 GA4 的请求。一次会话里发出的数值如下。（表中没有的指标是这次会话的请求里本来就没有的。尤其是列表页的 CLS，在第一次 soft navigation 的那一刻即使值为 0 也应该上报一次，因为 `web-vitals` 的上报函数在首次上报时连 0 也会发送。我认为很可能是抓取在 GA4 批量发送之前就结束了，但这是推测，没有确认）
 
 | 指标 | 值 | `navigationType` |
 |---|---|---|
@@ -149,13 +149,13 @@ web.dev 的 INP 文档把一次交互分成三个阶段。输入进来到事件�
 
 > Note that this will change the way the first page loads are measured as the metrics for the initial URL will be finalized once the first soft nav occurs.
 
-意思是开启选项后，首个页面的指标会在第一次 soft navigation 发生的那一刻定稿。INP 和 CLS 本来是一直观察到离开页面为止的指标，而现在用户在列表里点击文章链接的那一刻，列表页的观察就结束了，新画面的 INP 和 CLS 从 0 重新开始。同一份 README 还写到，LCP 和 FCP 也只统计 soft navigation 之后新绘制的元素。像页头这样在画面之间原样保留的元素，不能成为新画面的候选。
+意思是开启选项后，首个页面的指标会在第一次 soft navigation 发生的那一刻最终确定。INP 和 CLS 本来是一直观察到离开页面为止的指标，而现在用户在列表里点击文章链接的那一刻，列表页的观察就结束了，新画面的 INP 和 CLS 从 0 重新开始。同一份 README 还写到，LCP 和 FCP 也只统计 soft navigation 之后新绘制的元素。像页头这样在画面之间原样保留的元素，不能成为新画面的候选。
 
 因此，开启选项前后，首次加载指标的分布可能会不同。如果测量同一个站点时 INP 以某次部署为界变好了，那可能不是代码变好了，而是观察窗口变短了。由于只有 Chromium 151 及以上才会这样运作，浏览器之间也会产生差异。（我本该在实测之前就知道这个差异。比起表里的数值，这一句话对解读的影响更大）
 
 ### bfcache 恢复也是新的体验
 
-还有一条让页面边界变模糊的路径。:term[bfcache]{key="bfcache"} 会在后退和前进时把页面从内存里整个恢复出来。web.dev 的 [bfcache 文档](https://web.dev/articles/bfcache)写道，在 Chrome 的使用数据中，桌面端每 10 次导航有 1 次、移动端每 5 次有 1 次是后退或前进。恢复不是新的加载，所以本该最快的回访会从加载分布中消失，实际体验变好了，采集到的分布却可能偏向慢的一侧。同一文档建议把 TTFB 这类指标按 navigation type 分开来看。`web-vitals` 在这种情况下会把 `navigationType` 报为 `back-forward-cache`，所以这个博客为 soft navigation 加入的参数也能一并区分 bfcache 恢复。
+还有一条让页面边界变模糊的路径。:term[bfcache]{key="bfcache"} 会在后退和前进时把页面从内存里整个恢复出来。web.dev 的 [bfcache 文档](https://web.dev/articles/bfcache)写道，在 Chrome 的使用数据中，桌面端每 10 次导航有 1 次、移动端每 5 次有 1 次是后退或前进。恢复不是新的加载，所以在不单独统计恢复的采集工具里，本该最快的回访会从加载分布中消失，实际体验变好了，采集到的分布却可能偏向慢的一侧。同一文档建议把 TTFB 这类指标按 navigation type 分开来看。`web-vitals` 6.2.1 则相反，不会排除恢复。打开安装的代码可以看到，恢复时它会把 TTFB 作为 0 重新上报，FCP、LCP、CLS、INP 也作为新指标重新开始，此时 `navigationType` 为 `back-forward-cache`。所以这个博客的 TTFB 里不仅混入 soft navigation 的 0，也混入 bfcache 恢复的 0。好在为 soft navigation 加入的参数能把两者一并区分开。
 
 ## 这个博客实际发送的内容
 
@@ -164,22 +164,25 @@ web.dev 的 INP 文档把一次交互分成三个阶段。输入进来到事件�
 | 参数 | 内容 |
 |---|---|
 | `event_label` | 指标名称（`LCP`、`INP` 等） |
-| `value` | 指标值。GA4 的 value 是整数，所以 CLS 乘以 1000 后四舍五入 |
+| `value` | 四舍五入为整数的指标值。只有 CLS 乘以 1000。GA4 也接受小数 value，所以这不是必须的，只是与 Universal Analytics 时代示例的整数惯例形式相同 |
 | `metric_id` | 在一个页面生命周期内标识某一指标的 id。同一指标再次上报时，用这个值归并 |
 | `metric_rating` | 由库判定的 good、needs-improvement、poor |
 | `metric_navigation_type` | `navigate`、`soft-navigation`、`back-forward-cache` 等 |
+| `page_location` | 该值所测画面的 URL（仅在有 `navigationURL` 时覆盖） |
+
+`page_location` 这一行是 2026-09-16 加上的（`597ca5b`）。如前一节所见，发生 soft navigation 时，列表页的 CLS 和 INP 要等 URL 变了之后才最终确定并上报。`web-vitals` 的代码也会在收到 `soft-navigation` entry 的那一刻强制上报前一个画面的 CLS，并开始新的指标。gtag 会给事件附上发送时的 URL，所以不覆盖的话，列表页的值会被记在文章 URL 下。README 的 GA4 示例加入 `page_location: navigationURL` 也是这个原因。这个博客起初只发送 `navigationType`，所以在修改之前积累的 GA4 数据里，列表页的 CLS 和 INP 可能挂在了文章 URL 上。
 
 这是不另设采集服务器、直接搭在已在运营的 GA4 上的 :term[RUM]{key="rum"} 配置。如果模块加载本身失败，会留下一个 `web_vitals_unavailable` 事件。这是部署刚完成时旧 HTML 去请求已经不存在的 chunk 所导致的失败，由于浏览器端没有 Sentry，没有这个事件的话，即使采集整个停掉也不会留下任何痕迹。
 
-不发送的内容也很明确。因为用的是 `web-vitals` 的标准构建而不是 attribution 构建，所以不采集 LCP 元素是哪个、INP 的三个阶段各花了多久、哪个元素推动了布局。回想前面那张 INP 的图，这个博客只知道三个阶段的总和，不知道哪个阶段长。而且只在浏览器中发生的 JS 错误也不会被记录在任何地方。这是省下 79KB 的代价。
+不发送的内容也很明确。因为用的是 `web-vitals` 的标准构建而不是 attribution 构建，所以不采集 LCP 元素是哪个、INP 的三个阶段各花了多久、哪个元素推动了布局。回想前面那张 INP 的图，这个博客只知道三个阶段的总和，不知道哪个阶段长。而且只在浏览器中发生的 JS 错误也不会被记录在任何地方。这是省下约 79KB 的代价。
 
-还有一点要记下来。我确实在发送 `metric_navigation_type`，但写这篇文章时并没有确认 GA4 里是否已把这个参数注册为 custom dimension 并真正拆分查看。GA4 Admin API 在这个 GCP 项目里是关闭的，一时也没有办法确认。发送出去和能够拆开来读，是两回事。
+这些值在 GA4 里能否真正拆开来读，放在最后一篇文章里讨论。发送出去和能够拆开来读，是两回事。
 
 ## 浏览器早已在记录
 
 总结一下，即使不启用浏览器 SDK，浏览器也早已在记录网络阶段、绘制、布局位移和输入延迟。`PerformanceObserver` 是读取这些记录的入口，而 Web Vitals 是在此之上叠加候选更新、三个阶段之和、session window 等计算规则的指标。
 
-而这些计算规则以页面这个单位为前提。开启 soft navigation 后，新画面有了自己的指标，代价是首个页面的观察窗口变短，TTFB 里混入 0，bfcache 恢复则从加载分布中消失。我这次新理解到的是，一个选项改变的不只是数值，还有**把什么算作一次体验**。所以在比较数字之前，得先看这些数字是按什么边界截取的。读到这里的各位，也不妨回头确认一下，自己正在看的性能数字是在哪个时间点定稿的。
+而这些计算规则以页面这个单位为前提。开启 soft navigation 后，新画面有了自己的指标，代价是首个页面的观察窗口变短，TTFB 里混入 0。bfcache 恢复也以 0 混入 TTFB（有的采集工具则会让它整个消失）。我这次新理解到的是，一个选项改变的不只是数值，还有**把什么算作一次体验**。所以在比较数字之前，得先看这些数字是按什么边界截取的。
 
 不过，这篇文章只看到了三个阶段之和为止。输入进来时占着主线程的工作到底是什么，长时间打开的页面又用了多少内存，这些需要别的 API。我打算在下一篇[浏览器的 CPU 与内存](/260915)里继续这个话题。
 

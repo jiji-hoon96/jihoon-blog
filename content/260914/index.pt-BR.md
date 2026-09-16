@@ -5,11 +5,11 @@ seoTitle: 'Desempenho web: PerformanceObserver, Web Vitals e soft navs'
 date: '2026-09-14'
 updatedAt: '2026-09-16'
 categories: observabilidade frontend navegador RUM
-description: 'O que se vê no navegador sem SDK: Performance Timeline, fases de rede, como LCP, INP e CLS são calculados e o reportSoftNavs do web-vitals na prática.'
-keywords: 'medir desempenho web, PerformanceObserver exemplo, como as Web Vitals são calculadas, medir INP, CLS session window, Soft Navigations API, web-vitals reportSoftNavs, Resource Timing Timing-Allow-Origin'
+description: 'O que se vê no navegador sem SDK: Performance Timeline, fases de rede, cálculo de LCP, INP e CLS, reportSoftNavs na prática e o que este blog envia ao GA4.'
+keywords: 'medir desempenho web, PerformanceObserver exemplo, como as Web Vitals são calculadas, medir INP, janela de sessão CLS, Soft Navigations API, web-vitals reportSoftNavs, Resource Timing Timing-Allow-Origin'
 locale: pt-BR
 translationOf: '260914'
-sourceHash: 3976b490db6bef1a28388bab84a42d789e23e2df6fc503abd0ac827c7b892867
+sourceHash: 7fbc5d940fc1ec9f571c6f14c22b7e64fd03a46e3853265b7f3000e6c169ed6a
 ---
 
 Neste post, quero falar sobre observabilidade do navegador.
@@ -35,7 +35,7 @@ Esta tabela foi medida em 2026-08-04, com Next 16.1.4. A instrumentação do ser
 
 Também medi de novo o estado atual. Pelo mesmo método, em 2026-09-16 deu 206.1KB. São 23.8KB acima da referência, mas nesse meio-tempo o Next subiu para 16.3.4 e entrou o reporte de soft navigations que abordo mais adiante. A configuração do Sentry continua só no servidor, então esse aumento não vem do Sentry. (Não sei quanto cada um dos dois representa, porque não refiz o build commit a commit)
 
-Neste blog, desempenho de carregamento é a própria experiência do visitante, e quem paga os 78.8KB não sou eu, é o visitante. Julguei que os erros de navegador de um blog pessoal não compensariam esse custo. Só que, uma vez decidido isso, é preciso observar o lado do navegador de outra forma. O ponto de partida é o registro que o navegador já está deixando.
+Neste blog, desempenho de carregamento é a própria experiência do visitante, e quem paga os cerca de 79KB não sou eu, é o visitante. Julguei que os erros de navegador de um blog pessoal não compensariam esse custo. Só que, uma vez decidido isso, é preciso observar o lado do navegador de outra forma. O ponto de partida é o registro que o navegador já está deixando.
 
 ## O registro que o navegador deixa
 
@@ -81,9 +81,9 @@ Dizer que uma página está lenta costuma ser traduzido como problema de rede. M
 
 A especificação [Navigation Timing](https://www.w3.org/TR/navigation-timing-2/) do W3C tem um diagrama que mostra em que ordem esses timestamps são registrados. Se os nomes das fases não forem familiares, olhar esse diagrama uma vez é mais rápido do que a tabela.
 
-Uma armadilha são os recursos cross-origin. Pela [especificação Resource Timing](https://www.w3.org/TR/resource-timing/) do W3C, num recurso de outra origin os timestamps detalhados, como DNS, conexão e início de requisição e resposta, ficam ocultos como 0, a menos que o servidor que o entrega os libere com o cabeçalho de resposta `Timing-Allow-Origin`. Se uma imagem de CDN externa parecia lenta e, ao abrir, DNS e conexão estavam todos em 0, ela não foi rápida: você só não tinha permissão para ver. **Nesta área, 0 pode não significar rápido.**
+Uma armadilha são os recursos cross-origin. Pela [especificação Resource Timing](https://www.w3.org/TR/resource-timing/) do W3C, num recurso de outra origin os timestamps detalhados, como DNS, conexão e início de requisição e resposta, ficam ocultos como 0, a menos que o servidor que o entrega os libere com o cabeçalho de resposta `Timing-Allow-Origin`. Se uma imagem de CDN externa parecia lenta e, ao abrir, DNS e conexão estavam todos em 0, ela não foi rápida: você só não tinha permissão para ver. **Nesta área, 0 pode não significar rápido.** Também há valores que incham. Se de `responseEnd`, que não é ocultado, você subtrai o `responseStart` zerado, não obtém o tempo de transferência do corpo, e sim o instante, contado desde o início da página, em que a resposta terminou. A mesma especificação traz condições à parte para os campos de tamanho. `encodedBodySize` e `decodedBodySize` ficam em 0 quando a resposta é cross-origin sem passar pelo CORS, e `transferSize` é afetado tanto por `Timing-Allow-Origin` quanto pelo CORS.
 
-O tempo até o primeiro byte deste blog também não é leve. Em 2026-09-16, ao requisitar com `curl` dois posts e a home uma vez cada a partir de um ponto na Coreia, `time_starttransfer` ficou entre 0.95 e 2.43 segundos (um valor que inclui o tempo de DNS, conexão e TLS), e os cabeçalhos de resposta indicavam hit no cache Durable da Netlify e miss no cache de edge. Com só três amostras não vou generalizar, mas está na mesma escala do TTFB de 798ms da medição que aparece mais adiante. Só com esse tipo de decomposição por fases dá para escolher, quando o LCP atrasa, entre diminuir a imagem ou antecipar a chegada do documento.
+O tempo até o primeiro byte deste blog também não é desprezível. Em 2026-09-16, ao requisitar com `curl` dois posts e a home uma vez cada a partir de um ponto na Coreia, `time_starttransfer` ficou entre 0.95 e 2.43 segundos (um valor que inclui o tempo de DNS, conexão e TLS), e os cabeçalhos de resposta indicavam hit no cache Durable da Netlify e miss no cache de edge. Com só três amostras não vou generalizar, mas está na mesma escala do TTFB de 798ms da medição que aparece mais adiante. Só com esse tipo de decomposição por fases dá para escolher, quando o LCP atrasa, entre diminuir a imagem ou antecipar a chegada do documento.
 
 ## Como as Web Vitals são calculadas
 
@@ -127,7 +127,7 @@ Até agora, ferramentas de RUM e frameworks definiam cada um uma "tela nova" com
 
 ### Valores medidos com reportSoftNavs ativado
 
-Este blog também vai da lista de posts para um post com o `Link` do Next.js. Em 2026-09-14, depois de atualizar o `web-vitals` para 6.2.1 e ativar `reportSoftNavs` (`cc21a0d`), conectei via CDP a um Chrome headless que tinha aberto a página de produção e abri do jeito que estavam as requisições que saíam para o GA4. Estes foram os valores enviados numa sessão. (As métricas que não estão na tabela não apareciam nas requisições dessa sessão, e não verifiquei o motivo)
+Este blog também vai da lista de posts para um post com o `Link` do Next.js. Em 2026-09-14, depois de atualizar o `web-vitals` para 6.2.1 e ativar `reportSoftNavs` (`cc21a0d`), conectei via CDP a um Chrome headless que tinha aberto a página de produção e abri do jeito que estavam as requisições que saíam para o GA4. Estes foram os valores enviados numa sessão. (As métricas que não estão na tabela não apareciam nas requisições dessa sessão. Em particular, o CLS da página de lista deveria ter sido reportado uma vez no momento da primeira soft navigation, mesmo valendo 0, porque a função de reporte do `web-vitals` envia até o 0 quando é o primeiro reporte. Acho provável que a captura tenha terminado antes do envio em lote do GA4, mas é uma suposição e não verifiquei)
 
 | Métrica | Valor | `navigationType` |
 |---|---|---|
@@ -155,7 +155,7 @@ Por isso a distribuição das métricas do primeiro carregamento pode mudar ante
 
 ### A restauração do bfcache também é uma experiência nova
 
-Há mais um caminho que borra a fronteira da página. O :term[bfcache]{key="bfcache"} restaura a página inteira da memória nas navegações de voltar e avançar. O [artigo sobre bfcache](https://web.dev/articles/bfcache) do web.dev diz que, nos dados de uso do Chrome, 1 em cada 10 navegações no desktop e 1 em cada 5 no mobile são de voltar ou avançar. A restauração não é um carregamento novo, então as revisitas, que teriam sido as mais rápidas, saem da distribuição de carregamentos, e a distribuição coletada pode pender para o lado lento mesmo que a experiência real tenha melhorado. O mesmo artigo recomenda olhar métricas como o TTFB separadas por navigation type. Nesse caso o `web-vitals` reporta `navigationType` como `back-forward-cache`, então o parâmetro que este blog adicionou por causa das soft navigations também distingue as restaurações do bfcache.
+Há mais um caminho que borra a fronteira da página. O :term[bfcache]{key="bfcache"} restaura a página inteira da memória nas navegações de voltar e avançar. O [artigo sobre bfcache](https://web.dev/articles/bfcache) do web.dev diz que, nos dados de uso do Chrome, 1 em cada 10 navegações no desktop e 1 em cada 5 no mobile são de voltar ou avançar. A restauração não é um carregamento novo, então, nos coletores que não contam restaurações à parte, as revisitas, que teriam sido as mais rápidas, saem da distribuição de carregamentos, e a distribuição coletada pode pender para o lado lento mesmo que a experiência real tenha melhorado. O mesmo artigo recomenda olhar métricas como o TTFB separadas por navigation type. O `web-vitals` 6.2.1, ao contrário, não exclui as restaurações. Abrindo o código instalado, dá para ver que, numa restauração, ele reporta de novo o TTFB como 0, reinicia FCP, LCP, CLS e INP como métricas novas e, nesse caso, `navigationType` é `back-forward-cache`. Ou seja, no TTFB deste blog se misturam não só os zeros das soft navigations, mas também os das restaurações do bfcache. Por sorte, o parâmetro adicionado por causa das soft navigations distingue os dois casos.
 
 ## O que este blog realmente envia
 
@@ -164,22 +164,25 @@ Levando tudo isso para o código deste blog, é um único `src/components/WebVit
 | Parâmetro | Conteúdo |
 |---|---|
 | `event_label` | Nome da métrica (`LCP`, `INP` etc.) |
-| `value` | Valor da métrica. O value do GA4 é inteiro, então o CLS é multiplicado por 1000 e arredondado |
+| `value` | Valor da métrica arredondado para inteiro. Só o CLS é multiplicado por 1000. O GA4 aceita value não inteiro, então isso não é obrigatório; tem a mesma forma da convenção de inteiros dos exemplos da época do Universal Analytics |
 | `metric_id` | Id que identifica uma métrica dentro da vida de uma página. Se a mesma métrica for reportada de novo, é agrupada por esse valor |
 | `metric_rating` | good, needs-improvement ou poor, conforme o julgamento da biblioteca |
 | `metric_navigation_type` | `navigate`, `soft-navigation`, `back-forward-cache` etc. |
+| `page_location` | URL da tela que o valor mediu (só é sobrescrito quando existe `navigationURL`) |
+
+A linha `page_location` foi adicionada em 2026-09-16 (`597ca5b`). Como vimos na seção anterior, quando acontece uma soft navigation, o CLS e o INP da página de lista só são fechados e reportados depois que a URL já mudou. O código do `web-vitals` também força o reporte do CLS da tela anterior e inicia uma métrica nova no momento em que recebe uma entry `soft-navigation`. O gtag anexa ao evento a URL do momento do envio, então, sem sobrescrever, os valores da página de lista ficam registrados com a URL do post. É por isso que o exemplo de GA4 do README inclui `page_location: navigationURL`. Este blog no início só enviava `navigationType`, então, nos dados do GA4 acumulados antes da correção, o CLS e o INP da página de lista podem estar associados a URLs de posts.
 
 É uma configuração de :term[RUM]{key="rum"} montada sobre o GA4 que eu já operava, sem servidor de coleta separado. Se o próprio carregamento do módulo falhar, fica registrado um evento `web_vitals_unavailable`. É a falha que acontece logo após um deploy, quando um HTML antigo pede um chunk que já não existe, e como não há Sentry no navegador, sem esse evento a coleta poderia parar por completo sem deixar rastro.
 
-O que ele não envia também está claro. Como usa o build padrão do `web-vitals`, e não o build de attribution, não coleta qual foi o elemento do LCP, quanto durou cada uma das três fases do INP nem qual elemento empurrou o layout. Lembrando a figura do INP de antes, este blog só sabe a soma das três fases, não qual delas foi longa. E erros de JS que acontecem só no navegador não ficam registrados em lugar nenhum. É o preço de economizar 79KB.
+O que ele não envia também está claro. Como usa o build padrão do `web-vitals`, e não o build de attribution, não coleta qual foi o elemento do LCP, quanto durou cada uma das três fases do INP nem qual elemento empurrou o layout. Lembrando a figura do INP de antes, este blog só sabe a soma das três fases, não qual delas foi longa. E erros de JS que acontecem só no navegador não ficam registrados em lugar nenhum. É o preço de economizar cerca de 79KB.
 
-Registro mais uma coisa. Estou enviando `metric_navigation_type`, mas, enquanto escrevia este post, não verifiquei se esse parâmetro está registrado como custom dimension no GA4 e se está sendo de fato desmembrado. A GA4 Admin API está desativada neste projeto do GCP, então também não havia como verificar na hora. Enviar algo e conseguir lê-lo separado são problemas diferentes.
+Se esses valores podem de fato ser lidos separados no GA4 é assunto do último post. Enviar algo e conseguir lê-lo separado são problemas diferentes.
 
 ## O navegador já está registrando
 
 Resumindo, mesmo sem ativar um SDK de navegador, o navegador já registra fases de rede, pinturas, deslocamentos de layout e atraso de entrada. O `PerformanceObserver` é a porta de entrada para ler esse registro, e as Web Vitals são métricas que acrescentam por cima regras de cálculo como a atualização de candidatos, a soma de três fases e as session windows.
 
-E essas regras de cálculo pressupõem uma unidade chamada página. Ao ativar soft navigation, as telas novas ganham métricas próprias, mas em troca a janela de observação da primeira página encurta, zeros se misturam ao TTFB e as restaurações do bfcache saem da distribuição de carregamentos. O que entendi de novo desta vez é que uma única opção muda não só os valores, mas também **o que conta como uma experiência**. Por isso, antes de comparar números, é preciso ver primeiro em que fronteira eles foram cortados. Se você está lendo isto, talvez valha a pena conferir uma vez em que momento foram fechados os números de desempenho que você está olhando agora.
+E essas regras de cálculo pressupõem uma unidade chamada página. Ao ativar soft navigation, as telas novas ganham métricas próprias, mas em troca a janela de observação da primeira página encurta, zeros se misturam ao TTFB. As restaurações do bfcache também entram no TTFB como 0 (e, dependendo do coletor, saem por completo). O que entendi de novo desta vez é que uma única opção muda não só os valores, mas também **o que conta como uma experiência**. Por isso, antes de comparar números, é preciso ver primeiro em que fronteira eles foram cortados.
 
 Dito isso, este post só foi até a soma das três fases. Que trabalho estava segurando a main thread quando uma entrada chegou, e quanta memória usa uma página aberta por muito tempo, exigem outras APIs. Pretendo continuar essa história no próximo post, [CPU e memória do navegador](/260915).
 

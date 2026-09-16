@@ -1,7 +1,7 @@
 ---
 emoji: 🔭
 title: 'Sentry 다시 열어보기'
-seoTitle: 'Sentry 기능 활용법: MCP로 실데이터부터 묻고 Logs, Crons, Uptime 고르기'
+seoTitle: 'Sentry MCP로 다시 고른 Sentry 기능: Crons, Logs, Metrics는 어디에 쓸까'
 date: '2026-09-13'
 updatedAt: '2026-09-16'
 categories: 관측 Sentry AI
@@ -15,7 +15,7 @@ keywords: 'Sentry MCP, Sentry 기능 활용, Sentry breadcrumb, Sentry Crons 모
 
 이유는 지식이 아니라 **탐색 비용**이었다. 기능 하나가 내 문제에 맞는지 확인하려면 흩어진 문서를 맞춰 읽고, 실험을 설계하고, config를 배선하고, 결과를 해석해야 한다. 이슈 대응이 급한 날에는 그 비용을 낼 이유가 없었다. 최근 Claude Code에 Sentry MCP를 붙여 쓰면서 이 비용의 상당 부분이 내려갔고, 필자의 순서도 바뀌었다. 이제는 기능을 켜기 전에 **이 계정의 실제 데이터에 먼저 물어본다.**
 
-이 글은 네 편짜리 관측 시리즈의 첫 편이다. 이 블로그의 서버 계측이 잡은 장애 하나를 따라간 뒤, MCP로 그 데이터를 다시 열어 새로 보인 것을 적고, 기능별로 어디에 쓸지 판정한다. 브라우저 안의 네트워크와 렌더링은 [브라우저 관측](/260914), CPU와 메모리는 [브라우저의 CPU와 메모리](/260915), 수집한 데이터를 검색 성과와 엮어 읽는 일은 [관측에서 판단으로](/260916)에서 이어간다.
+이 글은 네 편짜리 관측 시리즈의 첫 편이다. 이 블로그의 서버 계측이 잡은 장애 하나를 따라간 뒤, MCP로 그 데이터를 다시 열어 새로 보인 것을 적고, 기능별로 어디에 쓸지 판정한다. 시리즈는 서버에서 시작해 브라우저 안의 렌더링과 CPU, 메모리를 거쳐 검색 데이터까지 간다.
 
 ## 성공 응답 속 실패
 
@@ -47,7 +47,7 @@ We also argue that a key feature of gray failure is differential observability: 
 Sentry.captureException(error, { tags: { gaQuery: 'stats' } })
 ```
 
-지금 코드는 모양이 다르다. 8월 17일 커밋 `f348d4c`가 보고를 `captureServerException` 한 곳으로 모으고, 태그 키를 `locale`, `routeKind`, `operation` 세 개로 제한했다. 태그는 검색과 필터의 단위라서, 값이 끝없이 늘어나는 속성을 넣으면 :term[cardinality]{key="cardinality"}와 비용이 함께 커진다. 반복해서 물을 질문만 태그로 남긴다는 판단이다.
+지금 코드는 8월 17일 커밋 `f348d4c`에서 보고를 `captureServerException` 한 곳으로 모으고, :term[cardinality]{key="cardinality"}가 커지지 않게 태그 키를 `locale`, `routeKind`, `operation` 세 개로 제한한 모양이다.
 
 ```ts
 // 현재 src/lib/google-analytics.ts
@@ -85,7 +85,7 @@ captureServerException(error, { routeKind: 'analytics', operation: 'stats' })
 
 ### 발생이 멈춘 이유
 
-JIHOON-BLOG-8의 마지막 발생은 8월 18일 13:45 UTC이고, 그 뒤로 0건이다. 그래프만 보면 문제가 사라진 것 같지만, 필자는 가설을 검증하거나 고친 적이 없다. 배포 이력을 맞춰 보니 같은 날(UTC 기준) 커밋 `417d3b4`가 다국어 개편을 하면서 홈에서 방문자 통계와 인기 글 영역을 뺐다. `stats`와 `popular`를 부르던 화면이 정확히 그 둘이다. 9월에 남은 인기 글 경로를 지운 커밋 `5752e09`의 메시지도 "5초 타임아웃이 아니라 호출 지점이 사라진 것이 이벤트가 멎은 직접적인 이유"라고 적었다.
+JIHOON-BLOG-8의 마지막 발생은 8월 18일 13:45 UTC이고, 그 뒤로 0건이다. 그래프만 보면 문제가 사라진 것 같지만, 필자는 가설을 검증하거나 고친 적이 없다. 같은 날 커밋 `417d3b4`가 다국어 개편을 하면서 홈에서 방문자 통계와 인기 글 영역을 뺐고, `stats`와 `popular`를 부르던 화면이 정확히 그 둘이다. 9월에 남은 인기 글 경로를 지운 커밋 `5752e09`의 메시지는 이것을 "5초 타임아웃이 아니라 호출 지점이 사라진 것이 이벤트가 멎은 직접적인 이유"라고 적었다. 그런데 시각을 맞춰 보면 그 커밋이 main에 푸시된 것은 22:07 UTC로, 마지막 이벤트보다 8시간 넘게 뒤다. 남은 이벤트가 하루에 10건 남짓이라 8시간의 공백 자체는 이상하지 않고, 배포 뒤로 발생이 없다는 사실과도 어긋나지 않는다. 다만 시각만으로 호출 지점 제거가 멈춘 이유라고 확정할 수는 없어서, 필자는 그 메시지를 가장 유력한 설명 정도로 읽는다.
 
 이슈의 resolved는 원인 규명의 증명이 아니다. 발생이 0이 되는 길은 실제로 고쳐졌거나, 아무도 그 경로를 밟지 않게 됐거나, 계측이 사라졌거나 셋이다. 에러 신호만으로는 이 셋이 구분되지 않는다.
 
@@ -99,9 +99,9 @@ JIHOON-BLOG-8의 마지막 발생은 8월 18일 13:45 UTC이고, 그 뒤로 0건
 
 여기서 끌어낼 수 있는 것은 제한적이다. 5초 뒤에 울려야 할 타이머가 5분 39초 뒤에 울렸고, 그 사이 이 요청은 아무 기록도 남기지 않았다. 동결 가설과 어긋나지는 않지만 이벤트 루프 점유 가설도 지우지 못한다. 그래도 전에 없던 정보가 하나 생겼다. 실패가 **콜드 스타트 직후 캐시 재검증에서 출발한 호출**이었다는 시작 시각이다.
 
-### 144건과 14건
+### 보존 기간이 지운 이벤트
 
-JIHOON-BLOG-8 이슈의 발생 카운터는 **144**다. 같은 이슈를 errors 데이터셋에서 90일로 집계하면 **14**건만 나온다. 남은 14건은 8월 17일 10:45부터 18일 13:45 UTC까지이고, 조회 시점에서 거의 정확히 30일 안쪽이다.
+JIHOON-BLOG-8 이슈의 발생 카운터는 **144**다. 같은 이슈를 errors 데이터셋에서 90일로 집계하면 2026년 9월 16일 14:26 UTC 조회 기준 **10**건만 나온다. 남은 10건은 8월 17일 15:03부터 18일 13:45 UTC까지이고, 조회 시점에서 거의 정확히 30일 안쪽이다. 같은 날 08:45 UTC에 조회했을 때는 14건이었으니, 이 숫자는 조회할 때마다 줄어든다.
 
 추론을 덧붙이면, 이벤트 보존 기간이 30일이라 오래된 이벤트는 지워지고 이슈 카운터만 남은 것으로 보인다. Sentry [요금제 페이지](https://sentry.io/pricing/)는 무료 플랜인 Developer의 조회 범위를 30일로 적는다. 다만 이 계정의 플랜 종류와 카운터가 유지되는 방식은 확인하지 않았다. 확실한 것은 결과다. 위의 100건 분포는 다시 뽑을 수 없고, 저장되지 않은 데이터는 어떤 도구로도 복원되지 않는다.
 
@@ -115,7 +115,9 @@ JIHOON-BLOG-8 이슈의 발생 카운터는 **144**다. 같은 이슈를 errors 
 
 9월 16일에 열린 JIHOON-BLOG-B는 `Google Analytics credentials missing: GA_PROPERTY_ID`다. 이벤트를 열어 보니 URL이 `http://localhost:3117/api/analytics`, 브라우저가 `curl 8.7.1`, 서버 이름이 필자의 MacBook이었다. 그런데 `environment`는 `production`이다.
 
-필자가 리포 문서의 로컬 검증 절차(`pnpm build` 뒤 `pnpm start`)를 따르다 생긴 이벤트다. `src/lib/sentry-options.ts`는 `SENTRY_ENVIRONMENT`가 없으면 Netlify의 `CONTEXT`로 환경을 정한다. Deploy Preview를 프로덕션에서 떼어 내려고 만든 장치인데, 둘 다 없는 로컬에서는 환경 값을 넘기지 않고, 이벤트에는 결국 `production`이 찍혔다. 프리뷰는 막았지만 로컬은 막지 못한 것이다. 이 상태로 production 기준 알림을 걸면 필자의 실험이 알림을 울린다. 그래서 리포 문서의 검증 명령에 `SENTRY_ENVIRONMENT=local`을 넣었다. 코드에서 기본값을 바꾸지 않은 이유는, Netlify 함수 런타임에서 `CONTEXT`가 항상 보인다는 것을 아직 확인하지 않았기 때문이다. 확인 없이 기본값을 `local`로 두면 이번에는 프로덕션 이벤트가 `local`로 숨을 수 있다.
+필자가 리포 문서의 로컬 검증 절차(`pnpm build` 뒤 `pnpm start`)를 따르다 생긴 이벤트다. `src/lib/sentry-options.ts`는 `SENTRY_ENVIRONMENT`가 없으면 Netlify의 `CONTEXT`로 환경을 정한다. Deploy Preview를 프로덕션에서 떼어 내려고 만든 장치인데, 둘 다 없는 로컬에서는 환경 값을 넘기지 않고, 이벤트에는 결국 `production`이 찍혔다. 프리뷰는 막았지만 로컬은 막지 못한 것이다. 이 상태로 production 기준 알림을 걸면 필자의 실험이 알림을 울린다. 
+
+그래서 리포 문서의 검증 명령에 `SENTRY_ENVIRONMENT=local`을 넣었다. 코드에서 기본값을 바꾸지 않은 이유는, Netlify 함수 런타임에서 `CONTEXT`가 항상 보인다는 것을 아직 확인하지 않았기 때문이다. 확인 없이 기본값을 `local`로 두면 이번에는 프로덕션 이벤트가 `local`로 숨을 수 있다.
 
 ## 어디에 무엇을 쓸까
 
@@ -124,8 +126,9 @@ JIHOON-BLOG-8 이슈의 발생 카운터는 **144**다. 같은 이슈를 errors 
 | 기능 | 답하는 질문 | 전제 | 비용 | 이 블로그 판정 |
 |---|---|---|---|---|
 | Issues와 grouping | 이 이벤트들이 한 사건인가 | SDK, 소스맵 | 에러 쿼터 | 쓰는 중 |
-| Crons | 예약 작업이 제때 돌았나 | check-in 전송 | 1개 포함, 추가 $0.78/월 | **켤 것** |
-| Uptime | 밖에서 URL이 2xx인가 | 없음 | 1개 포함, 추가 $1/월 | 보조로 고려 |
+| Crons | 예약 작업이 제때 돌았나 | check-in 전송 | 1개 포함, 추가분은 유료 플랜 PAYG | **켤 것** |
+| Uptime | 밖에서 URL이 2xx인가 | 없음 | 1개 포함, 추가분은 유료 플랜 PAYG | 보조로 고려 |
+| Alerts | 사람을 언제 깨울까 | environment 분리 | 별도 요금 항목 없음 | 건수 임계치 대신 발생 여부 |
 | Logs | fallback이 언제 얼마나 실행됐나 | SDK 설정 | 5GB 포함 | GA 호출 후보 |
 | Application Metrics | 샘플링과 무관한 분포는 | JS SDK 지원 버전 | 5GB 포함 | GA 호출 후보 |
 | custom span | 요청 안의 어느 구간이 느렸나 | tracing | span 쿼터, 10% 샘플링 | 후보 |
@@ -138,9 +141,9 @@ JIHOON-BLOG-8 이슈의 발생 카운터는 **144**다. 같은 이슈를 errors 
 
 ### 켤 것은 Crons
 
-가장 먼저 켤 것은 Crons다. 이 블로그는 GitHub Actions로 매주 월요일 Search Console 데이터를 수집하는데, 어느 주에 그 작업이 조용히 돌지 않으면 에러조차 나지 않는다. 실패가 아니라 **기대한 사건의 부재**라서다. [Sentry CLI의 Crons 문서](https://docs.sentry.io/cli/crons/)대로 `sentry-cli monitors run <monitor_slug> --schedule "<cron>" -- <command>` 형태로 기존 명령을 감싸면 시작과 끝이 check-in으로 가고, 인증은 프로젝트 DSN으로 한다. 요금제 문서상 cron monitor 1개가 기본 포함이라 이 용도에 비용이 없다.
+가장 먼저 켤 것은 Crons다. 이 블로그는 GitHub Actions로 매주 월요일 Search Console 데이터를 수집하는데, 어느 주에 그 작업이 조용히 돌지 않으면 에러조차 나지 않는다. 실패가 아니라 **기대한 사건의 부재**라서다. [Sentry CLI의 Crons 문서](https://docs.sentry.io/cli/crons/)대로 `sentry-cli monitors run --schedule "<expected schedule>" <monitor-slug> -- <command>` 형태로 기존 명령을 감싸면 시작과 끝이 check-in으로 가고, 인증은 프로젝트 DSN으로 한다. 요금제 문서상 모든 플랜에 cron monitor 1개가 포함되고 추가분은 유료 플랜의 PAYG 예산으로만 살 수 있는데, 이 용도에는 1개면 된다.
 
-Uptime은 대비가 분명하다. 외부에서 URL을 주기적으로 찔러 2xx인지 보는 기능이라, 앞에서 본 **200 응답 속 실패는 원리적으로 못 잡는다.** 사이트가 통째로 죽는 경우의 보조 수단으로는 의미가 있지만, 이 블로그가 실제로 겪은 장애와는 층이 다르다.
+Uptime은 대비가 분명하다. 외부에서 URL을 주기적으로 찔러 보는 기능인데, 기본 판정은 2xx면 통과라서 **기본 설정으로는 200 응답 속 실패를 못 잡는다.** Early Adopter 대상인 Verification을 쓰면 JSON 본문까지 검사할 수 있지만, 이 블로그에서는 그래도 어렵다. 실패가 대부분 방문자 요청이 아니라 캐시 재검증 경로에서 났고, 통계 API 라우트는 이제 부르는 클라이언트도 없다. 사이트가 통째로 죽는 경우의 보조 수단으로는 의미가 있지만, 이 블로그가 실제로 겪은 장애와는 층이 다르다.
 
 ### GA 호출에는 Logs와 Metrics
 
@@ -148,21 +151,23 @@ GA 호출에는 에러 이벤트만으로 부족한 이유가 있다. `unstable_
 
 Sentry의 Next.js [breadcrumb 문서](https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/breadcrumbs/)는 첫머리부터 수동 breadcrumb 대신 Logs를 쓰라고 권한다. Logs는 [2025년 9월 GA](https://sentry.io/changelog/logs-are-generally-available/)됐고, fallback이 실행될 때마다 경과 시간과 함께 남기기에 맞다. 분포 자체가 목적이라면 [2026년 5월 GA된 Application Metrics](https://sentry.io/changelog/application-metrics-are-now-ga/)가 더 직접적이다. [span metrics 문서](https://docs.sentry.io/platforms/javascript/tracing/span-metrics/)도 trace 샘플링에 영향받지 않는 집계는 Application Metrics로 안내한다. custom span은 한 요청 안의 구간을 보는 데는 좋지만 10% 표본이라 드문 실패를 놓친다. 셋 다 아직 켜지 않았고, 켠다면 Metrics의 분포부터 보겠다.
 
+알림도 같은 이유로 건수에 걸지 않는다. 시간당 최대 1건으로 눌린 이벤트에 "N건 이상" 임계치를 걸면 영향 범위를 과소평가한 채로 조용해진다. 그래서 이 블로그의 판정은 발생 여부다. Rob Ewaschuk의 [My Philosophy on Alerting](https://docs.google.com/document/d/199PqyG3UsyXlwieHaqbGiWVa8eMWi8zzAn0YfcApr8Q/)은 원인보다 사용자가 겪는 증상에 알림을 걸라고 권하는데, 그 원칙은 증상이 어딘가에 드러난다는 전제 위에 있다. 이 블로그의 실패는 200 응답과 0이라는 숫자로 가려지므로, fallback이 실행됐다는 사실을 계측해야 비로소 알림을 걸 증상이 생긴다.
+
 ### 브라우저 SDK가 전제인 기능
 
 Session Replay와 User Feedback은 브라우저 SDK를 전제로 한다. 이 블로그는 그 SDK를 두지 않기로 했으므로 지금 판정은 "안 켬"이고, 번들 비용의 근거는 2편에서 다룬다. 브라우저 profiling도 SDK가 필요한 데다 beta이고 조건이 여럿 붙는데, 그 조건이 실제로 무엇을 보여주는지는 3편에서 따진다.
 
-### 유료 Seer와 해당 없는 Agent Tracing
+### 돌리지 않은 기능
 
-Seer는 [요금제 문서](https://docs.sentry.io/pricing/) 기준 활성 기여자당 월 $40인 유료 애드온이다. 이번에 9월 11일 열린 Next.js 내부 `InvariantError` 이슈(JIHOON-BLOG-A)에 돌려볼지 검토했지만 과금에 닿는 호출이라 실행하지 않았다. 그러니 이 글에는 Seer의 1차 경험이 없다. Agent Tracing은 [2026년 9월 11일에 GA](https://sentry.io/changelog/agent-tracing-is-now-ga/)가 됐다. 모델의 기억이나 옛 글에 기대면 beta라고 틀리게 쓰기 쉬운 항목이지만, 이 블로그에는 LLM 호출 경로가 없어 해당 사항이 없다.
+Seer는 [요금제 문서](https://docs.sentry.io/pricing/) 기준 구독에 더해 활성 기여자당 월 $40을 내는 유료 애드온이다. 이번에 9월 11일 열린 Next.js 내부 `InvariantError` 이슈(JIHOON-BLOG-A)에 돌려볼지 검토했지만, 구독이 필요한 기능이라 돌리지 않았다. 이 계정의 구독 여부는 확인하지 않았다. 그러니 이 글에는 Seer의 1차 경험이 없다. Agent Tracing은 [2026년 9월 11일에 GA](https://sentry.io/changelog/agent-tracing-is-now-ga/)가 됐다. 모델의 기억이나 옛 글에 기대면 beta라고 틀리게 쓰기 쉬운 항목이지만, 이 블로그에는 LLM 호출 경로가 없어 해당 사항이 없다.
 
 ## AI가 줄인 것과 줄이지 못한 것
 
-이번 작업에서 AI가 줄여준 비용은 분명하다. 흩어진 문서에서 조건을 모으는 일(브라우저 profiling의 beta 여부, 헤더, 브라우저 제한), 쿼리 문법을 익혀 group by를 바꿔가던 일, breadcrumb 시각을 빼고 더하는 계산, 기능 표의 초안이 모두 대화 몇 번으로 끝났다. 탐색의 문턱이 낮아지니 "켤까 말까"를 판단하기 전에 "지금 데이터가 무엇을 말하는가"를 먼저 묻는 순서가 가능해졌다.
+이번 작업에서 AI가 줄여준 비용은 분명하다. 흩어진 문서에서 조건을 모으는 일(브라우저 profiling의 beta 여부, 헤더, 브라우저 제한), 쿼리 문법을 익혀 group by를 바꿔가던 일, breadcrumb 시각을 빼고 더하는 계산, 기능 표의 초안이 모두 대화 몇 번으로 끝났다. 예를 들어 breadcrumb 타임라인은 `get_issue_breadcrumbs` 한 번, 모니터가 0개라는 사실은 `find_monitors`와 `find_uptime_monitors` 두 번의 호출로 확인했다. 탐색의 문턱이 낮아지니 "켤까 말까"를 판단하기 전에 "지금 데이터가 무엇을 말하는가"를 먼저 묻는 순서가 가능해졌다.
 
 줄이지 못한 것도 그만큼 분명하다.
 
-- **저장되지 않은 데이터.** 144건 중 130건은 사라졌고, 표본에서 빠진 span은 처음부터 없다. 에이전트는 없는 데이터를 복원하지 못한다.
+- **저장되지 않은 데이터.** 144건 중 134건(9월 16일 14:26 UTC 기준)은 사라졌고, 표본에서 빠진 span은 처음부터 없다. 에이전트는 없는 데이터를 복원하지 못한다.
 - **배포가 필요한 실험.** gRPC 호출이 span으로 잡히는지, 동결과 이벤트 루프 점유를 가르는지는 실제로 계측을 넣고 배포해야 안다.
 - **해석의 조건.** 외삽 값 경고, 로컬 이벤트가 production으로 찍힌 사실은 응답에 표시되지 않았다. 알아본 것은 이벤트의 URL과 서버 이름을 직접 읽었기 때문이다.
 - **날짜와 도구의 시차.** Agent Tracing처럼 닷새 전에 상태가 바뀐 기능은 changelog를 열어 확인해야 했다. MCP 도구도 제품을 뒤따라가는 중이다. 이슈 검색에 `OR`를 넣으면 400이 돌아왔고, 알림 규칙 조회 도구는 410 `This API no longer exists`를 돌려줬다.
@@ -170,9 +175,11 @@ Seer는 [요금제 문서](https://docs.sentry.io/pricing/) 기준 활성 기여
 
 ## 마치며
 
-정리하면, 필자가 Sentry의 기능 대부분을 켜지 않았던 이유는 몰라서가 아니라 확인하는 데 드는 비용 때문이었다. AI는 그 비용을 크게 낮췄고, 그 덕분에 기능을 켜기 전에 이 계정의 데이터에 먼저 묻는 순서로 바뀌었다. 그렇게 다시 열어본 데이터는 새 기능보다 먼저 몇 가지 불편한 사실을 보여줬다. 고쳤다고 믿은 장애는 호출 지점이 사라져 멈췄을 뿐이고, 당시의 분포는 보존 기간을 넘겨 다시 그릴 수 없으며, 필자의 로컬 검증은 production 이슈로 섞이고 있었다.
+정리하면, 필자가 Sentry의 기능 대부분을 켜지 않았던 이유는 몰라서가 아니라 확인하는 데 드는 비용 때문이었다. AI는 그 비용을 크게 낮췄고, 그 덕분에 기능을 켜기 전에 이 계정의 데이터에 먼저 묻는 순서로 바뀌었다. 그렇게 다시 열어본 데이터는 새 기능보다 먼저 몇 가지 불편한 사실을 보여줬다. 고쳤다고 믿은 장애는 고친 적 없이 멈췄을 뿐이고, 당시의 분포는 보존 기간을 넘겨 다시 그릴 수 없으며, 필자의 로컬 검증은 production 이슈로 섞이고 있었다.
 
-그래서 이 블로그의 다음 순서는 기능 목록이 아니라 빈칸에서 정해졌다. 주간 수집에는 Crons를 붙이고, GA 호출에는 보존과 샘플링에 덜 흔들리는 신호를 고르고, 로컬 환경 이름부터 바로잡는 것이다. 이 글을 읽는 독자분들도 오래 써 온 도구의 켜지 않은 기능을 떠올려 보면 좋겠다. 그 기능이 정말 필요 없었는지, 아니면 확인하는 비용이 비쌌을 뿐인지를 이제는 데이터에 직접 물어볼 수 있다.
+그래서 이 블로그의 다음 순서는 기능 목록이 아니라 빈칸에서 정해졌다. 주간 수집에는 Crons를 붙이고, GA 호출에는 보존과 샘플링에 덜 흔들리는 신호를 고르고, 로컬 환경 이름부터 바로잡는 것이다. 이 글을 읽는 독자 분들도 오래 써 온 도구의 켜지 않은 기능을 떠올려 보면 좋겠다. 그 기능이 정말 필요 없었는지, 아니면 확인하는 비용이 비쌌을 뿐인지를 이제는 데이터에 직접 물어볼 수 있다.
+
+다음 편에서는 이 블로그가 두지 않기로 한 브라우저 SDK의 자리로 넘어가, [브라우저 관측](/260914)에서 방문자의 화면 안에서 일어나는 일을 어떻게 보는지 다룬다.
 
 :::ref
 - [docs] [Sentry, Issue Grouping](https://docs.sentry.io/concepts/data-management/event-grouping/)

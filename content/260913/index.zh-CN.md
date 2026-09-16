@@ -1,7 +1,7 @@
 ---
 emoji: 🔭
 title: '重新打开 Sentry'
-seoTitle: 'Sentry 功能怎么用：先用 MCP 查询真实数据，再选择 Logs、Crons、Uptime'
+seoTitle: '用 Sentry MCP 重新挑选 Sentry 功能：Crons、Logs、Metrics 该用在哪里'
 date: '2026-09-13'
 updatedAt: '2026-09-16'
 categories: 观测 Sentry AI
@@ -9,7 +9,7 @@ description: '用 Sentry MCP 先向本博客的真实数据提问，重新挑选
 keywords: 'Sentry MCP, Sentry 使用教程, Sentry breadcrumb, Sentry Crons 监控, Sentry Logs, DEADLINE_EXCEEDED 超时, Serverless 错误监控, gray failure'
 locale: zh-CN
 translationOf: '260913'
-sourceHash: 4fc62ebb4cae2683757b5c91e7f7428870ce3c242b9cdc1e0e0679fe2e489011
+sourceHash: d5cf7b57be76beb05bd0e287fc534b7cb869b2fc3ff74239f87e976c42ec3876
 ---
 
 这篇文章想聊聊重新打开用了很久的 Sentry 这件事。
@@ -18,7 +18,7 @@ sourceHash: 4fc62ebb4cae2683757b5c91e7f7428870ce3c242b9cdc1e0e0679fe2e489011
 
 原因不在知识，而在**探索成本**。要确认某个功能是否适合自己的问题，就得把零散的文档对照着读，设计实验，接好 config，再解读结果。在忙于处理 issue 的日子里，没有理由去付这笔成本。最近我在 Claude Code 里接上 Sentry MCP 使用后，这笔成本降下了相当一部分，我的顺序也变了。现在在开启某个功能之前，**我会先去问这个账号里的真实数据。**
 
-本文是四篇观测系列的第一篇。先追踪这个博客的服务端埋点捕获到的一次故障，然后用 MCP 重新打开那些数据，记下新看到的东西，再逐项判定各个功能该用在哪里。浏览器内的网络与渲染在[浏览器可观测性](/260914)中继续，CPU 与内存在[浏览器的 CPU 与内存](/260915)中继续，把采集到的数据与搜索表现结合起来解读则在[从观测到判断](/260916)中继续。
+本文是四篇观测系列的第一篇。先追踪这个博客的服务端埋点捕获到的一次故障，然后用 MCP 重新打开那些数据，记下新看到的东西，再逐项判定各个功能该用在哪里。这个系列从服务端出发，经过浏览器内的渲染、CPU 和内存，最后走到搜索数据。
 
 ## 成功响应里的失败
 
@@ -50,7 +50,7 @@ We also argue that a key feature of gray failure is differential observability: 
 Sentry.captureException(error, { tags: { gaQuery: 'stats' } })
 ```
 
-现在的代码样子不同了。8 月 17 日的提交 `f348d4c` 把上报收拢到 `captureServerException` 一处，并把标签键限制为 `locale`、`routeKind`、`operation` 三个。标签是搜索和过滤的单位，放入值会无限增长的属性，:term[基数]{key="cardinality"}和成本就会一起膨胀。只把会反复追问的问题留作标签，这是我的判断。
+现在的代码是 8 月 17 日的提交 `f348d4c` 改成的样子：把上报收拢到 `captureServerException` 一处，并为了不让:term[基数]{key="cardinality"}膨胀，把标签键限制为 `locale`、`routeKind`、`operation` 三个。
 
 ```ts
 // 현재 src/lib/google-analytics.ts
@@ -88,7 +88,7 @@ captureServerException(error, { routeKind: 'analytics', operation: 'stats' })
 
 ### 发生为何停止
 
-JIHOON-BLOG-8 的最后一次发生是 8 月 18 日 13:45 UTC，此后为 0 次。只看图表，问题似乎消失了，但我从未验证过假设，也没有修过。对照部署记录后发现，同一天(按 UTC)提交 `417d3b4` 在多语言改版中把访客统计和热门文章区域从首页移除了。调用 `stats` 和 `popular` 的界面恰恰就是这两个。9 月删除剩余热门文章路径的提交 `5752e09`，其提交信息也写着"事件停止的直接原因是调用点消失，而不是 5 秒超时"。
+JIHOON-BLOG-8 的最后一次发生是 8 月 18 日 13:45 UTC，此后为 0 次。只看图表，问题似乎消失了，但我从未验证过假设，也没有修过。同一天，提交 `417d3b4` 在多语言改版中把访客统计和热门文章区域从首页移除了，调用 `stats` 和 `popular` 的界面恰恰就是这两个。9 月删除剩余热门文章路径的提交 `5752e09`，其提交信息把这写成"事件停止的直接原因是调用点消失，而不是 5 秒超时"。可是对齐时间就会发现，这个提交推送到 main 是在 22:07 UTC，比最后一次事件晚了 8 个多小时。剩下的事件一天只有 10 条左右，8 小时的空白本身并不反常，也和部署之后再无发生的事实不矛盾。不过，单凭时间无法断定删除调用点就是停止的原因，所以我只把那条提交信息当作最有力的解释来读。
 
 issue 被 resolved 并不能证明原因已查明。发生次数归零有三条路：真的修好了，没人再走那条路径，或者埋点消失了。仅凭错误信号无法区分这三者。
 
@@ -102,9 +102,9 @@ issue 被 resolved 并不能证明原因已查明。发生次数归零有三条�
 
 从这里能得出的结论有限。本应在 5 秒后触发的计时器在 5 分 39 秒后才触发，其间这个请求没有留下任何记录。这与冻结假设不矛盾，但也排除不了事件循环被占用的假设。尽管如此，还是多了一条以前没有的信息：开始时间表明，这次失败是**冷启动之后紧接着从缓存重新验证发出的调用**。
 
-### 144 条与 14 条
+### 被保留期抹掉的事件
 
-JIHOON-BLOG-8 这个 issue 的发生计数器是 **144**。在 errors 数据集中按 90 天统计同一 issue，只有 **14** 条。剩下的 14 条从 8 月 17 日 10:45 到 18 日 13:45 UTC，几乎恰好落在查询时间点往前 30 天之内。
+JIHOON-BLOG-8 这个 issue 的发生计数器是 **144**。在 errors 数据集中按 90 天统计同一 issue，按 2026 年 9 月 16 日 14:26 UTC 的查询，只有 **10** 条。剩下的 10 条从 8 月 17 日 15:03 到 18 日 13:45 UTC，几乎恰好落在查询时间点往前 30 天之内。同一天 08:45 UTC 查询时还是 14 条，所以这个数字每查一次都会变少。
 
 补充推论的话，事件保留期看起来是 30 天，所以旧事件被删除，只剩下 issue 计数器。Sentry 的[定价页面](https://sentry.io/pricing/)写明免费方案 Developer 的查询范围是 30 天。不过，这个账号的方案类型以及计数器如何保留，我没有确认。能确定的是结果。上面那 100 条的分布再也抽不出来，没有存下来的数据，任何工具都无法恢复。
 
@@ -118,7 +118,9 @@ JIHOON-BLOG-8 这个 issue 的发生计数器是 **144**。在 errors 数据集�
 
 9 月 16 日新开的 JIHOON-BLOG-B 是 `Google Analytics credentials missing: GA_PROPERTY_ID`。打开事件一看，URL 是 `http://localhost:3117/api/analytics`，浏览器是 `curl 8.7.1`，服务器名是我的 MacBook。然而 `environment` 却是 `production`。
 
-这是我按照仓库文档里的本地验证步骤(`pnpm build` 之后 `pnpm start`)操作时产生的事件。`src/lib/sentry-options.ts` 在没有 `SENTRY_ENVIRONMENT` 时，用 Netlify 的 `CONTEXT` 来决定环境。这是为了把 Deploy Preview 从生产环境中分离出来而做的机制，但在两者都没有的本地，它不会传入环境值，事件最终被记为 `production`。它挡住了预览，却没挡住本地。如果在这种状态下设置基于 production 的告警，我的实验就会触发告警。所以我在仓库文档的验证命令里加上了 `SENTRY_ENVIRONMENT=local`。之所以没有在代码里改默认值，是因为我还没确认 Netlify 函数运行时里 `CONTEXT` 是否总是可见。如果不确认就把默认值设为 `local`，这回生产事件可能会藏进 `local` 里。
+这是我按照仓库文档里的本地验证步骤(`pnpm build` 之后 `pnpm start`)操作时产生的事件。`src/lib/sentry-options.ts` 在没有 `SENTRY_ENVIRONMENT` 时，用 Netlify 的 `CONTEXT` 来决定环境。这是为了把 Deploy Preview 从生产环境中分离出来而做的机制，但在两者都没有的本地，它不会传入环境值，事件最终被记为 `production`。它挡住了预览，却没挡住本地。如果在这种状态下设置基于 production 的告警，我的实验就会触发告警。
+
+所以我在仓库文档的验证命令里加上了 `SENTRY_ENVIRONMENT=local`。之所以没有在代码里改默认值，是因为我还没确认 Netlify 函数运行时里 `CONTEXT` 是否总是可见。如果不确认就把默认值设为 `local`，这回生产事件可能会藏进 `local` 里。
 
 ## 什么功能用在哪里
 
@@ -127,8 +129,9 @@ JIHOON-BLOG-8 这个 issue 的发生计数器是 **144**。在 errors 数据集�
 | 功能 | 回答的问题 | 前提 | 成本 | 本博客的判定 |
 |---|---|---|---|---|
 | Issues 与 grouping | 这些事件是同一起事故吗 | SDK、source map | 错误配额 | 使用中 |
-| Crons | 定时任务按时运行了吗 | 发送 check-in | 含 1 个，额外 $0.78/月 | **开启** |
-| Uptime | 从外部访问 URL 是 2xx 吗 | 无 | 含 1 个，额外 $1/月 | 作为辅助考虑 |
+| Crons | 定时任务按时运行了吗 | 发送 check-in | 含 1 个，额外的需付费方案 PAYG | **开启** |
+| Uptime | 从外部访问 URL 是 2xx 吗 | 无 | 含 1 个，额外的需付费方案 PAYG | 作为辅助考虑 |
+| Alerts | 什么时候该叫醒人 | 区分 environment | 无单独计费项 | 看是否发生，不设数量阈值 |
 | Logs | fallback 何时执行了多少次 | SDK 配置 | 含 5GB | GA 调用候选 |
 | Application Metrics | 不受采样影响的分布是怎样的 | 支持的 JS SDK 版本 | 含 5GB | GA 调用候选 |
 | custom span | 请求里哪一段慢 | tracing | span 配额，10% 采样 | 候选 |
@@ -141,9 +144,9 @@ JIHOON-BLOG-8 这个 issue 的发生计数器是 **144**。在 errors 数据集�
 
 ### 要开启的是 Crons
 
-最先要开启的是 Crons。这个博客每周一用 GitHub Actions 采集 Search Console 数据，如果某一周这个任务悄无声息地没有运行，连错误都不会产生。因为那不是失败，而是**预期事件的缺席**。按照 [Sentry CLI 的 Crons 文档](https://docs.sentry.io/cli/crons/)，用 `sentry-cli monitors run <monitor_slug> --schedule "<cron>" -- <command>` 的形式包住现有命令，开始和结束就会作为 check-in 发送，认证使用项目 DSN。按定价文档，默认包含 1 个 cron monitor，所以这个用途没有成本。
+最先要开启的是 Crons。这个博客每周一用 GitHub Actions 采集 Search Console 数据，如果某一周这个任务悄无声息地没有运行，连错误都不会产生。因为那不是失败，而是**预期事件的缺席**。按照 [Sentry CLI 的 Crons 文档](https://docs.sentry.io/cli/crons/)，用 `sentry-cli monitors run --schedule "<expected schedule>" <monitor-slug> -- <command>` 的形式包住现有命令，开始和结束就会作为 check-in 发送，认证使用项目 DSN。按定价文档，所有方案都包含 1 个 cron monitor，额外的只能用付费方案的 PAYG 预算购买，而这个用途 1 个就够了。
 
-Uptime 的对比很鲜明。它从外部定期请求 URL 并检查是否为 2xx，所以**从原理上抓不到前面看到的 200 响应里的失败。** 作为整站宕机时的辅助手段有意义，但和这个博客实际经历的故障不在同一层。
+Uptime 的对比很鲜明。它从外部定期请求 URL，默认只要是 2xx 就算通过，所以**默认设置下抓不到前面看到的 200 响应里的失败。** 用面向 Early Adopter 的 Verification 可以连 JSON 响应体一起检查，但在这个博客里依然很难奏效。失败大多发生在缓存重新验证路径上，而不是访客请求里，而且统计 API 路由现在已经没有客户端调用了。 作为整站宕机时的辅助手段有意义，但和这个博客实际经历的故障不在同一层。
 
 ### GA 调用用 Logs 和 Metrics
 
@@ -151,21 +154,23 @@ GA 调用光靠错误事件不够，是有原因的。`unstable_cache` 连失败
 
 Sentry 的 Next.js [breadcrumb 文档](https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/breadcrumbs/)开头就建议用 Logs 代替手动 breadcrumb。Logs 已于 [2025 年 9 月 GA](https://sentry.io/changelog/logs-are-generally-available/)，适合在每次执行 fallback 时连同耗时一起记录。如果目的就是分布本身，[2026 年 5 月 GA 的 Application Metrics](https://sentry.io/changelog/application-metrics-are-now-ga/) 更直接。[span metrics 文档](https://docs.sentry.io/platforms/javascript/tracing/span-metrics/)也把不受 trace 采样影响的聚合引导到 Application Metrics。custom span 适合查看单个请求内部的区段，但它是 10% 的样本，会漏掉罕见的失败。这三者我都还没开启，真要开的话，会先看 Metrics 的分布。
 
+出于同样的原因，告警也不按数量设置。对被压到每小时最多 1 条的事件设"N 条以上"的阈值，只会在低估影响范围的同时保持安静。所以这个博客的判定是看是否发生。Rob Ewaschuk 的 [My Philosophy on Alerting](https://docs.google.com/document/d/199PqyG3UsyXlwieHaqbGiWVa8eMWi8zzAn0YfcApr8Q/) 建议针对用户感受到的症状而不是原因来告警，但这条原则的前提是症状会在某处显现。这个博客的失败藏在 200 响应和 0 这个数字后面，只有把 fallback 被执行这件事本身计测出来，才会出现可以告警的症状。
+
 ### 以浏览器 SDK 为前提的功能
 
 Session Replay 和 User Feedback 以浏览器 SDK 为前提。这个博客决定不放这个 SDK，所以现在的判定是"不开启"，bundle 成本的依据在第 2 篇讨论。浏览器 profiling 同样需要 SDK，而且还是 beta，附带好几个条件，这些条件实际能展示什么，在第 3 篇细究。
 
-### 付费的 Seer 与不适用的 Agent Tracing
+### 没有运行的功能
 
-根据[定价文档](https://docs.sentry.io/pricing/)，Seer 是按每位活跃贡献者每月 $40 计费的付费附加功能。这次我考虑过拿 9 月 11 日新开的 Next.js 内部 `InvariantError` issue(JIHOON-BLOG-A)来跑一下，但因为这个调用会涉及计费，没有执行。所以本文里没有 Seer 的第一手经验。Agent Tracing 已于 [2026 年 9 月 11 日 GA](https://sentry.io/changelog/agent-tracing-is-now-ga/)。依赖模型记忆或旧文章的话，很容易误写成 beta，但这个博客没有 LLM 调用路径，所以不适用。
+根据[定价文档](https://docs.sentry.io/pricing/)，Seer 是在订阅之外按每位活跃贡献者每月 $40 计费的付费附加功能。这次我考虑过拿 9 月 11 日新开的 Next.js 内部 `InvariantError` issue(JIHOON-BLOG-A)来跑一下，但因为它需要这项订阅，没有运行。这个账号是否已订阅，我没有确认。所以本文里没有 Seer 的第一手经验。Agent Tracing 已于 [2026 年 9 月 11 日 GA](https://sentry.io/changelog/agent-tracing-is-now-ga/)。依赖模型记忆或旧文章的话，很容易误写成 beta，但这个博客没有 LLM 调用路径，所以不适用。
 
 ## AI 减少了什么，没减少什么
 
-这次工作中 AI 帮忙减少的成本很明确。从零散文档里收集条件(浏览器 profiling 是否为 beta、响应头、浏览器限制)，学习查询语法来切换 group by，对 breadcrumb 时间做加减运算，起草功能表，这些都在几轮对话里完成了。探索门槛降低之后，在判断"开不开"之前先问"现在的数据在说什么"，这样的顺序成为可能。
+这次工作中 AI 帮忙减少的成本很明确。从零散文档里收集条件(浏览器 profiling 是否为 beta、响应头、浏览器限制)，学习查询语法来切换 group by，对 breadcrumb 时间做加减运算，起草功能表，这些都在几轮对话里完成了。比如 breadcrumb 时间线只用了一次 `get_issue_breadcrumbs`，确认监控器为 0 个只用了 `find_monitors` 和 `find_uptime_monitors` 两次调用。探索门槛降低之后，在判断"开不开"之前先问"现在的数据在说什么"，这样的顺序成为可能。
 
 没减少的东西也同样明确。
 
-- **没有存下来的数据。** 144 条里有 130 条已经消失，从样本中漏掉的 span 从一开始就不存在。智能体无法恢复不存在的数据。
+- **没有存下来的数据。** 144 条里有 134 条(截至 9 月 16 日 14:26 UTC)已经消失，从样本中漏掉的 span 从一开始就不存在。智能体无法恢复不存在的数据。
 - **需要部署的实验。** gRPC 调用是否会被记为 span，能否区分冻结与事件循环占用，只有真正加上埋点并部署才知道。
 - **解读的条件。** 外推值的警告，以及本地事件被记为 production 的事实，都没有显示在响应里。我之所以察觉，是因为自己读了事件的 URL 和服务器名。
 - **日期与工具的时差。** 像 Agent Tracing 这样五天前状态刚变的功能，必须打开 changelog 才能确认。MCP 工具也还在追赶产品。在 issue 搜索里加 `OR` 会返回 400，告警规则查询工具则返回 410 `This API no longer exists`。
@@ -173,9 +178,11 @@ Session Replay 和 User Feedback 以浏览器 SDK 为前提。这个博客决定
 
 ## 结语
 
-总结一下，我之所以没有开启 Sentry 的大部分功能，不是因为不了解，而是因为确认的成本。AI 大幅降低了这笔成本，于是我的顺序变成了在开启功能之前先问这个账号的数据。这样重新打开的数据，比任何新功能都更早地揭示了几个令人不舒服的事实。我以为修好的故障只是因为调用点消失才停止，当时的分布因为超过保留期而无法重画，我的本地验证正混进 production 的 issue 里。
+总结一下，我之所以没有开启 Sentry 的大部分功能，不是因为不了解，而是因为确认的成本。AI 大幅降低了这笔成本，于是我的顺序变成了在开启功能之前先问这个账号的数据。这样重新打开的数据，比任何新功能都更早地揭示了几个令人不舒服的事实。我以为修好的故障其实没修就停了，当时的分布因为超过保留期而无法重画，我的本地验证正混进 production 的 issue 里。
 
 所以这个博客接下来的步骤，不是由功能列表决定的，而是由空白决定的。给每周采集接上 Crons，为 GA 调用挑选受保留期和采样影响更小的信号，并先把本地环境名称纠正过来。也希望读到这篇文章的各位想一想，自己用了很久的工具里有哪些从未开启的功能。那个功能是真的不需要，还是只是确认的成本太高，现在可以直接去问数据了。
+
+下一篇会转到这个博客决定不放的浏览器 SDK 那一侧，在[浏览器可观测性](/260914)里讨论如何看清访客屏幕里发生的事。
 
 :::ref
 - [docs] [Sentry, Issue Grouping](https://docs.sentry.io/concepts/data-management/event-grouping/)

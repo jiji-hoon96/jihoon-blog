@@ -1,7 +1,7 @@
 ---
 emoji: 🧩
 title: '从观测到判断'
-seoTitle: '用 CrUX 与 Search Console 看清 Core Web Vitals 与搜索数据的边界'
+seoTitle: 'Core Web Vitals 对 SEO 有多大作用？用 CrUX 与 Search Console 核实'
 date: '2026-09-16'
 updatedAt: '2026-09-16'
 categories: 观测 前端 GA4 Search-Console
@@ -9,7 +9,7 @@ description: '整理浏览器测得的 Web Vitals 经过 CrUX、PageSpeed Insigh
 keywords: 'CrUX 实测数据, PageSpeed Insights 实测数据, Search Console 核心网页指标报告, Core Web Vitals 对排名的影响, Search Console 查询与网页点击差异, 平均排名下降 点击增加, 抓取速度 5xx 429'
 locale: zh-CN
 translationOf: '260916'
-sourceHash: 09bd51bac82d7b631fb466afbd28b6124fe54187fadff533b9bbd970471079b4
+sourceHash: 28511e965ad669a872b9c5ac03c453af63c8424d8e9db750ab0e7223d13ed4fb
 ---
 
 这篇文章想聊聊在浏览器里测得的性能数据，是如何一路走到搜索和判断的。
@@ -18,7 +18,7 @@ sourceHash: 09bd51bac82d7b631fb466afbd28b6124fe54187fadff533b9bbd970471079b4
 
 这一篇的数据性质不同。访问者浏览器里产生的值会被交给 Chrome 的统计管道，其结果再出现在 PageSpeed Insights 和 :term[Search Console]{key="search-console"} 里。统计谁的体验、积累到多少才展示、按什么单位归并，全都由 Google 决定。
 
-所以这篇文章想回答的问题只有一个。**要把已经离开浏览器的数字用于判断，需要先确认什么？** 我的答案是：先为每个数字写下它的样本和聚合规则，不给官方表述没说的内容添油加醋，并且把得出的结论换一个时间段重新测一遍。
+所以这篇文章想回答的问题只有一个。**要把已经离开浏览器的数字用于判断，需要先确认什么？** 我的答案是：先为每个数字写下它的样本和聚合规则，不补充官方表述没有说的内容，并且把得出的结论换一个时间段重新测一遍。
 
 ## 我收集的 web_vitals
 
@@ -87,7 +87,7 @@ Google 的 [crawl budget 指南](https://developers.google.com/search/docs/crawl
 
 即便如此，指南里的抓取容量规则还是值得了解。响应时间稳定或变快，上限就会提高；变慢或返回 5xx、429，上限就会降低。[HTTP 状态码文档](https://developers.google.com/search/docs/crawling-indexing/http-network-errors)把后果写得更具体。5xx 和 429 会让抓取工具暂时放慢。已编入索引的 URL 会被保留，但如果持续下去，最终会从索引中移除。429 以外的 4xx 不影响抓取速度。这里必须准确区分路径。长期持续的 5xx 是通往**被移出索引**的路径，而说它是拉低排名的信号的官方表述，我没有找到。
 
-这个博客最大的服务器事故是 JIHOON-BLOG-2，GA Data API 调用挂起了 65 秒以上。但响应是 200，而且调用 `src/lib/google-analytics.ts` 的只有 `/api/analytics` 路由，并不是渲染文章文档的路径。没有依据把这次事故和抓取联系起来，写这篇文章时我也没有打开 Crawl Stats 报告。**没有确认过的关联，就不去关联。**
+这个博客最大的服务器事故是 JIHOON-BLOG-2，GA Data API 调用挂起了 65 秒以上。响应是 200。现在调用 `src/lib/google-analytics.ts` 的只有 `/api/analytics` 路由，但 8 月时情况不同。当时 GA 调用再次卡住的 JIHOON-BLOG-8，最后一个事件的 transaction 是首页（`GET /`），现在还能查到的 10 个事件中，2 个是 `GET /`，8 个的 transaction 为空。也就是说，在会被抓取的首页请求中，GA 调用也卡住过。但这是否影响了抓取，我不知道，因为写这篇文章时我没有打开 Crawl Stats 报告。**没有确认过的关联，就不去关联。**
 
 ## page 与 query 的点击差异
 
@@ -99,7 +99,7 @@ Google 的 [crawl budget 指南](https://developers.google.com/search/docs/crawl
 
 我最先怀疑的是行数限制。[Search Analytics API 文档](https://developers.google.com/webmaster-tools/v1/searchanalytics/query)写道，它不保证返回所有行，而是返回排在前面的行。但我的脚本用 `rowLimit: 1000` 请求，返回的 query 行分别是 128 行和 66 行。**没有触及上限，所以截断不是原因。**
 
-剩下的解释有两个，都在 [Search Console 帮助文档](https://support.google.com/webmasters/answer/17010575)里。一个是匿名化。极少被搜索的查询出于隐私保护会从查询表中排除，只计入总合计。另一个是[聚合单位](https://support.google.com/webmasters/answer/17011364)。query 维度按 property 统计。一个用户先后点击同一网站的两个链接，也只算 1 次点击。page 维度按 URL 统计，同样的行为就变成 2 次点击。
+剩下的解释有两个，都在 [Search Console 帮助文档](https://support.google.com/webmasters/answer/17010575)里。一个是匿名化。极少被搜索的查询出于隐私保护会从查询表中排除，只计入总合计。另一个是[聚合单位](https://support.google.com/webmasters/answer/7576553)。query 维度按资源统计。按照[资源级聚合说明](https://support.google.com/webmasters/answer/17011364)中的例子，一个用户先后点击同一网站的两个链接，也只算 1 次点击。page 维度按 URL 统计，同样的行为就变成 2 次点击。
 
 所以这两个合计从一开始就不是按同一规则得出的数字。有一个诱惑值得记下来：最近 28 天里有点击的查询共六个，其中五个是 "eslint vs biome"、"biome vs prettier" 这类 Biome 对比型查询。这五个查询的点击加起来是 6 次，恰好 Biome 文章韩语 URL 的 page 点击也是 6 次。看起来严丝合缝，但**不能因为两个聚合规则不同的数字相等，就把它们联系起来。** query 数据不应被读成流量的拆分，而应被读成窥见搜索意图的样本。
 
@@ -134,15 +134,15 @@ Google 的 [crawl budget 指南](https://developers.google.com/search/docs/crawl
 
 没有给 Biome 文章赋予因果关系，并不只是出于谨慎。这个博客确实存在无法分离因果的条件。
 
-仅 2026 年 9 月 11 日一天，就上线了六项与搜索相关的变更：恢复分类页的 hreflang 集群和 x-default，替换 front matter 里的长破折号，把 48 个 `seoTitle` 重写到 60 个字符以内，修复文章 OG 图片的 404，给正文图片设置 1680px 上限，以及把 126 个只有一篇文章的分类页设为 `noindex`。9 月 14 日，我把一篇观测文章拆成多篇发布；9 月 16 日又接连进行了 hreflang 双向互指的修复、分类 description 的扩充、IndexNow 的引入、被截断的标题和描述的重写，以及新文章的发布。这篇文章的重写也落在同一时段。
+仅 2026 年 9 月 11 日一天，就上线了六项与搜索相关的变更，包括恢复 hreflang、重写 48 个标题、修复 OG 图片、把 126 个分类页设为 noindex；到 16 日又接连进行了 hreflang 的追加修复、IndexNow 的引入、被截断的标题和描述的重写，以及新文章的发布。这篇文章的重写也落在同一时段。
 
 9 月 11 日我留下了一份基准线文档。截至当时的最近 28 天，英文文章页面展示 892 次、点击 0 次，我决定在 10 月初看看这个数字会不会变化。但即使 10 月英文点击增加了，我也无法挑出唯一的原因。可能是 hreflang 修复，可能是 9 月 11 日的标题重写，也可能是 9 月 16 日的截断修复。何况基准线数据里已经有一个反例：被截断的标题只有 1 个的 zh-CN，以 7 次点击成为非韩语语言版本中点击最多的，这很难让人把标题截断看作原因。**所以在 10 月的对比中，我决定只读方向，不主张各项变更各自的贡献。**
 
-## 从观测到判断
+## 先为每个数字写下样本和规则
 
 如果说前三篇展示的是服务器上悄无声息的失败、访问者等待的时间，以及这段等待产生的位置，那么这一篇的数据，就是这些体验离开浏览器、经过别人的规则筛选后的结果。所以结论也稍微更保守一些。field 数据经过 RUM、CrUX、PSI、Search Console，在每个环节按不同规则缩减，在这个博客这样的小网站上，可能根本留不到最后。Google 关于排名的表述停在 Core Web Vitals 会被使用这一点上，抓取文档停在慢响应和 5xx 会影响抓取与编入索引这一点上。Search Console 的 page 合计和 query 合计是按不同规则统计的数字，所以加不到一起。**为每个数字先写下统计了谁、用的是什么规则，并在官方表述停下的地方一起停下。** 把观测变成判断，大部分工作就是这两件事。
 
-10 月我也打算在对比基准线和新 CSV 时只读方向。也希望读这篇文章的各位，在自己的服务里挑一个指标，用一行写下这个数字的样本和聚合规则，再把已经得出的结论换个时间段重新查询一遍。
+10 月我也打算在对比基准线和新 CSV 时只读方向。如果一路读完这个系列的你，下次要根据仪表盘上的某个数字做决定，建议先用一行写下这个数字统计了谁、按什么规则统计。然后在一个月后换一个时间段，把这个结论重新查询一遍。
 
 :::ref
 - [docs] [web.dev, Why lab and field data can be different](https://web.dev/articles/lab-and-field-data-differences)

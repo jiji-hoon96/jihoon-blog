@@ -9,7 +9,7 @@ description: 'Qué muestran las long tasks, TBT, LoAF, JS Self-Profiling, las AP
 keywords: 'hilo principal del navegador, long task 50ms, Long Animation Frames API, Total Blocking Time, JS Self-Profiling API, profiling de navegador en Sentry, measureUserAgentSpecificMemory, fuga de memoria en el navegador'
 locale: es
 translationOf: '260915'
-sourceHash: 4e0b5c34d77d4e96bcc9d368f60407b6ed8ce76dd252e63bf908cd37e0a68225
+sourceHash: e3099827d3ce62d6111f68e8a70bca3c1d37a5f8550f952482939e5c286405ce
 ---
 
 En esta publicación quiero hablar de cómo observar el hilo principal y la memoria del navegador.
@@ -24,7 +24,7 @@ Lo que comprobé personalmente fueron dos ejecuciones de Lighthouse, las cabecer
 
 El hilo principal del navegador procesa en una sola fila la ejecución de JavaScript, el cálculo de estilos, el layout y la gestión de la entrada del usuario. Mientras corre una tarea, nada más puede colarse, así que si el usuario pulsa un botón en ese intervalo, el evento de entrada espera a que la tarea termine.
 
-El umbral que acota esa espera es 50ms. La [especificación de la Long Tasks API](https://w3c.github.io/longtasks/) del W3C define como long task a una tarea que ocupa el hilo principal durante 50ms o más, y también explica por qué. Para responder a una entrada en menos de 100ms, la tarea que se estaba ejecutando en el momento de la entrada debe terminar en 50ms, y la tarea que procesa esa entrada también debe terminar en 50ms. Es decir, 50ms es el objetivo de respuesta de 100ms partido en dos.
+El umbral que acota esa espera es 50ms. La [especificación de la Long Tasks API](https://w3c.github.io/longtasks/) del W3C define como long task a una tarea que ocupa el hilo principal durante más de 50ms (la introducción dice "50ms or more", así que la forma de expresar el límite varía un poco), y también explica por qué. Para responder a una entrada en menos de 100ms, la tarea que se estaba ejecutando en el momento de la entrada debe terminar en 50ms, y la tarea que procesa esa entrada también debe terminar en 50ms.
 
 ### TBT suma el exceso de las long tasks
 
@@ -32,7 +32,7 @@ Si solo se cuentan, una tarea de 60ms y otra de 600ms valen lo mismo, así que l
 
 ![Figura con cinco tareas en la línea de tiempo del hilo principal, donde las tres que superan 50ms muestran excesos de 200, 40 y 105ms](1.png?w=720)
 
-(Fuente de la figura: [web.dev, Total Blocking Time (TBT)](https://web.dev/articles/tbt), CC BY 4.0)
+(Fuente de la figura: [web.dev, Total Blocking Time (TBT)](https://web.dev/articles/tbt), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), SVG convertido a PNG con fondo blanco)
 
 La parte amarilla son los primeros 50ms de cada tarea y la parte roja es el blocking time. En el ejemplo del mismo artículo, las tareas suman 560ms de ejecución, pero TBT es 345ms. Las tareas de menos de 50ms no aportan nada a TBT, por muy a menudo que aparezcan.
 
@@ -40,7 +40,7 @@ La parte amarilla son los primeros 50ms de cada tarea y la parte roja es el bloc
 
 TBT es una métrica de lab, y la métrica de capacidad de respuesta de Core Web Vitals es INP. El [artículo de web.dev sobre INP](https://web.dev/articles/inp) marca el límite: en herramientas de lab que solo miran la carga, sin interacción, TBT puede ser un proxy razonable, pero no un reemplazo.
 
-Esto se debe a que TBT no sabe cuándo pulsó el usuario ni qué. Aunque el hilo principal esté muy bloqueado, INP puede ser bajo si el usuario pulsa después de que terminen los scripts. El camino por el que una long task llega a INP es alargando el input delay que vimos en la publicación anterior en tanto tiempo como le quede a la tarea que estaba en ejecución en el momento de pulsar. Por eso un TBT bajo solo dice "el hilo principal no estuvo muy bloqueado durante la carga". Para saber qué bloqueó una entrada real hay que mirar tareas y frames en field.
+Esto se debe a que TBT no sabe cuándo pulsó el usuario ni qué. Aunque el hilo principal esté muy bloqueado, INP puede ser bajo si el usuario pulsa después de que terminen los scripts. Una long task puede alargar INP por varios caminos (processing duration si el propio handler es largo, presentation delay si el renderizado posterior es largo), pero el camino más directamente ligado a TBT es alargar el input delay que vimos en la publicación anterior en tanto tiempo como le quede a la tarea que estaba en ejecución en el momento de pulsar. Por eso un TBT bajo solo dice "el hilo principal no estuvo muy bloqueado durante la carga". Para saber qué bloqueó una entrada real hay que mirar tareas y frames en field.
 
 ## Long Tasks y Long Animation Frames
 
@@ -48,7 +48,7 @@ Hay dos API del navegador para ver el hilo principal en field: la Long Tasks API
 
 ### LoAF es una alternativa, no un reemplazo
 
-El artículo del equipo de Chrome sobre LoAF (fuente de la figura de más abajo) presenta LoAF como un "update" y una "alternative" a la Long Tasks API, y nunca usa la palabra replacement. En los datos de compatibilidad de MDN, `PerformanceLongTaskTiming` tampoco lleva marca de deprecated; ambas API son experimental, y ni Firefox ni Safari las soportan.
+El artículo del equipo de Chrome sobre LoAF (fuente de la figura de más abajo) presenta LoAF como un "update" y una "alternative" a la Long Tasks API, y en su FAQ responde que "at this time, there are no plans to deprecate the Long Tasks API". En los datos de compatibilidad de MDN, `PerformanceLongTaskTiming` tampoco lleva marca de deprecated; ambas API son experimental, y ni Firefox ni Safari las soportan.
 
 La razón por la que hacía falta una API nueva es la atribución (attribution). Según el mismo artículo, la atribución de la Long Tasks API "at best only tells you the container", es decir, llega a indicar si fue el documento de nivel superior o algún iframe, pero no dice qué script consumió el tiempo.
 
@@ -60,7 +60,7 @@ El campo de LoAF que conecta directamente con INP es `blockingDuration`. Suma el
 
 ![Figura con varios long frames en la línea de tiempo de una página, donde el frame que se solapa con la interacción elegida como INP aparece resaltado con una línea de puntos](2.png?w=720)
 
-(Fuente de la figura: [Chrome for Developers, Long Animation Frames API](https://developer.chrome.com/docs/web-platform/long-animation-frames), CC BY 4.0)
+(Fuente de la figura: [Chrome for Developers, Long Animation Frames API](https://developer.chrome.com/docs/web-platform/long-animation-frames), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), redimensionada)
 
 En una página aparecen muchos long frames, pero el que explica el valor de INP es el frame que se solapa con la interacción de INP. El array `scripts` de ese frame contiene, por cada script que se ejecutó más de 5ms, el punto de invocación, la URL de origen y el tiempo de ejecución. Aquí aparece el "quién" que le faltaba a la Long Tasks API.
 
@@ -72,15 +72,15 @@ También hay una forma de usar LoAF sin suscribirse directamente. `web-vitals` i
 
 Como vimos en la publicación anterior, el `src/components/WebVitalsReporter.tsx` de este blog usa el build estándar mediante `import('web-vitals')`. **Recolecta el valor de INP, pero no qué script bloqueó ese INP.** En el `web-vitals@6.2.1` instalado, la cadena `long-animation-frame` aparece 0 veces en `dist/web-vitals.js` y 1 vez en `dist/web-vitals.attribution.js`. El build estándar ni siquiera registra un observer de LoAF. (Este hecho vuelve a ser importante en la sección sobre memoria)
 
-Según el [README](https://github.com/GoogleChrome/web-vitals#attribution-build), el build de atribución pesa unos 1.5K más en brotli, pero lo que me hizo dudar fue más el destino que el tamaño. No he comprobado si con el tráfico de este blog saldría en GA4 una distribución por script con sentido, así que decidí mirar primero el lab antes de ampliar la recolección.
+Según el [README](https://github.com/GoogleChrome/web-vitals#attribution-build), el build de atribución pesa unos 1,5K más en brotli, pero lo que me hizo dudar fue más el destino que el tamaño. No he comprobado si con el tráfico de este blog saldría en GA4 una distribución por script con sentido, así que decidí mirar primero el lab antes de ampliar la recolección.
 
 ## Las long tasks que aparecieron en este blog
 
-Así que ejecuté una página de artículo en el lab. Lighthouse 12.8.2 (`npx lighthouse@12`), Chrome headless en local, el form factor mobile por defecto, simulated throttling (RTT 150ms, 1638.4kbps, CPU ralentizada 4 veces), con `https://hooninedev.com/260914` como objetivo, dos ejecuciones con 25 minutos de diferencia el 2026-09-16.
+Así que ejecuté una página de artículo en el lab. Lighthouse 12.8.2 (`npx lighthouse@12`), Chrome headless en local, el form factor mobile por defecto, simulated throttling (RTT 150ms, 1638,4kbps, CPU ralentizada 4 veces), con `https://hooninedev.com/260914` como objetivo, dos ejecuciones con 25 minutos de diferencia el 2026-09-16.
 
 | Elemento | 1.ª ejecución (08:46:15Z) | 2.ª ejecución (09:11:01Z) |
 |---|---|---|
-| Performance score | 0.92 | 0.93 |
+| Performance score | 0,92 | 0,93 |
 | FCP, LCP | 2501ms | 2415ms |
 | TBT | 40ms | 47ms |
 | TTI | 5489ms | 5375ms |
@@ -96,7 +96,7 @@ Las dos ejecuciones tuvieron cuatro long tasks, y en el mismo orden: la tarea de
 
 TBT coincide exactamente con el exceso de las tres tareas posteriores a FCP. La 1.ª da (68 - 50) + (66 - 50) + (56 - 50) = 40ms y la 2.ª (69 - 50) + (69 - 50) + (59 - 50) = 47ms. Un TBT bajo no significa "no hay long tasks", sino "el exceso posterior a FCP es pequeño".
 
-Lo siguiente es dónde cae gtag. En el layout, gtag se carga con `next/script` usando `strategy="afterInteractive"`, se ejecuta seguido algo más de 2.8 segundos después de LCP, y el punto donde termina esta última long task es justo el que se registra como TTI. Es un lugar que, más que con las métricas de carga, puede solaparse con **el input delay de una entrada pulsada justo después de que aparece la página**. Aun así, es una inferencia sobre una línea de tiempo de lab, y este blog no recolecta qué pulsaron los usuarios reales en ese momento.
+Lo siguiente es dónde cae gtag. El layout raíz (`src/app/[lang]/layout.tsx`) carga gtag con `next/script` usando `strategy="afterInteractive"`. Por eso las dos tareas de gtag se ejecutan seguidas algo más de 2,8 segundos después de LCP, y el punto donde termina la última se registra como TTI. Es un lugar que, más que con las métricas de carga, puede solaparse con **el input delay de una entrada pulsada justo después de que aparece la página**. Aun así, es una inferencia sobre una línea de tiempo de lab, y este blog no recolecta qué pulsaron los usuarios reales en ese momento.
 
 Además, se trata de una medición de lab con n=2. Que se repita la misma forma es solo una evidencia débil de que esta estructura no es casual, y no sustituye la distribución de dispositivos y redes de los usuarios reales.
 
@@ -116,7 +116,7 @@ La especificación no está en el standards track: es un WICG Community Group Dr
 
 Durante la investigación encontré un punto en el que los documentos no coincidían. Un cambio que entró en el repositorio de la especificación en enero de 2026 marcó `js-profiling` como **deprecated** y definió en su lugar `js-profiling-mode` (`eager`, `lazy`). Las implementaciones deberían seguir soportando `js-profiling` por compatibilidad (SHOULD), pero pueden eliminarlo (MAY).
 
-Según la especificación, `eager` (equivalente al antiguo `js-profiling`) prepara la infraestructura de profiling durante la carga, así que puede afectar a FCP y LCP aunque nunca se use el profiler. `lazy` retrasa esa preparación hasta que se crea el primer `Profiler`, pero si esa inicialización ocurre mientras se procesa una interacción, puede afectar a INP. La especificación admite así que **una cabecera activada para medir puede imponer un coste sobre las mismas métricas que se miden**. La documentación de Sentry, en cambio, seguía indicando solo `Document-Policy: js-profiling` al consultarla el 2026-09-16. No he comprobado si Chrome implementa `js-profiling-mode`, así que no puedo decir qué cabecera conviene usar hoy.
+Según la especificación, `eager` (equivalente al antiguo `js-profiling`) prepara la infraestructura de profiling durante la carga, así que puede afectar a FCP y LCP aunque nunca se use el profiler. `lazy` retrasa esa preparación hasta que se crea el primer `Profiler`, pero si esa inicialización ocurre mientras se procesa una interacción, puede afectar a INP. La especificación admite así que **una cabecera activada para medir puede imponer un coste sobre las mismas métricas que se miden**. La documentación de Sentry, en cambio, seguía indicando solo `Document-Policy: js-profiling` al consultarla el 2026-09-16. En ChromeStatus, la entrada de `js-profiling-mode` figura como Proposed y sin hito de lanzamiento, pero no he comprobado directamente si Chrome la implementa, así que no puedo decir qué cabecera conviene usar hoy.
 
 ### Condiciones del profiling de navegador en Sentry
 
@@ -126,11 +126,11 @@ La facturación es por [UI Profile Hours](https://docs.sentry.io/pricing/quotas/
 
 ### En este blog está apagado en dos capas
 
-Primero, no hay SDK de navegador. El Sentry de este blog es solo de servidor y no existe `src/instrumentation-client.ts`. Es una decisión tomada a partir de una medición del 2026-08-04 que mostró que el SDK de cliente añade 78.8 KB gzip al client JS (lo traté en la publicación anterior).
+Primero, no hay SDK de navegador. El Sentry de este blog es solo de servidor y no existe `src/instrumentation-client.ts`. Es una decisión tomada a partir de una medición del 2026-08-04 que mostró que el SDK de cliente añade 78,8 KB gzip al client JS (lo traté en la publicación anterior).
 
 Segundo, no hay cabecera. La respuesta que comprobé con `curl -sI https://hooninedev.com/260914` a las 2026-09-16T09:10:42Z no tiene `document-policy`. Las cabeceras que este repositorio añade al HTML son las cuatro de la función `next.config.ts` `headers()`: `Content-Security-Policy`, `X-Frame-Options`, `Referrer-Policy` y `Permissions-Policy`, y esas cuatro aparecen también en la respuesta. (Ya había medido en este repositorio que `public/_headers` solo se aplica a los assets estáticos y no llega al HTML)
 
-Así que activar el profiling de navegador en este blog no es cuestión de una opción. Supone revertir la decisión de los 79KB, añadir una cabecera a todo el HTML y medir de nuevo el coste que esa cabecera impone sobre FCP, LCP e INP. Todavía no hay evidencia de que las dos tareas de gtag que vimos antes sean un problema que justifique ese coste.
+Así que activar el profiling de navegador en este blog no es cuestión de una opción. Supone revertir la decisión de los 78,8KB, añadir una cabecera a todo el HTML y medir de nuevo el coste que esa cabecera impone sobre FCP, LCP e INP. Todavía no hay evidencia de que las dos tareas de gtag que vimos antes sean un problema que justifique ese coste.
 
 ## Qué significa medir la memoria
 
@@ -146,7 +146,7 @@ La alternativa es `performance.measureUserAgentSpecificMemory()`. El [artículo 
 
 La condición decisiva está en otra parte. [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Performance/measureUserAgentSpecificMemory) establece que el documento debe ser un secure context y además estar **cross-origin isolated**. Es decir, debe aislarse con las cabeceras `Cross-Origin-Opener-Policy` y `Cross-Origin-Embedder-Policy` para que `window.crossOriginIsolated` sea `true`.
 
-La respuesta de `curl` anterior no tiene ninguna de las dos cabeceras, así que en este blog esta API no se puede llamar. Además, calculo que activarla costaría más que la cabecera de profiling. Con COEP activado, los recursos cross-origin que carga la página tienen que cumplir esa política, y este blog carga el script de gtag y el iframe de utteranc.es. No los he activado para comprobar si estos dos se rompen de verdad.
+La respuesta de `curl` anterior no tiene ninguna de las dos cabeceras, así que en este blog esta API no se puede llamar. Además, calculo que activarla costaría más que la cabecera de profiling. Con COEP activado, los recursos cross-origin que carga la página tienen que cumplir esa política, y este blog carga el script de gtag y el iframe de utteranc.es. No las he activado para comprobar si estos dos se rompen de verdad.
 
 Cuando field está cerrado, lo que queda es reproducir en local con el panel Memory de DevTools. Es el método de buscar con heap snapshots los árboles DOM detached, que la [documentación del equipo de Chrome sobre problemas de memoria](https://developer.chrome.com/docs/devtools/memory-problems) señala como causa habitual de fugas, pero no es algo que yo haya hecho en este blog.
 
@@ -184,13 +184,13 @@ La respuesta de `curl` anterior tampoco tiene la cabecera `reporting-endpoints`.
 
 Como son páginas para leer artículos estáticos largos, no pienso cambiarlo por ahora. Aun así, dejo anotado que "no hay crashes" y "no hay medios para ver los crashes" se ven como la misma pantalla vacía en un dashboard.
 
-## Conclusión
+## Una observación que solo se abre bajo condiciones
 
-Observar la CPU y la memoria del navegador es, en su mayor parte, **una observación que solo se abre bajo condiciones**. Las long tasks y LoAF solo llegan desde Chromium, y la atribución de scripts de LoAF no ve los iframes cross-origin. Los profilers de muestreo exigen la cabecera `Document-Policy`, cuyo nombre está cambiando en la especificación, y la propia cabecera puede imponer un coste sobre las métricas. La API de medición de memoria exige cross-origin isolation, y los crash reports, un endpoint de servidor fuera de JavaScript.
+Observar la CPU y la memoria del navegador, en su mayor parte, **solo se abre cuando se cumplen ciertas condiciones**. Las long tasks y LoAF solo llegan desde Chromium, y la atribución de scripts de LoAF no ve los iframes cross-origin. Los profilers de muestreo exigen la cabecera `Document-Policy`, cuyo nombre está cambiando en la especificación, y la propia cabecera puede imponer un coste sobre las métricas. La API de medición de memoria exige cross-origin isolation, y los crash reports, un endpoint de servidor fuera de JavaScript.
 
-Este blog no ha activado ninguna de esas condiciones. Ese estado no es abandono, sino el resultado acumulado de la decisión de los 79KB, el build estándar y la elección de no añadir cabeceras, y de todo ello el build estándar acabó además esquivando la fuga de LoAF de web-vitals. Que ampliar la observabilidad también signifique cargar en la página código que tiene un coste se ve con especial claridad en esta área.
+Este blog no ha activado ninguna de esas condiciones. Ese estado no es abandono, sino el resultado acumulado de la decisión de los 78,8KB, el build estándar y la elección de no añadir cabeceras, y de todo ello el build estándar acabó además esquivando la fuga de LoAF de web-vitals. Que ampliar la observabilidad también signifique cargar en la página código que tiene un coste se ve con especial claridad en esta área.
 
-Todas las cifras de este artículo salieron del lab o de mis comprobaciones en local. Qué significa la field data recogida de usuarios reales una vez que sale del navegador, en CrUX, Search Console y la búsqueda, es algo que pienso continuar en [la siguiente publicación](/260916). Ojalá quienes lean esto también se tomen un momento para separar qué observaciones no han activado en sus propios servicios y si cada una es fruto de una decisión o algo que simplemente pasaron por alto.
+Todas las cifras de este artículo salieron del lab o de mis comprobaciones en local. Qué significa la field data recogida de usuarios reales una vez que sale del navegador, en CrUX, Search Console y la búsqueda, es algo que pienso continuar en [la siguiente publicación](/260916).
 
 :::ref
 - [docs] [MDN, PerformanceLongAnimationFrameTiming](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming)

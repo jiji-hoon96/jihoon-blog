@@ -1,15 +1,15 @@
 ---
 emoji: 🧩
 title: 'Da observação ao julgamento'
-seoTitle: 'CrUX e Search Console: os limites do Core Web Vitals'
+seoTitle: 'As Core Web Vitals e o SEO segundo o CrUX e o Search Console'
 date: '2026-09-16'
 updatedAt: '2026-09-16'
 categories: observabilidade frontend GA4 Search-Console
-description: 'Como CrUX, PageSpeed Insights e Search Console filtram as Web Vitals, o que o Google diz sobre ranking e um post que ganhou cliques ao cair de posição.'
+description: 'Como CrUX, PageSpeed Insights e Search Console filtram as Web Vitals, o que o Google diz sobre ranking e um post com mais cliques mesmo perdendo posição.'
 keywords: 'dados de campo CrUX, PageSpeed Insights dados de campo, relatório Core Web Vitals Search Console, Core Web Vitals afeta o ranking, cliques por consulta e por página Search Console, posição média caiu cliques aumentaram, taxa de rastreamento 5xx 429'
 locale: pt-BR
 translationOf: '260916'
-sourceHash: 09bd51bac82d7b631fb466afbd28b6124fe54187fadff533b9bbd970471079b4
+sourceHash: 28511e965ad669a872b9c5ac03c453af63c8424d8e9db750ab0e7223d13ed4fb
 ---
 
 Neste post, quero falar sobre o caminho que os dados de desempenho medidos no navegador percorrem até chegar à busca e ao julgamento.
@@ -83,11 +83,11 @@ O que considero mais importante é **o que este documento não diz**. Em nenhum 
 
 O lugar em que a documentação oficial liga claramente desempenho e busca é, na verdade, o rastreamento. Mesmo assim, o assunto é taxa de rastreamento e indexação, não ranking.
 
-O [guia de crawl budget](https://developers.google.com/search/docs/crawling-indexing/large-site-managing-crawl-budget) do Google começa restringindo o público. Sites com 1 milhão ou mais de páginas únicas que mudam cerca de uma vez por semana, com 10 mil ou mais que mudam diariamente, ou com muitas URLs que o Search Console classifica como "Descoberta, mas não indexada no momento". O texto original diz diretamente que sites sem muitas páginas que mudam rápido, ou cujas páginas são rastreadas no dia da publicação, não precisam ler o guia. Este blog, com 186 URLs no sitemap em 16 de setembro de 2026, não é o público.
+O [guia de crawl budget](https://developers.google.com/search/docs/crawling-indexing/large-site-managing-crawl-budget) do Google começa restringindo o público. Sites com 1 milhão ou mais de páginas únicas que mudam cerca de uma vez por semana, com 10 mil ou mais que mudam diariamente, ou com muitas URLs que o Search Console classifica como "Detectada, mas não indexada no momento". O texto original diz diretamente que sites sem muitas páginas que mudam rápido, ou cujas páginas são rastreadas no dia da publicação, não precisam ler o guia. Este blog, com 186 URLs no sitemap em 16 de setembro de 2026, não é o público.
 
 Ainda assim, vale conhecer a regra de capacidade de rastreamento do guia. Quando o tempo de resposta fica estável ou melhora, o limite sobe; quando fica lento ou o site envia 5xx ou 429, ele desce. A [documentação de códigos de status HTTP](https://developers.google.com/search/docs/crawling-indexing/http-network-errors) descreve as consequências de forma mais concreta. 5xx e 429 desaceleram temporariamente o rastreador. URLs já indexadas são mantidas, mas, se isso continuar, acabam saindo do índice. 4xx diferentes de 429 não afetam a taxa de rastreamento. Aqui é preciso separar os caminhos com precisão. 5xx prolongado é um caminho para **sair do índice**; não encontrei nenhuma frase oficial dizendo que seja um sinal que derruba o ranking.
 
-O maior incidente de servidor deste blog foi o JIHOON-BLOG-2, em que uma chamada à GA Data API ficou pendurada por mais de 65 segundos. Mas a resposta foi 200, e o único que chama `src/lib/google-analytics.ts` é a rota `/api/analytics`, que não é o caminho que renderiza os documentos dos posts. Não há base para ligar esse incidente ao rastreamento, e também não abri o relatório Crawl Stats enquanto escrevia este post. **Não conecto o que não confirmei.**
+O maior incidente de servidor deste blog foi o JIHOON-BLOG-2, em que uma chamada à GA Data API ficou pendurada por mais de 65 segundos. A resposta foi 200. Hoje o único que chama `src/lib/google-analytics.ts` é a rota `/api/analytics`, mas em agosto era diferente. No JIHOON-BLOG-8, quando as chamadas ao GA voltaram a travar, a transaction do último evento foi a página inicial (`GET /`), e dos 10 eventos que ainda dá para consultar, 2 são `GET /` e 8 têm a transaction vazia. As chamadas ao GA também travaram em requisições à página inicial, que está aberta ao rastreamento. Mas não sei se isso afetou o rastreamento, porque não abri o relatório Crawl Stats enquanto escrevia este post. **Não conecto o que não confirmei.**
 
 ## A diferença de cliques entre page e query
 
@@ -99,7 +99,7 @@ Somando por dimensão o CSV que baixei em 11 de setembro de 2026, os números n�
 
 A primeira suspeita foi um limite de linhas. A [documentação da Search Analytics API](https://developers.google.com/webmaster-tools/v1/searchanalytics/query) diz que não garante todas as linhas e retorna as principais. Mas meu script faz a requisição com `rowLimit: 1000`, e as linhas de query que voltaram foram 128 e 66. **O limite não foi atingido, então o corte não é a causa.**
 
-Sobram duas explicações, e ambas estão na [ajuda do Search Console](https://support.google.com/webmasters/answer/17010575). Uma é a anonimização. Consultas pesquisadas muito raramente são excluídas da tabela de consultas por privacidade e só entram nos totais gerais. A outra é a [unidade de agregação](https://support.google.com/webmasters/answer/17011364). A dimensão query conta por propriedade. Se um usuário clica em sequência em dois links do mesmo site, é 1 clique. A dimensão page conta por URL, então o mesmo comportamento vira 2 cliques.
+Sobram duas explicações, e ambas estão na [ajuda do Search Console](https://support.google.com/webmasters/answer/17010575). Uma é a anonimização. Consultas pesquisadas muito raramente são excluídas da tabela de consultas por privacidade e só entram nos totais gerais. A outra é a [unidade de agregação](https://support.google.com/webmasters/answer/7576553). A dimensão query conta por propriedade. Como no exemplo da [explicação da agregação por propriedade](https://support.google.com/webmasters/answer/17011364), se um usuário clica em sequência em dois links do mesmo site, é 1 clique. A dimensão page conta por URL, então o mesmo comportamento vira 2 cliques.
 
 Portanto, esses dois totais nunca foram números construídos com as mesmas regras. Deixo registrada uma tentação. Nos últimos 28 dias, seis consultas tiveram cliques, e cinco delas eram consultas comparativas do Biome, como "eslint vs biome" e "biome vs prettier". Somando os cliques dessas cinco consultas dá 6, e por coincidência os cliques de page da URL em coreano do post do Biome também são 6. Parece encaixar perfeitamente, mas **não dá para ligar dois números com regras de agregação diferentes só porque são iguais.** Os dados de query devem ser lidos não como uma decomposição do tráfego, e sim como uma amostra que deixa entrever a intenção de busca.
 
@@ -134,15 +134,15 @@ E o período recente passa a incluir as cinco traduções deste post que commite
 
 Não atribuir causalidade no post do Biome não é só cautela. Neste blog existem condições reais em que a causalidade não pode ser isolada.
 
-Só no dia 11 de setembro de 2026 entraram seis mudanças relacionadas à busca. A restauração do cluster de hreflang das categorias e do x-default, a troca dos travessões longos no frontmatter, a reescrita de 48 `seoTitle` para 60 caracteres ou menos, a correção dos 404 das imagens OG dos posts, o limite de 1680px para as imagens do corpo e o `noindex` em 126 categorias com um único post. Em 14 de setembro, dividi um post de observabilidade em vários e os publiquei, e em 16 de setembro vieram a correção da reciprocidade do hreflang, a ampliação das descriptions das categorias, a adoção do IndexNow, a reescrita de títulos e descrições que estavam sendo cortados e a publicação de um post novo. A reescrita deste post também cai nesse período.
+Só no dia 11 de setembro de 2026 entraram seis mudanças relacionadas à busca, entre elas a restauração do hreflang, a reescrita de 48 títulos, a correção das imagens OG e o noindex em 126 categorias, e até o dia 16 vieram outra correção de hreflang, a adoção do IndexNow, a reescrita de títulos e descrições que eram cortados e a publicação de um post novo. A reescrita deste post também cai nesse período.
 
 Em 11 de setembro deixei um documento de linha de base. Nos últimos 28 dias até aquele momento, as páginas de posts em inglês tinham 892 impressões e 0 cliques, e decidi ver no início de outubro se esse número se move. Mas, mesmo que os cliques em inglês aumentem em outubro, não vou conseguir escolher uma única causa. Pode ser a correção do hreflang, a reescrita de títulos de 11 de setembro ou a correção dos cortes de 16 de setembro. Além disso, os dados da linha de base já trazem um contraexemplo. O zh-CN, que tinha só um título cortado, teve 7 cliques, o maior número entre as locales que não são coreano, o que torna difícil ver o corte de títulos como causa. **Por isso decidi que, na comparação de outubro, vou ler só a direção e não afirmar contribuições individuais.**
 
-## Da observação ao julgamento
+## Anotar primeiro a amostra e as regras de cada número
 
 Se os três primeiros posts mostraram as falhas silenciosas do servidor, o tempo que os visitantes esperaram e o lugar onde essa espera surgiu, os dados deste post são o que resta dessa experiência depois que ela sai do navegador e é filtrada pelas regras de outra pessoa. Por isso a conclusão também é um pouco mais defensiva. Os field data encolhem a cada etapa, com regras diferentes, ao passar por RUM, CrUX, PSI e Search Console, e em um site pequeno como este blog podem não sobreviver até o fim. O que o Google diz sobre ranking para em afirmar que as Core Web Vitals são usadas, e a documentação de rastreamento para em afirmar que respostas lentas e 5xx afetam o rastreamento e a indexação. Os totais de page e query do Search Console são números contados com regras diferentes, então não se somam. **Anotar primeiro, para cada número, quem foi contado e com quais regras, e parar onde o texto oficial para.** Transformar observação em julgamento foi, na maior parte, essas duas coisas.
 
-Eu também pretendo comparar a linha de base com o novo CSV em outubro lendo só a direção. Espero que quem lê este post também escolha uma métrica no próprio serviço, escreva em uma linha a amostra e as regras de agregação desse número e consulte de novo, com outro período, uma conclusão a que já tenha chegado.
+Eu também pretendo comparar a linha de base com o novo CSV em outubro lendo só a direção. Se você acompanhou esta série e da próxima vez precisar tomar uma decisão com base em um número de um dashboard, recomendo anotar primeiro, em uma linha, quem esse número contou e com quais regras. E consulte essa conclusão de novo um mês depois, com outro período.
 
 :::ref
 - [docs] [web.dev, Why lab and field data can be different](https://web.dev/articles/lab-and-field-data-differences)

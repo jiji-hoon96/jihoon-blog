@@ -1,20 +1,20 @@
 ---
 emoji: 🧩
 title: 'De la observación al juicio'
-seoTitle: 'CrUX y Search Console: los límites de Core Web Vitals'
+seoTitle: 'Core Web Vitals y SEO: lo que muestran CrUX y Search Console'
 date: '2026-09-16'
 updatedAt: '2026-09-16'
 categories: observabilidad frontend GA4 Search-Console
-description: 'Cómo CrUX, PageSpeed Insights y Search Console filtran las Web Vitals, qué dice Google sobre el ranking y un artículo que ganó clics al bajar de posición.'
+description: 'Cómo CrUX, PageSpeed Insights y Search Console filtran las Web Vitals, qué dice Google del ranking y un artículo con más clics pese a bajar de posición.'
 keywords: 'datos de campo CrUX, PageSpeed Insights datos de campo, informe Core Web Vitals Search Console, Core Web Vitals afecta al posicionamiento, clics por consulta y por página Search Console, posición media bajó clics subieron, frecuencia de rastreo 5xx 429'
 locale: es
 translationOf: '260916'
-sourceHash: 09bd51bac82d7b631fb466afbd28b6124fe54187fadff533b9bbd970471079b4
+sourceHash: 28511e965ad669a872b9c5ac03c453af63c8424d8e9db750ab0e7223d13ed4fb
 ---
 
 En este artículo quiero hablar del camino que recorren los datos de rendimiento medidos en el navegador hasta llegar a la búsqueda y al juicio.
 
-Los tres primeros artículos de esta serie trataron señales que tengo yo mismo. En [Volver a abrir Sentry](/260913) vimos las llamadas que fallan en silencio en el servidor; en [Observabilidad del navegador](/260914), la red y el renderizado; y en [La CPU y la memoria del navegador](/260915), el hilo principal y la memoria. En los tres casos se trata de datos para los que yo mismo inserté el código de instrumentación y que leo desde mi propio almacenamiento.
+Los tres primeros artículos de esta serie trataron señales que tengo yo mismo. En [Volver a abrir Sentry](/260913) vimos las llamadas que fallan en silencio en el servidor; en [Observabilidad del navegador](/260914), la red y el renderizado; y en [CPU y memoria del navegador](/260915), el hilo principal y la memoria. En los tres casos se trata de datos para los que yo mismo inserté el código de instrumentación y que leo desde mi propio almacenamiento.
 
 Los datos de este artículo son de otra naturaleza. Los valores generados en los navegadores de los visitantes pasan al pipeline estadístico de Chrome, y el resultado vuelve a aparecer en PageSpeed Insights y en :term[Search Console]{key="search-console"}. De quién se cuenta la experiencia, cuántos datos deben acumularse para mostrarse y en qué unidades se agrupan lo decide todo Google.
 
@@ -87,7 +87,7 @@ La [guía de crawl budget](https://developers.google.com/search/docs/crawling-in
 
 Aun así, conviene conocer la regla de capacidad de rastreo de la guía. Si el tiempo de respuesta se mantiene estable o mejora, el límite sube; si se vuelve lento o se envían 5xx o 429, baja. La [documentación de códigos de estado HTTP](https://developers.google.com/search/docs/crawling-indexing/http-network-errors) describe las consecuencias con más detalle. Los 5xx y 429 ralentizan temporalmente al rastreador. Las URLs ya indexadas se mantienen, pero si continúa, acaban saliendo del índice. Los 4xx distintos de 429 no afectan a la velocidad de rastreo. Aquí hay que distinguir con precisión los caminos. Los 5xx prolongados son un camino hacia **la salida del índice**; no encontré ninguna frase oficial que diga que sean una señal que rebaje el posicionamiento.
 
-El mayor incidente de servidor de este blog fue JIHOON-BLOG-2, en el que una llamada a la GA Data API se quedó colgada más de 65 segundos. Pero la respuesta fue 200, y el único que llama a `src/lib/google-analytics.ts` es la ruta `/api/analytics`, que no es el camino que renderiza los documentos de los artículos. No hay base para vincular este incidente con el rastreo, y tampoco abrí el informe Crawl Stats mientras escribía este artículo. **No conecto lo que no he comprobado.**
+El mayor incidente de servidor de este blog fue JIHOON-BLOG-2, en el que una llamada a la GA Data API se quedó colgada más de 65 segundos. La respuesta fue 200. Hoy el único que llama a `src/lib/google-analytics.ts` es la ruta `/api/analytics`, pero en agosto la situación era otra. En JIHOON-BLOG-8, cuando las llamadas a GA volvieron a quedarse colgadas, la transaction del último evento fue la página de inicio (`GET /`), y de los 10 eventos que todavía se pueden consultar, 2 son `GET /` y 8 tienen la transaction vacía. Las llamadas a GA también se colgaron en peticiones a la página de inicio, que está abierta al rastreo. Pero no sé si eso afectó al rastreo, porque no abrí el informe Crawl Stats mientras escribía este artículo. **No conecto lo que no he comprobado.**
 
 ## La diferencia de clics entre page y query
 
@@ -99,7 +99,7 @@ Si sumo por dimensión el CSV que descargué el 11 de septiembre de 2026, los n�
 
 Lo primero que sospeché fue un límite de filas. La [documentación de la Search Analytics API](https://developers.google.com/webmaster-tools/v1/searchanalytics/query) dice que no garantiza todas las filas y que devuelve las principales. Pero mi script pide `rowLimit: 1000`, y las filas de query devueltas fueron 128 y 66. **No se llegó al límite, así que el recorte no es la causa.**
 
-Quedan dos explicaciones, y ambas están en la [ayuda de Search Console](https://support.google.com/webmasters/answer/17010575). Una es la anonimización. Las consultas que se buscan muy rara vez se excluyen de la tabla de consultas por privacidad y solo se incluyen en los totales generales. La otra es la [unidad de agregación](https://support.google.com/webmasters/answer/17011364). La dimensión query cuenta por propiedad. Si un usuario hace clic sucesivamente en dos enlaces del mismo sitio, es 1 clic. La dimensión page cuenta por URL, así que el mismo comportamiento se convierte en 2 clics.
+Quedan dos explicaciones, y ambas están en la [ayuda de Search Console](https://support.google.com/webmasters/answer/17010575). Una es la anonimización. Las consultas que se buscan muy rara vez se excluyen de la tabla de consultas por privacidad y solo se incluyen en los totales generales. La otra es la [unidad de agregación](https://support.google.com/webmasters/answer/7576553). La dimensión query cuenta por propiedad. Según el ejemplo de la [explicación de la agregación por propiedad](https://support.google.com/webmasters/answer/17011364), si un usuario hace clic sucesivamente en dos enlaces del mismo sitio, es 1 clic. La dimensión page cuenta por URL, así que el mismo comportamiento se convierte en 2 clics.
 
 Por lo tanto, estos dos totales nunca fueron números construidos con las mismas reglas. Dejo anotada una tentación. En los últimos 28 días hubo seis consultas con clics, y cinco de ellas eran consultas comparativas de Biome, como "eslint vs biome" y "biome vs prettier". Esas cinco consultas suman 6 clics, y justo los clics de page de la URL en coreano del artículo de Biome también son 6. Parece encajar a la perfección, pero **no se pueden vincular dos números con reglas de agregación distintas solo porque sean iguales.** Los datos de query no deben leerse como un desglose del tráfico, sino como una muestra que deja entrever la intención de búsqueda.
 
@@ -107,7 +107,7 @@ Por lo tanto, estos dos totales nunca fueron números construidos con las mismas
 
 Hay un caso en el que de verdad tomé una decisión con estos datos de búsqueda. [¿Puede Biome reemplazar a ESLint y Prettier?](/241201) es un artículo que escribí en diciembre de 2024 y que tenía llamativamente pocos clics en relación con sus impresiones. Así que el 11 de junio de 2026 le puse un `seoTitle` que empieza por "Biome vs ESLint vs Prettier", ajustado a la forma de las consultas reales.
 
-En la comparación de 28 días recogida después de cambiar el título, los números de este artículo se movieron así. (Son los valores que consulté entonces. `.gsc-data/` se sobrescribe en cada recogida, así que aquel CSV ya no está en el repositorio, y tampoco guardé la fecha exacta de la recogida. Lo único comprobable es que estos números ya aparecen en la instantánea del borrador fechada el 16 de agosto que incluye un commit del 18 de agosto) Las impresiones bajaron un 11%, de 230 a 204, y la posición media retrocedió de 8,9 a 11,6. Mirando solo esas dos métricas, el artículo empeoró. Sin embargo, los clics subieron de 2 a 13 y el CTR pasó del 0,87% al 6,37%.
+En la comparación de 28 días recogida después de cambiar el título, los números de este artículo se movieron así. (Son los valores que consulté entonces. `.gsc-data/` se sobrescribe en cada recogida, así que aquel CSV ya no está en el repositorio, y tampoco guardé la fecha exacta de la recogida. Lo único comprobable es que estos números ya aparecen en la instantánea del borrador fechada el 16 de agosto e incluida en un commit del 18 de agosto) Las impresiones bajaron un 11%, de 230 a 204, y la posición media retrocedió de 8,9 a 11,6. Mirando solo esas dos métricas, el artículo empeoró. Sin embargo, los clics subieron de 2 a 13 y el CTR pasó del 0,87% al 6,37%.
 
 ![En la comparación de 28 días de Search Console para el artículo de Biome, las impresiones y la posición media empeoraron, pero los clics y el porcentaje de clics subieron mucho](2.png?w=720)
 
@@ -128,21 +128,21 @@ Si se ordenan por fecha de recogida los dos valores anteriores (8,9 y 11,6) y lo
 
 Aun así, la conclusión de la sección anterior no se invierte. 6 clics y un CTR del 3,24% siguen siendo más que en el periodo anterior de la primera comparación (2 clics, 0,87%). Pero se sumó una lección. No solo la elección de la métrica, sino **también la elección del periodo de comparación cambia la conclusión.** Si se cierra una historia con una sola comparación de 28 días, los 28 días siguientes la rompen.
 
-Además, en el periodo reciente entran por primera vez las cinco traducciones de este artículo que hice commit el 17 de agosto. La versión en inglés, `/en/241201`, tuvo 84 impresiones y 0 clics, y la versión en chino, 12 impresiones y 1 clic. Todavía no sé si las traducciones se repartieron las impresiones con la URL en coreano ni por qué la posición media sigue retrocediendo. Hasta comprobarlo, lo dejo sin resolver.
+Además, en el periodo reciente entran por primera vez las cinco traducciones de este artículo que subí en un commit el 17 de agosto. La versión en inglés, `/en/241201`, tuvo 84 impresiones y 0 clics, y la versión en chino, 12 impresiones y 1 clic. Todavía no sé si las traducciones se repartieron las impresiones con la URL en coreano ni por qué la posición media sigue retrocediendo. Hasta comprobarlo, lo dejo sin resolver.
 
 ## Cambios superpuestos en un mismo periodo
 
 No atribuir causalidad en el artículo de Biome no es solo cuestión de prudencia. En este blog existen condiciones reales en las que la causalidad no se puede aislar.
 
-Solo el 11 de septiembre de 2026 entraron seis cambios relacionados con la búsqueda. La recuperación del clúster hreflang de las categorías y de x-default, la sustitución de rayas largas en el frontmatter, la reescritura de 48 `seoTitle` a 60 caracteres o menos, la corrección de los 404 de las imágenes OG de los artículos, el límite de 1680px para las imágenes del cuerpo y el `noindex` en 126 categorías con un solo artículo. El 14 de septiembre dividí un artículo de observabilidad en varios y los publiqué, y el 16 de septiembre siguieron la corrección de la reciprocidad de hreflang, la ampliación de las descripciones de categoría, la introducción de IndexNow, la reescritura de títulos y descripciones que se estaban cortando y la publicación de un artículo nuevo. La reescritura de este artículo también entra en ese periodo.
+Solo el 11 de septiembre de 2026 entraron seis cambios relacionados con la búsqueda, entre ellos la recuperación de hreflang, la reescritura de 48 títulos, la corrección de las imágenes OG y el noindex en 126 categorías, y hasta el 16 siguieron otra corrección de hreflang, la introducción de IndexNow, la reescritura de títulos y descripciones que se cortaban y la publicación de un artículo nuevo. La reescritura de este artículo también entra en ese periodo.
 
 El 11 de septiembre dejé un documento de línea base. En los últimos 28 días hasta ese momento, las páginas de artículos en inglés tenían 892 impresiones y 0 clics, y decidí ver a principios de octubre si ese número se mueve. Pero aunque los clics en inglés suban en octubre, no podré elegir una única causa. Puede ser la corrección de hreflang, la reescritura de títulos del 11 de septiembre o la corrección de los cortes del 16 de septiembre. Además, los datos de la línea base ya contienen un contraejemplo. zh-CN, que solo tenía un título cortado, tuvo 7 clics, la mayor cifra entre los locales que no son coreano, lo que hace difícil ver el corte de títulos como la causa. **Por eso decidí que en la comparación de octubre leeré solo la dirección y no afirmaré contribuciones individuales.**
 
-## De la observación al juicio
+## Anotar primero la muestra y las reglas de cada número
 
 Si los tres primeros artículos mostraron los fallos silenciosos del servidor, el tiempo que esperaron los visitantes y el lugar donde se originó esa espera, los datos de este artículo son lo que queda de esa experiencia después de salir del navegador y pasar por las reglas de otros. Por eso la conclusión también es un poco más defensiva. Los datos field se reducen en cada etapa, con reglas distintas, al pasar por RUM, CrUX, PSI y Search Console, y en un sitio tan pequeño como este blog puede que no sobrevivan hasta el final. Lo que Google dice del ranking se detiene en que Core Web Vitals se usan, y la documentación de rastreo se detiene en que las respuestas lentas y los 5xx afectan al rastreo y a la indexación. Los totales de page y query de Search Console son números contados con reglas distintas, así que no cuadran entre sí. **Anotar primero, para cada número, a quién se contó y con qué reglas, y detenerse donde se detiene el texto oficial.** Convertir la observación en juicio consistió, sobre todo, en esas dos cosas.
 
-Yo también pienso comparar en octubre la línea base con el nuevo CSV leyendo solo la dirección. Ojalá quienes lean este artículo elijan una métrica de su propio servicio, escriban en una línea la muestra y las reglas de agregación de ese número, y vuelvan a consultar con otro periodo una conclusión a la que ya hayan llegado.
+Yo también pienso comparar en octubre la línea base con el nuevo CSV leyendo solo la dirección. Si has seguido esta serie y la próxima vez te toca decidir algo a partir de un número de un dashboard, te recomiendo anotar primero, en una sola línea, a quién contó ese número y con qué reglas. Y vuelve a consultar esa conclusión un mes después con otro periodo.
 
 :::ref
 - [docs] [web.dev, Why lab and field data can be different](https://web.dev/articles/lab-and-field-data-differences)

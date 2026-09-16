@@ -1,7 +1,7 @@
 ---
 emoji: 🧩
 title: 'From Observation to Judgment'
-seoTitle: 'CrUX, Search Console, and the Limits of Core Web Vitals Data'
+seoTitle: 'Core Web Vitals and SEO: What CrUX and Search Console Show'
 date: '2026-09-16'
 updatedAt: '2026-09-16'
 categories: observability frontend GA4 Search-Console
@@ -9,7 +9,7 @@ description: 'How CrUX, PageSpeed Insights, and Search Console filter Web Vitals
 keywords: 'CrUX field data, PageSpeed Insights field data, Search Console Core Web Vitals report, do Core Web Vitals affect ranking, Search Console query vs page clicks, average position dropped clicks increased, crawl rate 5xx 429'
 locale: en
 translationOf: '260916'
-sourceHash: 09bd51bac82d7b631fb466afbd28b6124fe54187fadff533b9bbd970471079b4
+sourceHash: 28511e965ad669a872b9c5ac03c453af63c8424d8e9db750ab0e7223d13ed4fb
 ---
 
 In this post, I want to talk about the path that performance data measured in the browser takes on its way to search and to judgment.
@@ -87,7 +87,7 @@ Google's [crawl budget guide](https://developers.google.com/search/docs/crawling
 
 Still, the guide's crawl capacity rule is worth knowing. When response times are stable or improve, the limit goes up; when they slow down or the site sends 5xx or 429, it goes down. The [HTTP status code documentation](https://developers.google.com/search/docs/crawling-indexing/http-network-errors) spells out the consequences more concretely. 5xx and 429 temporarily slow the crawler down. URLs that are already indexed are kept, but if it continues they eventually drop out of the index. 4xx other than 429 have no effect on crawl rate. The paths need to be separated precisely here. Prolonged 5xx is a path to **dropping out of the index**; I could not find an official statement that it is a signal that lowers rankings.
 
-The biggest server incident on this blog was JIHOON-BLOG-2, where a GA Data API call hung for over 65 seconds. But the response was 200, and the only caller of `src/lib/google-analytics.ts` is the `/api/analytics` route, which is not the path that renders post documents. There is no basis for tying this incident to crawling, and I did not open the Crawl Stats report while writing this post either. **I do not connect what I have not confirmed.**
+The biggest server incident on this blog was JIHOON-BLOG-2, where a GA Data API call hung for over 65 seconds. The response was 200. Today the only caller of `src/lib/google-analytics.ts` is the `/api/analytics` route, but August was different. In JIHOON-BLOG-8, where GA calls stalled again at that time, the last event's transaction was the home page (`GET /`), and of the 10 events still retrievable, 2 are `GET /` and 8 have an empty transaction. GA calls stalled on requests for the home page too, a page that is open to crawling. Whether that affected crawling, I do not know, because I did not open the Crawl Stats report while writing this post. **I do not connect what I have not confirmed.**
 
 ## The click gap between page and query
 
@@ -99,7 +99,7 @@ Summing the CSV I pulled on September 11, 2026, by dimension, the numbers do not
 
 The first suspect was a row limit. The [Search Analytics API documentation](https://developers.google.com/webmaster-tools/v1/searchanalytics/query) says it does not guarantee all rows and returns the top rows. But my script requests with `rowLimit: 1000`, and the query rows that came back numbered 128 and 66. **The limit was never reached, so truncation is not the cause.**
 
-Two explanations remain, and both are in the [Search Console help](https://support.google.com/webmasters/answer/17010575). One is anonymization. Very rarely searched queries are excluded from the query table for privacy and are included only in the overall totals. The other is the [unit of aggregation](https://support.google.com/webmasters/answer/17011364). The query dimension counts by property. If a user clicks two links to the same site one after another, that is 1 click. The page dimension counts by URL, so the same behavior becomes 2 clicks.
+Two explanations remain, and both are in the [Search Console help](https://support.google.com/webmasters/answer/17010575). One is anonymization. Very rarely searched queries are excluded from the query table for privacy and are included only in the overall totals. The other is the [unit of aggregation](https://support.google.com/webmasters/answer/7576553). The query dimension counts by property. As the example in the [explanation of property aggregation](https://support.google.com/webmasters/answer/17011364) shows, if a user clicks two links to the same site one after another, that is 1 click. The page dimension counts by URL, so the same behavior becomes 2 clicks.
 
 So these two totals were never numbers built by the same rules in the first place. Let me write down one temptation. In the last 28 days, six queries registered clicks, and five of them were Biome comparison queries such as "eslint vs biome" and "biome vs prettier". Those five queries add up to 6 clicks, and the page clicks for the Korean URL of the Biome post also happen to be 6. It looks like a perfect fit, but **you cannot link two numbers with different aggregation rules just because they are equal.** Query data should be read not as a breakdown of traffic but as a sample that offers a glimpse of search intent.
 
@@ -134,15 +134,15 @@ And the recent period newly includes the five translations of this post committe
 
 Not attaching causation to the Biome post is not just caution. This blog has conditions under which causation genuinely cannot be separated.
 
-On a single day, September 11, 2026, six search-related changes went in. Restoring the category hreflang cluster and x-default, replacing long dashes in frontmatter, rewriting 48 `seoTitle` values to 60 characters or fewer, fixing post OG image 404s, capping body images at 1680px, and setting `noindex` on 126 single-post category pages. On September 14, I split one observability post into several and published them, and on September 16 came a round-trip hreflang fix, expanded category descriptions, the introduction of IndexNow, rewrites of titles and descriptions that were being truncated, and a new post. The rewrite of this post falls into the same window.
+On September 11, 2026 alone, six search-related changes went in, including the hreflang restoration, rewrites of 48 titles, OG image fixes, and noindex on 126 category pages, and through the 16th more followed: another hreflang fix, the introduction of IndexNow, rewrites of truncated titles and descriptions, and a new post. The rewrite of this post falls into the same window.
 
 I left a baseline document on September 11. In the last 28 days as of then, English post pages had 892 impressions and 0 clicks, and I decided to see in early October whether this number moves. But even if English clicks rise in October, I cannot pick a single cause. It could be the hreflang fix, the title rewrites of September 11, or the truncation fix of September 16. On top of that, the baseline data already contains one counterexample. zh-CN, which had only one truncated title, got 7 clicks, the most among the non-Korean locales, which makes it hard to see title truncation as the cause. **So in the October comparison, I decided to read only the direction and not claim individual contributions.**
 
-## From observation to judgment
+## Write down each number's sample and rules first
 
 If the first three posts showed silent failures on the server, the time visitors waited, and where that waiting came from, the data in this post is what that experience became after leaving the browser and being filtered through someone else's rules. So the conclusion is a bit more defensive too. Field data shrinks at every stage through RUM, CrUX, PSI, and Search Console, each with different rules, and on a site as small as this blog it may not survive to the end. Google's ranking statement stops at saying Core Web Vitals are used, and the crawling documentation stops at saying slow responses and 5xx affect crawling and indexing. Search Console's page and query totals are numbers counted by different rules, so they do not add up. **Write down first who was counted by what rules for each number, and stop where the official wording stops.** Turning observation into judgment was mostly those two things.
 
-In October, I too plan to compare the baseline with the new CSV and read only the direction. I hope readers will also pick one metric in their own service, write down that number's sample and aggregation rules in a single line, and re-query a conclusion they have reached with a different period.
+In October, I too plan to compare the baseline with the new CSV and read only the direction. If you have followed this series and next find yourself making a decision based on a single number on a dashboard, I recommend first writing down, in one line, who that number counted and by what rules. Then query that conclusion again a month later over a different period.
 
 :::ref
 - [docs] [web.dev, Why lab and field data can be different](https://web.dev/articles/lab-and-field-data-differences)
