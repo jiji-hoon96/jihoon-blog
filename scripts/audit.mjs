@@ -195,7 +195,29 @@ if (existsSync(".next/static/chunks")) {
 	walk(".next/server");
 	walk(".next/static");
 	const mapMb = maps.reduce((s, p) => s + statSync(p).size, 0) / 1048576;
-	record("build", "소스맵 잔존", maps.length ? "fail" : "pass", maps.length ? `${maps.length}개 ${mapMb.toFixed(1)} MB` : "없음");
+
+	// 삭제는 업로드에 딸려 있다. next.config.ts 가 토큰이 없으면 업로드를 끄고
+	// filesToDeleteAfterUpload 도 빈 배열로 두기 때문이다. 그래서 토큰 없이 돌린
+	// 빌드(CI 등)에 맵이 남는 것은 설정대로 동작한 결과이지 회귀가 아니다.
+	// 다만 그 상태로 배포하면 Netlify 함수 번들에 148MB 가 그대로 실리므로
+	// 조용히 넘기지 않고 경고로 남긴다.
+	// next.config.ts 는 Next 가 먼저 읽어 준 .env 를 통해 토큰을 본다. 이 스크립트는
+	// 별도 프로세스라 그 값이 없으므로 같은 파일을 직접 읽는다. 이걸 빼먹으면
+	// 토큰이 있는데 삭제가 안 된 진짜 회귀까지 경고로 내려간다.
+	const uploadRan =
+		Boolean(process.env.SENTRY_AUTH_TOKEN) ||
+		[".env", ".env.local"].some(
+			(file) => existsSync(file) && /^\s*SENTRY_AUTH_TOKEN\s*=\s*\S/m.test(readFileSync(file, "utf8")),
+		);
+	record(
+		"build",
+		"소스맵 잔존",
+		maps.length === 0 ? "pass" : uploadRan ? "fail" : "warn",
+		maps.length === 0
+			? "없음"
+			: `${maps.length}개 ${mapMb.toFixed(1)} MB` +
+				(uploadRan ? " (업로드 후에도 남았다)" : " (SENTRY_AUTH_TOKEN 이 없어 업로드와 삭제가 모두 건너뛰어졌다)"),
+	);
 
 	// 서버 전용 Sentry 구성을 유지하는지. 클라이언트 SDK 는 번들을 79 KB 늘린다.
 	record(

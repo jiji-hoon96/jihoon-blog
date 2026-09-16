@@ -218,6 +218,8 @@ Turbopack 빌드도 업로드를 지원한다. `useRunAfterProductionCompileHook
 
 업로드 후 `.map` 을 지우는 이유는 용량이다. Turbopack 이 만드는 서버 소스맵이 57MB 로 서버 JS(15MB) 보다 큰데, 지우지 않으면 그게 전부 Netlify 함수 번들에 실린다. 업로드 후에는 필요 없다.
 
+**토큰이 없으면 삭제도 같이 건너뛰어진다.** 삭제는 업로드에 딸려 있어서, `SENTRY_AUTH_TOKEN` 이 없는 환경에서는 `filesToDeleteAfterUpload` 가 빈 배열이 된다. CI 첫 실행에서 서버 소스맵 115개 148MB 가 그대로 남는 것으로 확인했다. CI 는 배포하지 않으므로 해가 없지만, 토큰 없이 배포하면 그 용량이 Netlify 함수 번들에 전부 실린다. 그래서 `pnpm audit:repo` 는 이 경우를 FAIL 이 아니라 WARN 으로 남긴다. 토큰이 있는데도 맵이 남아 있으면 그때가 FAIL 이다.
+
 **여기서 `deleteSourcemapsAfterUpload: true` 는 쓰지 않는다.** 그 옵션은 `.next/static` 만 지우고 정작 용량을 차지하는 `.next/server` 는 남긴다. 실측으로 확인했다(업로드 직후에도 서버 `.map` 135개 / 57MB 잔존). 그래서 `filesToDeleteAfterUpload` 로 `.next/server/**/*.map` 과 `.next/static/**/*.map` 을 직접 지정한다.
 
 `silent` 은 조건부다. 항상 켜두면 토큰 스코프 부족이나 만료로 업로드가 실패해도 조용히 넘어가서, 다음에 읽을 수 없는 스택 트레이스를 볼 때까지 알 수 없다. 업로드를 시도할 때만 로그를 남긴다.
