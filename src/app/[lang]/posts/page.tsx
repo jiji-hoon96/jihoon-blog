@@ -64,8 +64,62 @@ export default async function AllPostsPage({
   const categories = getAllCategories(localePosts)
   const sortedPosts = getSortedPublishedPosts(localePosts)
 
+  const postsUrl = `${siteMetadata.siteUrl}${toPublicPath(lang, '/posts')}`
+  // 카테고리 페이지는 CollectionPage 를 내는데 상위인 전체 목록에는 없었다.
+  // 목록 페이지가 어떤 글을 담고 있는지 크롤러가 HTML 파싱에만 의존하게 된다.
+  const collectionLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: dictionary.posts.allPosts,
+    description: dictionary.siteDescription,
+    url: postsUrl,
+    inLanguage: lang,
+    isPartOf: {
+      '@type': 'WebSite',
+      name: siteMetadata.title,
+      url: siteMetadata.siteUrl,
+    },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: sortedPosts.length,
+      itemListElement: sortedPosts.slice(0, 20).map((post, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `${siteMetadata.siteUrl}${post.slug}`,
+        name: post.title,
+      })),
+    },
+  }
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: `${siteMetadata.siteUrl}${toPublicPath(lang, '/')}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: dictionary.posts.allPosts,
+        item: postsUrl,
+      },
+    ],
+  }
+
   return (
     <div className="py-10 sm:py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <header className="pb-6">
         <h1 className="text-[2rem] sm:text-[2.5rem] font-bold leading-[1.18] tracking-[-0.03em]">
           {dictionary.posts.allPosts}

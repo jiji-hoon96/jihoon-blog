@@ -23,8 +23,50 @@ export default async function GuestbookPage({ params }: { params: Promise<{ lang
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
   const dictionary = getDictionary(lang);
+  const guestbookUrl = `${siteMetadata.siteUrl}${toPublicPath(lang, "/guestbook")}`;
+  const pageLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: dictionary.navigation.guestbook,
+    description: dictionary.guestbook.description,
+    url: guestbookUrl,
+    inLanguage: lang,
+    isPartOf: {
+      "@type": "WebSite",
+      name: siteMetadata.title,
+      url: siteMetadata.siteUrl,
+    },
+  };
+
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: `${siteMetadata.siteUrl}${toPublicPath(lang, "/")}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: dictionary.navigation.guestbook,
+        item: guestbookUrl,
+      },
+    ],
+  };
+
   return (
     <div className="py-10 sm:py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pageLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       {/* Guestbook Banner */}
       <div className="mb-12">
         <h1 className="text-[2rem] sm:text-[2.5rem] font-bold leading-[1.18] tracking-[-0.03em] mb-3">{dictionary.guestbook.title}</h1>
