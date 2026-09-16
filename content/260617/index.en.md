@@ -1,7 +1,7 @@
 ---
 emoji: 📅
 title: 'Kalyx'
-seoTitle: 'Kalyx: A Headless React DatePicker That Gets Timezones Right'
+seoTitle: 'Kalyx: Stopping the Off-by-One-Day Timezone Bug in React'
 date: '2026-06-17'
 updatedAt: '2026-09-16'
 categories: Library React DatePicker Open-Source
@@ -9,20 +9,20 @@ description: 'Why I built Kalyx, a headless React DatePicker, and how it differs
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React date picker timezone, ISO 8601 UTC date string, date off by one day bug, DST bug JavaScript, fast-check property testing, react-day-picker alternative'
 locale: en
 translationOf: '260617'
-sourceHash: 15dcfd39502cf19fbd1b9cae7edec991beacef87ce2bdfc38fe25aa497a6ad87
+sourceHash: 5abb83b574bf7a755c4f28002285feb908df52664684cce8182222c53694936d
 ---
 
 In this post, I want to talk about **Kalyx**, the headless React DatePicker library I built.
 
 This is a rewrite of a retrospective I wrote in June 2026. The original post's headline claim, "seven pickers behind one API, smaller than a single calendar from a competing library," turned out on re-examination to be half wrong and half not a differentiator. So I am reorganizing it in three parts: why I built it, how it differs from existing options, and a technical definition.
 
-To give the conclusion first, what sets Kalyx apart is not the number of components but its **value model**. The reference version is `@kalyx/react` 1.4.7 (MIT, React 19 only), and code excerpts come from the [GitHub repository](https://github.com/jiji-hoon96/kalyx) at `main` as of 2026-09-11.
+To give the conclusion first, what sets Kalyx apart is not the number of components but its **value model**. The reference versions are `@kalyx/react` 1.4.7 and `@kalyx/core` 1.4.8 (MIT, React 19 only), and code excerpts come from the [GitHub repository](https://github.com/jiji-hoon96/kalyx) at `main` as of 2026-09-16 (`0bb302e`).
 
 ---
 
-## I wanted to use date libraries declaratively
+## I wanted to use date pickers declaratively
 
-I had two reasons for building it. I wanted to use complex, hard-to-use date libraries in a more declarative and simple way, and I wanted to learn how such a library is built on the inside. "Hard to use" is vague, so let me point to the places I got stuck, using each library's type definitions.
+I had two reasons for building it. I wanted to use complex, hard-to-use date libraries in a more declarative and simple way, and I wanted to learn how such a library is built on the inside. "Hard to use" is vague, so I went back to each library's type definitions to check whether the places I got stuck are still there in the latest versions.
 
 ### An API that switches modes with props
 
@@ -40,17 +40,17 @@ It is a well-crafted union, but branches multiply as modes are added, and the co
 
 ### Where value types and timezones leak
 
-react-datepicker and react-day-picker pass native `Date` objects around. Because a `Date` is interpreted in the runtime's local timezone, in Seoul, `new Date(2026, 3, 15)` run through `toISOString()` gives `2026-04-14T15:00:00.000Z`. You pick April 15, and the server sees the 14th. react-datepicker's ["Date Selected is One Day Off"](https://github.com/Hacker0x01/react-datepicker/issues/1018) issue was opened in September 2017 and closed in December 2025.
+react-datepicker and react-day-picker pass native `Date` objects around. Both have an IANA `timeZone` prop (react-datepicker needs the optional peer `date-fns-tz`, and in react-day-picker it is experimental), but the value type is still `Date`. Because a `Date` is interpreted in the runtime's local timezone, in Seoul, `new Date(2026, 3, 15)` run through `toISOString()` gives `2026-04-14T15:00:00.000Z`. You pick April 15, and the server sees the 14th. react-datepicker's ["Date Selected is One Day Off"](https://github.com/Hacker0x01/react-datepicker/issues/1018) issue was opened in September 2017 and closed in December 2025.
 
 On the other side, Ark UI and React Aria use `@internationalized/date` objects such as `CalendarDate` and `ZonedDateTime`. The semantics are precise, but in an app where form state and server responses are all strings, conversion code appears at every boundary.
 
 Timezone support can also be tied to your choice of date library. Looking at the adapter code in MUI X Date Pickers 9.13.0, the dayjs, Luxon, and Moment adapters have `isTimezoneCompatible = true`, while the date-fns family has `false`. An app on date-fns has to bring in a second date library to use the `timezone` prop.
 
-In short, modes were scattered across prop combinations, values across objects bound to the local timezone, and timezone support across the choice of date library, so **it was hard to express intent in a single declaration.**
+In short, modes were scattered across prop combinations, values across `Date` objects whose interpretation depends on the runtime, and timezone support across the choice of date library, so **it was hard to express intent in a single declaration.**
 
 ### Learning by building
 
-A date picker looks small, but it contains calendar arithmetic, locales, timezones and DST, keyboard navigation, and SSR. Reading about these in documentation is different from drawing the boundaries yourself and guarding them with tests. So I set two goals: on the consumer side, you should be able to read what is being built just from the JSX; on the implementation side, the code should be narrow enough that I can explain where values get converted.
+A date picker looks small, but it contains calendar arithmetic, locales, timezones and DST, keyboard navigation, and SSR. So I set two goals: on the consumer side, you should be able to read what is being built just from the JSX; on the implementation side, the code should be narrow enough that I can explain where values get converted.
 
 So was there really no library that had already solved these needs?
 
@@ -58,7 +58,7 @@ So was there really no library that had already solved these needs?
 
 ## How it differs from existing options
 
-The short answer is that there was. In the original post I wrote as if "no library is both headless and ships multiple pickers," but when I researched again, that premise was wrong.
+The short answer is that there was. I started out believing that no library was both headless and shipped multiple pickers, but when I researched again, that premise was wrong.
 
 ### The value model each option chose
 
@@ -69,11 +69,11 @@ The following was verified on 2026-09-16 by installing the latest version of eac
 | react-day-picker 10.0.1 | No (ships CSS) | `Date` | None | None | 20.0KB |
 | react-datepicker 9.1.0 | No (CSS import) | `Date` | `showTimeSelect` | Via props | 45.4KB |
 | MUI X 9.13.0 | No (Material) | Adapter object | TimePicker | `views` | 113.1KB |
-| Ark UI 5.39.2 | Yes | `@internationalized/date` | Segmented input | `minView` | 42.7KB |
-| React Aria Components 1.21.1 | Yes | `@internationalized/date` | `TimeField` segments | None | 78.8KB |
-| Kalyx 1.4.7 | Yes | ISO 8601 UTC string | List-based HourList, MinuteList | MonthPicker, YearPicker | 18.9KB (DatePicker), 25.7KB (all) |
+| Ark UI 5.39.2 | Yes | `@internationalized/date` | Separate `DateInput` segments (not in size) | `minView` | 42.7KB |
+| React Aria Components 1.21.1 | Yes | `@internationalized/date` | `TimeField` segments | None | 75.3KB (DatePicker), 78.8KB (with range and time) |
+| Kalyx 1.4.7 | Yes | ISO 8601 UTC string | List-based HourList, MinuteList | MonthPicker, YearPicker | 18.9KB (DatePicker), 25.6KB (all) |
 
-react-day-picker states in its [official guide](https://daypicker.dev/guides/timepicker) that "DayPicker does not include a built-in time picker." MUI X's range selection is not in the Community package; it is in Pro. The MUI size includes `@mui/material` and emotion, so if you already have a MUI app, the actual increase is much smaller.
+react-day-picker states in its [official guide](https://daypicker.dev/guides/timepicker) that "DayPicker does not include a built-in time picker." The MUI size includes `@mui/material` and emotion, so if you already have a MUI app, the increase is much smaller.
 
 ### Complete headless options already exist
 
@@ -81,11 +81,11 @@ The rows that matter in the table are Ark UI and React Aria. [Ark UI](https://ar
 
 > Complete headless options already exist. However, Ark UI and React Aria exchange values as `@internationalized/date` objects and offer time input as segmented fields. Kalyx fixes values as UTC instant strings that go straight into JSON, and puts a list-based TimePicker along with month, year, and week pickers into the same composition API.
 
-Still, "values are strings, which is nice" is a weak claim. A `CalendarDate` becomes a string with a single `toString()`. The differentiator is not the format but **the contract that the string is always an instant, and the tests that keep that contract**. Dot notation is not a differentiator either, since Ark UI uses it too.
+Still, "values are strings, which is nice" is a weak claim. A `CalendarDate` becomes a string with a single `toString()`. The differentiator is not the format but **the contract that the string is always a real moment (an instant) and never mixed up with a calendar cell (a coordinate), and the tests that keep that contract**.
 
 ### Re-measuring bundle size with one method
 
-The bundle comparison in the original post was measuring different quantities. The roughly 19.5KB on the README badge is a single file in `@kalyx/react`'s `dist`, and that file leaves `@kalyx/core`, `@kalyx/adapter-date-fns`, and `@floating-ui/react` as external imports. I had placed that number next to other libraries' numbers that included their dependencies.
+The bundle size on the README badge was not a quantity you could compare with other libraries. The badge's roughly 19.5KB is a single file in `@kalyx/react`'s `dist`, and that file leaves `@kalyx/core`, `@kalyx/adapter-date-fns`, and `@floating-ui/react` as external imports. I had placed that number next to other libraries' numbers that included their dependencies.
 
 So I re-measured everything as "how much does the bundle grow when a consumer app adds one import line?"
 
@@ -95,19 +95,17 @@ npx esbuild entry.jsx --bundle --minify --format=esm --platform=browser \
   --external:react --external:react-dom --external:react/jsx-runtime | gzip -6 | wc -c
 ```
 
-Measured on 2026-09-16 with esbuild 0.28.2. For react-datepicker I excluded the CSS, and for React Aria Components I imported, all at once, the 14 exports needed to assemble a picker (`DatePicker`, `DateRangePicker`, `Calendar`, `TimeField`, `Popover`, `Dialog`, and so on).
+Measured on 2026-09-16 with esbuild 0.28.2, and KB here means bytes divided by 1024. For react-datepicker I excluded the CSS. For React Aria Components I measured twice: with the 12 exports needed to assemble a single DatePicker (`DatePicker`, `DateInput`, `Calendar`, `Popover`, `Dialog`, and so on), and with 14 exports that add range and time (including `DateRangePicker`, `RangeCalendar`, and `TimeField`).
 
-![Measured under the same esbuild conditions, sizes grow in this order: Kalyx DatePicker 18.9KB, react-day-picker 20.0KB, all of Kalyx 25.7KB, Ark UI 42.7KB, react-datepicker 45.4KB, React Aria Components 78.8KB, MUI X 113.1KB.](1.png?w=720)
+![Measured under the same esbuild conditions, sizes grow in this order: Kalyx DatePicker 18.9KB, react-day-picker 20.0KB, all of Kalyx 25.6KB, Ark UI 42.7KB, react-datepicker 45.4KB, React Aria Components 75.3KB (78.8KB with range and time), MUI X 113.1KB.](1.png?w=720)
 
-The original post's "all seven, smaller than react-day-picker's single calendar" was wrong. All seven together (25.7KB) are larger than `DayPicker` (20.0KB). The true statement goes only as far as "one DatePicker is about the same size as one DayPicker." (Even then, DayPicker is just a calendar, while Kalyx DatePicker also includes the input and popover.) Size is sensitive to the import combination and gzip level, so it is better read as an order of magnitude, and the conclusion that size is not the main reason to choose Kalyx does not change.
-
-Then what is the main reason?
+Under the same conditions, one statement holds. One DatePicker (18.9KB) is about the same size as `DayPicker` (20.0KB), and all seven together (25.6KB) are larger. (Even then, DayPicker is just a calendar, while Kalyx DatePicker also includes the input and popover.) Size is sensitive to the import combination and gzip level, so it is better read as an order of magnitude, and size is not the main reason to choose Kalyx.
 
 ---
 
 ## Defining Kalyx technically
 
-> Kalyx is a headless React date picker that fixes all input and output as UTC instant strings, confines conversion between calendar coordinates and instants to two functions, and guarantees that round trip with tests across every IANA timezone.
+> Kalyx is a headless React date picker that fixes all input and output as UTC instant strings, confines conversion between calendar coordinates and instants to two functions, and checks that round trip with property-based tests across every timezone the runtime knows.
 
 Here is the consumer-facing API. `value` and `onChange` use `string | null`, and `displayTimezone` decides which zone's calendar is shown.
 
@@ -155,7 +153,7 @@ if (!isControlled) {
 onChange?.(normalized);
 ```
 
-This is not the only call site. Searching `packages/react/src` shows the two functions scattered across the Root and Calendar of DatePicker, RangePicker, and DateTimePicker, the Presets, the keyboard navigation utilities, and six headless hooks. Even so, there is no third conversion function, and every path that commits a value or decides the view goes through one of the two.
+This is not the only call site. Searching `packages/react/src` shows the two functions scattered across the Root and Calendar of DatePicker, RangePicker, and DateTimePicker, the Presets, the keyboard navigation utilities, and six headless hooks. Even so, every path that commits a date cell or decides the view goes through one of the two. Committing a time is handled by `setTimeInTimezone`, which converts internally through the same internal function, `resolveCivilDateTime`.
 
 This contract is guarded by property-based tests. For every coordinate `c` and zone `z`, `calendarDayFromInstant(civilMidnightFromUtcDay(c, z), z) === c` must hold.
 
@@ -172,40 +170,39 @@ it('round-trips every UTC calendar coordinate through civil midnight', () => {
 });
 ```
 
-[fast-check](https://fast-check.dev/) randomly generates dates between 2020 and 2045 and combines them with 14 representative zones, including +5:45 Kathmandu, +14 Kiritimati, and -11 Niue, for 300 runs. The very next test checks the same round trip 12 times per zone for every zone returned by `Intl.supportedValuesOf('timeZone')`. On my local Node 24.16, that list has 418 entries.
+[fast-check](https://fast-check.dev/) randomly generates dates between 2020 and 2045 and combines them with 14 representative zones, including +5:45 Kathmandu, +14 Kiritimati, and -11 Niue, for 300 runs. The very next test checks the same round trip 12 times per zone for every zone returned by `Intl.supportedValuesOf('timeZone')`. On my local Node 24.16, that list has 418 entries. 1.4.8 added an exhaustive test that compares conversions at the boundary times of every DST transition against a Temporal implementation.
 
-Then why not have the library normalize a user-supplied `"2026-01-15T00:00:00.000Z"` into an instant on its own? That road is closed because you cannot tell from the string alone whether it is a coordinate or an instant. Take the Seoul value `2026-01-14T15:00:00.000Z`, which is already an instant, apply `civilMidnightFromUtcDay` to it again, and you get `2026-01-13T15:00:00.000Z`; apply it on every render and the date keeps slipping by a day. Switching to `startOfDayInTimezone`, which gives the same result no matter how many times it is applied, removes the slipping but can no longer do the original job of turning a coordinate into an instant.
+Then why not have the library normalize a user-supplied `"2026-01-15T00:00:00.000Z"` into an instant on its own? That road is closed because you cannot tell from the string alone whether it is a coordinate or an instant. Take the Seoul value `2026-01-14T15:00:00.000Z`, which is already an instant, apply `civilMidnightFromUtcDay` to it again, and you get `2026-01-13T15:00:00.000Z`; in positive-offset zones like Seoul, the date keeps slipping by a day on every render. (The New York value stays the same when applied again.) Switching to `startOfDayInTimezone`, which gives the same result no matter how many times it is applied, removes the slipping but can no longer do the original job of turning a coordinate into an instant.
 
-So I gave up on normalization and fixed the contract in documentation. Consumers must pass back exactly the value the picker emitted. Honestly, that is a cost pushed onto consumers, and because `ISODateString` is an alias of `string`, the compiler cannot stop mistakes either. (I have not yet evaluated separating the two with branded types.)
+So I gave up on normalization and fixed the contract in documentation. Consumers must pass back exactly the value the picker emitted. Honestly, that is a cost pushed onto consumers, and because `ISODateString` is an alias of `string`, the compiler cannot stop mistakes either.
 
 ### Solving DST with Intl alone
 
 To turn a coordinate into an instant, you need to know when "00:00 on that day in that zone" is in UTC, but you can only get the offset once you know the instant. On top of that, on DST transition days a local time may not exist (spring forward) or may occur twice (fall back).
 
-Kalyx solves this without a library like `date-fns-tz`. It asks `Intl.DateTimeFormat(...).formatToParts` "what local time is this UTC moment in that zone?" to measure the offset, and it probes twice.
+Kalyx solves this without a library like `date-fns-tz`. It asks `Intl.DateTimeFormat(...).formatToParts` "what local time is this UTC moment in that zone?" to measure the offset, and reads that offset at two points: one day before and one day after the requested time.
 
 ```ts
-// packages/core/src/utils/timezone.ts:245-250, 264
-const probe1 = new Date(civilEpoch).toISOString();
-const offset1 = getTimezoneOffsetMinutes(probe1, timeZone);
-const realEpoch1 = civilEpoch - offset1 * 60_000;
-const probe2 = new Date(realEpoch1).toISOString();
-const offset2 = getTimezoneOffsetMinutes(probe2, timeZone);
-const realEpoch2 = civilEpoch - offset2 * 60_000;
+// packages/core/src/utils/timezone.ts:251-254, 259
+const candidate = (probeEpoch: number) =>
+  civilEpoch - getTimezoneOffsetMinutes(new Date(probeEpoch).toISOString(), timeZone) * 60_000;
+const epochBefore = candidate(civilEpoch - 86_400_000);
+const epochAfter = candidate(civilEpoch + 86_400_000);
 
-if (realEpoch1 === realEpoch2) return new Date(realEpoch1).toISOString();
+if (epochBefore === epochAfter) return new Date(epochBefore).toISOString();
 ```
 
-`civilEpoch` is the desired local time read as if it were UTC. It builds a candidate from the offset at that point, builds another from the offset at the candidate, and stops if the two agree. The calendar grid calls this function 42 times, once per cell, so this fast path determines the cost.
+`civilEpoch` is the desired local time read as if it were UTC. Offsets stay within ±14 hours, so one day before and one day after give the offsets on either side of any nearby transition. If the two agree there is no transition, and the work ends with two `formatToParts` calls; since the grid calls this once for each of its 42 cells, this fast path determines the cost. (It assumes at most one transition within 48 hours, which holds in every zone from 2020 to 2045.)
 
-If they differ, you are in a spring forward gap. In that case it re-reads both candidates in that zone and picks the one that matches the requested time (`timezone.ts:266-283`). Here is what it actually returns.
+If they differ, it re-reads both candidates in that zone and checks which matches the requested time (`timezone.ts:261-279`). In a fall back overlap both match, so it picks the earlier one built from the pre-transition offset; in a spring forward gap neither matches, so it picks the same side and moves the time forward by the length of the gap. Here is what it actually returns.
 
-| Request (America/New_York) | Situation | Result |
-| --- | --- | --- |
-| 2026-03-08 02:30 | Nonexistent time | `2026-03-08T07:30:00.000Z` (03:30 EDT, moved forward) |
-| 2026-11-01 01:30 | Time that occurs twice | `2026-11-01T05:30:00.000Z` (01:30 EDT, earlier one) |
+| Request | Situation | 1.4.7 | 1.4.8 |
+| --- | --- | --- | --- |
+| New_York 2026-03-08 02:30 | Nonexistent time | `2026-03-08T07:30:00.000Z` | Same (03:30 EDT, moved forward) |
+| New_York 2026-11-01 01:30 | Time that occurs twice | `2026-11-01T05:30:00.000Z` | Same (01:30 EDT, earlier one) |
+| London 2026-10-25 01:30 | Time that occurs twice | `2026-10-25T01:30:00.000Z` (later one) | `2026-10-25T00:30:00.000Z` (01:30 BST, earlier one) |
 
-"Gaps move forward, ambiguity takes the earlier one" matches the `disambiguation` default `"compatible"` described in [MDN's Temporal.ZonedDateTime documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime). (The Kalyx source comment says it is equivalent to `'earlier'`, but Temporal's `'earlier'` moves backward in a gap, so strictly it is `'compatible'`. That is a comment error I found while writing this post.)
+"Gaps move forward, ambiguity takes the earlier one" matches the `disambiguation` default `"compatible"` described in [MDN's Temporal.ZonedDateTime documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime). Why the 1.4.7 London row is off is covered later.
 
 ### The adapter boundary is 21 string methods
 
@@ -226,9 +223,9 @@ export interface DateAdapter {
 
 Four methods accept a timezone, `format`, `isSameDay`, `startOfDay`, and `today`, and even those four hand the computation to core. The date-fns adapter's `format`, when given a `timezone`, calls core's `formatInTimezone` directly (`packages/adapter-date-fns/src/index.ts:112-115`). So whichever adapter you use, timezone answers come from the same code, and the three adapters (date-fns, dayjs, luxon) each run `@kalyx/core/test-helpers`'s `runAdapterConformanceTests` to confirm they produce the same answers.
 
-The two entry points also split along this boundary. The default entry, `@kalyx/react`, calls `setDefaultAdapter(DateFnsAdapter)` at module load, so it works right after installation (`packages/react/src/index.ts:9-11`). `@kalyx/react/headless` has no such call, and with tsup's `splitting: false` the bundles are physically separate, so no date-fns code gets in. "Zero date library dependencies" is true only of this entry and `@kalyx/core`.
+The two entry points also split along this boundary. The default entry, `@kalyx/react`, calls `setDefaultAdapter(DateFnsAdapter)` at module load, so it works right after installation (`packages/react/src/index.ts:9-11`). `@kalyx/react/headless` has no such call and is bundled separately, so no date-fns code gets in.
 
-This boundary shape came at a price. In June 2026, I shelved a Temporal adapter. Temporal's value lies in **types carrying meaning**, as with `PlainDate` and `ZonedDateTime`, but when the boundary is a string, that meaning cannot pass through. Wrapping it would just flatten it into a string and fall back to core's Intl code, so I judged there was no correctness gain. Looking back, the problem from the previous section, "coordinates and instants are the same `string`," is exactly what Temporal solves in the type system with `PlainDate` and `Instant`. The string boundary made swapping adapters easy, but in exchange it closed off the path to solving this with types.
+This boundary shape came at a price. In June 2026, I shelved a Temporal adapter. Temporal's value lies in **types carrying meaning**, as with `PlainDate` and `ZonedDateTime`, but when the boundary is a string, that meaning cannot pass through. Wrapping it would only flatten it into a string, so I judged there was no correctness gain. Looking back, the problem from the previous section, "coordinates and instants are the same `string`," is exactly what Temporal solves in the type system with `PlainDate` and `Instant`. The string boundary made swapping adapters easy, but in exchange it closed off the path to solving this with types.
 
 ### Seven pickers are combinations of three contexts
 
@@ -251,19 +248,17 @@ MonthPicker's Root merely changes the default display format to `yyyy-MM` and pa
   <TimePickerContext.Provider value={timeContext}>{children}</TimePickerContext.Provider>
 ```
 
-So `DateTimePicker.Calendar` is the same component as `DatePicker.Calendar`, and it does not know which picker it is inside. A fix in one place reaches every picker that uses the same component, and so does a defect in one place. This shared foundation is also why a single DatePicker came to 74% of the whole in the earlier chart. (The original post said CI verifies SSR with a Next.js App Router build, but the actual CI `ssr-check` only imports the built CJS and ESM in Node, so I removed that sentence too.)
-
-So what has this contract actually protected?
+So `DateTimePicker.Calendar` is the same component as `DatePicker.Calendar`, and it does not know which picker it is inside. A fix in one place reaches every picker that uses the same component, and so does a defect in one place. This shared foundation is also why a single DatePicker came to 74% of the whole in the earlier chart.
 
 ---
 
-## Defects the correctness contract caught, and the bundle ceiling
+## What keeping the contract cost
 
-In the three months since 1.0, I spent more time verifying this contract than building new features, and it surfaced two defects that example-based tests would have let through. The first was found by a property test, the second by a cross-review of the code, and as a result the scope of the property tests widened.
+I spent the three months since 1.0 verifying this contract more than building new features, and it surfaced three defects that example-based tests would have let through. The first was found by a property test, the second by a cross-review of the code, and the third by fact-checking this post.
 
 ### One hour on October 1 in Sydney
 
-The first was that the property "reading the result of `startOfDayInTimezone` in that zone gives 00:00:00" broke in Australia/Sydney. The implementation at the time measured the offset only once. Sydney moves from +10 to +11 at 02:00 on October 1, 2034, and 00:00 that day is still +10, so the correct answer is `2034-09-30T14:00:00.000Z`. But "the point where 00:00 on October 1 is read as UTC" is after the transition, so it returned +11, and the result was 23:00 on the previous day. It now goes through the two-probe approach, and this counterexample remains as a regression test (`timezone.property.test.ts:276`).
+The first was that the property "reading the result of `startOfDayInTimezone` in that zone gives 00:00:00" broke in Australia/Sydney. The implementation at the time measured the offset only once. Sydney moves from +10 to +11 at 02:00 on October 1, 2034, and 00:00 that day is still +10, so the correct answer is `2034-09-30T14:00:00.000Z`. But "the point where 00:00 on October 1 is read as UTC" is after the transition, so it returned +11, and the result was 23:00 on the previous day. This counterexample remains as a regression test (`timezone.property.test.ts:276`).
 
 ### A test that passed only in Seoul
 
@@ -274,15 +269,21 @@ The second came out of a cross-review on August 3, 2026. The code that decides w
 | `Asia/Seoul` (+9) | `2026-01-14T15:00:00.000Z` | 15th (correct) |
 | `America/New_York` (-5) | `2026-01-15T05:00:00.000Z` | 16th (wrong) |
 
-In positive-offset zones the two shifts cancelled out and it happened to be right, and the existing tests covered only Seoul. The same review also found a violation in the opposite direction. When deciding which month to show, the code applied `startOfMonth` directly to an instant, so passing January 1 as the value in Seoul opened the December calendar. The mechanisms differ, but the broken rule is one: convert only once per direction, with the function assigned to that direction.
+In positive-offset zones the two shifts cancelled out and it happened to be right, and the existing tests covered only Seoul. The same review also found a violation in the opposite direction. When deciding which month to show, the code applied `startOfMonth` directly to an instant, so passing January 1 as the value in Seoul opened the December calendar. The mechanisms differ, but both broke the same rule: convert only once per direction, with the function assigned to that direction.
 
-This incident widened core's round-trip property tests from "a few representative zones" to "every zone the runtime knows." (Component tests on the React side still use representative zones such as `America/New_York`.) **Defects that only appear where the sign flips are not caught by sampling.** The fact that conversion calls are scattered across multiple paths also became meaningful at this point. Correctness was not leaking from one function; it was leaking separately along each path.
+This incident widened core's round-trip property tests from "a few representative zones" to "every zone the runtime knows." (Component tests on the React side still use representative zones such as `America/New_York`.) **Defects that only appear where the sign flips are not caught by sampling.**
 
-### From 17KB to 20KB
+### London's 01:30 resolved late
+
+The third came up while I extended this post's DST table to other zones. 1.4.7 started measuring the offset at the point where the requested time is read as UTC, and in zones whose post-transition offset is 0 or more, that point is already past the transition, so it converged on the later offset. Checking every transition from 2020 to 2045 in 418 zones against temporal-polyfill, 1,908 of the 3,395 overlap transitions resolved to the later instant, across 84 zones. (All 3,394 gap transitions were correct, and New York, with its negative offset, just happened to land on the right side.)
+
+In [#226](https://github.com/jiji-hoon96/kalyx/pull/226) I changed it to read one day before and after, released it as `@kalyx/core` 1.4.8, and kept the same comparison as `timezone.dst-oracle.test.ts`. (temporal-polyfill is used only in tests.) The source comment that wrongly said `'earlier'` now says `'compatible'`. Once again, **the samples were concentrated on one sign.**
+
+### The 3KB spent on correctness
 
 These fixes cost code. Kalyx sets a CI ceiling on the default entry bundle, and a PR that exceeds it fails a required check. That ceiling started at 12KB and went up 1KB each time a feature landed, and in August 2026, while overhauling timezone and constraint correctness, I raised it from 17KB to 20KB in one step.
 
-Size was a selling point shown on the README badge. Still, I did not hesitate. A date picker that slips by a day in negative-offset zones is unusable whether it is small or large. **If I have to choose between small and correct, I choose correct.**
+Size was a selling point shown on the README badge. A date picker that slips by a day in negative-offset zones is unusable whether it is small or large. **If I have to choose between small and correct, I choose correct.**
 
 The ceiling is tight now. According to the repository's bundle byte map document from 2026-09-11, `dist/index.cjs` measured with Node's default gzip is 20,259B against a ceiling of 20,480B, leaving 221B of headroom. (This is the size of its own file with dependencies left external, so it is a different quantity from the earlier chart.) The next feature will have to reclaim bytes before it can land.
 
@@ -292,9 +293,9 @@ The ceiling is tight now. According to the repository's bundle byte map document
 
 What I wanted was to use complex date libraries declaratively. After building Kalyx, I found that declarative composition APIs and complete headless options already existed. The remaining difference lay deeper. **Fix the value as a single instant, narrow conversion between coordinates and instants to two functions, and guard that round trip with tests in every timezone.** The Intl-based DST handling, the string adapter boundary, and the seven pickers built from three contexts are the consequences of that decision.
 
-Measured against my goal of learning, the biggest lesson was how to claim that something is "correct." The original post's bundle comparison was measuring different quantities, and the test that passed in Seoul was wrong in New York. Both had numbers and tests, and both were still wrong. Unless you also record what you measured and which samples you checked against, numbers easily turn into bragging.
+Measured against my goal of learning, the biggest lesson was how to claim that something is "correct." The original post's bundle comparison was measuring different quantities, and the test that passed in Seoul was wrong in New York. Unless you also record what you measured and which samples you checked against, numbers easily turn into bragging.
 
-The limits are clear too. I am the only maintainer, it supports React 19 only, and npm downloads of `@kalyx/react` from September 5 to 11, 2026 were 200, of which 156 were concentrated on the single day 1.4.7 was released. The inability to separate coordinates and instants in the type system is guarded only by documentation, and I have not decided whether to guarantee the styling hooks, `classNames` and `data-*` attributes, as public API.
+The limits are clear too. I am the only maintainer, it supports React 19 only, and npm downloads of `@kalyx/react` from September 5 to 11, 2026 were 200, of which 156 were concentrated on the single day 1.4.7 was released. The inability to separate coordinates and instants in the type system is guarded only by documentation, and I have not decided whether to guarantee the styling hooks, `classNames` and `data-*` attributes, as public API. For accessibility, it has the `grid` role on calendars, `combobox` on inputs, and `listbox` on time lists, with arrow key, Home/End, and PageUp/PageDown navigation, and CI runs the `jest-axe` checks in 8 test files, but I have no basis yet to say it is as proven as React Aria.
 
 So if you already have a MUI app, look at MUI X first; if segmented input and proven accessibility come first, React Aria; if you only need a calendar, react-day-picker. If you have run into dates slipping by a day in forms where values travel as JSON, that is when I would be glad if you took a look at Kalyx, and if you know a better solution, I would be grateful if you let me know through a GitHub Issue.
 

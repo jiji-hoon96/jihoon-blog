@@ -1,7 +1,7 @@
 ---
 emoji: 📅
 title: 'Kalyx'
-seoTitle: 'Kalyx設計記録：ISO文字列でタイムゾーンを扱うReact headless DatePicker'
+seoTitle: 'React DatePickerのタイムゾーンで日付が1日ずれるのを防ぐ、headlessライブラリKalyxの設計記録'
 date: '2026-06-17'
 updatedAt: '2026-09-16'
 categories: ライブラリ React DatePicker オープンソース
@@ -9,20 +9,20 @@ description: 'React headless DatePicker「Kalyx」を作った理由と、Ark UI
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React 日付 タイムゾーン, ISO 8601 UTC, 日付 1日ずれる, DST バグ, fast-check プロパティテスト, react-day-picker 比較'
 locale: ja
 translationOf: '260617'
-sourceHash: 15dcfd39502cf19fbd1b9cae7edec991beacef87ce2bdfc38fe25aa497a6ad87
+sourceHash: 5abb83b574bf7a755c4f28002285feb908df52664684cce8182222c53694936d
 ---
 
-今回は、私が作ったReactのheadless DatePickerライブラリ **Kalyx** について書こうと思う。
+今回は、筆者が作ったReactのheadless DatePickerライブラリ **Kalyx** について書こうと思う。
 
 この記事は2026年6月に書いた振り返りを書き直したものだ。最初の記事が掲げた「7つのピッカーを1つのAPIで、競合ライブラリのカレンダー1つより小さく」は、改めて確かめてみると半分は誤りで、半分は差別化要因ではなかった。そこで、作った理由、既存の選択肢との違い、技術的な定義の順に整理し直す。
 
-結論から言うと、Kalyxの違いはコンポーネントの数ではなく **値モデル** にある。基準バージョンは `@kalyx/react` 1.4.7（MIT、React 19専用）で、コードの引用は[GitHubリポジトリ](https://github.com/jiji-hoon96/kalyx)の2026-09-11時点の `main` に基づく。
+結論から言うと、Kalyxの違いはコンポーネントの数ではなく **値モデル** にある。基準バージョンは `@kalyx/react` 1.4.7と `@kalyx/core` 1.4.8（MIT、React 19専用）で、コードの引用は[GitHubリポジトリ](https://github.com/jiji-hoon96/kalyx)の2026-09-16時点の `main`（`0bb302e`）に基づく。
 
 ---
 
-## 日付ライブラリを宣言的に使いたかった
+## 日付ピッカーを宣言的に使いたかった
 
-作った理由は2つあった。複雑で使いにくい日付ライブラリをもっと宣言的かつシンプルに使いたかったこと、そしてそうしたライブラリが内部でどう作られているのかを学びたかったことだ。「使いにくい」という言葉は漠然としているので、私が引っかかった箇所を各ライブラリの型定義で示してみる。
+作った理由は2つあった。複雑で使いにくい日付ライブラリをもっと宣言的かつシンプルに使いたかったこと、そしてそうしたライブラリが内部でどう作られているのかを学びたかったことだ。「使いにくい」という言葉は漠然としているので、筆者が引っかかった箇所が今の最新バージョンにも残っているかを、各ライブラリの型定義で改めて確認した。
 
 ### モードをpropでオンにするAPI
 
@@ -36,21 +36,21 @@ react-datepickerは、時刻選択を `showTimeSelect`、月選択を `showMonth
     onChange?: (date: [Date | null, Date | null], event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
 ```
 
-よくできたunionだが、モードが増えるほど分岐は掛け算で増え、使う側はprop名だけを見て今どの組み合わせなのかを思い浮かべなければならない。（私が[抽象化](/260201)の記事で扱った「誤ってまとめた抽象化は結合度を高める」と同じ形だ）私は「入力欄とポップオーバーとカレンダー」がJSXの構造そのものから読み取れることを望んだ。
+よくできたunionだが、モードが増えるほど分岐は掛け算で増え、使う側はprop名だけを見て今どの組み合わせなのかを思い浮かべなければならない。（筆者が[抽象化](/260201)の記事で扱った「誤ってまとめた抽象化は結合度を高める」と同じ形だ）筆者は「入力欄とポップオーバーとカレンダー」がJSXの構造そのものから読み取れることを望んだ。
 
 ### 値の型とタイムゾーンが漏れる場所
 
-react-datepickerとreact-day-pickerはネイティブの `Date` をやり取りする。`Date` は実行環境のローカルタイムゾーンで解釈されるため、ソウルで `new Date(2026, 3, 15)` の `toISOString()` は `2026-04-14T15:00:00.000Z` になる。4月15日を選んだのに、サーバーには14日に見える問題だ。react-datepickerの["Date Selected is One Day Off"](https://github.com/Hacker0x01/react-datepicker/issues/1018) issueは2017年9月に開かれ、2025年12月に閉じられた。
+react-datepickerとreact-day-pickerはネイティブの `Date` をやり取りする。どちらにもIANAタイムゾーンを受け取る `timeZone` propはあるが（react-datepickerはoptional peerの `date-fns-tz` が必要で、react-day-pickerでは実験的機能だ）、値の型は `Date` のままだ。`Date` は実行環境のローカルタイムゾーンで解釈されるため、ソウルで `new Date(2026, 3, 15)` の `toISOString()` は `2026-04-14T15:00:00.000Z` になる。4月15日を選んだのに、サーバーには14日に見える問題だ。react-datepickerの["Date Selected is One Day Off"](https://github.com/Hacker0x01/react-datepicker/issues/1018) issueは2017年9月に開かれ、2025年12月に閉じられた。
 
 反対側のArk UIとReact Ariaは、`@internationalized/date` の `CalendarDate`、`ZonedDateTime` オブジェクトを使う。意味は正確だが、フォームの状態とサーバーのレスポンスがすべて文字列のアプリでは、境界ごとに変換コードが生まれる。
 
 タイムゾーン対応が日付ライブラリの選択に縛られることもある。MUI X Date Pickers 9.13.0のアダプターコードを見ると、dayjs、Luxon、Momentのアダプターは `isTimezoneCompatible = true`、date-fns系は `false` だ。date-fnsを使うアプリが `timezone` propを使うには、日付ライブラリをもう1つ導入しなければならない。
 
-まとめると、モードはpropの組み合わせに、値はローカルタイムゾーンに縛られたオブジェクトに、タイムゾーン対応は日付ライブラリの選択に散らばっていて、**1つの宣言で意図を書き表すのが難しかった。**
+まとめると、モードはpropの組み合わせに、値は解釈が実行環境に左右される `Date` に、タイムゾーン対応は日付ライブラリの選択に散らばっていて、**1つの宣言で意図を書き表すのが難しかった。**
 
 ### 作りながら学ぶ
 
-日付ピッカーは小さく見えるが、カレンダー計算、ロケール、タイムゾーンとDST、キーボード操作、SSRがすべて詰まっている。ドキュメントで読むことと、自分で境界を決めてテストで守ることは違う。そこで、使う側ではJSXを見るだけで何を作っているのかが読み取れるように、作る側では値がどこで変換されるのかを説明できるくらいに絞り込むことを目標にした。
+日付ピッカーは小さく見えるが、カレンダー計算、ロケール、タイムゾーンとDST、キーボード操作、SSRがすべて詰まっている。そこで、使う側ではJSXを見るだけで何を作っているのかが読み取れるように、作る側では値がどこで変換されるのかを説明できるくらいに絞り込むことを目標にした。
 
 では、こうした要求をすでに解決しているライブラリは本当になかったのだろうか。
 
@@ -58,7 +58,7 @@ react-datepickerとreact-day-pickerはネイティブの `Date` をやり取り�
 
 ## 既存の選択肢と何が違うのか
 
-先に答えを言うと、ある。最初の記事で私は「headlessで複数のピッカーを備えたライブラリはない」という調子で書いたが、改めて調べるとその前提は誤りだった。
+先に答えを言うと、ある。筆者はheadlessで複数のピッカーを備えたライブラリはないと思い込んで始めたが、改めて調べるとその前提は誤りだった。
 
 ### 各選択肢が選んだ値モデル
 
@@ -69,11 +69,11 @@ react-datepickerとreact-day-pickerはネイティブの `Date` をやり取り�
 | react-day-picker 10.0.1 | いいえ（CSS同梱） | `Date` | なし | なし | 20.0KB |
 | react-datepicker 9.1.0 | いいえ（CSS import） | `Date` | `showTimeSelect` | propで | 45.4KB |
 | MUI X 9.13.0 | いいえ（Material） | アダプターオブジェクト | TimePicker | `views` | 113.1KB |
-| Ark UI 5.39.2 | はい | `@internationalized/date` | セグメント入力 | `minView` | 42.7KB |
-| React Aria Components 1.21.1 | はい | `@internationalized/date` | `TimeField` セグメント | なし | 78.8KB |
-| Kalyx 1.4.7 | はい | ISO 8601 UTC文字列 | リスト形式のHourList、MinuteList | MonthPicker、YearPicker | 18.9KB（DatePicker）、25.7KB（全部） |
+| Ark UI 5.39.2 | はい | `@internationalized/date` | 別パッケージの `DateInput` セグメント（サイズ対象外） | `minView` | 42.7KB |
+| React Aria Components 1.21.1 | はい | `@internationalized/date` | `TimeField` セグメント | なし | 75.3KB（DatePicker）、78.8KB（範囲・時刻込み） |
+| Kalyx 1.4.7 | はい | ISO 8601 UTC文字列 | リスト形式のHourList、MinuteList | MonthPicker、YearPicker | 18.9KB（DatePicker）、25.6KB（全部） |
 
-react-day-pickerは[公式ガイド](https://daypicker.dev/guides/timepicker)で "DayPicker does not include a built-in time picker" と明言している。MUI Xの範囲選択はCommunityパッケージにはなくProにある。MUIのサイズは `@mui/material` とemotionを含むので、すでにMUIのアプリであれば実際の増加分はずっと小さい。
+react-day-pickerは[公式ガイド](https://daypicker.dev/guides/timepicker)で "DayPicker does not include a built-in time picker" と明言している。MUIのサイズは `@mui/material` とemotionを含む値なので、すでにMUIのアプリであれば増加分はずっと小さい。
 
 ### headlessの完成形はすでにある
 
@@ -81,11 +81,11 @@ react-day-pickerは[公式ガイド](https://daypicker.dev/guides/timepicker)で
 
 > headlessの完成形はすでにある。ただしArk UIとReact Ariaは値を `@internationalized/date` オブジェクトでやり取りし、時刻入力はセグメントフィールドで提供する。Kalyxは値をJSONにそのまま載るUTC時点の文字列に固定し、リストから選ぶTimePickerと月・年・週のピッカーを同じ合成APIに入れた。
 
-とはいえ「値が文字列だから良い」は弱い主張だ。`CalendarDate` も `toString()` を一度呼べば文字列になる。差別化要因は形式ではなく、**その文字列が常に時点であるという契約と、その契約を守るテスト** にある。dot notationはArk UIも使っているので差別化要因ではない。
+とはいえ「値が文字列だから良い」は弱い主張だ。`CalendarDate` も `toString()` を一度呼べば文字列になる。差別化要因は形式ではなく、**その文字列が常に実際の瞬間（時点）であり、カレンダーのマス（座標）と混ざらないという契約、そしてその契約を守るテスト** にある。
 
 ### バンドルサイズを同じ方法で測り直した
 
-最初の記事のバンドル比較は、互いに違う量を測っていた。READMEバッジの約19.5KBは `@kalyx/react` の `dist` ファイル1つで、このファイルは `@kalyx/core`、`@kalyx/adapter-date-fns`、`@floating-ui/react` を外部importとして残す。その数字を、依存関係込みの他ライブラリの数字の横に並べていたのだ。
+READMEバッジのバンドルサイズは、他のライブラリと比べられる量ではなかった。バッジの約19.5KBは `@kalyx/react` の `dist` ファイル1つで、このファイルは `@kalyx/core`、`@kalyx/adapter-date-fns`、`@floating-ui/react` を外部importとして残す。その数字を、依存関係込みの他ライブラリの数字の横に並べていたのだ。
 
 そこで「利用側のアプリがimportを1行追加したとき、バンドルがどれだけ大きくなるか」ですべてを測り直した。
 
@@ -95,19 +95,17 @@ npx esbuild entry.jsx --bundle --minify --format=esm --platform=browser \
   --external:react --external:react-dom --external:react/jsx-runtime | gzip -6 | wc -c
 ```
 
-esbuild 0.28.2、2026-09-16の測定だ。react-datepickerはCSSを除き、React Aria Componentsはピッカーの組み立てに必要なexport 14個（`DatePicker`、`DateRangePicker`、`Calendar`、`TimeField`、`Popover`、`Dialog` など）をまとめてimportした。
+esbuild 0.28.2、2026-09-16の測定で、KBはバイト数を1024で割った値だ。react-datepickerはCSSを除いた。React Aria Componentsは、単一のDatePickerの組み立てに必要なexport 12個（`DatePicker`、`DateInput`、`Calendar`、`Popover`、`Dialog` など）と、範囲と時刻まで入れた14個（`DateRangePicker`、`RangeCalendar`、`TimeField` を含む）の2通りで測った。
 
-![同じesbuild条件で測ると、Kalyx DatePicker 18.9KB、react-day-picker 20.0KB、Kalyx全部 25.7KB、Ark UI 42.7KB、react-datepicker 45.4KB、React Aria Components 78.8KB、MUI X 113.1KBの順に大きくなる。](1.png?w=720)
+![同じesbuild条件で測ると、Kalyx DatePicker 18.9KB、react-day-picker 20.0KB、Kalyx全部 25.6KB、Ark UI 42.7KB、react-datepicker 45.4KB、React Aria Components 75.3KB（範囲・時刻込みで78.8KB）、MUI X 113.1KBの順に大きくなる。](1.png?w=720)
 
-最初の記事の「7種をreact-day-pickerのカレンダー1つより小さく」は誤りだった。7種全部（25.7KB）は `DayPicker`（20.0KB）より大きい。正しい文は「DatePicker 1つはDayPicker 1つと同程度のサイズだ」までだ。（それすらDayPickerはカレンダーだけで、Kalyx DatePickerは入力欄とポップオーバーまで含む）サイズはimportの組み合わせとgzipレベルに敏感なので桁で読むのが妥当で、サイズがKalyxを選ぶ中心的な理由ではないという結論は変わらない。
-
-では、中心は何だろうか。
+同じ条件で正しい文は1つだ。DatePicker 1つ（18.9KB）は `DayPicker`（20.0KB）と同程度のサイズで、7種全部（25.6KB）はそれより大きい。（それすらDayPickerはカレンダーだけで、Kalyx DatePickerは入力欄とポップオーバーまで含む）サイズはimportの組み合わせとgzipレベルに敏感なので桁で読むのが妥当で、サイズはKalyxを選ぶ中心的な理由ではない。
 
 ---
 
 ## Kalyxを技術的に定義すると
 
-> Kalyxは、すべての入出力をUTC時点の文字列に固定し、カレンダー座標と時点の間の変換を2つの関数だけに置き、その往復をすべてのIANAタイムゾーンでテストによって保証するheadlessなReact日付ピッカーだ。
+> Kalyxは、すべての入出力をUTC時点の文字列に固定し、カレンダー座標と時点の間の変換を2つの関数だけに置き、その往復をランタイムが知るすべてのタイムゾーンについてプロパティテストで検査するheadlessなReact日付ピッカーだ。
 
 使う側のAPIはこうだ。`value` と `onChange` は `string | null` で、`displayTimezone` はどのゾーンのカレンダーで見せるかを決める。
 
@@ -155,7 +153,7 @@ if (!isControlled) {
 onChange?.(normalized);
 ```
 
-呼び出し箇所はここだけではない。`packages/react/src` を検索すると、2つの関数はDatePicker、RangePicker、DateTimePickerのRootとCalendar、Presets、キーボード移動のユーティリティ、headlessフック6つに散らばっている。それでも第3の変換関数はなく、値をコミットしたりビューを決めたりする経路はすべて2つのどちらかを通る。
+呼び出し箇所はここだけではない。`packages/react/src` を検索すると、2つの関数はDatePicker、RangePicker、DateTimePickerのRootとCalendar、Presets、キーボード移動のユーティリティ、headlessフック6つに散らばっている。それでも日付のマスをコミットしたりビューを決めたりする経路はすべて2つのどちらかを通る。時刻のコミットは `setTimeInTimezone` が担うが、内部では同じ内部関数 `resolveCivilDateTime` で変換する。
 
 この契約はプロパティベーステスト（property-based test）で守る。すべての座標 `c` とゾーン `z` について `calendarDayFromInstant(civilMidnightFromUtcDay(c, z), z) === c` でなければならない。
 
@@ -172,40 +170,39 @@ it('round-trips every UTC calendar coordinate through civil midnight', () => {
 });
 ```
 
-[fast-check](https://fast-check.dev/) が2020年から2045年の間の日付をランダムに生成し、+5:45のKathmandu、+14のKiritimati、-11のNiueなど代表的なゾーン14個と組み合わせて300回回す。すぐ次のテストは、同じ往復を `Intl.supportedValuesOf('timeZone')` が返すゾーンすべてについて、ゾーンごとに12回ずつ検査する。私のローカルのNode 24.16では、そのリストは418個だ。
+[fast-check](https://fast-check.dev/) が2020年から2045年の間の日付をランダムに生成し、+5:45のKathmandu、+14のKiritimati、-11のNiueなど代表的なゾーン14個と組み合わせて300回回す。すぐ次のテストは、同じ往復を `Intl.supportedValuesOf('timeZone')` が返すゾーンすべてについて、ゾーンごとに12回ずつ検査する。筆者のローカルのNode 24.16では、そのリストは418個だ。1.4.8では、DSTの切り替えごとに境界時刻の変換結果をTemporal実装と照合する全数テストが加わった。
 
-では、ユーザーが渡した `"2026-01-15T00:00:00.000Z"` をライブラリが自動で時点に正規化すればよいのではないか。文字列だけでは座標なのか時点なのか分からないので、この道は塞がっている。すでに時点であるソウルの値 `2026-01-14T15:00:00.000Z` に `civilMidnightFromUtcDay` をもう一度かけると `2026-01-13T15:00:00.000Z` になり、レンダーのたびにかければ1日ずつずれ続ける。何度適用しても結果が同じ `startOfDayInTimezone` に替えればずれは起きないが、座標を時点に変えるという本来の仕事ができない。
+では、ユーザーが渡した `"2026-01-15T00:00:00.000Z"` をライブラリが自動で時点に正規化すればよいのではないか。文字列だけでは座標なのか時点なのか分からないので、この道は塞がっている。すでに時点であるソウルの値 `2026-01-14T15:00:00.000Z` に `civilMidnightFromUtcDay` をもう一度かけると `2026-01-13T15:00:00.000Z` になり、ソウルのようにオフセットが正のゾーンではレンダーのたびに1日ずつずれ続ける。（ニューヨークの値はもう一度かけても変わらない）何度適用しても結果が同じ `startOfDayInTimezone` に替えればずれは起きないが、座標を時点に変えるという本来の仕事ができない。
 
-そこで正規化を諦め、契約をドキュメントで固定した。利用者はピッカーが出力した値をそのまま渡さなければならない。正直に言えば利用者に押しつけたコストで、`ISODateString` が `string` のエイリアスなのでコンパイラも防いでくれない。（ブランド型で両者を区別する方法はまだ検討していない）
+そこで正規化を諦め、契約をドキュメントで固定した。利用者はピッカーが出力した値をそのまま渡さなければならない。正直に言えば利用者に押しつけたコストで、`ISODateString` が `string` のエイリアスなのでコンパイラも防いでくれない。
 
 ### IntlだけでDSTを解く方法
 
 座標を時点に変えるには「そのゾーンのその日の00:00」がUTCでいつなのかを知る必要があるが、オフセットは時点が分からないと求められない。しかもDSTの切り替え日には、現地時刻が存在しなかったり（spring forward）、2回存在したり（fall back）する。
 
-Kalyxは `date-fns-tz` のようなライブラリなしでこれを解く。`Intl.DateTimeFormat(...).formatToParts` で「このUTCの瞬間はそのゾーンで何時か」を尋ねてオフセットを測り、2回プローブする。
+Kalyxは `date-fns-tz` のようなライブラリなしでこれを解く。`Intl.DateTimeFormat(...).formatToParts` で「このUTCの瞬間はそのゾーンで何時か」を尋ねてオフセットを測り、そのオフセットを要求時刻の1日前と1日後の2地点で読む。
 
 ```ts
-// packages/core/src/utils/timezone.ts:245-250, 264
-const probe1 = new Date(civilEpoch).toISOString();
-const offset1 = getTimezoneOffsetMinutes(probe1, timeZone);
-const realEpoch1 = civilEpoch - offset1 * 60_000;
-const probe2 = new Date(realEpoch1).toISOString();
-const offset2 = getTimezoneOffsetMinutes(probe2, timeZone);
-const realEpoch2 = civilEpoch - offset2 * 60_000;
+// packages/core/src/utils/timezone.ts:251-254, 259
+const candidate = (probeEpoch: number) =>
+  civilEpoch - getTimezoneOffsetMinutes(new Date(probeEpoch).toISOString(), timeZone) * 60_000;
+const epochBefore = candidate(civilEpoch - 86_400_000);
+const epochAfter = candidate(civilEpoch + 86_400_000);
 
-if (realEpoch1 === realEpoch2) return new Date(realEpoch1).toISOString();
+if (epochBefore === epochAfter) return new Date(epochBefore).toISOString();
 ```
 
-`civilEpoch` は、求める現地時刻をUTCであるかのように読んだ値だ。その地点のオフセットで候補を作り、候補地点のオフセットでもう一度作って、2つが同じなら終わる。カレンダーグリッドはこの関数を1マスにつき1回、計42回呼ぶので、この高速パスがコストを決める。
+`civilEpoch` は、求める現地時刻をUTCであるかのように読んだ値だ。オフセットは±14時間以内なので、1日前と1日後は近くの切り替えの前と後のオフセットを1つずつ与える。2つが同じなら切り替えはないので `formatToParts` 2回で終わり、グリッドの42マスごとに1回ずつ呼ばれるこの高速パスがコストを決める。（48時間以内に切り替えは1つという前提は、2020〜2045年のすべてのゾーンで成り立つ）
 
-2つが違えばspring forwardの隙間だ。そのときは2つの候補をそのゾーンで読み直し、要求した時刻と一致するかどうかで選ぶ（`timezone.ts:266-283`）。実際に動かした結果はこうだ。
+2つが違えば、2つの候補をそのゾーンで読み直し、要求した時刻と合うかを見る（`timezone.ts:261-279`）。fall backの重なりでは両方が合うので切り替え前のオフセットで作った早い方を選び、spring forwardの隙間ではどちらも合わないので同じ側を選んで隙間の長さだけ時刻を進める。実際に動かした結果はこうだ。
 
-| 要求（America/New_York） | 状況 | 結果 |
-| --- | --- | --- |
-| 2026-03-08 02:30 | 存在しない時刻 | `2026-03-08T07:30:00.000Z`（03:30 EDT、時刻を進める） |
-| 2026-11-01 01:30 | 2回存在する時刻 | `2026-11-01T05:30:00.000Z`（01:30 EDT、早い方） |
+| 要求 | 状況 | 1.4.7 | 1.4.8 |
+| --- | --- | --- | --- |
+| New_York 2026-03-08 02:30 | 存在しない時刻 | `2026-03-08T07:30:00.000Z` | 同じ（03:30 EDT、時刻を進める） |
+| New_York 2026-11-01 01:30 | 2回存在する時刻 | `2026-11-01T05:30:00.000Z` | 同じ（01:30 EDT、早い方） |
+| London 2026-10-25 01:30 | 2回存在する時刻 | `2026-10-25T01:30:00.000Z`（遅い方） | `2026-10-25T00:30:00.000Z`（01:30 BST、早い方） |
 
-「隙間では時刻を進め、曖昧なら早い方を取る」は、[MDNのTemporal.ZonedDateTimeドキュメント](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime)が説明する `disambiguation` のデフォルト値 `"compatible"` と同じだ。（Kalyxのソースコメントは `'earlier'` と同じだと書いているが、Temporalの `'earlier'` は隙間では時刻を戻す方向に動くので、正確には `'compatible'` だ。この記事を書きながら見つけたコメントの誤りだ）
+「隙間では時刻を進め、曖昧なら早い方を取る」は、[MDNのTemporal.ZonedDateTimeドキュメント](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime)が説明する `disambiguation` のデフォルト値 `"compatible"` と同じだ。1.4.7のLondonの行がずれた理由は後で扱う。
 
 ### アダプター境界は文字列メソッド21個
 
@@ -226,9 +223,9 @@ export interface DateAdapter {
 
 タイムゾーンを受け取るメソッドは `format`、`isSameDay`、`startOfDay`、`today` の4つで、その4つも計算はcoreに任せる。date-fnsアダプターの `format` は、`timezone` があればcoreの `formatInTimezone` を直接呼ぶ（`packages/adapter-date-fns/src/index.ts:112-115`）。だからどのアダプターを使ってもタイムゾーンの答えは同じコードから出てくるし、3つのアダプター（date-fns、dayjs、luxon）は `@kalyx/core/test-helpers` の `runAdapterConformanceTests` をそれぞれ回して同じ答えを出すか確認する。
 
-2つのエントリーもこの境界の上で分かれる。デフォルトエントリーの `@kalyx/react` はモジュール読み込み時に `setDefaultAdapter(DateFnsAdapter)` を呼ぶので、インストールしてすぐ動く（`packages/react/src/index.ts:9-11`）。`@kalyx/react/headless` にはこの呼び出しがなく、tsupの `splitting: false` によってバンドルが物理的に分かれているので、date-fnsのコードは入らない。「日付ライブラリ依存ゼロ」は、このエントリーと `@kalyx/core` にだけ当てはまる言葉だ。
+2つのエントリーもこの境界で分かれる。デフォルトエントリーの `@kalyx/react` はモジュール読み込み時に `setDefaultAdapter(DateFnsAdapter)` を呼ぶので、インストールしてすぐ動く（`packages/react/src/index.ts:9-11`）。`@kalyx/react/headless` にはこの呼び出しがなくバンドルも分かれているので、date-fnsのコードは入らない。
 
-この境界の形には代償があった。私は2026年6月にTemporalアダプターを畳んだ。Temporalの価値は `PlainDate`、`ZonedDateTime` のように **型が意味を持ち運ぶこと** にあるが、境界が文字列ではその意味が通り抜けられない。包んでみても文字列に平坦化されてcoreのIntlコードに戻るだけで、正確性の利得はないと判断した。振り返ると、前の節の「座標と時点が同じ `string`」という問題は、Temporalが `PlainDate` と `Instant` で型によって解くまさにその問題だ。文字列の境界はアダプターの交換を容易にした代わりに、型で解く道を塞いだことになる。
+この境界の形には代償があった。筆者は2026年6月にTemporalアダプターを畳んだ。Temporalの価値は `PlainDate`、`ZonedDateTime` のように **型が意味を持ち運ぶこと** にあるが、境界が文字列ではその意味が通り抜けられない。包んでも文字列に平坦化されるだけで、正確性の利得はないと判断した。振り返ると、前の節の「座標と時点が同じ `string`」という問題は、Temporalが `PlainDate` と `Instant` で型によって解くまさにその問題だ。文字列の境界はアダプターの交換を容易にした代わりに、型で解く道を塞いだことになる。
 
 ### 7つのピッカーは3つのコンテキストの組み合わせ
 
@@ -251,19 +248,17 @@ MonthPickerのRootは、表示形式のデフォルト値を `yyyy-MM` に変え
   <TimePickerContext.Provider value={timeContext}>{children}</TimePickerContext.Provider>
 ```
 
-だから `DateTimePicker.Calendar` は `DatePicker.Calendar` と同じコンポーネントで、自分がどのピッカーの中にいるのかを知らない。1か所の修正が同じコンポーネントを使うピッカー全部に届き、1か所の欠陥も全部に届く。先の図でDatePicker 1つが全体の74%だった理由も、この共有基盤だ。（最初の記事にはCIがNext.js App RouterのビルドでSSRを検証すると書いたが、実際のCIの `ssr-check` はビルドされたCJSとESMをNodeでimportする程度だったので、その文も取り除いた）
-
-では、この契約は実際に何を守ってくれたのだろうか。
+だから `DateTimePicker.Calendar` は `DatePicker.Calendar` と同じコンポーネントで、自分がどのピッカーの中にいるのかを知らない。1か所の修正が同じコンポーネントを使うピッカー全部に届き、1か所の欠陥も全部に届く。先の図でDatePicker 1つが全体の74%だった理由も、この共有基盤だ。
 
 ---
 
-## 正確性の契約が捕まえた欠陥とバンドルの上限
+## 契約を守るためにかかったコスト
 
-1.0以降の3か月、私は新機能よりもこの契約を確認することに時間を使い、例示ベースのテストなら素通りしていたはずの欠陥が2回出てきた。1つ目はプロパティテストが、2つ目はコードのクロスレビューが見つけ、その結果プロパティテストの範囲が広がった。
+1.0以降の3か月は新機能よりもこの契約の確認に使い、例示ベースのテストなら素通りしていたはずの欠陥が3回出てきた。1つ目はプロパティテストが、2つ目はコードのクロスレビューが、3つ目はこの記事の検証が見つけた。
 
 ### Sydneyの10月1日の1時間
 
-1つ目は、「`startOfDayInTimezone` の結果をそのゾーンで読むと00:00:00になる」というプロパティがAustralia/Sydneyで壊れたことだ。当時の実装はオフセットを1回しか測っていなかった。Sydneyは2034年10月1日02:00に+10から+11へ切り替わるが、その日の00:00はまだ+10なので、正解は `2034-09-30T14:00:00.000Z` だ。ところが「10月1日00:00をUTCとして読んだ地点」は切り替え後なので+11を返し、結果は前日の23:00になった。今は2回のプローブを経ており、この反例は回帰テストとして残っている（`timezone.property.test.ts:276`）。
+1つ目は、「`startOfDayInTimezone` の結果をそのゾーンで読むと00:00:00になる」というプロパティがAustralia/Sydneyで壊れたことだ。当時の実装はオフセットを1回しか測っていなかった。Sydneyは2034年10月1日02:00に+10から+11へ切り替わるが、その日の00:00はまだ+10なので、正解は `2034-09-30T14:00:00.000Z` だ。ところが「10月1日00:00をUTCとして読んだ地点」は切り替え後なので+11を返し、結果は前日の23:00になった。この反例は回帰テストとして残っている（`timezone.property.test.ts:276`）。
 
 ### ソウルでだけ通っていたテスト
 
@@ -276,13 +271,19 @@ MonthPickerのRootは、表示形式のデフォルト値を `yyyy-MM` に変え
 
 正のオフセットのゾーンでは2回のずれが相殺されて偶然正しく、既存のテストはソウルしかカバーしていなかった。同じ点検で逆方向の違反も出てきた。表示する月を決めるときに時点へ `startOfMonth` を直接かけていたため、ソウルで1月1日を値として渡すと12月のカレンダーが開いた。仕組みは違っても、破ったルールは1つだ。変換は方向ごとに決まった関数で1回だけ行う。
 
-この事故で、coreの往復プロパティテストは「代表的なゾーンいくつか」から「ランタイムが知るゾーンすべて」に広がった。（React側のコンポーネントテストは、まだ `America/New_York` のような代表ゾーンを使っている）**符号が変わる場所でだけ現れる欠陥は、サンプルでは捕まらない。** 変換の呼び出しが複数の経路に散らばっているという事実も、このとき意味を持った。正確性は1つの関数からではなく、経路ごとに別々に漏れていたのだ。
+この事故で、coreの往復プロパティテストは「代表的なゾーンいくつか」から「ランタイムが知るゾーンすべて」に広がった。（React側のコンポーネントテストは、まだ `America/New_York` のような代表ゾーンを使っている）**符号が変わる場所でだけ現れる欠陥は、サンプルでは捕まらない。**
 
-### 17KBから20KBへ
+### Londonで遅い方に解決されていた01:30
+
+3つ目は、この記事のDSTの表を他のゾーンに広げる途中で出てきた。1.4.7は要求時刻をUTCとして読んだ地点からオフセットを測っていたが、切り替え後のオフセットが0以上のゾーンではその地点がすでに切り替え後なので、遅いオフセットに収束した。temporal-polyfillで418ゾーンの2020〜2045年の切り替えを全数照合すると、重なりの切り替え3,395件のうち1,908件で遅い方を選んでおり、84ゾーンにまたがっていた。（隙間の切り替え3,394件はすべて正しく、オフセットが負のニューヨークは偶然正しかった）
+
+[#226](https://github.com/jiji-hoon96/kalyx/pull/226)で1日前と1日後を読むように直して `@kalyx/core` 1.4.8としてリリースし、同じ照合を `timezone.dst-oracle.test.ts` として残した。（temporal-polyfillはテストでだけ使う）`'earlier'` と誤って書いていたソースコメントも `'compatible'` に直した。今回も **サンプルが片方の符号に偏っていた。**
+
+### 正確性に使った3KB
 
 これらの修正にはコードが要った。KalyxはデフォルトエントリーのバンドルにCIの上限を設けており、超えるPRは必須チェックで失敗する。12KBから始まり機能が入るたびに1KBずつ上げていたその上限を、2026年8月にタイムゾーンと制約の正確性を全面的に修正する際、17KBから20KBへ一気に引き上げた。
 
-サイズはREADMEバッジに載せていたセールスポイントだった。それでも迷わなかった。負のオフセットのゾーンで1日ずつずれる日付ピッカーは、小さかろうが大きかろうが使えない。**小さいと正しいのどちらかを選ばなければならないなら、正しい方だ。**
+サイズはREADMEバッジに載せていたセールスポイントだった。負のオフセットのゾーンで1日ずつずれる日付ピッカーは、小さかろうが大きかろうが使えない。**小さいと正しいのどちらかを選ばなければならないなら、正しい方だ。**
 
 今の上限はぎりぎりだ。リポジトリの2026-09-11のバンドルバイトマップ文書によれば、`dist/index.cjs` をNodeのデフォルトgzipで測った値は20,259B、上限は20,480Bで、余裕は221Bだ。（依存関係を外部に残した自前ファイルのサイズなので、先の図とは別の量だ）次の機能は、まずバイトを回収しなければ入れられない。
 
@@ -290,11 +291,11 @@ MonthPickerのRootは、表示形式のデフォルト値を `yyyy-MM` に変え
 
 ## おわりに
 
-私が望んだのは、複雑な日付ライブラリを宣言的に使うことだった。作ってみると、宣言的な合成APIもheadlessの完成形もすでにあった。残った違いはもっと内側にあった。**値を1つの時点に固定し、座標と時点の間の変換を2つの関数に絞り、その往復をすべてのタイムゾーンでテストによって守ること。** IntlベースのDST処理、文字列のアダプター境界、3つのコンテキストで作った7つのピッカーは、その決定の結果だ。
+筆者が望んだのは、複雑な日付ライブラリを宣言的に使うことだった。作ってみると、宣言的な合成APIもheadlessの完成形もすでにあった。残った違いはもっと内側にあった。**値を1つの時点に固定し、座標と時点の間の変換を2つの関数に絞り、その往復をすべてのタイムゾーンでテストによって守ること。** IntlベースのDST処理、文字列のアダプター境界、3つのコンテキストで作った7つのピッカーは、その決定の結果だ。
 
-学ぶという目標から見ると、一番大きく学んだのは「正しい」と主張する方法だった。最初の記事のバンドル比較は違う量を測っていたし、ソウルで通っていたテストはニューヨークで間違っていた。どちらにも数字とテストがあったのに、間違っていた。何を測り、どんなサンプルで確かめたのかを一緒に書かなければ、数字は簡単に自慢になる。
+学ぶという目標から見ると、一番大きく学んだのは「正しい」と主張する方法だった。最初の記事のバンドル比較は違う量を測っていたし、ソウルで通っていたテストはニューヨークで間違っていた。何を測り、どんなサンプルで確かめたのかを一緒に書かなければ、数字は簡単に自慢になる。
 
-限界もはっきりしている。メンテナーは私1人で、React 19専用であり、`@kalyx/react` のnpmダウンロードは2026年9月5日から11日までで200回、そのうち156回が1.4.7のリリース日1日に集中している。座標と時点を型で区別できない問題はドキュメントだけで防いでおり、スタイルの接点である `classNames` と `data-*` 属性を公開APIとして保証するかどうかも決められていない。
+限界もはっきりしている。メンテナーは筆者1人で、React 19専用であり、`@kalyx/react` のnpmダウンロードは2026年9月5日から11日までで200回、そのうち156回が1.4.7のリリース日1日に集中している。座標と時点を型で区別できない問題はドキュメントだけで防いでおり、スタイルの接点である `classNames` と `data-*` 属性を公開APIとして保証するかどうかも決められていない。アクセシビリティは、カレンダーの `grid`、入力欄の `combobox`、時刻リストの `listbox` ロールと、矢印キー、Home/End、PageUp/PageDownの操作を備え、テストファイル8個の `jest-axe` 検査をCIで回しているが、React Ariaと同じくらい検証されていると言える根拠はまだない。
 
 なので、すでにMUIのアプリならMUI Xを、セグメント入力と検証済みのアクセシビリティが優先ならReact Ariaを、カレンダー1つで足りるならreact-day-pickerを先に見るのが妥当だ。値がJSONで行き来するフォームで日付が1日ずつずれる問題を経験したことがあるなら、そのときにKalyxを覗いてもらえると嬉しいし、もっと良い解き方を知っているならGitHub Issueで教えてもらえるとありがたい。
 
