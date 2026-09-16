@@ -98,28 +98,28 @@ test('marks internal locale rewrites so they are not canonicalized again', () =>
 test('redirects retired post slugs to the article that replaced them', () => {
   assert.deepEqual(classifyLocaleRequest('/260703'), {
     kind: 'redirect',
-    pathname: '/260914',
+    pathname: '/260913',
     permanent: true,
   })
   assert.deepEqual(classifyLocaleRequest('/en/260703'), {
     kind: 'redirect',
-    pathname: '/en/260914',
+    pathname: '/en/260913',
     permanent: true,
   })
   assert.deepEqual(classifyLocaleRequest('/pt-BR/260703'), {
     kind: 'redirect',
-    pathname: '/pt-BR/260914',
+    pathname: '/pt-BR/260913',
     permanent: true,
   })
   // /ko 는 정규 경로가 아니므로 두 번 튀지 않고 한 번에 간다.
   assert.deepEqual(classifyLocaleRequest('/ko/260703'), {
     kind: 'redirect',
-    pathname: '/260914',
+    pathname: '/260913',
     permanent: true,
   })
   assert.deepEqual(classifyLocaleRequest('/260703/'), {
     kind: 'redirect',
-    pathname: '/260914',
+    pathname: '/260913',
     permanent: true,
   })
 })

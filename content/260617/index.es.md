@@ -1,515 +1,315 @@
 ---
 emoji: 📅
 title: 'Kalyx'
-seoTitle: 'Kalyx: un año construyendo un DatePicker headless en React'
+seoTitle: 'Kalyx: evitar el desfase de un día en un DatePicker React'
 date: '2026-06-17'
 updatedAt: '2026-09-16'
 categories: bibliotecas React DatePicker código-abierto
-description: 'Elegir un DatePicker en React costaba headless, tamaño o primitivas. Lo construí: 4 decisiones de diseño y cómo cambié el techo del bundle por exactitud.'
-keywords: 'Kalyx, React DatePicker, DatePicker headless, react-day-picker, react-datepicker, biblioteca headless React, tamaño del bundle, ISO-8601 timezone, patrón Composition, patrón adapter, Ark UI, MUI X DatePicker, displayTimezone IANA, bug horario de verano, tests de propiedades fast-check'
+description: 'Por qué creé Kalyx, DatePicker headless para React, y en qué difiere de Ark UI, React Aria y react-day-picker: valores ISO UTC, DST con Intl y tests IANA.'
+keywords: 'Kalyx, React DatePicker, DatePicker headless, DatePicker React zona horaria, ISO 8601 UTC, fecha con un día de diferencia, bug horario de verano JavaScript, tests de propiedades fast-check, alternativa a react-day-picker'
 locale: es
 translationOf: '260617'
-sourceHash: b7e7be3efa404583193adba50f933c85c2d044497af8da1f75cbaa9c00bab69c
+sourceHash: 5abb83b574bf7a755c4f28002285feb908df52664684cce8182222c53694936d
 ---
 
 En este artículo quiero hablar de **Kalyx**, la biblioteca headless de DatePicker para React que he creado.
 
-Como desarrollador frontend, suelo trabajar en proyectos con formularios SaaS. En ellos, casi todas las páginas acaban necesitando algún tipo de entrada de fecha: una fecha concreta, un intervalo, una hora, saltos por mes o año y, además, timezone. Sin embargo, durante el último año me topé con el mismo muro cada vez que empezaba un proyecto nuevo. (Mi experiencia sincera es que ni una sola vez pude resolverlo todo limpiamente con una única biblioteca.)
+Este texto es una reescritura de una retrospectiva que escribí en junio de 2026. La idea que encabezaba el artículo original, "siete pickers con una sola API, más pequeños que un único calendario de una biblioteca competidora", resultó, al volver a comprobarla, medio falsa y medio irrelevante como diferenciador. Por eso lo reorganizo en este orden: por qué lo construí, en qué se diferencia de las opciones existentes y cuál es su definición técnica.
 
-Un día, mientras unía por tercera vez un TimePicker hecho por mí y un Popover prestado de algún sitio sobre `react-day-picker`, empecé a dibujar en una libreta la API que realmente quería. Aquellas notas acabaron convirtiéndose en la API pública de Kalyx 1.0.
-
-Este texto es un registro de decisiones contado desde dentro. La primera mitad recoge las cuatro decisiones que llevaron hasta 1.0; la segunda, los tres meses posteriores. Esa segunda parte es lo que más me apetece contar. **La decisión más grande que tomé después de 1.0 no fue una función nueva, sino romper yo mismo el techo de bundle que presentaba como argumento de venta para comprar exactitud a cambio.** La versión actual es la 1.4.7, y los siete parches de ese periodo se fueron todos en corregir el mismo tipo de bug.
+Adelanto la conclusión: lo que distingue a Kalyx no es el número de componentes, sino su **modelo de valor**. Las versiones de referencia son `@kalyx/react` 1.4.7 y `@kalyx/core` 1.4.8 (MIT, solo React 19), y los fragmentos de código proceden del [repositorio de GitHub](https://github.com/jiji-hoon96/kalyx) en `main` a fecha de 2026-09-16 (`0bb302e`).
 
 ---
 
-## Por qué es difícil un DatePicker para React
+## Quería usar los selectores de fechas de forma declarativa
 
-Primero conviene repasar brevemente el mercado. Esto demuestra que el muro con el que me encontré no era un problema de elección de biblioteca, sino un **problema inherente de trade-offs**.
+Tenía dos motivos para construirlo. Quería usar bibliotecas de fechas complejas y difíciles de manejar de una manera más declarativa y sencilla, y quería aprender cómo se construye por dentro una biblioteca así. "Difícil de manejar" es algo vago, así que volví a revisar las definiciones de tipos de cada biblioteca para ver si los puntos donde me atasqué siguen presentes en sus últimas versiones.
 
-Reuní en una tabla las opciones de DatePicker más utilizadas en el ecosistema React en junio de 2026. (Las descargas de npm corresponden a cifras semanales de junio de 2026.)
+### Una API que activa modos con props
 
-| Biblioteca | Descargas semanales | Lo que hace bien | Lo que impone |
-| --- | --- | --- | --- |
-| **react-day-picker** | aprox. 42 M | Calendar headless limpio | Solo Calendar grid. Incluso en v10, Input y TimePicker no tienen soporte oficial |
-| **react-datepicker** | aprox. 4,7 M | Todas las primitive en un solo bundle | Importación CSS obligatoria. El value es un `Date` nativo. Más de 100 props |
-| **Ark UI** | cuota en crecimiento | Composition + headless | No hay TimePicker standalone. La hora solo existe dentro de DatePicker |
-| **MUI X** | cuota alta | Integración + funciones empresariales | aprox. 58 KB gzip. RangePicker requiere una licencia Pro de pago |
-| **React Aria** | aprox. 5,9 M | Accesibilidad al nivel de la spec | Obliga a usar `@internationalized/date`. Incompatible con bases de código date-fns |
-| **Headless UI** | junto con Tailwind | Pionera del patrón headless | Se niega a crearlo porque «el coste de mantenimiento es demasiado alto» |
+react-datepicker activa la selección de hora con `showTimeSelect`, la de mes con `showMonthYearPicker`, la de año con `showYearPicker` y la de rango con `selectsRange`. Es una estructura en la que un mismo componente se convierte en otra cosa según la combinación de props. El coste se ve en los tipos. En las definiciones de tipos de la 9.1.0, según el valor de `selectsRange`, la firma de `onChange` se bifurca.
 
-Si se examina cada función por separado, es fácil elegir un ganador. Pero una unidad de trabajo real no consta de una sola función. En un formulario SaaS que necesita a la vez una fecha única, un filtro por intervalo, selección de hora y saltos por mes o año, **no había una biblioteca que lo cubriera todo**.
-
-Resulta especialmente interesante la postura del equipo de mantenimiento de Headless UI. Tailwind Labs lleva años dejando en suspenso, en la práctica, la solicitud de un DatePicker en [GitHub Discussion #289](https://github.com/tailwindlabs/headlessui/discussions/289). El hilo se abrió en 2021 y, cinco años después, sigue abierto sin respuesta del equipo; en el árbol de código de `@headlessui-react` no existe un solo componente relacionado con fechas. A los usuarios de Tailwind se los acaba dirigiendo a React Aria. Si pensamos que locale, timezone, DST, distintos sistemas de calendario, accesibilidad y navegación por teclado chocan todos a la vez en un DatePicker, esa cautela es un diagnóstico totalmente comprensible. (Yo tampoco entendí la magnitud de la carga hasta que lo construí.)
-
-El caso de Ark UI transmite la misma señal. Ark UI, creado por el equipo de Chakra UI, **no tiene un componente TimePicker standalone**. La selección de hora solo se gestiona dentro de DatePicker a través de `@internationalized/date`, mediante su `CalendarDateTime`. Es decir, no es una primitive independiente que alguien que usa Tailwind pueda combinar por separado «solo para la hora». (Al principio lo interpreté de forma demasiado tajante como que «Ark había abandonado TimePicker», pero, tras releer la documentación, lo exacto es decir que «nunca lo separó como componente independiente». Lo importante es que incluso un equipo de referencia entre las bibliotecas headless trató con cautela la separación de TimePicker como primitive propia.)
-
-Llegados aquí surge una pregunta natural: «Entonces, ¿de verdad no hay forma de resolver estos trade-offs dentro de una sola biblioteca?».
-
----
-
-## El lugar de Kalyx
-
-Kalyx es mi respuesta a esa pregunta. En una frase, es **«un DatePicker headless para React que funciona nada más instalarlo, sin importar CSS, y que puede personalizarse libremente con cualquier sistema de estilos»**.
-
-Esto es lo que incluía la versión 1.0. (Entre paréntesis, los valores en el momento de actualizar este artículo, ya en la 1.4.7.)
-
-- **7 componentes primitive**: `DatePicker`, `RangePicker`, `TimePicker`, `DateTimePicker`, `MonthPicker`, `YearPicker`, `WeekPicker`
-- **3 Headless Hook**: `useDatePicker`, `useRangePicker`, `useTimePicker` (puntos de entrada para descartar por completo la UI de la biblioteca y crear una propia. Los otros cuatro se rellenaron después en el entry `@kalyx/react/headless`, así que hoy están los siete)
-- **Una única Composition API**: las 7 primitive usan el mismo Context y el mismo patrón dot notation
-- **aprox. 16 KB gzip (ESM)**: terminado dentro de un techo de 17 KB (hoy son unos 19,5 KB, con un techo de 20 KB. Por qué lo subí es el tema de la segunda mitad del artículo)
-- **0 importaciones CSS**: libertad para usar Tailwind, CSS Modules, CSS puro o cualquier otra opción
-
-La API tiene este aspecto.
-
-```tsx
-import { DateTimePicker } from '@kalyx/react';
-
-<DateTimePicker value={iso} onChange={setIso} format="24h">
-  <DateTimePicker.Input />
-  <DateTimePicker.Popover>
-    <DateTimePicker.Calendar
-      classNames={{
-        daySelected: 'bg-violet-600 text-white',
-        dayToday: 'ring-2 ring-violet-400',
-        dayOutsideMonth: 'opacity-40',
-      }}
-    />
-    <DateTimePicker.HourList />
-    <DateTimePicker.MinuteList step={15} />
-  </DateTimePicker.Popover>
-</DateTimePicker>
+```ts
+// react-datepicker/dist/index.d.ts (발췌)
+    selectsRange?: true;
+    selectsMultiple?: false | undefined;
+    formatMultipleDates?: never;
+    onChange?: (date: [Date | null, Date | null], event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
 ```
 
-El mismo patrón se repite en las 7 primitive. No hay ni una sola prop bomba de tipo boolean como `showTimeSelect` o `showMonthDropdown`.
+Es una union bien hecha, pero las ramas se multiplican a medida que crecen los modos, y quien la usa tiene que deducir qué combinación está activa solo por los nombres de las props. (Tiene la misma forma que "una abstracción que agrupa mal aumenta el acoplamiento", de lo que hablé en el artículo sobre [abstracción](/260201).) Yo quería que "un campo de entrada, un popover y un calendario" se leyeran en la propia estructura del JSX.
 
-Su posicionamiento puede representarse así.
+### Dónde se filtran los tipos de valor y la zona horaria
 
-![Diagrama de posicionamiento que muestra qué partes de las bibliotecas existentes reúne Kalyx](1.png?w=620)
+react-datepicker y react-day-picker intercambian objetos `Date` nativos. Ambos tienen una prop `timeZone` que acepta zonas IANA (react-datepicker necesita la peer opcional `date-fns-tz` y en react-day-picker es experimental), pero el tipo del valor sigue siendo `Date`. Como un `Date` se interpreta en la zona horaria local del entorno de ejecución, en Seúl `new Date(2026, 3, 15)` pasado por `toISOString()` da `2026-04-14T15:00:00.000Z`. Eliges el 15 de abril y el servidor ve el 14. La issue ["Date Selected is One Day Off"](https://github.com/Hacker0x01/react-datepicker/issues/1018) de react-datepicker se abrió en septiembre de 2017 y se cerró en diciembre de 2025.
 
-Es la unión de las mejores partes de las bibliotecas existentes, con una decisión adicional: **integrar también TimePicker, que no existe como standalone en Ark UI, como primitive independiente dentro de la misma Composition.**
+En el otro extremo, Ark UI y React Aria usan objetos `@internationalized/date` como `CalendarDate` y `ZonedDateTime`. La semántica es precisa, pero en una app donde el estado de los formularios y las respuestas del servidor son todo cadenas, aparece código de conversión en cada frontera.
+
+El soporte de zonas horarias también puede quedar atado a la biblioteca de fechas que elijas. En el código de los adaptadores de MUI X Date Pickers 9.13.0, los adaptadores de dayjs, Luxon y Moment tienen `isTimezoneCompatible = true`, y la familia date-fns tiene `false`. Una app que usa date-fns tiene que incorporar otra biblioteca de fechas para poder usar la prop `timezone`.
+
+En resumen, los modos estaban repartidos en combinaciones de props, los valores en objetos `Date` cuya interpretación depende del entorno y el soporte de zonas horarias en la elección de la biblioteca de fechas, así que **era difícil expresar la intención en una sola declaración.**
+
+### Aprender construyendo
+
+Un selector de fechas parece pequeño, pero contiene aritmética de calendario, locales, zonas horarias y horario de verano (DST), navegación por teclado y SSR. Por eso me puse como objetivo que, desde el lado de quien lo usa, se entendiera qué se está construyendo con solo mirar el JSX, y que, desde el lado de quien lo construye, el código fuera lo bastante acotado como para poder explicar dónde se convierten los valores.
+
+Entonces, ¿de verdad no había ninguna biblioteca que ya resolviera estas necesidades?
 
 ---
 
-## Cuatro decisiones fundamentales
+## En qué se diferencia de las opciones existentes
 
-De todas las decisiones de diseño, estas son las cuatro más pesadas y difíciles de revertir. Ahora que la API 1.0 está freeze, puede decirse que estas cuatro forzaron todas las demás.
+La respuesta corta es que sí la había. Empecé convencido de que no existía ninguna biblioteca headless con varios pickers, pero al investigar de nuevo esa premisa resultó falsa.
 
-### Composition over Props
+### El modelo de valor que eligió cada opción
 
-El primer borrador tenía la forma `<DatePicker showTime showMonthGrid presets={[...]} renderHeader={(props) => ...} />`. Era, en esencia, el patrón básico de `react-datepicker`. Tras intentar durante una semana expresar limpiamente en tipos las interacciones entre props, acabé eliminándolo.
+Lo siguiente se comprobó el 2026-09-16 instalando la última versión de npm y revisando las definiciones de tipos y la documentación oficial. La columna de tamaño se midió con el mismo método que explico más abajo.
 
-La razón era clara: **el coste real de la explosión de props es la pérdida de type safety.** Solo cuando `showTimeSelect` es `true` cobra sentido `timeFormat`, pero el sistema de tipos no puede expresar directamente esa dependencia condicional. Si se intenta resolver con una discriminated union, la interfaz de props explota en grupos de 50 y cada nueva prop obliga a volver a comprobar todas las combinaciones. (Es exactamente el mismo contexto que describí en mi artículo sobre [abstracción](/260201): «una abstracción equivocada aumenta el acoplamiento».)
+| Biblioteca | Headless | Tipo de valor | Entrada de hora | Selección solo de mes o año | gzip |
+| --- | --- | --- | --- | --- | --- |
+| react-day-picker 10.0.1 | No (incluye CSS) | `Date` | No | No | 20.0KB |
+| react-datepicker 9.1.0 | No (import de CSS) | `Date` | `showTimeSelect` | Con props | 45.4KB |
+| MUI X 9.13.0 | No (Material) | Objeto del adaptador | TimePicker | `views` | 113.1KB |
+| Ark UI 5.39.2 | Sí | `@internationalized/date` | Segmentos con `DateInput` aparte (fuera del tamaño) | `minView` | 42.7KB |
+| React Aria Components 1.21.1 | Sí | `@internationalized/date` | Segmentos de `TimeField` | No | 75.3KB (DatePicker), 78.8KB (con rango y hora) |
+| Kalyx 1.4.7 | Sí | Cadena ISO 8601 UTC | HourList y MinuteList en lista | MonthPicker, YearPicker | 18.9KB (DatePicker), 25.6KB (todo) |
 
-Radix UI y shadcn/ui resolvieron este problema con especial elegancia mediante el patrón dot notation: las restricciones quedan explícitas en el callsite.
+react-day-picker indica en su [guía oficial](https://daypicker.dev/guides/timepicker) que "DayPicker does not include a built-in time picker". El tamaño de MUI incluye `@mui/material` y emotion, así que si tu app ya usa MUI, el aumento es mucho menor.
+
+### Ya existen opciones headless completas
+
+Las filas importantes de la tabla son Ark UI y React Aria. [Ark UI](https://ark-ui.com/docs/components/date-picker) ofrece selección simple, múltiple y de rango, además de selección por mes y año, con una API de composición en dot notation como `DatePicker.Root`. [React Aria](https://react-aria.adobe.com/DatePicker) es la implementación de Adobe centrada en la accesibilidad. Así que el hueco de Kalyx es más estrecho de lo que pensaba al principio.
+
+> Ya existen opciones headless completas. Sin embargo, Ark UI y React Aria intercambian valores como objetos `@internationalized/date` y ofrecen la entrada de hora como campos segmentados. Kalyx fija los valores como cadenas de instante UTC que viajan tal cual en JSON, y reúne en la misma API de composición un TimePicker basado en listas y pickers de mes, año y semana.
+
+Aun así, "los valores son cadenas, y eso está bien" es un argumento débil. Un `CalendarDate` también se convierte en cadena con un solo `toString()`. El diferenciador no es el formato, sino **el contrato de que esa cadena siempre es un momento real (un instante) y nunca se mezcla con una celda del calendario (una coordenada), y los tests que lo hacen cumplir**.
+
+### Volví a medir el tamaño del bundle con un mismo método
+
+El tamaño del bundle del badge del README no era una cantidad comparable con la de otras bibliotecas. Los aproximadamente 19.5KB del badge corresponden a un único archivo de `@kalyx/react` en `dist`, y ese archivo deja `@kalyx/core`, `@kalyx/adapter-date-fns` y `@floating-ui/react` como imports externos. Había puesto esa cifra junto a las cifras de otras bibliotecas que incluían sus dependencias.
+
+Así que lo volví a medir todo con esta pregunta: "¿cuánto crece el bundle cuando una app consumidora añade una línea de import?"
+
+```bash
+echo "import { DatePicker } from '@kalyx/react'; export default DatePicker;" > entry.jsx
+npx esbuild entry.jsx --bundle --minify --format=esm --platform=browser \
+  --external:react --external:react-dom --external:react/jsx-runtime | gzip -6 | wc -c
+```
+
+Medido el 2026-09-16 con esbuild 0.28.2; KB son bytes divididos entre 1024. En react-datepicker excluí el CSS. React Aria Components lo medí dos veces: con los 12 exports necesarios para montar un único DatePicker (`DatePicker`, `DateInput`, `Calendar`, `Popover`, `Dialog`, etc.) y con 14 exports que añaden rango y hora (incluidos `DateRangePicker`, `RangeCalendar` y `TimeField`).
+
+![Con las mismas condiciones de esbuild, el tamaño crece en este orden: Kalyx DatePicker 18.9KB, react-day-picker 20.0KB, Kalyx completo 25.6KB, Ark UI 42.7KB, react-datepicker 45.4KB, React Aria Components 75.3KB (78.8KB con rango y hora), MUI X 113.1KB.](1.png?w=720)
+
+En las mismas condiciones, hay una sola afirmación verdadera. Un DatePicker (18.9KB) tiene un tamaño parecido al de `DayPicker` (20.0KB), y los siete juntos (25.6KB) pesan más. (E incluso así, DayPicker es solo el calendario, mientras que Kalyx DatePicker incluye también el campo de entrada y el popover.) El tamaño es sensible a la combinación de imports y al nivel de gzip, así que conviene leerlo como orden de magnitud, y el tamaño no es la razón principal para elegir Kalyx.
+
+---
+
+## Una definición técnica de Kalyx
+
+> Kalyx es un selector de fechas headless para React que fija todas las entradas y salidas como cadenas de instante UTC, confina la conversión entre coordenadas de calendario e instantes a dos funciones y comprueba ese viaje de ida y vuelta con tests de propiedades en todas las zonas horarias que conoce el runtime.
+
+Esta es la API del lado del consumidor. `value` y `onChange` usan `string | null`, y `displayTimezone` decide en el calendario de qué zona se muestra.
 
 ```tsx
-// 지양 — Props 폭발. 14개 boolean으로 한 컴포넌트 비틀기
-<DatePicker
-  selected={date}
-  showTimeSelect
-  timeFormat="HH:mm"
-  showMonthDropdown
-  showYearDropdown
-  excludeDates={[]}
-  renderCustomHeader={...}
-/>
-
-// 권장 — Composition. "이 picker, 이 부분, 이렇게 스타일"이 명시적
-<DatePicker value={iso} onChange={setIso}>
+<DatePicker value={iso} onChange={setIso} displayTimezone="America/New_York">
   <DatePicker.Input />
   <DatePicker.Popover>
     <DatePicker.Calendar />
-    <DatePicker.Presets>
-      <DatePicker.Preset label="Today" value={today} />
-      <DatePicker.Preset label="Tomorrow" value={tomorrow} />
-    </DatePicker.Presets>
   </DatePicker.Popover>
 </DatePicker>
 ```
 
-El coste es evidente: un `<DatePicker>` de una línea se convierte en un bloque JSX de seis. Pero las ventajas también lo son.
+### Los valores son instantes y las celdas del calendario son coordenadas
 
-- Claridad que sigue siendo legible un año después
-- Tipos sin leak entre combinaciones de props
-- Una superficie de estilos infinitamente extensible, porque cada subcomponent posee su propio mapa de slots `classNames`
+Por Kalyx circulan dos tipos de cadenas ISO con el mismo formato. Una **coordenada** es una celda de la cuadrícula del calendario; se escribe como `YYYY-MM-DDT00:00:00.000Z`, pero no tiene noción de zona horaria. El cálculo de la cuadrícula se hace solo en UTC, así que no depende del entorno de ejecución. Un **instante** es el valor que sale por `onChange`: el momento real que corresponde a la medianoche de ese día en `displayTimezone`. El mismo 15 de enero es `2026-01-15T05:00:00.000Z` en Nueva York y `2026-01-14T15:00:00.000Z` en Seúl.
 
-La implementación se agrupa de forma sencilla con el patrón `Object.assign`.
+![La coordenada de calendario 2026-01-15T00:00:00.000Z se convierte en los instantes de Nueva York y Seúl mediante civilMidnightFromUtcDay, y vuelve a ser coordenada mediante calendarDayFromInstant.](2.png?w=720)
 
-```tsx
-// packages/react/src/components/DatePicker/index.ts
-export const DatePicker = Object.assign(DatePickerRoot, {
-  Input: DatePickerInput,
-  Trigger: DatePickerTrigger,
-  Popover: DatePickerPopover,
-  Calendar: DatePickerCalendar,
-  MonthGrid: DatePickerMonthGrid,
-  YearGrid: DatePickerYearGrid,
-  Presets: DatePickerPresets,
-  Preset: DatePickerPreset,
-});
+Solo dos funciones de `@kalyx/core` unen ambos mundos: `civilMidnightFromUtcDay`, que convierte una coordenada en instante, y su inversa, `calendarDayFromInstant`. Esta última lee "qué día es ese instante en esta zona" y lo vuelve a escribir como coordenada de medianoche UTC.
+
+```ts
+// packages/core/src/utils/timezone.ts:187-190
+export function calendarDayFromInstant(iso: ISODateString, timeZone: string): ISODateString {
+  const p = partsInTimezone(new Date(iso), timeZone);
+  return new Date(Date.UTC(p.year, p.month - 1, p.day)).toISOString();
+}
 ```
 
-Es compatible con tree shaking, se agrupa en un único `index.ts` por componente y no produce colisiones de namespacing. (La primera vez que vi Radix UI no entendí por qué se hablaba de este patrón como un estándar. Solo después de crear una biblioteca comprendí por qué se convirtió tan rápido en un estándar del sector.)
+La regla es de dirección. Al elegir una celda y confirmar el valor, la coordenada pasa a instante; al decidir a partir del valor guardado qué mes mostrar y dónde poner el foco, el instante pasa a coordenada. El `selectDate` del Root de DatePicker convierte, valida las restricciones con el instante convertido y, si pasa, confirma.
 
-### Entrada y salida como cadenas ISO-8601
+```ts
+// packages/react/src/components/DatePicker/Root.tsx:182-194
+const normalized =
+  coordinate && displayTimezone
+    ? civilMidnightFromUtcDay(coordinate, displayTimezone)
+    : coordinate;
 
-El `value` de Kalyx es `string | null`: una cadena en formato UTC ISO-8601. `onChange` devuelve el mismo tipo de cadena. El objeto `Date` nativo no aparece en ninguna parte de la API pública.
+if (normalized && isDateDisabled(normalized, disabledRules, adapter, displayTimezone)) {
+  return;
+}
 
-La alternativa «obvia» es un objeto `Date`. También es el origen de incidencias que llevan años abiertas en todos los DatePicker que usan Date nativo: el desfase de timezone no coincide, se rompe el round-trip de `JSON.stringify` y SSR genera valores diferentes en servidor y cliente. La conocida incidencia de timezone [#1018](https://github.com/Hacker0x01/react-datepicker/issues/1018) de `react-datepicker` se abrió en 2017, se prolongó durante ocho años y no se cerró hasta 2025 con la conclusión de que «no es un bug, sino el comportamiento esperado de `Date` en JavaScript». Se cerró añadiendo documentación, sin cambiar el código fuente. Mientras una biblioteca utilice `Date` nativo como tipo de value, este tipo de fricción no puede desaparecer estructuralmente.
-
-Forzar cadenas ISO-8601 ofrece tres garantías.
-
-- **wire-safe**: tras `JSON.stringify` y recuperar el dato, la cadena sigue siendo idéntica byte por byte
-- **Seguro para SSR**: servidor y cliente hacen hydrate con la misma cadena
-- **Obliga a explicitar el timezone**: el consumer debe declarar en qué zona horaria mostrar el valor, por ejemplo `displayTimezone="Asia/Seoul"`
-
-```tsx
-// 권장
-<DatePicker
-  value="2026-01-15T00:00:00.000Z"
-  displayTimezone="Asia/Seoul"
-  onChange={(iso: string | null) => save(iso)}
-/>
-
-// 금지
-<DatePicker value={new Date()} />
+if (!isControlled) {
+  setUncontrolledValue(normalized);
+}
+onChange?.(normalized);
 ```
 
-Así se expresa naturalmente el escenario de mostrar el mismo valor ISO en diferentes timezone.
+No es el único punto de llamada. Si buscas en `packages/react/src`, las dos funciones aparecen repartidas por el Root y el Calendar de DatePicker, RangePicker y DateTimePicker, por Presets, por las utilidades de navegación con teclado y por seis hooks headless. Aun así, todo camino que confirma una celda de fecha o decide la vista pasa por una de las dos. La confirmación de una hora la hace `setTimeInTimezone`, que por dentro convierte con la misma función interna, `resolveCivilDateTime`.
 
-```tsx
-const iso = "2026-01-15T15:00:00.000Z";
+Este contrato se protege con tests basados en propiedades (property-based tests). Para toda coordenada `c` y toda zona `z`, debe cumplirse `calendarDayFromInstant(civilMidnightFromUtcDay(c, z), z) === c`.
 
-<DatePicker value={iso} displayTimezone="Asia/Seoul" />       // 2026-01-16 00:00
-<DatePicker value={iso} displayTimezone="America/New_York" /> // 2026-01-15 10:00
-```
-
-El coste existe. El código downstream que necesite un objeto `Date` debe llamar directamente a `new Date(iso)`. Aun así, decidí que era mucho mejor concentrar ese boundary en un punto del código del consumer que dejar fluir objetos `Date` por toda la biblioteca. (Una lección que aprendí en varios proyectos es que, en cuanto se empieza a recibir un objeto, resulta imposible seguir hasta dónde acaba llegando.)
-
-Los límites como DST los gestionan las utilidades de timezone basadas en Intl de `@kalyx/core`. No están en la interfaz del adapter, sino reunidas en core como funciones `civilMidnightFromUtcDay`, `setTimeInTimezone` y `startOfDayInTimezone`, todas basadas en `Intl.DateTimeFormat`. Al convertir a UTC la medianoche civil del timezone correspondiente, calculan correctamente los límites de DST; el usuario solo tiene que pasar una cadena de timezone IANA y la biblioteca se ocupa del resto. (Es importante que esta lógica de timezone viva en core y no en el adapter. Tanto si se usa date-fns como dayjs, la exactitud del timezone queda garantizada por el mismo código de core.)
-
-### Patrón adapter
-
-`@kalyx/core` no tiene ninguna dependencia de date-fns. La misma interfaz `DateAdapter` de 21 métodos se implementa en `@kalyx/adapter-date-fns`, separado como paquete propio, y `@kalyx/react` recibe el adapter mediante Context. Lo interesante es que el adapter en sí es un shim fino de unas 200 líneas. De los 21 métodos de la interfaz, solo cuatro reciben un timezone (`format`, `isSameDay`, `startOfDay`, `today`), e incluso esos cuatro delegan todo el cálculo real de timezone en las utilidades Intl de core. El adapter se limita a mapear la aritmética y el parsing de fechas a la sintaxis de una biblioteca concreta; no es el responsable de la exactitud.
-
-El resultado de separar los paquetes puede resumirse así.
-
-```
-@kalyx/core               # 플랫폼 독립 로직 + Intl 기반 timezone, date-lib 의존 0
-@kalyx/adapter-date-fns   # default adapter (별도 패키지)
-@kalyx/react              # 컴포넌트 (default로 adapter-date-fns 자동 wire)
-@kalyx/react/headless     # zero date-lib entry, 자기 adapter 들고 옴
-```
-
-Durante el diseño consideré tres opciones.
-
-| Opción | Ventaja | Desventaja |
-| --- | --- | --- |
-| A. integrar date-fns en core | Implementación sencilla y onboarding fácil para principiantes | No se puede sustituir sin un major bump |
-| B. core solo BYO | Adaptable al futuro | Los principiantes deben configurar manualmente el adapter cada vez |
-| C. híbrida (default + sustituible) | Comodidad para principiantes + escape para usuarios avanzados | Separar 2 paquetes + mantener 2 entry |
-
-Elegí C. En la época 0.x había empezado con A, pero justo antes de hacer freeze de la API para v1 stable comprendí algo: **una biblioteca de fechas integrada no puede extraerse sin un major bump.** Extraer entonces el adapter fue la decisión más importante antes de graduar la versión 1.0.
-
-Los adapters publicados después respetan el mismo contrato de 21 métodos; solo cambia la implementación. Los tres importan de `@kalyx/core/test-helpers` la función `runAdapterConformanceTests` y la ejecutan en sus propios tests para comprobar que todos dan la misma respuesta.
-
-- `@kalyx/adapter-dayjs`: aproximadamente la mitad de los usuarios de React usa dayjs según las estadísticas, así que tenía prioridad 1 (Mantine incluso fija dayjs como peer obligatorio)
-- `@kalyx/adapter-luxon`: pensado para empresas y casos avanzados de timezone
-- Temporal: tras la extracción concluí que la compatibilidad con la API Temporal de TC39 debe resolverse en core, no mediante un adapter. Como la interfaz del adapter usa cadenas ISO como entrada y salida, no puede transportar intactas las capacidades propias de Temporal. (Retomo esta decisión en la sección «Estado actual».)
-
-### El techo del bundle
-
-En el lanzamiento 1.0, el bundle ocupaba aprox. 15,8 KB ESM / 15,9 KB CJS gzip. Al principio fijé el techo en 16 KB y lo subí un escalón, a 17 KB, en v1.1. CI impone ese techo. Cada PR ejecuta `pnpm check-bundle`; si lo supera, el build falla.
-
-La cifra no es arbitraria. Se eligió teniendo en cuenta la referencia del mercado.
-
-- `react-day-picker`: aprox. 22 KB solo para Calendar
-- `react-datepicker`: aprox. 40–60 KB por todas las primitive
-- `MUI X`: aprox. 58 KB (y Range es Pro de pago)
-- `Kalyx`: 7 primitive en menos espacio que el Calendar de `react-day-picker`
-
-Esa última línea era el orgullo de la versión 1.0. Sigue siendo cierta, pero con mucho menos margen: unos 19,5 KB frente a unos 22 KB, es decir, 2,5 KB de diferencia.
-
-También registré la evolución del bundle en cada fase RC.
-
-| Fase | Cambio | Techo |
-| --- | --- | --- |
-| rc.0 | Primera versión completa de 7 primitive | 12 → 13 KB |
-| rc.3 | Navegación por teclado en grid (Arrow/Page/Home/End) | 13 → 14 KB |
-| rc.4 | prop de mes/año disabled en MonthPicker/YearPicker | 14 → 15 KB |
-| rc.8 | callback programático `filterTime` de TimePicker | 15 → 16 KB |
-| 1.0.0 | Estabilización final (2026-06-08) | ESM 15,8 KB / CJS 15,9 KB |
-| 1.1 | Paridad de región live a11y con `announce()` | 16 → 17 KB |
-| 2026-08 | Corrección integral de la exactitud en timezone y restricciones | 17 → 20 KB |
-| 2026-08 | Separación del techo solo para el entry `/headless` | 20 → 22 KB |
-
-Cada aumento explica «por qué creció». Así no se filtra 1 KB poco a poco, sino que se convierte en una decisión intencionada. También dejé claras las funciones rechazadas. Las seis primeras filas de la tabla son el registro del momento 1.0, y entonces solo había decisiones de subir un escalón cada vez. Las dos últimas se añadieron al actualizar este artículo, y tienen otro carácter: no subí un escalón, sino tres de golpe. **Esa decisión es el tema de la segunda mitad del artículo.**
-
-Mover el techo es incómodo a propósito. Si bastara con cambiar un solo sitio, sería demasiado fácil subirlo sin decir nada, así que hoy las dos constantes de `scripts/bundle-policy.js` son la única fuente de verdad y una comprobación obligatoria en cada PR las impone. De ahí salió también el motivo de la última fila. Los dos entry compartían techo, pero `/headless` carga los mismos siete componentes que el entry predeterminado más los siete hooks completos y `DateTimePicker.Presets`. **Se había producido una inversión: el lado que carga más código era el que tenía menos margen.** En la medición, al entry predeterminado le quedaban 1,4 KB y a headless menos de 200 bytes, tan seco que bloqueaba incluso cambios que no le afectaban. Por eso subí el techo solo de headless y lo separé, sin tocar los 20 KB del entry predeterminado: esa cifra sale en un badge del README y subirla sería cambiar una promesa.
-
-Estas son las cuatro decisiones incrustadas en el código de la biblioteca. ¿Qué ocurrió durante el proceso de build real?
-
----
-
-## El proceso de build de 1.0
-
-### Catorce etapas RC de 0.x a 1.0
-
-Etiqueté rc.0, que ya incluía las 7 primitive, el 27 de mayo de 2026. Después hubo 14 iteraciones RC antes de graduarse como 1.0.0 stable el 8 de junio: unos 12 días. (No creo que esa velocidad fuese correcta. Lo ortodoxo habría sido avanzar más despacio y pulir una sola cosa cada vez, pero, como único maintainer, tenía que terminar rápido una vez que entraba en modo build.)
-
-Estos fueron los trabajos más importantes de ese periodo.
-
-- **Corrección de seguridad**: vulnerabilidad Critical GHSA-5xrq-8626-4rwp (actualización a vitest 4)
-- **Extracción neutral del adapter**: dependencia de date-fns reducida a 0 en `@kalyx/core`
-- **Separación de `@kalyx/adapter-date-fns` como paquete propio**
-- **Nuevo entry `@kalyx/react/headless`**: para usuarios con zero date-lib
-
-También fijé el listón de tests como requisito para graduar 1.0: 497/497 unit test, 14/14 pruebas de accesibilidad axe y 31 escenarios e2e.
-
-### Integración visual Aurora
-
-El feedback más memorable tras lanzar 1.0 fue un mensaje de una sola línea enviado por un usuario: **«Es feo de narices, sucio y horroroso»**. Incluía tres capturas de HeroDemo. (Entonces aprendí que, por bueno que sea el código de una biblioteca, una demo mala genera cero clics.)
-
-Los síntomas eran claros: aparecían líneas de cuadrícula en el Calendar grid, las celdas de MonthPicker se estiraban horizontalmente y DateTimePicker se veía demasiado estrecho. El diagnóstico reveló que dos sistemas CSS habían evolucionado por separado. `.kx-live-*` y `:global([role='grid'])` dentro de HeroDemo no compartían los fixes aplicados al otro.
-
-La solución no fue rediseñar, sino **unificar y aplicar una única ronda de polish**. Tras siete iteraciones visuales (v1 → v7), cerré el sistema de tokens Aurora. El single source of truth pasó a ser un único archivo, `apps/docs-site/src/css/custom.css`, y obligué a todos los picker a compartir los mismos tokens.
-
-```css
-/* Aurora 토큰 (라이트 모드) */
---kx-primary: #5b4fe1;
---kx-bg: #ffffff;
---kx-border: rgba(91, 79, 225, 0.1);
---kx-glow: 0 3px 12px rgba(91, 79, 225, 0.32);
---kx-cell: 32px;
---kx-radius-cell: 8px;
---kx-radius-card: 14px;
-```
-
-Comparto tres trampas que quedaron documentadas durante el proceso. Es muy probable encontrar exactamente los mismos problemas al integrar componentes headless en otro entorno, en especial en un sitio de documentación como Docusaurus.
-
-Primero, **la regla `table th, td` de Infima en Docusaurus se filtra en todas las etiquetas `<table>`**. Por eso aparecían líneas de cuadrícula en el Calendar grid. Hay que aislarlo con módulos CSS o aplicar un reset explícito.
-
-Segundo, **en `<table role="grid">` no se puede aplicar `display: grid`**. `<thead>/<tbody>/<tr>` se convierten en grid item y las siete column no llegan a los `<td>`. Al final hay que resolverlo combinando `display: table`, `table-layout: fixed` y un width explícito.
-
-Tercero, **la visualización de Range requiere redondeo asimétrico**: start solo a la izquierda, end solo a la derecha y middle sin esquinas redondeadas. Si se uniforma, las celdas parecen «flotar» por separado y se pierde la agrupación visual intuitiva.
-
-### En qué invertí el tiempo con cero usuarios
-
-Vale la pena mostrar con franqueza los datos de la primera semana tras lanzar 1.0.
-
-- 5 stars en GitHub, 0 forks y 0 watchers
-- 480 descargas semanales en npm (supuestamente, en su mayoría, bots espejo de CI)
-- 0 paquetes con dependencia directa
-
-Tres meses después, las stars son 7. La cifra no se ha movido prácticamente nada, y ese hecho es el punto de partida del giro de rumbo que cuento más adelante.
-
-Había dos caminos posibles para invertir el tiempo: (a) reforzar funciones nuevas; (b) expandirse a otra vía, como un adapter para React Native. Pero ambos tenían un ROI bajo. Sin usuarios externos, no se podían validar las funciones nuevas, y tenía más sentido abrir nuevas vías después de conseguir usuarios.
-
-Así que decidí dedicar el tiempo a la **primera impresión de 30 segundos**: el intervalo en el que alguien entra por primera vez en el repositorio de GitHub o en la documentación y decide en 30 segundos si vale la pena probar la biblioteca. Lo organicé en cinco PR.
-
-| PR | Contenido |
-| --- | --- |
-| A1 | Grabador WebP animado de la cabecera + componente `<HeroDemo>` + ruta `/recorder` |
-| A2 | Rediseño de la página de inicio. 6 secciones (Hero/FeatureGrid/SameJsxBlock/PickerGrid/WhyKalyx/GetStarted) |
-| B | Infraestructura de sandbox. `<StackBlitzEmbed>` + 7 proyectos `examples/*` |
-| C | `/playground` interactivo. Selector de picker + editor de classNames + controles de locale/timezone |
-| D | Página `/docs/comparison` + gráfico comparativo del bundle en SVG integrado |
-
-Aprendí algo durante ese proceso: **la puntuación Lighthouse en localhost puede diferir más de 10 puntos respecto al despliegue real en Vercel.** En la incidencia #103, una medición en modo simulate de localhost parecía mostrar una regresión de 72 → 61, es decir, −11 puntos. Tras desplegar el mismo cambio en Vercel, la medición real dio 73–74, una mejora de +1–2 puntos. El propio entorno de medición de localhost simulate producía el artifact. (Aprendí que depender solo de cifras de localhost al buscar una regresión de rendimiento puede llevar a decisiones equivocadas.)
-
-Sinceramente, esa inversión en los «primeros 30 segundos» no produjo grandes resultados. Pulir la demo y la landing sin usuarios externos se parecía a limpiar una tienda para clientes que no entraban. Después cambié de dirección: para un único maintainer, crear **activos verificables que demostrasen la exactitud de core** ofrecía más ROI que pulir la superficie promocional. (Los resultados concretos aparecen en la sección «Estado actual».)
-
----
-
-## Un vistazo a la arquitectura técnica
-
-A partir de aquí presento un breve recorrido para quienes quieran crear su propia biblioteca o sientan curiosidad por su funcionamiento interno. (Si solo se desea usarla, esta sección puede omitirse.)
-
-### Implementación de Context + Dot Notation
-
-En cada primitive, el componente Root crea un Context Provider y todos los subcomponent consumen el mismo Context.
-
-```tsx
-// Root, Context 생성
-function DatePickerRoot({ value, onChange, children }) {
-  const ctx = useDatePicker({ value, onChange });
-  return (
-    <DatePickerContext.Provider value={ctx}>
-      {children}
-    </DatePickerContext.Provider>
+```ts
+// packages/core/src/__tests__/timezone.property.test.ts:86-94
+it('round-trips every UTC calendar coordinate through civil midnight', () => {
+  fc.assert(
+    fc.property(utcCalendarCoordinate(), zone(), (coordinate, timeZone) => {
+      const instant = civilMidnightFromUtcDay(coordinate, timeZone);
+      expect(calendarDayFromInstant(instant, timeZone)).toBe(coordinate);
+    }),
+    RUNS,
   );
-}
-
-// Subcomponent, Context 소비
-function DatePickerInput(props) {
-  const { value, onChange, open } = useContext(DatePickerContext);
-  return <input value={format(value)} onClick={open} ... />;
-}
-
-// Dot notation으로 묶기
-export const DatePicker = Object.assign(DatePickerRoot, {
-  Input: DatePickerInput,
-  Popover: DatePickerPopover,
-  Calendar: DatePickerCalendar,
 });
 ```
 
-La clave del patrón es que los componentes que comparten el mismo Context están dentro de un único grupo `Object.assign`. El consumer los invoca con naturalidad como `<DatePicker.Input>` y el tree shaker elimina automáticamente los subcomponent que no se usan.
+[fast-check](https://fast-check.dev/) genera fechas aleatorias entre 2020 y 2045 y las combina con 14 zonas representativas, como Kathmandu (+5:45), Kiritimati (+14) y Niue (-11), durante 300 ejecuciones. El test inmediatamente siguiente comprueba el mismo viaje de ida y vuelta 12 veces por zona para todas las zonas que devuelve `Intl.supportedValuesOf('timeZone')`. En mi Node 24.16 local, esa lista tiene 418 zonas. La 1.4.8 añadió un test exhaustivo que compara, en cada cambio de horario, la conversión de las horas límite con una implementación de Temporal.
 
-### Headless Hook
+Entonces, ¿por qué no hacer que la biblioteca normalice por sí sola a instante un `"2026-01-15T00:00:00.000Z"` que pase el usuario? Ese camino está cerrado, porque con la cadena sola no se puede saber si es una coordenada o un instante. Si al valor de Seúl `2026-01-14T15:00:00.000Z`, que ya es un instante, se le vuelve a aplicar `civilMidnightFromUtcDay`, se obtiene `2026-01-13T15:00:00.000Z`; en zonas con offset positivo como Seúl, la fecha sigue retrocediendo un día en cada render. (El valor de Nueva York no cambia si se vuelve a aplicar.) Cambiarlo por `startOfDayInTimezone`, que da el mismo resultado por muchas veces que se aplique, elimina el desplazamiento, pero ya no cumple su función original de convertir coordenadas en instantes.
 
-Para ignorar todos los componentes de la biblioteca y crear una UI completamente propia, se usa directamente el Hook.
+Así que renuncié a normalizar y fijé el contrato en la documentación. Quien usa el picker debe devolverle tal cual el valor que este emitió. Siendo sincero, es un coste que traslado a los consumidores, y como `ISODateString` es un alias de `string`, el compilador tampoco lo impide.
 
-```tsx
-const {
-  value,
-  calendar,        // { weeks, currentMonth, ... }
-  navigate,        // navigate.prevMonth, navigate.nextYear, ...
-  select,          // select(iso)
-  isOpen,
-  open,
-  close,
-} = useDatePicker({
-  value: iso,
-  onChange: setIso,
-  displayTimezone: 'Asia/Seoul',
-  locale: 'ko-KR',
-});
+### Resolver el DST solo con Intl
+
+Para convertir una coordenada en instante hay que saber cuándo es, en UTC, "las 00:00 de ese día en esa zona", pero el offset solo se puede obtener si ya conoces el instante. Además, en los días de cambio de horario la hora local puede no existir (spring forward) o existir dos veces (fall back).
+
+Kalyx lo resuelve sin una biblioteca como `date-fns-tz`. Pregunta a `Intl.DateTimeFormat(...).formatToParts` "qué hora es este momento UTC en esa zona" para medir el offset, y lee ese offset en dos puntos: un día antes y un día después de la hora pedida.
+
+```ts
+// packages/core/src/utils/timezone.ts:251-254, 259
+const candidate = (probeEpoch: number) =>
+  civilEpoch - getTimezoneOffsetMinutes(new Date(probeEpoch).toISOString(), timeZone) * 60_000;
+const epochBefore = candidate(civilEpoch - 86_400_000);
+const epochAfter = candidate(civilEpoch + 86_400_000);
+
+if (epochBefore === epochAfter) return new Date(epochBefore).toISOString();
 ```
 
-La máquina de estados es exactamente la misma que utilizan los componentes. El código del Hook anterior y el JSX de `<DatePicker>` funcionan sobre la misma lógica central. (Gracias a esta arquitectura no es necesario mantener la API de la biblioteca en dos vías.)
+`civilEpoch` es la hora local deseada leída como si fuera UTC. Los offsets están dentro de ±14 horas, así que un día antes y un día después dan el offset de cada lado de cualquier cambio cercano. Si ambos coinciden no hay cambio y basta con dos llamadas a `formatToParts`; como la cuadrícula la llama una vez por cada una de sus 42 celdas, esta vía rápida es la que determina el coste. (Supone como mucho un cambio en 48 horas, algo que se cumple en todas las zonas de 2020 a 2045.)
 
-### Seguridad en SSR
+Si difieren, vuelve a leer ambos candidatos en esa zona y comprueba cuál coincide con la hora pedida (`timezone.ts:261-279`). En el solapamiento del fall back coinciden los dos, así que elige el más temprano, construido con el offset anterior al cambio; en el hueco del spring forward no coincide ninguno, así que elige ese mismo lado y avanza la hora la duración del hueco. Este es el resultado de ejecutarlo de verdad.
 
-Desde el principio impuse patrones que pudieran sobrevivir en Next.js App Router.
+| Petición | Situación | 1.4.7 | 1.4.8 |
+| --- | --- | --- | --- |
+| New_York 2026-03-08 02:30 | Hora inexistente | `2026-03-08T07:30:00.000Z` | Igual (03:30 EDT, hacia adelante) |
+| New_York 2026-11-01 01:30 | Hora que ocurre dos veces | `2026-11-01T05:30:00.000Z` | Igual (01:30 EDT, la más temprana) |
+| London 2026-10-25 01:30 | Hora que ocurre dos veces | `2026-10-25T01:30:00.000Z` (la más tardía) | `2026-10-25T00:30:00.000Z` (01:30 BST, la más temprana) |
 
-```tsx
-// 지양
-const id = Math.random().toString(36);    // 서버/클라이언트 불일치
-const width = window.innerWidth;          // window 직접 참조
-useLayoutEffect(() => {}, []);            // SSR 경고
+"Los huecos avanzan y la ambigüedad toma la más temprana" coincide con el valor por defecto de `disambiguation`, `"compatible"`, que describe la [documentación de Temporal.ZonedDateTime en MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime). Por qué falla la fila de Londres en la 1.4.7 lo explico más adelante.
 
-// 권장
-const id = useId();                       // React 표준
-useEffect(() => {                         // 클라이언트에서만
-  const width = window.innerWidth;
-}, []);
+### La frontera del adaptador son 21 métodos de cadenas
+
+Si core calcula las zonas horarias, ¿de qué se encargan date-fns o dayjs? De la aritmética de fechas y el parsing. Esa frontera, `DateAdapter`, tiene 21 métodos, y todos los argumentos de fecha y valores de retorno son cadenas ISO.
+
+```ts
+// packages/core/src/types.ts:71-102 (발췌)
+export interface DateAdapter {
+  parse(value: string, format?: string): string;
+  format(iso: string, formatStr: string, timezone?: string): string;
+  addDays(iso: string, n: number): string;
+  isSameDay(a: string, b: string, timezone?: string): boolean;
+  startOfDay(iso: string, timezone?: string): string;
+  today(timezone?: string): string;
+  // addMonths, isBefore, startOfMonth, getYear 등 15개
+}
 ```
 
-Para el posicionamiento uso Floating UI. Es el sucesor de Popper.js, seguro para SSR y una biblioteca ligera de unos 3 KB. En cada ejecución de CI se comprueba con un build de Next.js App Router que no haya errores de `renderToString`.
+Los métodos que reciben zona horaria son cuatro, `format`, `isSameDay`, `startOfDay` y `today`, e incluso esos cuatro delegan el cálculo en core. El `format` del adaptador de date-fns, si recibe `timezone`, llama directamente a `formatInTimezone` de core (`packages/adapter-date-fns/src/index.ts:112-115`). Por eso, uses el adaptador que uses, las respuestas sobre zonas horarias salen del mismo código, y los tres adaptadores (date-fns, dayjs, luxon) toman de `@kalyx/core/test-helpers` la función `runAdapterConformanceTests` y la ejecutan cada uno para comprobar que dan las mismas respuestas.
 
-### Accesibilidad
+Los dos entry points también se separan sobre esta frontera. El entry por defecto, `@kalyx/react`, llama a `setDefaultAdapter(DateFnsAdapter)` al cargarse el módulo, así que funciona nada más instalarlo (`packages/react/src/index.ts:9-11`). `@kalyx/react/headless` no hace esa llamada y se empaqueta por separado, así que no entra código de date-fns.
 
-Los roles WAI-ARIA siguen la spec.
+La forma de esta frontera tuvo un precio. En junio de 2026 abandoné un adaptador de Temporal. El valor de Temporal está en que **los tipos llevan consigo el significado**, como `PlainDate` y `ZonedDateTime`, pero si la frontera es una cadena, ese significado no puede atravesarla. Envolverlo solo lo aplanaría en una cadena, así que concluí que no aportaba ganancia de corrección. Visto ahora, el problema de la sección anterior, "coordenadas e instantes son el mismo `string`", es justo el que Temporal resuelve en el sistema de tipos con `PlainDate` e `Instant`. La frontera de cadenas facilitó cambiar de adaptador, pero a cambio cerró el camino de resolverlo con tipos.
 
-- Calendar grid → `role="grid"`, celda → `role="gridcell"`
-- Input + Popover → `role="combobox"` + `aria-expanded`
-- HourList / MinuteList → `role="listbox"`
+### Siete pickers que combinan tres contextos
 
-El mapeo de navegación por teclado también se acerca a la spec: Arrow keys para moverse entre celdas, PageUp/Down para cambiar de mes, Shift+PageUp/Down para cambiar de año, Home/End para ir al principio o al final de la semana, Enter para seleccionar y Escape para cerrar el Popover.
+Kalyx tiene siete pickers: DatePicker, RangePicker, TimePicker, DateTimePicker, MonthPicker, YearPicker y WeekPicker. Lo importante no es el número, sino **que los siete no son implementaciones independientes**. Solo hay tres contextos: `DatePickerContext`, `RangePickerContext` y `TimePickerContext`.
 
-Las 14 comprobaciones automatizadas de accesibilidad con axe pasan. Las etiquetas ARIA también pueden personalizarse para varios idiomas.
+| Picker | Root que tiene el estado | Contexto | Dónde está la diferencia |
+| --- | --- | --- | --- |
+| DatePicker | `DatePickerRoot` | Date | |
+| MonthPicker, YearPicker | La implementación del Root de DatePicker | Date | `selectionGranularity` |
+| RangePicker | `RangePickerRoot` | Range | |
+| WeekPicker | `RangePickerRoot` tal cual | Range | `selectionMode="week"` en Calendar |
+| TimePicker | `TimePickerRoot` | Time | |
+| DateTimePicker | Root propio | Date y Time anidados | Superpone dos Providers |
+
+El Root de MonthPicker se limita a cambiar el formato de visualización por defecto a `yyyy-MM` y a pasar `selectionGranularity="month"` a la implementación del Root de DatePicker (`MonthPicker/Root.tsx:11-20`). El `selectDate` de DatePicker, cuando la granularity es `month`, pliega la coordenada al día 1 de ese mes y después pasa por la misma conversión y validación de restricciones que vimos antes. DateTimePicker proporciona los dos contextos superpuestos.
 
 ```tsx
-<DatePicker
-  labels={{
-    inputLabel: '날짜를 선택하세요',
-    prevMonth: '이전 달',
-    nextMonth: '다음 달',
-    monthYearHeader: (month, year) => `${year}년 ${month}월`,
-  }}
-/>
+// packages/react/src/components/DateTimePicker/Root.tsx:401-402
+<DatePickerContext.Provider value={dateContext}>
+  <TimePickerContext.Provider value={timeContext}>{children}</TimePickerContext.Provider>
 ```
 
-`@kalyx/core` ofrece etiquetas predeterminadas para varios locale, entre ellos `ko-KR`.
+Por eso `DateTimePicker.Calendar` es el mismo componente que `DatePicker.Calendar` y no sabe dentro de qué picker está. Una corrección en un sitio llega a todos los pickers que usan ese componente, y un defecto en un sitio también. Esta base compartida es además la razón de que un solo DatePicker supusiera el 74% del total en el gráfico anterior.
 
 ---
 
-## Estado actual y limitaciones reconocidas
+## Lo que costó mantener el contrato
 
-### Tres meses vendiendo tamaño para comprar exactitud
+Los tres meses desde la 1.0 los dediqué más a verificar este contrato que a nuevas funcionalidades, y aparecieron tres defectos que los tests basados en ejemplos habrían dejado pasar. El primero lo encontró un test de propiedades, el segundo una revisión cruzada del código y el tercero la verificación de este artículo.
 
-La primera parte de este artículo es la retrospectiva del lanzamiento 1.0. Pero, en el momento de actualizarlo, la biblioteca va por la 1.4.7, y lo que más ha cambiado en ese tiempo no es la lista de funciones, sino las prioridades.
+### Una hora del 1 de octubre en Sydney
 
-El punto de inflexión fue el día siguiente a 1.0. Quedó claro que la inversión en los «primeros 30 segundos» de la sección anterior no daba resultado, y la observación de cero usuarios externos se mantuvo. Así que dejé de promocionarla y retiré todos los activos de marketing que seguían vivos: el banner de anuncio del sitio de documentación, la trabajada página comparativa `/docs/comparison` y hasta este mismo artículo que estás leyendo. **Por eso llevaba más de tres meses sin publicarse.** Lo retiré el día que decidí parar la promoción y ahora lo recupero añadiéndole el registro de lo ocurrido entretanto.
+El primero fue que la propiedad "leer en esa zona el resultado de `startOfDayInTimezone` da 00:00:00" se rompió en Australia/Sydney. La implementación de entonces medía el offset una sola vez. Sydney pasa de +10 a +11 a las 02:00 del 1 de octubre de 2034, y las 00:00 de ese día todavía son +10, así que la respuesta correcta es `2034-09-30T14:00:00.000Z`. Pero "el punto en que las 00:00 del 1 de octubre se leen como UTC" cae después del cambio, así que devolvía +11, y el resultado eran las 23:00 del día anterior. Este contraejemplo sigue ahí como test de regresión (`timezone.property.test.ts:276`).
 
-Sin usuarios, que lo ya publicado funcione bien importa más que publicar más cosas. Ese juicio invirtió el orden del trabajo.
+### Un test que solo pasaba en Seúl
 
-**Adelanté los tests basados en propiedades, que estaban aplazados a la v1.2.** Consisten en generar entradas aleatorias en cantidad para encontrar dónde se rompe una invariante. En funciones puras como los cálculos de fechas, eso engorda el foso más que los tests basados en ejemplos. Y efectivamente cazaron uno: `startOfDayInTimezone` devolvía una hora antes de lo debido los días de cambio de horario. La causa era una implementación que medía el offset una sola vez sobre «la medianoche local leída como UTC», y ese punto puede caer al otro lado de la transición. Cuando Australia/Sydney entra en horario de verano el 1 de octubre, las 00:00 locales siguen en AEST +10, pero leídas como 00:00 UTC salen ya en AEDT +11, después del cambio. Con tests basados en ejemplos, ese bug habría pasado desapercibido para siempre salvo que alguien escribiera precisamente esa fecha.
+El segundo salió de una revisión cruzada el 3 de agosto de 2026. El código que decide qué celda del calendario marcar como seleccionada convertía dos veces. La celda ya era una coordenada, pero convertía a fecha de esa zona tanto la celda como el valor guardado. Esto fue lo que produjo elegir "15 de enero".
 
-**Y subí el techo del bundle de 17 KB a 20 KB.** Lo hice aun siendo el tamaño uno de los argumentos de venta de esta biblioteca. El motivo es que corregir a fondo la exactitud de timezone y restricciones costó código. Había un problema por el que, en zonas de offset negativo, las celdas del calendario quedaban desplazadas un día, y la comprobación de restricciones (`disabled`) solo vivía en la ruta de los componentes: faltaba en las rutas de presets, teclado, hooks y cambios de contexto. Subir tres escalones de golpe no fue cómodo. Pero no dudé en que, **si hay que elegir entre «pequeña» y «correcta», una biblioteca debe quedarse con lo segundo**.
-
-Los siete parches 1.4.x posteriores son todos de la misma familia. En vez de enumerar las notas de versión, los resumo por lo que enseñaron.
-
-| Versión | Qué corrigió | Qué dejó a la vista |
+| Zona | Valor guardado | Celda marcada como seleccionada |
 | --- | --- | --- |
-| 1.4.1 | Identidad del día de calendario y coherencia de toda la ruta de comprobación de restricciones bajo `displayTimezone` | La exactitud no se escapaba por una función, sino por cada ruta |
-| 1.4.2 | Conservación de la fecha en zonas de UTC+12 a +14 y navegación atrapada en meses enteramente desactivados | Hay defectos que solo asoman donde cambia el signo de la zona |
-| 1.4.3 | `selectMonth` y `selectYear` confirmaban la selección ignorando la marca de desactivado que ellos mismos pintaban | El código que pinta y el que escribe deben ver el mismo veredicto |
-| 1.4.4 | `workspace:*` quedaba fijado a una versión exacta y los parches de core no llegaban por su cuenta | La propia forma de publicar puede crear un bug |
-| 1.4.5 | Un `value` inválido lanzaba durante el render y tiraba el árbol entero | Lo que llega de un campo de formulario o de una fila de base de datos es dato, no error de programación |
-| 1.4.6 | Rechazo de fechas imposibles y de horas fuera de rango, y envío en ISO de las entradas con nombre | La defensa no va en una sola puerta, sino en todas |
-| 1.4.7 | Los 7 hooks rehacían los datos derivados en cada render | Una optimización pensada solo para los componentes no llega a quien usa los hooks |
+| `Asia/Seoul` (+9) | `2026-01-14T15:00:00.000Z` | Día 15 (correcto) |
+| `America/New_York` (-5) | `2026-01-15T05:00:00.000Z` | Día 16 (incorrecto) |
 
-La 1.4.5 es la que más recuerdo. Si llegaba por `value` una cadena imposible de parsear, se lanzaba un `RangeError: Invalid time value` durante el render, React desmontaba el árbol entero y, bajo `renderToString`, una sola fila mala se convertía en una respuesta 500. Pero `value` viene casi siempre de un campo de formulario o de una fila de base de datos. **No es un error del desarrollador: es simplemente un dato.** El fallo estaba en que la biblioteca lo tratase como error de programación.
+En las zonas con offset positivo los dos desplazamientos se compensaban y por casualidad acertaba, y los tests existentes solo cubrían Seúl. En la misma revisión apareció también una infracción en la dirección contraria. Al decidir qué mes mostrar, se aplicaba `startOfMonth` directamente a un instante, así que si en Seúl se pasaba el 1 de enero como valor, se abría el calendario de diciembre. Los mecanismos son distintos, pero la regla incumplida es una sola: convertir una única vez por dirección, con la función que corresponde a esa dirección.
 
-Funciones también las hubo, aunque todas del lado de rellenar huecos de lo que ya existía.
+Este incidente amplió los tests de propiedades de ida y vuelta de core de "unas cuantas zonas representativas" a "todas las zonas que conoce el runtime". (Los tests de componentes del lado de React siguen usando zonas representativas como `America/New_York`.) **Los defectos que solo aparecen donde cambia el signo no se atrapan con muestras.**
 
-- **Soporte RTL** (1.3.0): todos los Root de picker tienen ahora una prop `dir`. Siguiendo el patrón de grid de WAI-ARIA, solo se invierten las flechas físicas; ArrowUp/Down y Home/End conservan la dirección lógica. En 1.0 era un punto aplazado a «cuando lo permita el margen del bundle», y subir el techo le hizo sitio.
-- **Los 4 headless hook que faltaban** (`useMonthPicker`, `useYearPicker`, `useWeekPicker`, `useDateTimePicker`): los metí solo en el entry `@kalyx/react/headless` para no tocar el techo del bundle predeterminado. Por eso ese entry fue el primero en quedarse seco.
-- **Locale y Popover en TimePicker** (1.4.0): las etiquetas AM/PM se localizan con `Intl` (en ko-KR, 오전/오후) y TimePicker ya puede usarse en popover, no solo inline.
-- **Publicación de `@kalyx/adapter-luxon` y `@kalyx/adapter-dayjs`**: los dos están en npm y los tres adapters pasan la conformance suite.
+### La 01:30 de Londres que se resolvía tarde
 
-En sentido contrario, dejo tal cual lo que **descarté** del plan. Decidí no hacer `@kalyx/adapter-temporal` como adapter. La interfaz del adapter usa cadenas ISO-8601 como entrada y salida, así que no puede transportar intactas las capacidades de tipos propias de Temporal (`PlainDate`, `ZonedDateTime`). Envolverlo en un adapter solo lo aplanaría a cadenas ISO para volver a delegar en el código Intl de core, y la ganancia de exactitud medida fue cero. No he abandonado Temporal en sí: lo aparqué tras una puerta de demanda a nivel de core.
+El tercero surgió al extender a otras zonas la tabla de DST de este artículo. La 1.4.7 empezaba a medir el offset en el punto donde la hora pedida se lee como UTC, y en las zonas cuyo offset tras el cambio es 0 o más, ese punto ya está después del cambio, así que convergía en el offset tardío. Al contrastar con temporal-polyfill todos los cambios de 2020 a 2045 en 418 zonas, en 1908 de los 3395 cambios con solapamiento se elegía la hora más tardía, repartidos en 84 zonas. (Los 3394 cambios con hueco eran todos correctos, y Nueva York, con offset negativo, acertaba por casualidad.)
 
-Las vías pospuestas no las anoté como «más adelante», sino como **qué tendría que observar para cambiar de idea**. Calendarios no gregorianos (persa, budista, islámico y hebreo): 3 o más incidencias en GitHub, o 1 patrocinio empresarial. Storybook y tests de regresión visual: cuando se produzcan 3 o más regresiones visuales. Adapter para React Native: en pausa. Escribir las condiciones en números evita repetir el mismo debate cada vez.
+En [#226](https://github.com/jiji-hoon96/kalyx/pull/226) lo cambié para leer un día antes y uno después, lo publiqué como `@kalyx/core` 1.4.8 y dejé la misma comparación como `timezone.dst-oracle.test.ts`. (temporal-polyfill solo se usa en los tests.) El comentario del código que decía erróneamente `'earlier'` ahora dice `'compatible'`. Otra vez, **las muestras estaban concentradas en un solo signo.**
 
-### Limitaciones que reconozco con franqueza
+### Los 3KB invertidos en corrección
 
-Termino con una declaración honesta para quienes estén considerando la biblioteca. (Creo que añadir marketing exagerado a una biblioteca nueva acaba destruyendo la confianza.)
+Estas correcciones costaron código. Kalyx fija en la CI un techo para el bundle del entry por defecto, y un PR que lo supera falla un check obligatorio. Ese techo empezó en 12KB y subía 1KB cada vez que entraba una funcionalidad, y en agosto de 2026, al rehacer por completo la corrección de zonas horarias y restricciones, lo subí de 17KB a 20KB de una vez.
 
-- **Un solo maintainer**: ritmo posible de un minor al mes. Las prioridades se ajustan cuando hay demanda.
-- **Biblioteca nueva**: al tener una base de usuarios pequeña, es bastante posible convertirse en la primera persona que descubra un edge case. Aunque sí puedo decir que los tres meses anteriores han recortado bastante esa probabilidad: la mayoría de los defectos corregidos en 1.4.x los encontraron antes los tests de propiedades y un barrido exhaustivo de timezone, no los usuarios.
-- **Solo React 19+**: depende de puntos de leverage de React 19 como RSC, `useId`, la ausencia de advertencias de `useLayoutEffect` y la integración de form-action en `<Input>`. No habrá back-port a 18.
-- **No se afirma que esté «battle-tested»**: no uso esa expresión para una biblioteca nueva. Lo que sí tiene son más de 700 tests en todo el workspace, un barrido de propiedades que cubre los módulos puros de core, todas las comprobaciones de axe superadas, verificación SSR en CI con Next.js App Router y una conformance suite para adapters.
-- **Lo que aún no he decidido**: no está fijado si `classNames` y los atributos `data-*` cuentan como API pública. Al ser Zero CSS, son el único punto de contacto para los estilos de quien la consume: si no son API pública, una release menor puede romper la pantalla de otra persona; si lo son, cualquier cambio de nombre tiene que esperar a una major. Me pareció mejor dejar escrito que no lo sé.
+El tamaño era un argumento de venta que aparecía en el badge del README. Un selector de fechas que se desplaza un día en zonas con offset negativo no sirve, sea pequeño o grande. **Si tengo que elegir entre pequeño y correcto, elijo correcto.**
 
-Si hoy se necesita estabilidad de nivel productivo para 100 000 usuarios, sinceramente, `react-datepicker` es la opción segura. Kalyx se parece más a una **apuesta** por un futuro más pequeño y más headless.
+Ahora el techo va justo. Según el documento del mapa de bytes del bundle del repositorio con fecha 2026-09-11, `dist/index.cjs` medido con el gzip por defecto de Node ocupa 20 259 B frente a un techo de 20 480 B, con un margen de 221 B. (Es el tamaño del propio archivo con las dependencias como externas, así que es una cantidad distinta de la del gráfico anterior.) La próxima funcionalidad tendrá que recuperar bytes antes de poder entrar.
 
 ---
 
-## Conclusión
+## Para cerrar
 
-Este artículo se parece más a una retrospectiva de decisiones que a una promoción de la biblioteca. Mi experiencia me ha enseñado que dejar constancia de lo que se publicó, lo que se rechazó y dónde pesaron más las decisiones se convierte en el activo más valioso al crear la siguiente biblioteca o evaluar otra.
+Lo que yo quería era usar bibliotecas de fechas complejas de forma declarativa. Al construirlo, descubrí que ya existían APIs de composición declarativas y opciones headless completas. La diferencia que quedaba estaba más adentro. **Fijar el valor como un único instante, reducir la conversión entre coordenadas e instantes a dos funciones y proteger ese viaje de ida y vuelta con tests en todas las zonas horarias.** El manejo del DST basado en Intl, la frontera de adaptador con cadenas y los siete pickers construidos con tres contextos son consecuencias de esa decisión.
 
-Las cuatro decisiones hasta 1.0 iban todas sobre la **forma de la API**: Composition over Props, cadenas ISO obligatorias, patrón adapter y techo del bundle. Todas renuncian a parte de la comodidad a corto plazo para comprar adaptabilidad a largo plazo.
+Desde el objetivo de aprender, lo más importante que aprendí fue cómo afirmar que algo es "correcto". La comparación de bundles del artículo original medía cantidades distintas, y el test que pasaba en Seúl fallaba en Nueva York. Si no se anota también qué se midió y con qué muestra se comprobó, los números se convierten fácilmente en presunción.
 
-Pero, al rescatar este artículo para actualizarlo, me he dado cuenta de que la decisión realmente difícil vino después de 1.0. **Consistía en romper un argumento de venta propio.** El techo de 17 KB no era un número cualquiera, sino parte de la frase que explicaba qué era esta biblioteca. Subirlo a 20 KB debilitaba esa frase. Aun así lo subí por una sola razón: una biblioteca cuyo calendario aparece corrido un día en zonas de offset negativo no sirve, sea pequeña o grande.
+Los límites también están claros. Soy el único maintainer, solo soporta React 19, y las descargas de npm de `@kalyx/react` entre el 5 y el 11 de septiembre de 2026 fueron 200, de las cuales 156 se concentraron en el día en que se publicó la 1.4.7. El problema de no poder separar coordenadas e instantes con tipos solo se contiene con documentación, y tampoco he decidido si garantizar como API pública los puntos de contacto para estilos, `classNames` y los atributos `data-*`. En accesibilidad tiene los roles `grid` en calendarios, `combobox` en campos de entrada y `listbox` en listas de horas, con navegación por flechas, Home/End y PageUp/PageDown, y la CI ejecuta las comprobaciones de `jest-axe` de 8 archivos de test, pero todavía no tengo base para decir que esté tan probada como React Aria.
 
-Visto en retrospectiva, lo que hizo posible ese juicio fue precisamente no tener ningún usuario. Con usuarios habría atendido primero lo que tenía delante, y no habría dedicado tres meses a usar tests de propiedades para cazar un bug de DST que nadie había reportado. **No tener usuarios era la libertad de poder cambiar de rumbo.** Justo después de 1.0 solo lo veía como señal de fracaso; hoy lo leo de otra manera.
-
-Si alguna vez te has topado con un muro parecido por culpa de un DatePicker en un proyecto React, me encantaría que echaras un vistazo a Kalyx. Y si has resuelto el mismo problema de una forma mejor, agradecería mucho que compartieras tu experiencia en una GitHub Issue. Al final, una biblioteca no es algo que pule una sola persona, sino algo que mejoran conjuntamente quienes la usan.
-
-La instalación ocupa una línea.
+Por eso, si tu app ya usa MUI, conviene mirar primero MUI X; si lo prioritario es la entrada por segmentos y una accesibilidad probada, React Aria; y si solo necesitas un calendario, react-day-picker. Si alguna vez has sufrido fechas que se desplazan un día en formularios donde los valores viajan como JSON, me alegraría que entonces le echaras un vistazo a Kalyx, y si conoces una solución mejor, te agradecería que me lo contaras en una GitHub Issue.
 
 ```bash
 pnpm add @kalyx/react
 ```
 
-En el [Playground](https://kalyx-docs-site.vercel.app/playground) de la documentación se pueden probar directamente los siete picker. Es posible alternar locale y timezone, editar classNames y aplicar los propios tokens de diseño.
+En el [Playground](https://kalyx-docs-site.vercel.app/playground) del sitio de documentación puedes probar los siete pickers y cambiar tú mismo la configuración de locale y timezone.
 
 :::ref
 
-[repo] [jiji-hoon96/kalyx](https://github.com/jiji-hoon96/kalyx)
+[docs] [Sitio de documentación oficial de Kalyx](https://kalyx-docs-site.vercel.app/)
 
-[docs] [Sitio oficial de documentación de Kalyx](https://kalyx-docs-site.vercel.app/)
-
-
-[docs] [Documentación de DatePicker de Ark UI](https://ark-ui.com/docs/components/date-picker)
-
-[docs] [Patrón Composition de Radix UI](https://www.radix-ui.com/primitives/docs/overview/introduction)
-
-[docs] [Guía de componentes headless de React Aria](https://react-spectrum.adobe.com/react-aria/)
+[docs] [MUI, Date and Time Pickers Timezone](https://mui.com/x/react-date-pickers/timezone/)
 
 [docs] [Documentación oficial de Floating UI](https://floating-ui.com/)
 

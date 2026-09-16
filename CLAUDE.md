@@ -70,14 +70,16 @@
 ### 시각 자료
 
 - **참조를 쓰기 전에 이미지 파일을 먼저 만든다.** `![설명](그림이나자료필요(...))` 플레이스홀더 문법은 마크다운으로 파싱되지 않아 프롬프트가 본문에 노출된다. 사용 금지.
-- 제작은 HTML 을 헤드리스 Chrome 으로 스크린샷 하는 방식이다. 다크 테마 토큰과 렌더 명령은 `.claude/commands/write-post.md` 의 시각 자료 가이드에 있다.
+- **직접 그리기 전에 출처에 이미 있는 그림을 찾는다.** 인용한 공식 문서나 명세에 개념을 잘 보여주는 그림이 있으면 그 파일을 내려받아 쓴다. 조건은 재사용을 허락하는 라이선스(web.dev·developer.chrome.com·OpenTelemetry 문서의 CC BY 4.0 등)이고, 그림 바로 아래 문장에 출처와 라이선스를 밝힌다. 라이선스가 불명확하면 내려받지 않고 링크로만 건다.
+- 출처에 맞는 그림이 없을 때 직접 만든다. HTML 을 헤드리스 Chrome 으로 스크린샷 하는 방식이고, 다크 테마 토큰과 렌더 명령은 `.claude/commands/write-post.md` 의 시각 자료 가이드에 있다.
 - 저장 위치는 `content/YYMMDD/N.png`, 본문 참조는 `![설명](N.png?w=720)`. 빌드가 `public/content/` 로 복사한다.
-- 우선순위는 이 리포·계정의 실제 데이터로 만든 도표 > 개념 다이어그램 > 외부 스크린샷 순이다.
+- 우선순위는 이 리포·계정의 실제 데이터로 만든 도표 > 라이선스가 허락하는 출처 원본 그림 > 직접 그린 개념 다이어그램 순이다.
 
 ### 글의 깊이
 
 - 글의 척추는 필자의 1차 경험이다. 웹 검색보다 **리포(PR 본문·코드·테스트), `.gsc-data/` 의 Search Console CSV, Sentry MCP(`hooninedev/jihoon-blog`) 의 이슈·태그·릴리스, 빌드 실측**을 먼저 턴다.
 - 필자는 회사에서 Sentry 기반 에러 모니터링을 오래 써왔고 개인 블로그에서는 GA4·Search Console·SEO 를 직접 운영해왔다. "몰라서 못 했다" 식 초심자 프레이밍으로 쓰지 않는다.
+- **예시는 검증된 것만 쓴다.** 이 리포의 코드와 커밋, 이 계정의 실데이터(Sentry, GSC, 빌드 실측), 공식 문서나 명세에 실린 예시 중 하나여야 한다. 필자가 겪지 않은 가상의 결제 흐름이나 보내지 않는 이벤트 이름 같은 지어낸 예시는 넣지 않는다. 다시 뽑을 수 없는 과거 수치는 조회 시점을 함께 적는다.
 - 과거 작업을 글로 정리할 때는 **현재 상태를 다시 조회한다.** 고쳤다고 믿은 것이 지금도 고쳐져 있는지 확인하고, 아니면 미해결 상태 그대로 쓴다.
 - [Sean Goedecke의 글쓰기 원칙](https://www.seangoedecke.com/blog-about-things-you-dont-understand-yet/)처럼, 글은 이미 아는 내용을 정리하는 데서 끝내지 않고 쓰는 동안 이해를 갱신하는 도구로 쓴다. 시작할 때 질문과 초기 가설, 합리적인 독자가 반론할 수 있는 핵심 주장을 한 문장씩 적는다.
 - 조사 중 생각이 바뀐 지점과 아직 모르는 범위를 숨기지 않는다. 사실, 추론, 의견을 구분하고 자신의 경험·전문성 범위를 명시한다.
@@ -275,12 +277,14 @@ Sentry 구성은 그대로 서버 전용이고 `src/instrumentation-client.ts` �
 
 ```bash
 pnpm build
-PORT=3111 GA_PROPERTY_ID=123456789 \
+PORT=3111 SENTRY_ENVIRONMENT=local GA_PROPERTY_ID=123456789 \
   GOOGLE_SERVICE_ACCOUNT_EMAIL=verify@example.iam.gserviceaccount.com \
   GOOGLE_PRIVATE_KEY='-----BEGIN PRIVATE KEY-----\nINVALID\n-----END PRIVATE KEY-----\n' \
   pnpm start
 curl "http://localhost:3111/api/analytics?type=page&slug=/verify"
 ```
+
+`SENTRY_ENVIRONMENT=local` 을 빼면 이벤트가 `production` 으로 찍힌다. 로컬에는 Netlify 의 `CONTEXT` 도 없어서 `sentry-options.ts` 가 환경 값을 넘기지 않기 때문이다. 2026-09-16 에 이 절차로 만든 JIHOON-BLOG-B 가 그렇게 프로덕션 이슈에 섞였다.
 
 `type=page` 를 쓰는 이유는 `getPageViews` 가 `unstable_cache` 를 거치지 않아서다. `type=stats` 는 캐시된 fallback 이 돌아와 에러가 재현되지 않을 수 있다. (`type=popular` 는 `5752e09` 이후 라우트에 없다. 지금은 400 이 돌아오고 GA 호출 자체가 일어나지 않는다)
 

@@ -1,516 +1,316 @@
 ---
 emoji: 📅
 title: 'Kalyx'
-seoTitle: 'Kalyx：我用一年打造 React 19 headless DatePicker 的复盘'
+seoTitle: 'React DatePicker 时区导致日期差一天怎么办：headless 库 Kalyx 设计记录'
 date: '2026-06-17'
 updatedAt: '2026-09-16'
 categories: 库 React DatePicker 开源
-description: '每次挑选React DatePicker，headless、bundle体积、7个primitive总得放弃一样。所以我自己写了一个。记录四项设计决策，以及后来用卖点级的bundle上限换取正确性的三个月。'
-keywords: 'Kalyx, React DatePicker, headless DatePicker, react-day-picker, react-datepicker, headless 组件库, bundle 体积, ISO-8601 时区, Composition 组合模式, adapter 适配器模式, Radix dot notation, Ark UI, MUI X DatePicker, displayTimezone, DST 夏令时 bug, 属性测试 fast-check'
+description: '整理了我为什么开发 React headless DatePicker Kalyx，以及它与 Ark UI、React Aria、react-day-picker 的区别。结合代码与实测，讲解 ISO 8601 UTC 值模型、基于 Intl 的夏令时处理和覆盖全部 IANA 时区的属性测试。'
+keywords: 'Kalyx, React DatePicker, headless DatePicker, React 日期选择器 时区, ISO 8601 UTC, 日期 差一天, DST 夏令时 bug, fast-check 属性测试, react-day-picker 对比'
 locale: zh-CN
 translationOf: '260617'
-sourceHash: b7e7be3efa404583193adba50f933c85c2d044497af8da1f75cbaa9c00bab69c
+sourceHash: 5abb83b574bf7a755c4f28002285feb908df52664684cce8182222c53694936d
 ---
 
-这篇文章想聊聊我亲手打造的React headless DatePicker库——**Kalyx**。
+这篇文章想聊聊我开发的 React headless DatePicker 库 **Kalyx**。
 
-作为前端开发者，我经常负责涉及SaaS表单的项目。于是几乎每个页面都需要日期输入：单个日期、日期范围、时间、按月/年跳转，甚至还有timezone。然而过去一年里，每当我开始新项目，都会撞上同一堵墙。（坦白说，从来没有一次能用一个库干净地解决所有需求。）
+本文是对 2026 年 6 月所写复盘的重写。最初那篇文章打出的“七种选择器共用一套 API，比竞品库的一个日历还小”，重新核实后发现一半是错的，另一半算不上差异点。所以这次按照开发原因、与现有方案的区别、技术定义的顺序重新整理。
 
-有一天，我第三次在`react-day-picker`上拼接自制的TimePicker和从别处借来的Popover，开始在笔记里写下自己真正想要的API形态。这份笔记最终成为Kalyx 1.0的公开API。
-
-这篇文章是我以作者视角整理的决策记录。前半是走到1.0之前做的四个决策，后半是那之后三个月的记录。后半才是我最想讲的部分。**1.0之后最大的决策不是新功能，而是我亲手打破了当作卖点的bundle上限，用它换来了正确性。** 现在的版本是1.4.7，这期间的7次patch全部用在修同一类bug上。
-
----
-
-## React DatePicker为什么这么难
-
-首先有必要简单看看市场现状，因为它说明我遇到的并非库选择问题，而是**权衡本身的问题**。
-
-下面汇总了截至2026年6月React生态中常用的DatePicker候选项。（npm下载量为2026年6月的每周数据。）
-
-| 库 | 每周下载量 | 擅长之处 | 强制接受的东西 |
-| --- | --- | --- | --- |
-| **react-day-picker** | 约42M | 简洁的headless Calendar | 只有Calendar grid。v10仍不官方支持Input、TimePicker |
-| **react-datepicker** | 约4.7M | 一个bundle包含全部primitive | 必须CSS import。value是native `Date`。100多个props |
-| **Ark UI** | 份额增长中 | Composition + headless | 没有standalone TimePicker。时间仅存在于DatePicker内 |
-| **MUI X** | 份额高 | 一体化 + 企业级 | 约58KB gzip。RangePicker需要Pro付费许可 |
-| **React Aria** | 约5.9M | spec级无障碍 | 强制使用`@internationalized/date`。与date-fns代码库不兼容 |
-| **Headless UI** | 与Tailwind配套 | headless模式的先驱 | 以“维护成本太高”为由拒绝开发 |
-
-把功能逐一拆开时，很容易选出赢家。但真实工作的单位并不是单个功能。在一个同时需要单日输入、范围筛选、时间选择和月/年跳转的SaaS表单里，**没有任何一个库能满足全部要求**。
-
-Headless UI维护者的态度尤其值得关注。Tailwind Labs实际上一直在[GitHub Discussion #289](https://github.com/tailwindlabs/headlessui/discussions/289)中搁置DatePicker请求。这个讨论开于2021年，五年后的今天仍没有维护者回复，`@headlessui-react`源码树里也没有任何日期相关组件。Tailwind用户最终会被引导到React Aria。想到locale、timezone、DST、多种日历系统、无障碍与键盘导航会同时在DatePicker这个领域发生冲突，这种搁置完全可以理解。（我也是亲手做完后，才真正体会到负担有多大。）
-
-Ark UI的案例也传递了同样的信号。Chakra UI团队打造的Ark UI里**没有standalone TimePicker组件**。时间选择只通过`@internationalized/date`的`CalendarDateTime`在DatePicker内部处理。也就是说，它并非Tailwind用户可以单独组合来“只选时间”的独立primitive。（起初我粗略地理解成“Ark放弃了TimePicker”，但重读文档后发现，更准确的说法是“从一开始就没有拆成独立组件”。关键在于，即使是headless库的顶尖团队，也谨慎对待把TimePicker拆成独立primitive这件事。）
-
-看到这里，自然会产生一个问题：“真的没有办法在一个库里解决这些权衡吗？”
+先说结论：Kalyx 的区别不在组件数量，而在 **值模型**。基准版本是 `@kalyx/react` 1.4.7 与 `@kalyx/core` 1.4.8（MIT，仅支持 React 19），引用的代码基于 [GitHub 仓库](https://github.com/jiji-hoon96/kalyx) 2026-09-16 的 `main`（`0bb302e`）。
 
 ---
 
-## Kalyx的位置
+## 我想以声明式的方式使用日期选择器
 
-Kalyx是我对这个问题的回答。一句话定义就是：**“无需CSS import、安装即可运行，并能用任何样式方案自由定制的React headless DatePicker。”**
+开发它的原因有两个。一是想用更声明式、更简单的方式使用复杂难用的日期库，二是想学习这类库在内部是如何构建的。“难用”这个说法太笼统，所以我用各个库的类型定义重新确认了一遍，我当初卡住的地方在最新版本里是否依然存在。
 
-1.0中ship的内容如下。（括号里是更新本文时1.4.7的数值）
+### 用 prop 开启模式的 API
 
-- **7个primitive组件**: `DatePicker`, `RangePicker`, `TimePicker`, `DateTimePicker`, `MonthPicker`, `YearPicker`, `WeekPicker`
-- **3个Headless Hook**: `useDatePicker`, `useRangePicker`, `useTimePicker`（想丢掉库提供的全部UI、自行构建UI时使用的入口。其余4个后来由`@kalyx/react/headless`入口补上，现在7个全都有了）
-- **单一Composition API**: 7个primitive全部使用相同的Context和dot notation模式
-- **约16KB gzip (ESM)**: 在17KB上限内完成（现在约19.5KB，上限20KB。为什么上调，是本文后半的主题）
-- **0个CSS import**: Tailwind、CSS Modules、vanilla CSS，任意选择
+react-datepicker 用 `showTimeSelect` 开启时间选择，用 `showMonthYearPicker` 开启月份选择，用 `showYearPicker` 开启年份选择，用 `selectsRange` 开启范围选择。同一个组件会随着 prop 组合变成不同的东西。代价体现在类型上。在 9.1.0 的类型定义中，根据 `selectsRange` 的值，`onChange` 的签名会分叉。
 
-API长这样。
-
-```tsx
-import { DateTimePicker } from '@kalyx/react';
-
-<DateTimePicker value={iso} onChange={setIso} format="24h">
-  <DateTimePicker.Input />
-  <DateTimePicker.Popover>
-    <DateTimePicker.Calendar
-      classNames={{
-        daySelected: 'bg-violet-600 text-white',
-        dayToday: 'ring-2 ring-violet-400',
-        dayOutsideMonth: 'opacity-40',
-      }}
-    />
-    <DateTimePicker.HourList />
-    <DateTimePicker.MinuteList step={15} />
-  </DateTimePicker.Popover>
-</DateTimePicker>
+```ts
+// react-datepicker/dist/index.d.ts (발췌)
+    selectsRange?: true;
+    selectsMultiple?: false | undefined;
+    formatMultipleDates?: never;
+    onChange?: (date: [Date | null, Date | null], event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
 ```
 
-同一模式会在7个primitive中重复。完全没有`showTimeSelect`、`showMonthDropdown`这样的boolean炸弹props。
+这是一个写得很好的 union，但模式越多，分支就成倍增加，使用方只能看着 prop 名称去推想当前是哪种组合。（这和我在[抽象](/260201)一文中讨论的“捆绑错误的抽象会增加耦合”是同一种形态）我希望“输入框、弹出层和日历”能直接从 JSX 结构本身读出来。
 
-用一张图表示它的定位如下。
+### 值类型与时区泄漏的地方
 
-![展示Kalyx组合了现有库哪些部分的定位图](1.png?w=620)
+react-datepicker 和 react-day-picker 传递的是原生 `Date`。两者都有接收 IANA 时区的 `timeZone` prop（react-datepicker 需要可选 peer 依赖 `date-fns-tz`，react-day-picker 中则是实验性功能），但值的类型仍然是 `Date`。`Date` 会按运行环境的本地时区解释，所以在首尔，`new Date(2026, 3, 15)` 经 `toISOString()` 得到的是 `2026-04-14T15:00:00.000Z`。选的是 4 月 15 日，服务器看到的却是 14 日。react-datepicker 的 ["Date Selected is One Day Off"](https://github.com/Hacker0x01/react-datepicker/issues/1018) issue 于 2017 年 9 月打开，2025 年 12 月才关闭。
 
-它像是在现有库优秀部分的并集上又加了一点：**把Ark UI中并非standalone的TimePicker，也作为独立primitive整合进同一个Composition。**
+另一端的 Ark UI 和 React Aria 使用 `@internationalized/date` 的 `CalendarDate`、`ZonedDateTime` 对象。语义很精确，但在表单状态和服务器响应全是字符串的应用里，每个边界都会冒出转换代码。
+
+时区支持有时还和日期库的选择绑定在一起。查看 MUI X Date Pickers 9.13.0 的适配器代码，dayjs、Luxon、Moment 适配器是 `isTimezoneCompatible = true`，date-fns 系列则是 `false`。使用 date-fns 的应用若想用 `timezone` prop，就得再引入一个日期库。
+
+归纳起来，模式分散在 prop 组合里，值分散在解释依赖运行环境的 `Date` 里，时区支持分散在日期库的选择里，因此 **很难用一个声明写清意图。**
+
+### 在构建中学习
+
+日期选择器看起来很小，却包含了日历计算、区域设置、时区与夏令时（DST）、键盘导航和 SSR。所以我定下的目标是：在使用方，只看 JSX 就能读懂在构建什么；在实现方，把范围收窄到能说清值在哪里被转换。
+
+那么，真的没有已经解决这些需求的库吗？
 
 ---
 
-## 四个核心决策
+## 与现有方案有什么不同
 
-这里整理设计阶段最沉重、最难撤回的四个决策。如今1.0 API已经freeze，可以说这四项决定强制塑造了其他所有选择。
+先说答案：有。我一开始认定没有既是 headless 又具备多种选择器的库，但重新调查后发现这个前提是错的。
 
-### Composition over Props
+### 各方案选择的值模型
 
-最初的设计草稿是`<DatePicker showTime showMonthGrid presets={[...]} renderHeader={(props) => ...} />`这种形式，本质上就是`react-datepicker`的默认模式。我花了一周尝试用类型干净地描述props之间的相互作用，最后还是全部删掉了。
+以下内容是 2026-09-16 安装 npm 最新版本后，通过类型定义和官方文档确认的。体积一列是用下文介绍的同一方法测得的。
 
-原因很明确：**Props爆炸的真正代价是失去type safety。** 只有`showTimeSelect`为`true`时，`timeFormat`才有意义，但类型系统无法直接表达这种条件依赖。若用discriminated union解决，props接口会以50个为单位爆炸，每增加一个prop都要重新验证全部组合。（这与我之前写的[抽象](/260201)一文中“错误的抽象会增加耦合”完全是同一语境。）
+| 库 | headless | 值类型 | 时间输入 | 单独选择月、年 | gzip |
+| --- | --- | --- | --- | --- | --- |
+| react-day-picker 10.0.1 | 否（自带 CSS） | `Date` | 无 | 无 | 20.0KB |
+| react-datepicker 9.1.0 | 否（CSS import） | `Date` | `showTimeSelect` | 通过 prop | 45.4KB |
+| MUI X 9.13.0 | 否（Material） | 适配器对象 | TimePicker | `views` | 113.1KB |
+| Ark UI 5.39.2 | 是 | `@internationalized/date` | 另外的 `DateInput` 分段（不计入体积） | `minView` | 42.7KB |
+| React Aria Components 1.21.1 | 是 | `@internationalized/date` | `TimeField` 分段 | 无 | 75.3KB（DatePicker），78.8KB（含范围与时间） |
+| Kalyx 1.4.7 | 是 | ISO 8601 UTC 字符串 | 列表式 HourList、MinuteList | MonthPicker、YearPicker | 18.9KB（DatePicker），25.6KB（全部） |
 
-Radix UI和shadcn/ui的dot notation模式最优雅地解决了这个问题：在callsite显式表达约束。
+react-day-picker 在[官方指南](https://daypicker.dev/guides/timepicker)中明确写道 "DayPicker does not include a built-in time picker"。MUI 的体积包含 `@mui/material` 和 emotion，所以如果本来就是 MUI 应用，增量要小得多。
+
+### headless 的完整方案早已存在
+
+表中重要的是 Ark UI 和 React Aria 两行。[Ark UI](https://ark-ui.com/docs/components/date-picker) 通过 `DatePicker.Root` 这类 dot notation 组合 API，提供单选、多选、范围选择以及按月、按年选择。[React Aria](https://react-aria.adobe.com/DatePicker) 是 Adobe 以无障碍为核心的实现。所以 Kalyx 的位置比我最初想的要窄。
+
+> headless 的完整方案早已存在。不过 Ark UI 和 React Aria 以 `@internationalized/date` 对象传递值，时间输入采用分段字段。Kalyx 把值固定为可以直接放进 JSON 的 UTC 时刻字符串，并把从列表中选择的 TimePicker 以及月、年、周选择器放进了同一套组合 API。
+
+不过，“值是字符串所以好”是个站不住的主张。`CalendarDate` 调用一次 `toString()` 也能变成字符串。差异不在格式，而在于 **这个字符串始终是真实的瞬间（时刻），不会与日历格子（坐标）混用的契约，以及守护这个契约的测试**。
+
+### 用同一方法重新测量包体积
+
+README 徽章上的包体积并不是能和其他库比较的量。徽章上约 19.5KB 的数字，是 `@kalyx/react` 的 `dist` 中的一个文件，而这个文件把 `@kalyx/core`、`@kalyx/adapter-date-fns`、`@floating-ui/react` 留作外部 import。我把这个数字和别人包含依赖的数字摆在了一起。
+
+所以我按“消费方应用加一行 import 时，包会增大多少”把所有库重新测了一遍。
+
+```bash
+echo "import { DatePicker } from '@kalyx/react'; export default DatePicker;" > entry.jsx
+npx esbuild entry.jsx --bundle --minify --format=esm --platform=browser \
+  --external:react --external:react-dom --external:react/jsx-runtime | gzip -6 | wc -c
+```
+
+测量使用 esbuild 0.28.2，时间为 2026-09-16，KB 是字节数除以 1024 的值。react-datepicker 排除了 CSS。React Aria Components 测了两次：一次是组装单个 DatePicker 所需的 12 个 export（`DatePicker`、`DateInput`、`Calendar`、`Popover`、`Dialog` 等），一次是加入范围和时间的 14 个 export（含 `DateRangePicker`、`RangeCalendar`、`TimeField`）。
+
+![在相同的 esbuild 条件下测量，体积依次为 Kalyx DatePicker 18.9KB、react-day-picker 20.0KB、Kalyx 全部 25.6KB、Ark UI 42.7KB、react-datepicker 45.4KB、React Aria Components 75.3KB（含范围与时间为 78.8KB）、MUI X 113.1KB。](1.png?w=720)
+
+在相同条件下，成立的说法只有一个。一个 DatePicker（18.9KB）与 `DayPicker`（20.0KB）体积相当，七种全部（25.6KB）则比它大。（即便如此，DayPicker 只有日历，而 Kalyx DatePicker 还包含输入框和弹出层）体积对 import 组合和 gzip 级别很敏感，按数量级来读更合适，体积也不是选择 Kalyx 的核心理由。
+
+---
+
+## 从技术上定义 Kalyx
+
+> Kalyx 是一个 headless React 日期选择器：它把所有输入输出固定为 UTC 时刻字符串，把日历坐标与时刻之间的转换只放在两个函数里，并针对运行时知道的所有时区用属性测试检查这一往返。
+
+使用方的 API 如下。`value` 和 `onChange` 是 `string | null`，`displayTimezone` 决定用哪个时区的日历来显示。
 
 ```tsx
-// 지양 — Props 폭발. 14개 boolean으로 한 컴포넌트 비틀기
-<DatePicker
-  selected={date}
-  showTimeSelect
-  timeFormat="HH:mm"
-  showMonthDropdown
-  showYearDropdown
-  excludeDates={[]}
-  renderCustomHeader={...}
-/>
-
-// 권장 — Composition. "이 picker, 이 부분, 이렇게 스타일"이 명시적
-<DatePicker value={iso} onChange={setIso}>
+<DatePicker value={iso} onChange={setIso} displayTimezone="America/New_York">
   <DatePicker.Input />
   <DatePicker.Popover>
     <DatePicker.Calendar />
-    <DatePicker.Presets>
-      <DatePicker.Preset label="Today" value={today} />
-      <DatePicker.Preset label="Tomorrow" value={tomorrow} />
-    </DatePicker.Presets>
   </DatePicker.Popover>
 </DatePicker>
 ```
 
-代价很清楚：一行`<DatePicker>`变成六行JSX块。但收获同样明确。
+### 值是时刻，日历格子是坐标
 
-- 一年后再看仍能读懂的清晰度
-- 不在prop组合之间leak的类型
-- 每个subcomponent都拥有自己的`classNames` slot map，因此样式表面可以无限扩展
+Kalyx 内部流动着格式相同的两种 ISO 字符串。**坐标** 是日历网格中的一格，写作 `YYYY-MM-DDT00:00:00.000Z`，却没有时区概念。网格计算只在 UTC 中进行，因此与运行环境无关。**时刻** 是通过 `onChange` 输出的值，是 `displayTimezone` 中当天零点对应的真实瞬间。同样是 1 月 15 日，在纽约是 `2026-01-15T05:00:00.000Z`，在首尔是 `2026-01-14T15:00:00.000Z`。
 
-实现只需用`Object.assign`模式简单组合。
+![日历坐标 2026-01-15T00:00:00.000Z 通过 civilMidnightFromUtcDay 变为纽约和首尔的时刻，再通过 calendarDayFromInstant 回到坐标。](2.png?w=720)
 
-```tsx
-// packages/react/src/components/DatePicker/index.ts
-export const DatePicker = Object.assign(DatePickerRoot, {
-  Input: DatePickerInput,
-  Trigger: DatePickerTrigger,
-  Popover: DatePickerPopover,
-  Calendar: DatePickerCalendar,
-  MonthGrid: DatePickerMonthGrid,
-  YearGrid: DatePickerYearGrid,
-  Presets: DatePickerPresets,
-  Preset: DatePickerPreset,
-});
+连接二者的函数只有 `@kalyx/core` 中的两个：把坐标转为时刻的 `civilMidnightFromUtcDay`，以及反方向的 `calendarDayFromInstant`。后者读取“这个时刻在该时区是几号”，再重新写成 UTC 零点坐标。
+
+```ts
+// packages/core/src/utils/timezone.ts:187-190
+export function calendarDayFromInstant(iso: ISODateString, timeZone: string): ISODateString {
+  const p = partsInTimezone(new Date(iso), timeZone);
+  return new Date(Date.UTC(p.year, p.month - 1, p.day)).toISOString();
+}
 ```
 
-它对tree shaking友好，每个组件只在一处`index.ts`中组合，也不会产生namespacing冲突。（第一次看到Radix UI时，我不明白“为什么称它为标准”。亲自构建库之后，才理解这种模式为何如此迅速地成为行业标准。）
+规则在于方向。选中格子并提交值时，坐标转为时刻；根据存储值决定显示哪个月和焦点位置时，时刻转为坐标。DatePicker Root 的 `selectDate` 先转换，再用转换后的时刻检查约束，通过后提交。
 
-### ISO-8601字符串in/out
+```ts
+// packages/react/src/components/DatePicker/Root.tsx:182-194
+const normalized =
+  coordinate && displayTimezone
+    ? civilMidnightFromUtcDay(coordinate, displayTimezone)
+    : coordinate;
 
-Kalyx的`value`是`string | null`，即ISO-8601 UTC格式字符串，`onChange`也返回相同形式的字符串。公开API中完全不会出现native `Date`对象。
+if (normalized && isDateDisabled(normalized, disabledRules, adapter, displayTimezone)) {
+  return;
+}
 
-“理所当然”的替代方案是`Date`对象，而这正是所有使用native Date的DatePicker中多年未关闭issue的根源：timezone offset错位、`JSON.stringify` round-trip损坏、SSR时服务器与客户端生成不同值。`react-datepicker`最具代表性的timezone issue [#1018](https://github.com/Hacker0x01/react-datepicker/issues/1018)于2017年提出，拖了8年，直到2025年才以“这不是bug，而是JavaScript `Date`的预期行为”为结论关闭。没有改源码，只补了文档。只要库将native `Date`作为value类型，这类摩擦就不可能从结构上消失。
-
-强制使用ISO-8601字符串可以获得三项保证。
-
-- **wire-safe**: 经过`JSON.stringify`再取回，仍是byte-for-byte相同的字符串
-- **SSR安全**: 服务器和客户端用同一字符串hydrate
-- **强制明确timezone**: consumer必须用`displayTimezone="Asia/Seoul"`之类的方式声明显示时区
-
-```tsx
-// 권장
-<DatePicker
-  value="2026-01-15T00:00:00.000Z"
-  displayTimezone="Asia/Seoul"
-  onChange={(iso: string | null) => save(iso)}
-/>
-
-// 금지
-<DatePicker value={new Date()} />
+if (!isControlled) {
+  setUncontrolledValue(normalized);
+}
+onChange?.(normalized);
 ```
 
-同一ISO值显示在不同时区的场景也能自然表达。
+调用点不止这一处。搜索 `packages/react/src` 会发现，这两个函数分散在 DatePicker、RangePicker、DateTimePicker 的 Root 和 Calendar、Presets、键盘移动工具函数以及六个 headless hook 中。即便如此，所有提交日期格子或决定视图的路径都会经过二者之一。提交时间由 `setTimeInTimezone` 负责，它在内部也用同一个内部函数 `resolveCivilDateTime` 转换。
 
-```tsx
-const iso = "2026-01-15T15:00:00.000Z";
+这个契约由基于属性的测试（property-based test）守护。对任意坐标 `c` 和时区 `z`，都必须满足 `calendarDayFromInstant(civilMidnightFromUtcDay(c, z), z) === c`。
 
-<DatePicker value={iso} displayTimezone="Asia/Seoul" />       // 2026-01-16 00:00
-<DatePicker value={iso} displayTimezone="America/New_York" /> // 2026-01-15 10:00
-```
-
-代价确实存在。需要`Date`对象的downstream代码必须自行调用`new Date(iso)`。但我认为，与其让`Date`对象流遍整个库，不如把这条boundary集中在consumer代码的一处。（我从多个项目中学到：一旦开始接收对象，就无法追踪它究竟流到了哪里。）
-
-DST等边界由`@kalyx/core`中基于Intl的timezone工具处理。它们并不放在adapter接口，而是集中为core里的`civilMidnightFromUtcDay`、`setTimeInTimezone`、`startOfDayInTimezone`等函数，全部基于`Intl.DateTimeFormat`运行。把某个timezone的午夜（civil midnight）转换成UTC时，它会准确计算DST边界；用户只需传入IANA timezone字符串，其余由库负责。（关键在于timezone逻辑位于core而非adapter。无论使用date-fns还是dayjs，timezone准确性都由同一套core代码保证。）
-
-### adapter模式
-
-`@kalyx/core`对date-fns的依赖为0。实现相同`DateAdapter`接口（21个方法）的`@kalyx/adapter-date-fns`被拆为独立包，`@kalyx/react`则通过Context注入adapter。有趣的是，adapter本身只是约200行的薄shim。21个接口方法中只有4个接受timezone参数（`format`、`isSameDay`、`startOfDay`、`today`），甚至这4个方法的实际timezone计算也全部委托给core的Intl工具。adapter的职责是把日期运算和解析映射到特定库的语法，而不是负责准确性。
-
-拆包后的结构如下。
-
-```
-@kalyx/core               # 플랫폼 독립 로직 + Intl 기반 timezone, date-lib 의존 0
-@kalyx/adapter-date-fns   # default adapter (별도 패키지)
-@kalyx/react              # 컴포넌트 (default로 adapter-date-fns 자동 wire)
-@kalyx/react/headless     # zero date-lib entry, 자기 adapter 들고 옴
-```
-
-设计阶段考虑过三个选项。
-
-| 选项 | 优点 | 缺点 |
-| --- | --- | --- |
-| A. core内置date-fns | 实现简单，新手onboarding容易 | 无法在不major bump的情况下替换 |
-| B. core完全BYO | 能适应未来 | 新手每次都要自行配置adapter |
-| C. Hybrid (default + 可替换) | 新手便利 + 资深用户的escape | 拆成2个包 + 维护2个entry |
-
-我选择了C。0.x时期其实从A开始，但在v1 stable、API即将freeze之前，我意识到：**一旦内置某个date库，就无法在不major bump的情况下移除。** 当时果断抽出adapter，是1.0毕业前最大的决策。
-
-后续ship的adapter也遵循相同的21方法契约，只有实现不同。三个adapter都会在各自的测试里运行`@kalyx/core/test-helpers`的`runAdapterConformanceTests`，验证它们是否给出相同的答案。
-
-- `@kalyx/adapter-dayjs`: 统计显示约一半React用户使用dayjs，因此当时优先级第一（Mantine甚至将dayjs规定为强制peer）
-- `@kalyx/adapter-luxon`: 面向企业与高级timezone场景
-- Temporal: 抽离完成后，我得出结论：TC39 Temporal API支持应在core层面解决，而非通过adapter。因为adapter接口是ISO字符串in/out，无法原样传递Temporal的独有能力。（后文“当前状态”会再次讨论这一判断。）
-
-### bundle上限
-
-1.0发布时，bundle为ESM约15.8KB / CJS约15.9KB gzip。我最初将上限设为16KB，v1.1时提高一档到17KB。CI会强制执行这个上限。每个PR都运行`pnpm check-bundle`，超出上限的PR会build fail。
-
-这个数字不是随意选择的，而是参照市场基准设定。
-
-- `react-day-picker`: 仅Calendar就约22KB
-- `react-datepicker`: 全部primitive约40～60KB
-- `MUI X`: 约58KB（而且Range是付费Pro）
-- `Kalyx`: 7个primitive比`react-day-picker`的一个Calendar还小
-
-最后这一行曾是1.0时期的骄傲。现在依然成立，但余地小了很多。约19.5KB对约22KB，只差2.5KB。
-
-bundle演变也按RC阶段进行了追踪。
-
-| 阶段 | 变更 | 上限 |
-| --- | --- | --- |
-| rc.0 | 7 primitive初步完成 | 12 → 13KB |
-| rc.3 | grid键盘导航 (Arrow/Page/Home/End) | 13 → 14KB |
-| rc.4 | MonthPicker/YearPicker disabled month/year prop | 14 → 15KB |
-| rc.8 | TimePicker `filterTime`编程callback | 15 → 16KB |
-| 1.0.0 | 最终稳定化 (2026-06-08) | ESM 15.8KB / CJS 15.9KB |
-| 1.1 | a11y `announce()` live region parity | 16 → 17KB |
-| 2026-08 | timezone与约束正确性的全面修复 | 17 → 20KB |
-| 2026-08 | 仅把`/headless`入口拆出来 | 20 → 22KB |
-
-每次上调都明确记录“为什么增加”，让它成为有意的决策，而不是每次悄悄漏掉1KB。被拒绝的功能也清楚留档。表格上面六行是1.0时期的记录，那时只有一档一档往上加的决定。表格最后两行是这次更新本文时补上的，性质不同：不是一档，而是一次跳了三档。**那个决定就是本文后半的主题。**
-
-移动上限这件事，我故意做得麻烦。只改一处就容易悄悄上调，所以现在`scripts/bundle-policy.js`里的两个常量是单一来源，每个PR的必需检查都会强制它。表格最后一行的拆分，原因也是在这里暴露出来的。两个入口原本共享同一个上限，而`/headless`在与default入口相同的七种组件之外，还要多装全部七种hook和`DateTimePicker.Presets`。**装了更多代码的一侧余量反而更少，出现了这样的倒置。** 实测时default入口还剩1.4KB，headless却干到不足200byte，连与default入口无关的变更也被headless全数挡下。所以我只上调了headless的上限并把两者拆开，default入口的20KB没有动。那个数字已经写进README徽章，上调就等于改变承诺。
-
-以上就是嵌入库代码本身的四个决策。那么实际build过程中发生了什么？
-
----
-
-## 1.0 build过程
-
-### 从0.x到1.0的14个RC阶段
-
-2026年5月27日，我为包含全部7个primitive的rc.0打了tag。此后经过14次RC iteration，于6月8日毕业为1.0.0 stable，约12天。（我并不认为这个速度是正确的。更稳妥的做法是慢一点、一次只打磨一件事，但作为单人维护者，一旦进入build模式，就必须迅速收尾。）
-
-期间的主要工作包括：
-
-- **安全fix**: GHSA-5xrq-8626-4rwp Critical级漏洞（vitest 4 upgrade）
-- **adapter中立抽离**: 将`@kalyx/core`中的date-fns依赖降为0
-- **将`@kalyx/adapter-date-fns`拆为独立包**
-- **增加`@kalyx/react/headless` entry**: 面向zero date-lib用户
-
-测试基线也被定为1.0毕业条件：unit test 497/497通过、axe无障碍14/14、e2e场景31个。
-
-### Aurora视觉统一
-
-1.0发布后收到的最难忘反馈，是用户直接发来的一句话：**“丑得要死，又脏又难看。”**还附了3张HeroDemo截图。（那时我才真切体会到：库代码再好，demo不好看，点击量就是0。）
-
-症状很明确：Calendar grid漏出网格线，MonthPicker单元格横向拉伸，DateTimePicker则过于拥挤。诊断后发现，这是两套CSS系统分裂的结果。`.kx-live-*`与HeroDemo中的`:global([role='grid'])`独立演进，一边的fix无法覆盖另一边。
-
-解决方案不是重新设计，而是**统一后进行一次polish**。经过7轮视觉iteration（v1 → v7），Aurora token系统最终确定。single source of truth是`apps/docs-site/src/css/custom.css`这一个文件，并强制所有picker共享同一套token。
-
-```css
-/* Aurora 토큰 (라이트 모드) */
---kx-primary: #5b4fe1;
---kx-bg: #ffffff;
---kx-border: rgba(91, 79, 225, 0.1);
---kx-glow: 0 3px 12px rgba(91, 79, 225, 0.32);
---kx-cell: 32px;
---kx-radius-cell: 8px;
---kx-radius-card: 14px;
-```
-
-这里分享我在过程中固定记录的三个陷阱。把headless组件嵌入其他环境，尤其是Docusaurus这类文档站时，很可能遇到完全相同的问题。
-
-第一，**Docusaurus Infima的`table th, td`规则会侵入所有`<table>`**，因此Calendar grid会漏出网格线。需要用CSS Modules隔离，或显式加入reset。
-
-第二，**不能对`<table role="grid">`使用`display: grid`。** `<thead>/<tbody>/<tr>`会成为grid item，真正的7 column反而无法传到`<td>`。最终必须用`display: table` + `table-layout: fixed` + 显式width的组合解决。
-
-第三，**Range可视化需要非对称圆角**：start只圆左侧，end只圆右侧，middle没有圆角。统一处理会让单元格看起来“各自漂浮”，破坏直观的视觉分组。
-
-### 用户为0时，我把时间花在哪里
-
-我想如实公开1.0发布第一周的数据。
-
-- GitHub stars 5个、forks 0个、watchers 0人
-- npm每周下载480次（推测大部分是CI镜像bot）
-- 直接依赖包0个
-
-三个月过去的现在，stars是7个。数字基本没动，而这个事实正是后文那次方向转变的起点。
-
-时间投入分成两条路：(a)继续加强新功能；(b)扩展到React Native adapter等新track。但两者ROI都很低。外部用户为0，新功能无法得到验证；新track也应该等用户出现后再进入才更有效。
-
-于是我决定把时间投入**最初30秒的印象**：用户第一次进入GitHub仓库或docs站点，并在30秒内判断“这个库是否值得一试”的区间。工作整理成5个PR。
-
-| PR | 内容 |
-| --- | --- |
-| A1 | 首屏动画WebP录制器 + `<HeroDemo>`组件 + `/recorder`路由 |
-| A2 | 落地页重设计。6个区块（Hero/FeatureGrid/SameJsxBlock/PickerGrid/WhyKalyx/GetStarted） |
-| B | 沙盒基础设施。`<StackBlitzEmbed>` + 7个`examples/*`项目 |
-| C | 交互式`/playground`。picker选择器 + classNames编辑器 + locale/timezone切换 |
-| D | `/docs/comparison`页面 + 内嵌SVG bundle对比图 |
-
-这个过程中我学到一点：**localhost Lighthouse分数与真实Vercel部署环境的分数可能相差10分以上。** Issue #103中，用localhost simulate模式测得的分数看似从72 → 61，回退11分；但同一变更部署到Vercel后实测为73～74，反而提高1～2分。localhost simulate是测量环境本身制造的artifact。（定位性能回退时只依赖localhost数字，很容易做出错误决策。）
-
-坦白说，这项“最初30秒”投资最终没有产生很大效果。在外部用户为0的情况下打磨demo和landing，近似于为不会进店的客人打扫店铺。于是之后我改变了方向：比起打磨宣传表面，把**core的准确性变成可验证的资产**，对单人维护者而言ROI更高。（具体结果会在后文“当前状态”中总结。）
-
----
-
-## 技术结构概览
-
-接下来是给想亲自构建库、或好奇内部机制的读者准备的简短导览。（如果只是为了使用，可以跳过本节。）
-
-### Context + Dot Notation实现
-
-每个primitive都由Root组件创建Context Provider，所有subcomponent消费同一个Context。
-
-```tsx
-// Root, Context 생성
-function DatePickerRoot({ value, onChange, children }) {
-  const ctx = useDatePicker({ value, onChange });
-  return (
-    <DatePickerContext.Provider value={ctx}>
-      {children}
-    </DatePickerContext.Provider>
+```ts
+// packages/core/src/__tests__/timezone.property.test.ts:86-94
+it('round-trips every UTC calendar coordinate through civil midnight', () => {
+  fc.assert(
+    fc.property(utcCalendarCoordinate(), zone(), (coordinate, timeZone) => {
+      const instant = civilMidnightFromUtcDay(coordinate, timeZone);
+      expect(calendarDayFromInstant(instant, timeZone)).toBe(coordinate);
+    }),
+    RUNS,
   );
-}
-
-// Subcomponent, Context 소비
-function DatePickerInput(props) {
-  const { value, onChange, open } = useContext(DatePickerContext);
-  return <input value={format(value)} onClick={open} ... />;
-}
-
-// Dot notation으로 묶기
-export const DatePicker = Object.assign(DatePickerRoot, {
-  Input: DatePickerInput,
-  Popover: DatePickerPopover,
-  Calendar: DatePickerCalendar,
 });
 ```
 
-这个模式的核心，是共享同一Context的组件处在同一个`Object.assign`组合里。consumer可以自然地使用`<DatePicker.Input>`调用，tree shaker会自动移除未使用的subcomponent。
+[fast-check](https://fast-check.dev/) 随机生成 2020 年到 2045 年之间的日期，与 +5:45 的 Kathmandu、+14 的 Kiritimati、-11 的 Niue 等 14 个代表性时区组合，运行 300 次。紧接着的测试对 `Intl.supportedValuesOf('timeZone')` 返回的所有时区，逐个时区各检查 12 次同样的往返。在我本地的 Node 24.16 上，这个列表有 418 个时区。1.4.8 又加入了一个全量测试，在每次夏令时切换处把边界时间的转换结果与 Temporal 实现对照。
 
-### Headless Hook
+那么，库能不能自动把用户传入的 `"2026-01-15T00:00:00.000Z"` 规范化为时刻？这条路走不通，因为仅凭字符串无法判断它是坐标还是时刻。对已经是时刻的首尔值 `2026-01-14T15:00:00.000Z` 再套一次 `civilMidnightFromUtcDay`，就会得到 `2026-01-13T15:00:00.000Z`，在首尔这样偏移为正的时区，每次渲染日期都会再往前挪一天。（纽约的值再套一次也不变）换成无论应用多少次结果都相同的 `startOfDayInTimezone`，虽然不会挪动，却做不了把坐标转为时刻这个本职工作。
 
-如果想完全忽略库提供的组件、构建自己的UI，可以直接使用Hook。
+所以我放弃了规范化，用文档固定契约。使用方必须原样传回选择器输出的值。坦白说，这是转嫁给使用方的成本，而且 `ISODateString` 是 `string` 的别名，编译器也拦不住。
 
-```tsx
-const {
-  value,
-  calendar,        // { weeks, currentMonth, ... }
-  navigate,        // navigate.prevMonth, navigate.nextYear, ...
-  select,          // select(iso)
-  isOpen,
-  open,
-  close,
-} = useDatePicker({
-  value: iso,
-  onChange: setIso,
-  displayTimezone: 'Asia/Seoul',
-  locale: 'ko-KR',
-});
+### 只用 Intl 解决夏令时
+
+要把坐标转为时刻，需要知道“该时区当天的 00:00”在 UTC 中是什么时候，但偏移量只有知道时刻才能求出。更麻烦的是，在夏令时切换日，当地时间可能不存在（spring forward），也可能出现两次（fall back）。
+
+Kalyx 不借助 `date-fns-tz` 这样的库来解决这个问题。它用 `Intl.DateTimeFormat(...).formatToParts` 询问“这个 UTC 瞬间在该时区是几点”，以此测出偏移量，并在请求时间的前一天和后一天两个点读取偏移量。
+
+```ts
+// packages/core/src/utils/timezone.ts:251-254, 259
+const candidate = (probeEpoch: number) =>
+  civilEpoch - getTimezoneOffsetMinutes(new Date(probeEpoch).toISOString(), timeZone) * 60_000;
+const epochBefore = candidate(civilEpoch - 86_400_000);
+const epochAfter = candidate(civilEpoch + 86_400_000);
+
+if (epochBefore === epochAfter) return new Date(epochBefore).toISOString();
 ```
 
-状态machine与组件使用的完全相同。上面的Hook代码和`<DatePicker>` JSX运行在同一套核心逻辑之上。（凭借这一结构，无需在两条track上维护库API。）
+`civilEpoch` 是把目标当地时间当作 UTC 读出的值。偏移量在 ±14 小时以内，所以前一天和后一天会分别给出附近切换之前和之后的偏移量。两者相同说明附近没有切换，两次 `formatToParts` 就结束；网格的 42 个格子各调用一次，所以这条快速路径决定了开销。（前提是 48 小时内最多一次切换，这在 2020 至 2045 年的所有时区都成立）
 
-### SSR安全性
+两者不同时，会在该时区重新读取两个候选，看哪个与请求时间一致（`timezone.ts:261-279`）。fall back 的重叠中两者都一致，于是选用切换前偏移量得出的较早一个；spring forward 的空隙中两者都不一致，于是同样选这一侧，把时间按空隙长度往后推。实际运行的结果如下。
 
-从一开始就强制采用能够在Next.js App Router中存活的模式。
+| 请求 | 情况 | 1.4.7 | 1.4.8 |
+| --- | --- | --- | --- |
+| New_York 2026-03-08 02:30 | 不存在的时间 | `2026-03-08T07:30:00.000Z` | 相同（03:30 EDT，向后推） |
+| New_York 2026-11-01 01:30 | 出现两次的时间 | `2026-11-01T05:30:00.000Z` | 相同（01:30 EDT，较早的一个） |
+| London 2026-10-25 01:30 | 出现两次的时间 | `2026-10-25T01:30:00.000Z`（较晚的一个） | `2026-10-25T00:30:00.000Z`（01:30 BST，较早的一个） |
 
-```tsx
-// 지양
-const id = Math.random().toString(36);    // 서버/클라이언트 불일치
-const width = window.innerWidth;          // window 직접 참조
-useLayoutEffect(() => {}, []);            // SSR 경고
+“空隙往后推，歧义取较早”与 [MDN 的 Temporal.ZonedDateTime 文档](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime)所说明的 `disambiguation` 默认值 `"compatible"` 相同。1.4.7 的 London 一行为什么出错，后面再讲。
 
-// 권장
-const id = useId();                       // React 표준
-useEffect(() => {                         // 클라이언트에서만
-  const width = window.innerWidth;
-}, []);
+### 适配器边界是 21 个字符串方法
+
+既然时区由 core 计算，那 date-fns 或 dayjs 负责什么？日期运算和解析。这条边界 `DateAdapter` 有 21 个方法，日期参数和返回值全都是 ISO 字符串。
+
+```ts
+// packages/core/src/types.ts:71-102 (발췌)
+export interface DateAdapter {
+  parse(value: string, format?: string): string;
+  format(iso: string, formatStr: string, timezone?: string): string;
+  addDays(iso: string, n: number): string;
+  isSameDay(a: string, b: string, timezone?: string): boolean;
+  startOfDay(iso: string, timezone?: string): string;
+  today(timezone?: string): string;
+  // addMonths, isBefore, startOfMonth, getYear 등 15개
+}
 ```
 
-positioning使用Floating UI。它是Popper.js的后继者，SSR安全且轻量，约3KB。CI每次都会通过Next.js App Router build验证是否能在没有`renderToString` error的情况下通过。
+接收时区的方法有 `format`、`isSameDay`、`startOfDay`、`today` 四个，而这四个也把计算交给 core。date-fns 适配器的 `format` 在有 `timezone` 时，会直接调用 core 的 `formatInTimezone`（`packages/adapter-date-fns/src/index.ts:112-115`）。因此无论使用哪个适配器，时区的答案都出自同一段代码，三个适配器（date-fns、dayjs、luxon）各自运行 `@kalyx/core/test-helpers` 的 `runAdapterConformanceTests`，确认给出相同的答案。
 
-### 无障碍
+两个入口也在这条边界上分开。默认入口 `@kalyx/react` 在模块加载时调用 `setDefaultAdapter(DateFnsAdapter)`，所以安装后即可使用（`packages/react/src/index.ts:9-11`）。`@kalyx/react/headless` 没有这个调用，打包也是分开的，date-fns 的代码不会混进来。
 
-WAI-ARIA roles按spec设置。
+这种边界形态是有代价的。2026 年 6 月，我放弃了 Temporal 适配器。Temporal 的价值在于像 `PlainDate`、`ZonedDateTime` 这样 **由类型携带语义**，可一旦边界是字符串，这层语义就无法通过。包一层也只会被压平成字符串，我判断这在正确性上没有收益。回头看，上一节“坐标和时刻是同一个 `string`”的问题，恰恰就是 Temporal 用 `PlainDate` 和 `Instant` 在类型层面解决的问题。字符串边界让替换适配器变得容易，代价是堵住了用类型解决问题的路。
 
-- Calendar grid → `role="grid"`，单元格 → `role="gridcell"`
-- Input + Popover → `role="combobox"` + `aria-expanded`
-- HourList / MinuteList → `role="listbox"`
+### 七种选择器是三个上下文的组合
 
-键盘导航mapping也接近spec：Arrow keys移动单元格，PageUp/Down切换月份，Shift+PageUp/Down切换年份，Home/End移动到一周首尾，Enter选择，Escape关闭Popover。
+Kalyx 的选择器有 DatePicker、RangePicker、TimePicker、DateTimePicker、MonthPicker、YearPicker、WeekPicker 七种。比数量更重要的是，**这七种并不是独立实现**。上下文只有 `DatePickerContext`、`RangePickerContext`、`TimePickerContext` 三个。
 
-axe自动化无障碍验证14项全部通过。ARIA标签也支持多语言定制。
+| 选择器 | 持有状态的 Root | 上下文 | 差异来自哪里 |
+| --- | --- | --- | --- |
+| DatePicker | `DatePickerRoot` | Date | |
+| MonthPicker、YearPicker | DatePicker 的 Root 实现 | Date | `selectionGranularity` |
+| RangePicker | `RangePickerRoot` | Range | |
+| WeekPicker | 直接使用 `RangePickerRoot` | Range | Calendar 上的 `selectionMode="week"` |
+| TimePicker | `TimePickerRoot` | Time | |
+| DateTimePicker | 自己的 Root | Date 与 Time 嵌套 | 叠加两个 Provider |
+
+MonthPicker 的 Root 只是把显示格式默认值改为 `yyyy-MM`，再把 `selectionGranularity="month"` 传给 DatePicker 的 Root 实现（`MonthPicker/Root.tsx:11-20`）。DatePicker 的 `selectDate` 在 granularity 为 `month` 时，把坐标折叠到当月 1 日，之后照样走前面看到的转换和约束检查。DateTimePicker 则叠加提供两个上下文。
 
 ```tsx
-<DatePicker
-  labels={{
-    inputLabel: '날짜를 선택하세요',
-    prevMonth: '이전 달',
-    nextMonth: '다음 달',
-    monthYearHeader: (month, year) => `${year}년 ${month}월`,
-  }}
-/>
+// packages/react/src/components/DateTimePicker/Root.tsx:401-402
+<DatePickerContext.Provider value={dateContext}>
+  <TimePickerContext.Provider value={timeContext}>{children}</TimePickerContext.Provider>
 ```
 
-`@kalyx/core`提供包括`ko-KR`在内的多种locale默认标签。
+所以 `DateTimePicker.Calendar` 和 `DatePicker.Calendar` 是同一个组件，它并不知道自己处在哪个选择器里。一处修改会作用到所有使用该组件的选择器，一处缺陷也会波及全部。前面图表中单个 DatePicker 占全部体积 74% 的原因，也正是这层共享基础。
 
 ---
 
-## 当前状态与承认的局限
+## 守住契约的代价
 
-### 卖掉体积买来正确性的三个月
+1.0 之后的三个月，我更多用来确认这个契约而不是做新功能，结果出现了三次靠示例测试会被放过的缺陷。第一个由属性测试发现，第二个由代码交叉审查发现，第三个由本文的核查发现。
 
-本文前半部分是对1.0发布时的回顾。但在更新本文的此刻，库已经到了1.4.7，而这期间变化最大的不是功能列表，而是优先级。
+### Sydney 10 月 1 日的一小时
 
-转折点在1.0的第二天。上一节整理的“最初30秒”投资没有见效已经很清楚，外部用户为0的观测也一直持续着。于是我停掉了宣传，把还活着的marketing资产全部撤下：文档站的公告横幅、花了不少心思做的`/docs/comparison`竞品对比页，还有你正在读的这篇博客。**这就是本文有三个多月处于非公开状态的原因。** 它是在我决定停止宣传的那天一起撤下的，现在重新拿出来，顺手补上这期间的记录。
+第一个是“把 `startOfDayInTimezone` 的结果放到该时区读取，得到 00:00:00”这一属性在 Australia/Sydney 被打破。当时的实现只测一次偏移量。Sydney 在 2034 年 10 月 1 日 02:00 从 +10 切换到 +11，当天 00:00 仍是 +10，所以正确答案是 `2034-09-30T14:00:00.000Z`。然而“把 10 月 1 日 00:00 当作 UTC 读取的那个点”已经在切换之后，返回的是 +11，结果变成了前一天 23:00。这个反例也作为回归测试保留了下来（`timezone.property.test.ts:276`）。
 
-没有用户时，比起继续出新功能，先确认已经出的东西是否正确更重要。这个判断把工作顺序整个翻了过来。
+### 只在首尔通过的测试
 
-**原本推迟到v1.2的property-based测试被提到了前面。** 它的做法是大量生成随机输入，找出不变式被打破的地方。对日期计算这种纯函数而言，它比基于示例的测试更能把护城河挖厚。而且确实抓到了一个：`startOfDayInTimezone`在DST切换日会返回早一小时的时刻。原因是实现只在“把当地午夜按UTC读出来的值”上测量一次offset，而那个点可能落到切换的另一侧。Australia/Sydney在10月1日进入夏令时，当地00:00还是AEST +10，但按UTC 00:00读取就会得到切换之后的AEDT +11。用基于示例的测试，除非有人恰好挑中这一天来写，否则这个bug会永远溜过去。
+第二个出自 2026 年 8 月 3 日的交叉审查。决定日历中哪一格显示为选中的代码做了两次转换。格子本来就是坐标，却把格子和存储值都转换成了该时区的日期。选择“1 月 15 日”的结果如下。
 
-**接着我把bundle上限从17KB提到了20KB。** 明知体积是这个库标榜的卖点之一，还是这么做了。上调的理由是，全面修复时区与约束的正确性需要写进代码。负offset时区里日历单元格会整体错开一天，而约束（`disabled`）检查只存在于组件路径上，preset、键盘、hook、context变更这些路径全被漏掉了。一次跳三档的决定并不轻松。但在**“小”和“对”之间只能选一个时，作为一个库应该选后者**这一点上，我没有犹豫。
-
-之后1.4.x的七个patch全是同一类。与其罗列release note，不如按学到了什么来整理。
-
-| 版本 | 修了什么 | 暴露了什么 |
+| 时区 | 存储值 | 显示为选中的格子 |
 | --- | --- | --- |
-| 1.4.1 | `displayTimezone`下日历的日历日身份、约束检查路径的全面对齐 | 正确性不是从某一个函数漏掉，而是每条路径各漏各的 |
-| 1.4.2 | UTC+12到+14时区的日期保持、卡在整月全禁用时出不去的导航 | 有些缺陷只在时区符号翻转的地方才显形 |
-| 1.4.3 | `selectMonth` / `selectYear`无视自己画出的禁用标记直接提交 | 画的代码和写的代码必须看同一个判定 |
-| 1.4.4 | `workspace:*`被锁成精确版本，导致core的patch无法独自抵达 | 发布形态本身也会制造bug |
-| 1.4.5 | 一个错误的`value`在渲染中throw，把整棵树带下去 | 来自表单字段或DB行的值不是编程错误，而是数据 |
-| 1.4.6 | 拒绝不可能的日期和超出范围的时刻、具名输入的ISO提交 | 防御不能只放在一个入口，而要放在所有入口 |
-| 1.4.7 | 7种hook在每次渲染都重新生成派生数据 | 只针对组件做的优化到不了hook使用者那里 |
+| `Asia/Seoul`（+9） | `2026-01-14T15:00:00.000Z` | 15 日（正确） |
+| `America/New_York`（-5） | `2026-01-15T05:00:00.000Z` | 16 日（错误） |
 
-1.4.5尤其难忘。`value`传入无法解析的字符串时，`RangeError: Invalid time value`会在渲染中被抛出，整棵React树随之卸载；在`renderToString`下面，一行坏数据就变成500响应。可是`value`大多来自表单字段或数据库行。**那不是开发者的失误，就只是数据而已。** 站在库的立场上，把它当成编程错误本身就是错的。
+在正偏移时区，两次偏移相互抵消，碰巧是对的，而已有测试只覆盖了首尔。同一次检查还发现了反方向的违规。决定显示哪个月时，直接对时刻套用了 `startOfMonth`，于是在首尔把 1 月 1 日作为值传入，打开的却是 12 月的日历。机制不同，违反的规则却是同一条：每个方向只用指定的函数转换一次。
 
-功能也不是没有，只不过全都在填补已有东西的空白。
+这次事故让 core 的往返属性测试从“几个代表性时区”扩展到“运行时知道的全部时区”。（React 一侧的组件测试仍在使用 `America/New_York` 这类代表性时区）**只在符号翻转处暴露的缺陷，靠抽样是抓不到的。**
 
-- **RTL支持**（1.3.0）：所有picker Root都多了`dir` prop。按WAI-ARIA grid模式只翻转物理方向键，ArrowUp/Down和Home/End保持逻辑方向。1.0时这一项被推到“等bundle余量允许时”，上调上限后腾出了位置。
-- **缺失的4种headless hook**（`useMonthPicker`、`useYearPicker`、`useWeekPicker`、`useDateTimePicker`）：为了不碰default bundle上限，只放进`@kalyx/react/headless`入口。那个入口先见底的原因就在这里。
-- **TimePicker的locale与Popover**（1.4.0）：AM/PM标签改为基于`Intl`本地化（ko-KR下是上午/下午），TimePicker也可以不用内联，改用popover。
-- **`@kalyx/adapter-luxon`、`@kalyx/adapter-dayjs`发布**：两个都已经上了npm，三个adapter全部通过conformance suite。
+### London 的 01:30 被解析成较晚的一个
 
-相反，从计划中**drop的内容**也原样留着。`@kalyx/adapter-temporal`决定不做成adapter。adapter接口是ISO-8601字符串in/out，无法原样承载Temporal特有的类型能力（`PlainDate`、`ZonedDateTime`）。包成adapter最终只会被压平为ISO字符串，再委托回core的Intl代码，实测正确性收益为0。这不是放弃Temporal本身，而是把它停放在core层面的需求gate上。
+第三个是在把本文的 DST 表格扩展到其他时区时发现的。1.4.7 从“把请求时间当作 UTC 读取的那个点”开始测偏移量，而在切换后偏移量为 0 或以上的时区，那个点已经在切换之后，于是收敛到较晚的偏移量。用 temporal-polyfill 对 418 个时区 2020 至 2045 年的全部切换逐一对照，3,395 次重叠切换中有 1,908 次选了较晚的一个，涉及 84 个时区。（3,394 次空隙切换全部正确，偏移为负的纽约只是碰巧正确）
 
-搁置的track，我不写成“以后再说”，而是写成**观察到什么就会改变主意**。非公历（波斯、佛历、伊斯兰、希伯来）需要GitHub issue 3件以上，或企业赞助1件。Storybook与视觉回归测试需要视觉回归发生3次以上。React Native adapter暂缓。把条件写成数字，就不用每次重复同一场争论。
+在 [#226](https://github.com/jiji-hoon96/kalyx/pull/226) 中我改成读取前一天和后一天，作为 `@kalyx/core` 1.4.8 发布，并把同样的对照保留为 `timezone.dst-oracle.test.ts`。（temporal-polyfill 只在测试中使用）之前错写成 `'earlier'` 的源码注释也改成了 `'compatible'`。这一次，**样本同样集中在一种符号上。**
 
-### 坦诚承认的局限
+### 花在正确性上的 3KB
 
-最后，是写给正在考虑这个库的读者的一份坦诚disclosure。（我认为给新库套上夸张marketing，最终只会损害信任。）
+这些修复需要代码。Kalyx 为默认入口的包设置了 CI 上限，超出的 PR 会在必需检查中失败。这个上限从 12KB 起步，每加一个功能就上调 1KB，而在 2026 年 8 月全面修正时区和约束的正确性时，我把它从 17KB 一次性提到了 20KB。
 
-- **单人维护者**: 可持续速度是每月1个minor。需求出现时会调整优先级。
-- **新生库**: 用户基数小，你很可能成为某个edge case的首位发现者。不过可以说，上面那三个月把这个概率削掉了不少。1.4.x里修掉的缺陷大多不是用户报上来的，而是property测试和时区全量扫描先找到的。
-- **仅支持React 19+**: 依赖19的leverage point，包括RSC、`useId`、没有`useLayoutEffect` warning、`<Input>`的form-action集成。不做18 back-port。
-- **不声称“battle-tested”**: 新生库不应使用这个词。它拥有的是整个workspace超过700项测试、覆盖core纯模块的property扫描、axe全部通过、Next.js App Router CI中的SSR验证，以及adapter conformance suite。
-- **还没有定下来的事**: `classNames`和`data-*`属性算不算公开API，目前没有结论。因为是Zero CSS，这两者是消费者样式的唯一接触面：如果不算公开API，minor发布就可能弄坏别人的画面；如果算公开API，改名就得等major。我判断，把“不知道”写下来更好。
+体积是 README 徽章上展示的卖点。在负偏移时区每次差一天的日期选择器，不管大小都没法用。**如果必须在小和对之间选一个，那就选对的。**
 
-如果今天就需要支撑10万用户规模的生产级稳定性，坦白说`react-datepicker`是更安全的选择。Kalyx更像是对一个更小、更headless的未来所下的**赌注**。
+现在的上限很紧。根据仓库 2026-09-11 的包字节分布文档，用 Node 默认 gzip 测量 `dist/index.cjs` 的结果是 20,259B，上限是 20,480B，余量只有 221B。（这是把依赖留在外部的自身文件大小，与前面图表测的是不同的量）下一个功能得先回收字节才能加进来。
 
 ---
 
 ## 结语
 
-与其说这是库的宣传文章，不如说是一篇决策回顾。记录ship了什么、拒绝了什么、哪些决策格外沉重，是我在构建下一个库（或评估其他库）时发现的最宝贵资产。
+我想要的是以声明式的方式使用复杂的日期库。做完之后才发现，声明式的组合 API 和 headless 的完整方案早已存在。剩下的差异藏在更里面。**把值固定为一个时刻，把坐标与时刻之间的转换收窄到两个函数，并用测试在所有时区守住这个往返。** 基于 Intl 的夏令时处理、字符串适配器边界、由三个上下文组成的七种选择器，都是这一决定的结果。
 
-走到1.0之前的四个决策，全部关于**API的形态**：Composition over Props、强制ISO字符串、adapter模式、bundle上限。它们都牺牲了一部分短期便利，换取长期的适应能力。
+从学习这个目标来看，我学到最多的是如何主张“正确”。最初文章的包体积对比测的是不同的量，在首尔通过的测试在纽约是错的。如果不把测了什么、用什么样本确认一并写下来，数字很容易沦为炫耀。
 
-但重新把这篇文章拿出来更新时我才发现，真正最难的决策发生在1.0之后。**那是打破自己标榜的卖点的决策。** 17KB上限不只是一个数字，它是说明这个库是什么的那句话的一部分。把它提到20KB，就是在削弱那句话。即便如此还是上调了，理由只有一个：在负offset时区里日历整体错开一天的库，无论大小都没法用。
+局限也很明确。维护者只有我一个人，仅支持 React 19，`@kalyx/react` 在 2026 年 9 月 5 日至 11 日的 npm 下载量是 200 次，其中 156 次集中在 1.4.7 发布当天。坐标与时刻无法用类型区分的问题只靠文档挡着，作为样式接入点的 `classNames` 和 `data-*` 属性是否作为公开 API 来保证，我也还没决定。可访问性方面，日历有 `grid`、输入框有 `combobox`、时间列表有 `listbox` 角色，支持方向键、Home/End、PageUp/PageDown 导航，CI 会运行 8 个测试文件中的 `jest-axe` 检查，但还没有依据说它和 React Aria 一样经过充分验证。
 
-回头看，让这个判断成为可能的，正是用户为0这个事实本身。如果有用户，我会先处理眼前的需求，不会花三个月去用property测试找一个没人报告过的DST bug。**没有用户，反而是一种可以掉头的自由。** 1.0刚结束时我只把它看成失败的信号，现在读起来有点不一样了。
-
-如果你也曾在React项目中因DatePicker撞上类似的墙，欢迎看看Kalyx。如果你曾用更好的方式解决同一问题，也非常感谢你随时在GitHub Issue中分享。归根结底，库并非由一个作者完成，而是由共同使用它的人一起打磨出来的。
-
-安装只需一行。
+所以，如果本来就是 MUI 应用，先看 MUI X；如果分段输入和经过验证的无障碍是首要需求，先看 React Aria；如果只需要一个日历，先看 react-day-picker，这样更合适。如果你在值以 JSON 往来的表单中遇到过日期差一天的问题，那时再来看看 Kalyx 我会很高兴；如果你知道更好的解法，也欢迎通过 GitHub Issue 告诉我。
 
 ```bash
 pnpm add @kalyx/react
 ```
 
-你可以在文档站的[Playground](https://kalyx-docs-site.vercel.app/playground)中立即上手试用7个picker，还可以切换locale与timezone，直接编辑classNames，应用自己的design token。
+在文档站的 [Playground](https://kalyx-docs-site.vercel.app/playground) 中，可以亲手试用七种选择器，并修改 locale 和 timezone 设置。
 
 :::ref
 
-[repo] [jiji-hoon96/kalyx](https://github.com/jiji-hoon96/kalyx)
+[docs] [Kalyx 官方文档站](https://kalyx-docs-site.vercel.app/)
 
-[docs] [Kalyx官方文档站](https://kalyx-docs-site.vercel.app/)
+[docs] [MUI，Date and Time Pickers Timezone](https://mui.com/x/react-date-pickers/timezone/)
 
-
-[docs] [Ark UI DatePicker文档](https://ark-ui.com/docs/components/date-picker)
-
-[docs] [Radix UI Composition模式](https://www.radix-ui.com/primitives/docs/overview/introduction)
-
-[docs] [React Aria headless组件指南](https://react-spectrum.adobe.com/react-aria/)
-
-[docs] [Floating UI官方文档](https://floating-ui.com/)
+[docs] [Floating UI 官方文档](https://floating-ui.com/)
 
 :::

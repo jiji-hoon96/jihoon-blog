@@ -1,345 +1,198 @@
 ---
-emoji: 🧭
-title: 'システム観測'
-seoTitle: 'SentryとOpenTelemetryで学ぶシステム観測:エラー、trace、gray failure診断'
+emoji: 🧮
+title: 'ブラウザのCPUとメモリ'
+seoTitle: 'ブラウザのメインスレッドとメモリの観測：Long Task、LoAF、プロファイリング、メモリ計測API'
 date: '2026-09-15'
-categories: 観測 フロントエンド Sentry OpenTelemetry
-description: '200レスポンスの裏に隠れた失敗をSentryのサーバー専用計装で捕まえた記録とともに、エラー、breadcrumb、trace、metric、profileがそれぞれどんな質問に答えるのかをたどる。gray failureと65秒ぶら下がったGA呼び出し、修正後に測り直した分布まで。'
-keywords: 'Sentry エラー監視, gray failure とは, DEADLINE_EXCEEDED タイムアウト, Sentry 分散トレーシング, OpenTelemetry シグナル, サーバーレス 観測, gRPC deadline 設定, Session Replay プライバシー'
+updatedAt: '2026-09-16'
+categories: 観測 フロントエンド ブラウザ
+description: 'ブラウザのメインスレッドとメモリの観測を整理する。long taskとTBT、LoAF、JS Self-Profiling、メモリ計測API、crash reportが何を見せるのかを、このブログのLighthouse実測とレスポンスヘッダーで確かめた。'
+keywords: 'ブラウザ メインスレッド, long task 50ms, Long Animation Frames API, Total Blocking Time TBT, JS Self-Profiling API, Sentry ブラウザ プロファイリング, measureUserAgentSpecificMemory, ブラウザ メモリリーク'
 locale: ja
 translationOf: '260915'
-sourceHash: b1cd1afc9adeaed8575afdecba66519b8183b7923022f5d97b6c3a2b2bfa3fee
+sourceHash: e3099827d3ce62d6111f68e8a70bca3c1d37a5f8550f952482939e5c286405ce
 ---
 
-今回は、システム観測について書いてみたい。
+今回は、ブラウザのメインスレッドとメモリを観測する方法について書いてみたい。
 
-私は会社でSentryベースのエラー監視を長く扱ってきた。イシューが上がればstack traceを開き、releaseとタグで範囲を絞り、再現条件を探す作業には慣れている。ところが肝心のこのブログにはエラー監視がなく、この8月になってようやくサーバー専用構成でSentryを取り付けた。そして取り付けた途端に、その計装が実際の障害をひとつ捕まえた。この記事の後半は、その障害を調査し、直したと信じ、測り直すことでその信念が間違っていたと確認した記録だ。
+[前回の記事](/260914)では、ネットワークとレンダリング、Web Vitalsをたどりながら、ブラウザが読み込みとインタラクションについて残す値を見た。ところが、その指標が悪化した原因を掘り下げていくと、たいてい二つの場所にたどり着く。メインスレッドが別の仕事で忙しく入力やレンダリングを間に合わせられなかったか、メモリが積み上がってページが遅くなり、ついには落ちたかである。
 
-[ブラウザ観測](/260914)では、ブラウザがネットワーク、レンダリング、ユーザー入力をどんなデータとして残すのかを見た。しかしブラウザで遅いリクエストをひとつ見つけても、問題は終わらない。そのリクエストがCDNで遅かったのか、APIサーバーで待たされたのか、データベース呼び出しで詰まったのか、失敗を捕まえてデフォルト値を返したのかまで、たどる必要がある。
+この二つの領域はWeb Vitalsより観測が難しい。APIのほとんどはChromium専用で、あるAPIはレスポンスヘッダーを変えないと有効にならず、ある信号は構造的にJavaScriptが受け取れない。[シリーズ最初の記事](/260913)のSentry機能表でブラウザprofilingの判断をこの記事に先送りしたが、その条件もここで解いていく。
 
-この記事は、ひとつのエラーイベントから出発し、各シグナルが前のシグナルでは答えられなかった質問をどう補うのかをたどる。breadcrumbで直前の時間を復元し、traceとmetricで経路と影響範囲を探し、profileとReplayで実行コストと画面の文脈を確認する。最後には、発生しなかった出来事と成功レスポンスの中の失敗まで含めて、**何を失敗として計装するのか**へと質問を広げる。私が経験した障害は、ちょうどその二つのカテゴリーにまたがっていた。
+筆者が自分で確かめたのは、Lighthouseの2回の実行、本番のレスポンスヘッダー、インストールされた`web-vitals`のビルドファイルである。結論から言うと、このブログはメインスレッドをlab計測で輪郭だけ見ており、メモリとcrashを見る手段は持っていない。
 
-フロントエンドエンジニアにとって、この境界はますます曖昧になっている。Reactコンポーネントで始まったリクエストが、Server Component、route handler、外部API、queueとbackground jobへとつながっていく。画面に現れた症状はブラウザにあるが、原因はシステムの別の層にあるかもしれない。
+## メインスレッドが忙しいということ
 
-かつてこの領域に入るには、各サーバーのログ形式と運用ツールをまず知る必要があった。今はSentryのような製品でエラーと関連するtrace、profile、replayの間を行き来でき、OpenTelemetryは異なるツール同士がシグナルをやり取りするための共通規約を提供する。
+ブラウザのメインスレッドは、JavaScriptの実行、スタイル計算、レイアウト、ユーザー入力の処理を一列に並べて処理する。一つのタスクが動いている間は他の仕事が割り込めないので、その間にユーザーがボタンを押すと、入力イベントはタスクが終わるまで待つことになる。
 
-とはいえ、観測が自動で完成するわけではない。どのシグナルを残すのか、どの識別子でつなぐのか、何を失敗と呼ぶのかは、システムを作った人が決めなければならない。
+この待ち時間を区切る基準が50msだ。W3Cの[Long Tasks API仕様](https://w3c.github.io/longtasks/)は、50msを超えてメインスレッドを占有したタスクをlong taskと定義し(序論では"50ms or more"と書いており、境界の表現が少し異なる)、その根拠も記している。入力に100ms以内に反応するには、入力の瞬間に実行中だったタスクが50ms以内に終わり、その入力を処理するタスクも50ms以内に終わらなければならない。
 
-## エラー一件の文脈
+### TBTはlong taskの超過分を足す
 
-最も馴染みのある出発点はエラーイベントだ。例外が発生したときにメッセージとstack traceを送れば、どのコードで失敗したのかが分かる。しかし実際にデバッグに必要なのは、例外オブジェクトひとつよりも、その周辺の文脈だ。
+個数だけを数えると60msと600msが同じになるので、labツールはTotal Blocking Time(TBT)を使う。web.devのTBTの記事によれば、long task一つのblocking timeは50msを超えた部分で、TBTはFCP以降のlong taskのblocking timeを合計した値である。LighthouseはデフォルトではTTI(Time to Interactive)までしか数えない。
 
-Sentryの[Issue Detailsドキュメント](https://docs.sentry.io/product/issues/issue-details/)を見ると、ひとつのイベントにstack traceだけでなくbreadcrumb、tag、context、release、trace、replay、attachmentが一緒に付くことがある。各要素が答える質問は異なる。
+![メインスレッドのタイムライン上の五つのタスクのうち、50msを超えた三つの超過分がそれぞれ200、40、105msと示された図](1.png?w=720)
 
-| 情報 | 答える質問 |
-|---|---|
-| stack trace | どのコード経路で例外が発生したのか |
-| source map | デプロイされたバンドル位置を元ソースのファイルと行に復元できるか |
-| breadcrumb | 例外までにどんなリクエストとユーザー行動があったのか |
-| tag | どのブラウザ、release、route、機能で繰り返されるのか |
-| context | そのイベントを理解するのに必要な構造化された値は何か |
-| release・commit | どのデプロイで初めて現れ、どの変更に近いのか |
-| trace | 同じリクエストフローの別サービスとspanでは何が起きていたのか |
-| replay | ユーザーが画面で実際にどんな状態を経たのか |
+(図の出典: [web.dev, Total Blocking Time (TBT)](https://web.dev/articles/tbt), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), SVGを白背景のPNGに変換)
 
-この区分で重要なのは検索可能性だ。SentryのtagはUIで検索とフィルターに使うよう設計されたkey-valueであり、contextは構造化された値をイベント詳細で読むための領域で、UIフィルターの対象ではない。すべてをcontextに入れればイベント一件は豊かになるが、「どの顧客タイプで増えたのか」のような繰り返しの質問に答えにくくなる。
+黄色の部分が各タスクの最初の50ms、赤い部分がblocking timeである。同じ記事の例では、タスクの実行時間の合計は560msだがTBTは345msだ。50msより短いタスクは、どれほど頻繁に来てもTBTには寄与しない。
 
-逆にすべての値をtagとして送れば、cardinalityと保存コストが膨らむ。メール、完全なURL、任意のエラーメッセージのように値の種類が際限なく増える属性は、tagには向かない。計装の設計は情報を付ける仕事であると同時に、**どの質問を繰り返し検索するのかを決める仕事**でもある。後で扱う私の調査でも、決定的な役割を果たしたのはstack traceではなく、ついでのように付けておいたタグひとつだった。
+### TBTはINPの代わりにならない
 
-## サーバー専用で取り付けた計装
+TBTはlab指標で、Core Web Vitalsの応答性指標はINPである。web.devの[INPの記事](https://web.dev/articles/inp)は、インタラクションなしに読み込みだけを見るlabツールではTBTが妥当な代理指標にはなりうるが、代替物ではないと線を引いている。
 
-このブログのSentryはサーバー専用だ。ブラウザSDKの初期化ファイルを置いていない。ブラウザ計装が増やすclientバンドルのコストを払わないことにしたからで、導入の目的はサーバーで静かに失敗する呼び出しを捕まえることであり、その部分は実質タダだった。だから捕まるものと捕まらないものが分かれる。route handlerとサーバーコンポーネントのエラー、そしてサーバーで実行されるGoogle Analytics照会の失敗は捕まる。クライアントコンポーネントのイベントハンドラーやハイドレーション不一致のように、ブラウザでだけ起きるエラーは捕まらない。
+TBTは、ユーザーがいつ何を押したかを知らないからだ。メインスレッドが大きく塞がっていても、ユーザーがスクリプトの終わった後に押せばINPは低くなりうる。long taskがINPを伸ばす経路はいくつかあるが(ハンドラー自体が長ければprocessing duration、後続のレンダリングが長ければpresentation delay)、TBTと最も直接つながる経路は、押した瞬間に実行中だったタスクの残り時間の分だけ、前回の記事で見たinput delayを伸ばすことである。だから低いTBTが教えてくれるのは「読み込み中にメインスレッドが大きく塞がらなかった」までだ。実際の入力が何に塞がれたのかは、fieldでタスクとフレームを見なければわからない。
 
-この構成で、私が自分で確かめておきたかったことが二つあった。
+## Long TasksとLong Animation Frames
 
-ひとつは自動フックの範囲だ。Next.jsの`onRequestError`フックを配線しておけば、ハンドリングしていないrouteのエラーも`captureException`を直接呼ばずに捕まる。Deploy Previewにわざと例外を投げる一時的なrouteを上げて確認したところ、イベントには`auto.function.nextjs.on_request_error`というmechanismが刻まれて届いた。
+fieldでメインスレッドを見るブラウザAPIは二つある。Chrome 58からあるLong Tasks API(`PerformanceLongTaskTiming`)と、Chrome 123でリリースされたLong Animation Frames API(`PerformanceLongAnimationFrameTiming`、略してLoAF)だ。どちらも:term[PerformanceObserver]{key="performance-observer"}で購読する。
 
-もうひとつはソースマップだ。適用前のプロダクションイベントのculpritは、`y([root-of-the-server]__468aa3ae._)`のように難読化されたバンドル位置だった。ソースマップをアップロードした後は、同じ種類のイベントが`src/...`のパスと行番号、周辺のソースコードまで解決された。表の二行目が答える質問が実際に分かれる地点だ。
+### LoAFは置き換えではなく代替案だ
 
-ここでひとつ脇道を記しておく。アップロードした後は、ビルド成果物から`.map`ファイルを消す必要があった。Turbopackが作るサーバーソースマップは57MBで、サーバーJS(15MB)より大きく、そのままにするとデプロイ関数のバンドルに全部積まれてしまうからだ。ちょうどアップロード後にソースマップを削除してくれる`deleteSourcemapsAfterUpload`オプションがあったのでオンにしたのだが、実測してみるとアップロード直後にもサーバーの`.map`は57MBそのまま残っていた。そのオプションは`.next/static`だけを消し、肝心の容量を占める`.next/server`には触れていなかった。結局、削除対象のパスを直接指定する方式に変え、同じ理由でアップロードのログも常時オフにせず条件付きで残すことにした。ログを切っておくと、トークンの期限切れでアップロードが丸ごと失敗しても、次に読めないstack traceを見るまで誰も気づかない。**ドキュメントを読んでオプションをオンにすることと、そのオプションが期待した仕事をしたか確認することは、別の仕事だ。**
+ChromeチームのLoAFの記事(下の図の出典)は、LoAFをLong Tasks APIの"update"であり"alternative"だと紹介し、FAQでは"at this time, there are no plans to deprecate the Long Tasks API"と答えている。MDNの互換性データでも`PerformanceLongTaskTiming`にdeprecatedの表示はなく、両APIともexperimentalで、FirefoxとSafariはサポートしていない。
 
-## グループと原因の違い
+新しいAPIが必要だった理由は帰属(attribution)である。同じ記事によれば、Long Tasks APIの帰属は"at best only tells you the container"、つまりトップレベルのドキュメントかどのiframeかまでで、どのスクリプトが時間を使ったかは教えてくれない。
 
-Sentryは似たイベントをひとつの:term[issue]{key="issue-grouping"}にまとめる。デフォルトのgroupingではstack traceが核心のシグナルで、exceptionやmessageのような情報も使われる。必要ならfingerprintでまとめる基準を変えられる。
+LoAFは個々のタスクではなく、**レンダリング更新が50ms以上遅れたフレーム**をentryとして報告する。短いタスクいくつかとレンダリングが集まって基準を超えた場合も捕まえられる。
 
-ただし、同じissueが必ずしも同じ原因を意味するわけではない。`fetch()`を包んだ共通関数の一箇所でネットワークエラーを投げていれば、DNSの失敗、認証の期限切れ、upstreamの500レスポンスがひとつのグループに混ざり得る。逆に、同一の原因が複数のコード経路で異なる例外を作れば、複数のissueに分かれる。
+### blockingDurationとスクリプトの帰属
 
-issueは調査すべき出来事の束であって、ドメイン原因の分類表ではない。groupingをそのまま障害件数や製品KPIに使うと、この違いを見落とすことになる。
+LoAFでINPと直接つながるフィールドは`blockingDuration`だ。フレーム内で50msを超えたタスクの超過分を足すが、最も長いタスクには最後のレンダリング時間まで含める。記事の例では、55ms、65msのタスクの後に20msのレンダリングが続くと、`duration`は約140ms、`blockingDuration`は(55 - 50) + (65 + 20 - 50) = 40msになる。TBTの発想を、読み込み区間ではなくページ全体のフレームに移したものと言える。
 
-必要ならfingerprintを調整したり、domain error codeをtagとして追加したりできる。しかしgroupingのルールをあまりに早く細かく作り込むと、SDKのデフォルト改善を逃し、運用ルールだけが増えていく。私は、まず実際のイベント分布を見て、デフォルトのgroupingがどの質問を妨げているかを確認する順序の方が良いと考えている。
+![ページのタイムラインに複数のlong frameがあり、そのうちINPとして選ばれたインタラクションと重なるフレームが点線で強調された図](2.png?w=720)
 
-## 失敗の時間軸
+(図の出典: [Chrome for Developers, Long Animation Frames API](https://developer.chrome.com/docs/web-platform/long-animation-frames), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), サイズを縮小)
 
-エラーはたいてい最後の場面しか残さない。:term[breadcrumb]{key="breadcrumb"}は、その前に起きたことを時系列で付け足す。ブラウザのnavigation、click、console message、HTTP requestだけでなく、アプリケーションが自分で記録した状態変化も入れられる。
+ページにはlong frameがいくつも生じるが、INPの値を説明するのはINPのインタラクションと重なったフレームである。そのフレームの`scripts`配列には、5msを超えて実行されたスクリプトごとに、呼び出し地点、ソースURL、実行時間が入っている。Long Tasks APIになかった「誰が」がここで得られる。
 
-伝統的なログと似ているが、目的は少し違う。ログストレージはサービス全体のイベントを検索するのに強く、breadcrumbは特定のエラー直前の小さな時間軸を復元するのに強い。
+ただし、スクリプトの帰属はメインスレッドとsame-originのiframeにしか付かない。cross-originのiframe、worker、拡張機能のコードは、フレームを長くしても名前がない。このブログの記事ページにあるutteranc.esのコメントiframe内の処理は、LoAFでも帰属されない。
 
-だから重要な状態変化は、両方の場所に必要なことがある。決済状態が`pending`から`failed`に変わったなら、運用ログでは全体の失敗率を集計し、エラーイベントのbreadcrumbではその一人のユーザーの順序を見る。同じ事実をコピーしているのではなく、互いに異なる検索単位を作っているのだ。
+### このブログはLoAFを収集していない
 
-OpenTelemetryの[Logsドキュメント](https://opentelemetry.io/docs/concepts/signals/logs/)は、アクティブなtraceとspanの識別子を既存のログに付けて自動的につなぐ方式を説明している。ログの本当の効用は行数ではなく、他のシグナルへ移動できる接続点にある。
+LoAFを直接購読せずに使う方法もある。`web-vitals`は[v4.0.0(2024-05-13)のchangelog](https://github.com/GoogleChrome/web-vitals/blob/main/CHANGELOG.md)で"Add INP breakdown timings and LoAF attribution"を入れ、その後、最も長いスクリプト(`longestScript`)と、スクリプト、レイアウト、ペイント時間の合計を加えた。ただしこれはattributionビルド(`web-vitals/attribution`)からしか得られない。
 
-## 遅延が生じた経路
+前回の記事で見たとおり、このブログの`src/components/WebVitalsReporter.tsx`は`import('web-vitals')`でstandardビルドを使っている。**INPの値は収集しているが、そのINPがどのスクリプトに塞がれたのかは収集していない。** インストールされた`web-vitals@6.2.1`で、`long-animation-frame`という文字列は`dist/web-vitals.js`に0回、`dist/web-vitals.attribution.js`に1回出てくる。standardビルドはLoAFのobserverをそもそも登録しない。(この事実はメモリの節で再び重要になる)
 
-エラーが「何が壊れたのか」に答えるなら、:term[trace]{key="distributed-trace"}は「ひとつのリクエストがどこを通り、時間をどこに使ったのか」に答える。
+attributionビルドは[README](https://github.com/GoogleChrome/web-vitals#attribution-build)によればbrotliで約1.5K大きいが、筆者がためらった理由はサイズよりも送り先にある。このブログのトラフィックでGA4にスクリプト別の分布が意味のある形で出るかを確かめていないので、収集を増やす前にまずlabを見ることにした。
 
-traceは複数の:term[span]{key="span"}の束だ。ブラウザのドキュメントロード、`fetch`、サーバーのroute handler、外部API呼び出し、データベースクエリとbackground jobが、それぞれspanになり得る。同じ`trace_id`を共有すれば、ひとつのリクエストグラフとして復元できる。
+## このブログで捕まったlong task
 
-この接続は自動で生まれるわけではない。リクエストの境界を越えるとき、trace contextを渡さなければならない。W3Cの[Trace Context標準](https://www.w3.org/TR/trace-context/)は`traceparent`と`tracestate`ヘッダーの形式を定義している。ベンダーが違っても同じリクエストをつなぎ合わせられるようにする、最小の共通言語だ。
+そこで記事ページを一つ、labで回してみた。Lighthouse 12.8.2(`npx lighthouse@12`)、ローカルのChrome headless、デフォルトのmobileフォームファクター、simulated throttling(RTT 150ms、1638.4kbps、CPU 4倍の減速)、対象は`https://hooninedev.com/260914`で、2026-09-16に25分間隔で2回実行した。
 
-フロントエンドでは、ここにも条件がある。
-
-- すべての外部ドメインにtraceヘッダーを送ると、情報露出とCORSの問題が生じ得る。
-- ブラウザSDKが許可されたAPI originにだけcontextを渡すよう、範囲を制限しなければならない。
-- サーバーとupstreamも同じヘッダーを保存または変換しなければならない。
-- sampling判断をサービスごとにバラバラに下すと、traceの中間が空く。
-
-traceが途切れたときは、データがないと片付けるより、どの境界でcontextが消えたのかを確認すべきだ。ブラウザからサーバーまでの分散トレーシングは、SDKのインストールよりcontext propagationの設計にかかっている。
-
-## spanに込める境界
-
-自動計装はHTTPリクエスト、DB呼び出し、frameworkのlifecycleのようなライブラリの境界をよく捉える。OpenTelemetryの[Instrumentationドキュメント](https://opentelemetry.io/docs/concepts/instrumentation/)は、zero-code instrumentationは出発点として有用だが、アプリケーション内部の判断を見るにはcode-based instrumentationが必要だと説明している。
-
-たとえば注文API全体が800msかかったという自動spanだけでは、なぜ遅かったのか分かりにくい。次のようなドメインspanが必要になるかもしれない。
-
-```ts
-await tracer.startActiveSpan('checkout.calculate-discount', async (span) => {
-  span.setAttribute('promotion.type', promotionType)
-
-  try {
-    return await calculateDiscount(cart)
-  } finally {
-    span.end()
-  }
-})
-```
-
-ただし関数ごとにspanを作れば、traceはコードの実行記録に変わってしまう。観測の目標はすべての呼び出しを保存することではなく、遅延と失敗についての仮説を区別することだ。
-
-良いspanの境界は、おおむね次のいずれかだ。
-
-- ネットワーク、DB、queueのように失敗の主体が変わる境界
-- cache hitとmissのように実行経路が分かれる境界
-- 決済承認、権限判定のようにドメインの結果が分かれる境界
-- 遅延予算を別途管理すべき作業
-
-ひとつのspanを見て、誰が何をどれだけしたのか言えないなら、境界か名前を見直すべきだ。
-
-## 分布から事例へ
-
-traceを全部保存するとコストが急速に膨らむ。だからシステムの全体状態はmetricで見て、異常区間の具体的なリクエストはtraceへ降りていく方式が一般的だ。
-
-OpenTelemetryの[Signalsドキュメント](https://opentelemetry.io/docs/concepts/signals/)は、trace、metric、log、baggageを互いに異なるtelemetry signalとして区分している。別の[Profilesドキュメント](https://opentelemetry.io/docs/concepts/signals/profiles/)では、profileシグナルは2026年9月現在Alphaと表示されている。データモデルとOTLPの伝送経路はできたが、安定化したシグナルと同じ水準だと仮定してはいけない。
-
-各シグナルの強みは次のとおりだ。
-
-| シグナル | 強み | 弱み |
+| 項目 | 1回目 (08:46:15Z) | 2回目 (09:11:01Z) |
 |---|---|---|
-| metric | 全体の傾向、比率、分布、アラート | 個別リクエストの文脈が少ない |
-| trace | リクエストひとつの経路と遅延 | 全量保存のコストが大きい |
-| log | 出来事の詳細な記録と自由な検索 | 形式とcardinalityが崩れやすい |
-| profile | CPUとメモリを使ったコード位置 | リクエストとつながないとユーザー影響がぼやける |
+| Performance score | 0.92 | 0.93 |
+| FCP、LCP | 2501ms | 2415ms |
+| TBT | 40ms | 47ms |
+| TTI | 5489ms | 5375ms |
+| メインスレッド処理の合計 | 916ms | 1035ms |
+| うちStyle & Layout | 343ms | 344ms |
+| うちScript Evaluation | 254ms | 292ms |
 
-これらのシグナルは競争関係にない。たとえばlatency histogramでp99が悪化した時間を探し、exemplarやtrace idで遅いリクエストを開き、該当spanのログとprofileを見る、というように移動する。
+2回ともLCP要素は画像ではなく最初の段落(`div#post-content > p`)だったのでFCPとLCPが同じになり、メインスレッドで最も大きい項目はスクリプトではなくStyle & Layoutだった。
 
-Grafana Tempoは[公式ドキュメント](https://grafana.com/docs/tempo/latest/)で、traceからmetricを作り、Lokiのログ、Prometheusのmetricとつなぐ構造を提供している。オープンソーススタックの利点は、特定SaaSの画面に閉じ込められずに、シグナルの保存と接続の方式を設計できることだ。その代わり、Collector、storage、retention、query性能とアップグレードを自分で運用しなければならない。
+![Lighthouseの2回の実行で、ドキュメント、Nextのチャンク、gtag二つのlong taskが同じ順序で現れたタイムラインの図表](3.png?w=720)
 
-## 実行コストの位置
+long taskは2回とも四つで、順序も同じだった。ドキュメントのタスク(104ms、122ms)、Next.jsのチャンク一つ(68ms、69ms)、そして`googletagmanager.com/gtag/js`のタスク二つ(1回目は66msと56ms、2回目は69msと59ms)である。時刻はLighthouseがCPU 4倍の減速を仮定して計算した時間軸なので、実機での絶対時間として読んではいけない。
 
-traceであるspanが2秒かかったことは分かっても、その中でCPUがどこに使われたのかは分からないことがある。profileは関数単位の実行サンプルとresource usageを記録して、この空白を埋める。
+TBTはFCP以降の三つのタスクの超過分とぴったり一致する。1回目は(68 - 50) + (66 - 50) + (56 - 50) = 40ms、2回目は(69 - 50) + (69 - 50) + (59 - 50) = 47msだ。低いTBTは「long taskがない」ではなく「FCP以降の超過分が小さい」という意味である。
 
-ここでもtraceとprofileの質問は異なる。
+次はgtagの位置だ。ルートレイアウト(`src/app/[lang]/layout.tsx`)はgtagを`next/script`の`strategy="afterInteractive"`で読み込む。そのためgtagのタスク二つはLCPから2.8秒あまり後に続けて実行され、最後のタスクが終わる地点がTTIとして記録される。読み込み指標よりも、**ページが表示された直後に押された入力のinput delay**と重なりうる位置である。ただしlabの時間軸の上での推論であり、実際のユーザーがそのとき何を押したかは、このブログでは収集していない。
 
-- trace: ユーザーのリクエストがどのサービスと作業を経たのか
-- profile: その時間の間、どの関数がCPUを使ったのか
+そしてこれはn=2のlab計測だ。同じ形が再現されたことは、この構造が偶然ではないという弱い根拠にすぎず、実際のユーザーの端末とネットワークの分布の代わりにはならない。
 
-Sentryは2025年に[Continuous ProfilingとUI Profiling](https://sentry.io/changelog/continuous-profiling-and-ui-profiling/)を、既存のprofiling製品と区別して公開した。Continuous Profilingはサポートされるサーバーruntimeの長時間のresource usageを見て、UI Profilingはユーザーセッションの実行コストを見る。最初はiOS・macOSとAndroidが中心だったが、2025年12月から[Browser JavaScriptとElectronもUI Profilingをサポート](https://sentry.io/changelog/ui-profiling-support-for-browser-javascript-and-electron/)している。
+では、gtagのタスク66msの中でどの関数が時間を使ったのかは、どうすればわかるのだろうか。
 
-それでも、すべてのruntimeが同じ方式で測定されるわけではない。ブラウザでは、DevToolsのCPU profileとLong Animation Framesの方が、特定セッションをより直接的に掘り下げる道具になり得る。製品名よりも、サポートされるplatform、samplingの方式、収集のoverhead、traceとの接続範囲を確認すべきだ。
+## サンプリングプロファイラー
 
-## セッションの再構成
+関数単位の答えはプロファイラーがくれる。DevToolsのPerformanceパネルの仕事を実際のユーザーのブラウザでやろうとするのが、JS Self-Profiling APIである。
 
-ユーザーが「ボタンが押せなかった」と言ったとき、エラーとtraceだけでは画面の状態は分かりにくい。:term[Session Replay]{key="session-replay"}はDOMの変化と入力、navigation、console、networkの情報を、再生可能な形でつなぐ。
+### JS Self-Profiling API
 
-Sentryの[Session Replay FAQ](https://www.sentry.help/en/articles/13964404-session-replay-faq-web)は、replayがピクセルを録画した映像ではなく、ブラウザのDOMを記録して後から再構成した結果だと説明している。だから元の画面と完全に同じとは限らず、canvasや外部リソースには別途の条件が付く。
+WICGの[JS Self-Profiling仕様](https://wicg.github.io/js-self-profiling/)は、Webアプリがブラウザのサンプリングプロファイラーを制御するAPIを定義している。例は`new Profiler({ sampleInterval: 10, maxBufferSize: 10000 })`で、10msごとにコールスタックを記録し、最大1万個まで集めるという意味だ。すべての呼び出しを計測せず:term[サンプリング]{key="sampling"}するのでオーバーヘッドは小さい代わりに、間隔より短い呼び出しは見逃しうる。仕様は、CORSで許可されていないcross-originスクリプトのスタックフレームを結果から除外する。gtagのように別のoriginのスクリプトの内部は、このAPIでも見えない可能性がある。
 
-この違いは個人情報の観点でも重要だ。DOMには入力値、アカウント情報、投稿の内容が入っている。SentryのWeb Replay SDKはtextをmaskし、mediaをblockするデフォルトを提供するが、アプリケーションのDOM構造とcustom componentまで自動で安全になるわけではない。requestとresponse bodyの収集も、必要なURLだけを明示的に許可すべきだ。
+仕様の状態は標準トラックではなくWICG Community Group Draftで、MDNの互換性データによれば`Profiler`はChrome 94以降のChromium系でしか動かない。そして[MDN](https://developer.mozilla.org/en-US/docs/Web/API/JS_Self-Profiling_API)が書いているとおり、ドキュメントは`js-profiling`を含むDocument Policyとともにレスポンスされなければならない。HTMLのレスポンスに`Document-Policy: js-profiling`ヘッダーが必要だという意味である。
 
-Replayをオンにする前に、次を先に決めるべきだ。
+### ヘッダーを有効にすることもコストだ
 
-1. どのエラーとsessionをサンプルとして残すのか
-2. どのDOM領域と入力をmaskまたはblockするのか
-3. network bodyとheaderを収集する必要があるのか
-4. 誰がreplayを見られて、どのくらいの期間保存するのか
-5. SDKとDOM serializationのコストをユーザーに負担させる価値があるのか
+調べている途中で、ドキュメント同士が食い違う点があった。2026年1月に仕様リポジトリに入った変更で`js-profiling`は**deprecated**になり、代わりに`js-profiling-mode`(`eager`、`lazy`)が定義された。実装は後方互換のために`js-profiling`をサポートすべき(SHOULD)だが、削除してもよい(MAY)。
 
-Replayは文脈が強い分、収集範囲も強い。デバッグ可能性とデータ最小化の間の決定を、製品のデフォルトに任せきりにしてはいけない。(このブログはReplayを使っていない。ロード性能がそのまま検索露出の前提になるサービスなので、収集がくれる答えより訪問者が払うコストの方が大きいと判断した)
+仕様によれば、`eager`(従来の`js-profiling`と同じ意味)は読み込み中にプロファイリング基盤をあらかじめ準備するので、プロファイラーを使わなくてもFCPとLCPに影響しうる。`lazy`は最初の`Profiler`生成まで準備を遅らせるが、その初期化がインタラクションの処理中に起きるとINPに影響しうる。**計測のために有効にしたヘッダーが、計測対象の指標にコストを与えうる**ことを仕様が認めたわけだ。一方、Sentryのドキュメントは2026-09-16の閲覧時点でも`Document-Policy: js-profiling`だけを案内している。ChromeStatusでは`js-profiling-mode`の項目はProposedで、出荷マイルストーンもないが、Chromeが実装したかを直接確かめてはいないので、今どちらのヘッダーを使うべきかまでは言えない。
 
-## 不在として現れる失敗
+### Sentryブラウザprofilingの条件
 
-エラー、trace、Replayは発生した出来事の文脈を深く見せてくれる。しかし予約された作業がそもそも始まらなかったら、残すべき出来事自体がない。
+Sentryの[JavaScript profilingドキュメント](https://docs.sentry.io/platforms/javascript/profiling/)は条件をはっきり書いている。ブラウザprofilingはbetaで、JS Self-Profiling APIを使うためChromeやEdgeのようなChromium系でしか動かず、サーバーが`Document-Policy: js-profiling`を送らなければならない。ヘッダーを変えられないホスティングでは使えないと明記している。SDKは`@sentry/browser` 10.27.0以上で`browserProfilingIntegration()`と、セッション単位の比率`profileSessionSampleRate`を使う。FAQは、Chromeユーザーからだけプロファイルが届くのが正常だと答えている。だから、集まったプロファイルを全ユーザーの代表として読んではいけない。
 
-Cron monitorは作業の開始と完了の状態をcheck-inとして受け取り、予定の時刻にシグナルが来なければmissed状態を作れる。このとき観測の対象は、コードが投げたエラーではなく**期待していた出来事の不在**だ。
+課金は[UI Profile Hours](https://docs.sentry.io/pricing/quotas/manage-ui-profile-hours/)単位で、バンドルは`sentry-javascript`リポジトリの`.size-limit.js`(developブランチ、2026-09-16閲覧)のgzip上限値で見ると、Tracingの組み合わせ56 KBにProfilingを加えると59 KBになる。
 
-私にとってこれは他人事ではない。このブログは毎週月曜日にSearch Consoleのデータを自動収集しているが、ある週にその作業が静かに走らなくても、今は知る方法がない。失敗したのではなく、何も起きなかったのだから、エラーは出ないからだ。観測データを集める装置そのものが死角にあるわけだ。
+### このブログでは二重に無効になっている
 
-この観点はhealth check、queue consumer、データ収集pipelineにも適用される。「失敗イベントが0件」というmetricだけでは健全さは分からない。処理すべき入力があったのか、最後の成功はいつなのか、処理量が普段の範囲にあるのかを、あわせて見なければならない。
+一つ目に、ブラウザSDKがない。このブログのSentryはサーバー専用で、`src/instrumentation-client.ts`がない。クライアントSDKがclient JSをgzipで78.8 KB増やすという2026-08-04の実測をもとに下した決定である(前回の記事で扱った)。
 
-観測を難しくするのは、発生した出来事よりも発生しなかった出来事であることが多い。そしてこの文は、後で私が予想しなかった形でもう一度戻ってくる。
+二つ目に、ヘッダーがない。2026-09-16T09:10:42Zに`curl -sI https://hooninedev.com/260914`で確認したレスポンスに`document-policy`はない。このリポジトリがHTMLに付けるヘッダーは`next.config.ts`の`headers()`にある`Content-Security-Policy`、`X-Frame-Options`、`Referrer-Policy`、`Permissions-Policy`の四つで、レスポンスでもその四つが確認できる。(`public/_headers`は静的アセットにしか適用されずHTMLには届かないことを、このリポジトリで実測してある)
 
-## 成功レスポンスの中の失敗
+だから、このブログでブラウザprofilingを有効にするのはオプション一つの話ではない。78.8KBの決定を覆し、すべてのHTMLにヘッダーを付け、そのヘッダーがFCP、LCP、INPに与えるコストを新たに測る作業になる。前に見たgtagのタスク二つが、そのコストを正当化する問題だという根拠はまだない。
 
-逆に、出来事は発生したのに成功に分類されて見えない失敗もある。私が計装を取り付けた途端に出会ったのが、まさにこの種類だった。
+## メモリを計測するということ
 
-最初の計画は単純だった。統計APIのroute handlerの`catch`にエラー報告を入れれば、Google Analytics照会が失敗したときに分かるはずだ。ところがローカルのプロダクションビルドで誤ったサービスアカウントキーを注入してわざと失敗させてみると、エラーはrouteの`catch`に到達しなかった。一層下にある統計照会モジュールの`catch`ブロック四箇所が先に捕まえてデフォルト値を返しており、レスポンスはこう出ていった。
+CPUが「今何が塞いでいるか」だとすれば、メモリは「時間とともに何が積み上がるか」の問題なので、セッション内の変化を見なければならない。ところが、この値をfieldから持ってくる道はCPUより狭い。
 
-```
-HTTP 200 OK
-{ "slug": "/260610", "views": 0 }
-```
+### performance.memoryは非標準だ
 
-訪問者には統計が0と見え、サーバーは正常だと答える。routeのエラー率とuptimeだけを見れば何も起きていない。システムの成功条件とユーザーの成功条件が違っていたのだ。(catchをどの層に置くべきかは[エラーハンドリング](/251117)で扱ったことがあるが、あのときは「どこで捕まえるべきか」で、今回は「捕まえたのに誰も知らない」に出会ったわけだ)
+`performance.memory`は[MDN](https://developer.mozilla.org/en-US/docs/Web/API/Performance/memory)で"non-standard and legacy"なプロパティとされ、互換性データではdeprecated、Chromium専用と表示されている。「ヒープ」が正確に何を指すのかからして標準化されていない。
 
-そこで計装の地点をrouteではなくその四箇所に移し、それぞれどのクエリで弾けたのかを区別するタグを付けた。このタグが後で決定的な役割を果たす。
+### measureUserAgentSpecificMemoryは分離を要求する
 
-こうした状況には、すでに正確な名前が付いている。MicrosoftとAzureチームが2017年のHotOSで発表した[Gray Failure論文](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/06/paper-1.pdf)は、クラウドの大きな可用性事故はたいてい完全に止まる種類ではなく、この灰色地帯から来ると述べ、その核心的特徴をこう規定している。
+代わりになるのが`performance.measureUserAgentSpecificMemory()`だ。web.devの[ページのメモリ計測の記事](https://web.dev/articles/monitor-total-page-memory-usage)は、ガベージコレクションの最中に計測するので結果が遅れて届くとし、平均5分のランダムな間隔で呼び出すよう勧めている。Chrome 89以降のChromium系でしかサポートされない。
 
-::::quote
-:::translation
-私たちは、gray failureの核心的特徴がdifferential observability、すなわちアプリケーションが被害を受けていても、システムの失敗検出器が問題に気づかないかもしれないという点にあると主張する。
-:::
+決定的な条件は別にある。[MDN](https://developer.mozilla.org/en-US/docs/Web/API/Performance/measureUserAgentSpecificMemory)は、ドキュメントがsecure contextであり、かつ**cross-origin isolated**でなければならないと明記している。`Cross-Origin-Opener-Policy`と`Cross-Origin-Embedder-Policy`ヘッダーで分離され、`window.crossOriginIsolated`が`true`でなければならないという意味だ。
 
-:::original
-we argue that a key feature of gray failure is differential observability: that the system's failure detectors may not notice problems even when applications are afflicted by them.
-:::
-::::
+前述の`curl`のレスポンスには二つのヘッダーがないので、このブログではこのAPIを呼び出せない。有効にするコストもprofilingヘッダーより大きいと見ている。COEPを有効にすると、ページが読み込むcross-originリソースがそのポリシーに従わなければならないが、このブログはgtagスクリプトとutteranc.esのiframeを読み込んでいる。この二つが実際に壊れるかは、有効にして確かめてはいない。
 
-一方の主体は失敗で被害を受けているのに、もう一方の主体はその失敗を認知しておらず、問題は後者が失敗検出を担う側だということだ。私が計装の地点をrouteから下の層へ降ろした仕事は、まさにその認識の格差を埋める作業だった。
+fieldが塞がれているとき残るのは、DevToolsのMemoryパネルによるローカルでの再現である。Chromeチームの[メモリ問題の解決ドキュメント](https://developer.chrome.com/docs/devtools/memory-problems)がリークのよくある原因として挙げるdetached DOMツリーをHeap snapshotで探す方法だが、筆者がこのブログでやってみたわけではない。
 
-解決は、すべてのデフォルト値返却を失敗に変えることではない。fallbackはユーザー体験を守る正しい選択であり得る。その代わり、fallbackが実行されたという事実、元の呼び出しの遅延、影響を受けた機能を、別のシグナルとして残すべきだ。
+### 観測コードが生んだリーク
 
-```ts
-try {
-  return await fetchAnalyticsStats()
-} catch (error) {
-  captureException(error, { tags: { gaQuery: 'stats' } })
+メモリの話で筆者が最も興味深く見た事例は、観測ライブラリから出てきた。`web-vitals` v6.2.2(2026-09-14)のchangelogの最初の行が"Cap pending LoAFs to avoid memory leak"である。
 
-  return { totalPageViews: 0, todayVisitors: 0 }
-}
-```
+[issue #795](https://github.com/GoogleChrome/web-vitals/issues/795)の説明によれば、attributionビルドの`onINP`は、INPと重なるLoAFを探すためにLoAFのentryを`pendingLoAFs`に溜める。整理の基準である「最後に処理されたイベント」の時刻はユーザー入力がないと進まないので、動画再生のように長時間入力なしで見るページではLoAFが溜まる一方だった。[修正PR #796](https://github.com/GoogleChrome/web-vitals/pull/796)は、イベントグループのリストですでに使っていた上限`MAX_PENDING_FRAMES`(10)をLoAFのリストにも適用し、INP候補と重なるフレームでなければ直近10個までしか残さないようにした。
 
-観測すべきなのは例外ではなく、システムが正常経路から外れたという事実だ。
+このブログは6.2.1だが、このリークを抱えているだろうか。そうではない。PRが直したソースファイルは`src/attribution/onINP.ts`一つ(残りはテストファイル)で、前に見たとおり、このブログのstandardビルドにはLoAFのobserverがない。**LoAF attributionを収集しないと決めた同じ判断が、このリークの経路も塞いでいたのである。** だからといって「収集しないでおこう」という結論ではない。観測コードのコストもchangelogでようやく明らかになることがあり、attributionビルドに切り替えるなら6.2.2以上が前提になる。
 
-## 65秒ぶら下がったGA呼び出し
+## ブラウザが落ちたとき
 
-計装の地点を移してから最初に上がってきた実際のプロダクションイシューが、この話の次の場面だ。GA呼び出しが**65.877秒**後に`DEADLINE_EXCEEDED`で失敗していた。ところが上で見た構造のせいで、レスポンスは相変わらず200だった。当時ホームは動的レンダリングで統計領域をストリーミングで流していたので、ページ自体はすぐに表示された。その代わり、その場所が長くローディング状態のまま残り、やがて静かに0で埋まった。
+メモリを使い切るとページは落ちる。このとき残る信号がReporting APIのcrash reportだ。
 
-原因を掘ってみると、使っているGAクライアントライブラリの設定ファイルにこう刻まれていた。
+### crash reportの形
 
-```json
-"RunReport": { "timeout_millis": 60000, "retry_params_name": "default" }
-```
+WICGの[Crash Reporting仕様](https://wicg.github.io/crash-reporting/)はreport type `"crash"`を定義し、W3C標準でも標準トラックでもないと自ら明記している。bodyの`reason`には、ページがメモリを使い切ったという`oom`と、応答しなくなって終了したという`unresponsive`がある。送信先は、`Reporting-Endpoints`ヘッダーに`crash-reporting`エンドポイントがあればそこ、なければ`default`で、どちらもなければ送らない。
 
-ライブラリのデフォルトRPCタイムアウトが60秒なのに、私のコードは五つの呼び出し地点のどこにもタイムアウトを渡していなかった。これは私だけのミスではなく、広く警告されてきた種類のミスだ。Google SREのGráinne Sheerinが書いた[gRPC公式ブログのdeadlineの記事](https://grpc.io/blog/deadlines/)は、タイトル下の最初の行が「TL;DR: Always set a deadline」で、deadlineがなければ進行中のリクエストがリソースを掴んだまま最大タイムアウトまでぶら下がり得ると説明している。私の使うGAクライアントもgRPCベースなのだから、同じ原理をドキュメントがすでに警告していたのに、呼び出し地点で守っていなかったのだ。
+### JavaScriptでは受け取れない
 
-修正は、タイムアウトを5秒に固定して呼び出し地点すべてに渡すことだった。そして応答しないローカルTCPサーバーを立てて、決定的に再現した。
+この信号の核心的な性質は、仕様の一文にある。
 
-| 条件 | 経過時間 | エラーメッセージ |
-|---|---|---|
-| タイムアウト未指定(修正前) | **60.04秒** | `Deadline exceeded after 60.000s` |
-| `timeout: 5000`(修正後) | **5.00秒** | `Deadline exceeded after 5.000s` |
+> Crash reports are not observable to JavaScript, as the page which would receive them is, by definition, not able to.
 
-数字が説明どおりに動いたので、タイムアウト設定がコードに届いていることまでは確認できたわけだ。ひとつ明かしておくと、5という数字自体に根拠があるわけではない。GAが正常なときの応答遅延の分布を測っていないのだから、事実上任意に選んだ値だ。ただし方向には拠り所があった。Google SRE本の[Embracing Risk](https://sre.google/sre-book/embracing-risk/)は、100%が正しい信頼性目標であることは決してないと述べている。このブログにおいて訪問者数値は付加情報だ。正確に取ってくることより、早く諦めてデフォルト値を描いてあげる方が、訪問者の体験には良い。
+報告を受け取るはずのページはそのcrashですでに落ちているので、JavaScriptがこの報告を観察する方法は定義上ない。ブラウザがページの外からサーバーのエンドポイントへPOSTするだけである。
 
-## 直した後に測り直した分布
+これがブラウザSDKにとって何を意味するかは、コードで見られる。`sentry-javascript`の[`reportingObserverIntegration`のソース](https://github.com/getsentry/sentry-javascript/blob/develop/packages/browser/src/integrations/reportingobserver.ts)は、デフォルトの購読タイプに`'crash'`、`'deprecation'`、`'intervention'`を置き、`report.type === 'crash'`の分岐もある。しかしこの統合はページ内の`ReportingObserver`を使うので、仕様どおりなら実際のOOM crashでその分岐が実行される経路はない。(仕様から導いた筆者の推論であり、crashを起こして確かめてはいない)
 
-ここまでが、本来この調査の結末になるはずだった。原因を見つけ、再現し、直したのだから。ところが、修正コミットがデプロイされたリリースで、同じ系列の`DEADLINE_EXCEEDED`が百件以上積み上がっているのを発見した。
+サーバー側で、Sentryが`Reporting-Endpoints`の送信先になることはできるだろうか。この機能を要望した[getsentry/sentry#38940](https://github.com/getsentry/sentry/issues/38940)は2022-09-15に開かれ、2026-09-16の閲覧時点でもopenだ。今使える方法は、エンドポイントを自前で置いてSentryに中継するところまでである。
 
-最新の100件を取り出し、報告された時間の分布を見た。先に押さえておきたいのは、この値がGAが実際に応答に使った時間ではないという点だ。deadlineのタイマーを掛けた瞬間から、そのタイマーが実際に鳴った瞬間までのwall-clock time(実際の経過時間)だ。
+### このブログのcrashは記録されない
 
-![タイムアウトを5秒に固定した後にも上がってきたDEADLINE_EXCEEDED 100件の報告時間の分布](1.png?w=720)
+前述の`curl`のレスポンスには`reporting-endpoints`ヘッダーもない。仕様の送信ルール上、エンドポイントがなければ報告は送られない。このブログを読んでいた誰かのタブがメモリ不足で落ちたとしても、その事実はどこにも残らない。Sentryが対応しているかどうかとは関係なく、受け取る場所を宣言していないからだ。
 
-読み取るとこうなる。**下限は守られた。**5秒より短く切られた件がひとつもなく、最も短いものが5.16秒なのだから、5秒の設定自体はコードに届いている。ところが上は8分24秒まで登り、中央値は61秒だ。さらに奇妙なのは、値がどの区間にも寄っていないことだ。実際にGAが遅くて生じた遅延なら上限の近くに積み上がるはずだが、そうなっていない。
+長い静的な記事を読むページなので、すぐに変えるつもりはない。ただ、「crashがない」と「crashを見る手段がない」は、ダッシュボード上ではまったく同じ空の画面だという点は書き留めておく。
 
-タグがより多くのことを教えてくれた。100件に刻まれたタグは`stats`と`popular`の二つだけで、おおむね二件が対で上がってくる。この二つの経路の共通点は、**どちらも一時間のキャッシュの裏にある再検証経路**だということだ。一方、キャッシュなしで訪問者のリクエストを受けてその場でGAを呼ぶ残りの経路(`page`、`pages`)は、100件の中に一度も登場しない。失敗が訪問者のリクエストを処理している最中ではなく、**レスポンスが終わった後にキャッシュを埋め直す作業でだけ起きている**という意味だ。
+## 条件付きで開かれる観測
 
-この観察は、前の節で書いた文をひとつ揺さぶる。統計の場所が長くローディングに留まると書いたが、失敗がレスポンス以後の経路でだけ起きるなら、訪問者はその時間を待っていなかったかもしれない。測らずに書いた文が、もうひとつあったわけだ。
+ブラウザのCPUとメモリの観測は、ほとんどが**条件がそろって初めて開かれる**。long taskとLoAFはChromiumからしか届かず、LoAFのスクリプト帰属はcross-originのiframeを見られない。サンプリングプロファイラーは`Document-Policy`ヘッダーを要求するが、そのヘッダー名は仕様上変わりつつあり、ヘッダー自体が指標にコストを与えうる。メモリ計測APIはcross-origin isolationを、crash reportはJavaScriptの外にあるサーバーのエンドポイントを要求する。
 
-私が立てた仮説はこうだ。このブログはサーバーレス関数の上で動いていて、サーバーレス関数はレスポンスを送ると次の呼び出しまで実行環境が凍りつく。その間タイマーも一緒に止まり、関数が目覚めるときに遅れて発火するなら、実際に待った時間ではなくwall-clock time基準で膨らんだ値が刻まれ得る。下限がきっちり5秒に張り付いていることも、上の値がどこにも寄らないことも、失敗がレスポンス以後の作業でだけ出るという観察とも合う。
+このブログはその条件のどれも有効にしていない。その状態は放置ではなく、78.8KBの決定、standardビルド、ヘッダーを増やさなかった選択が積み重なった結果であり、そのうちstandardビルドはweb-vitalsのLoAFリークを避ける結果にもつながった。観測を増やすこともコストのかかるコードをページに載せることだという点が、この領域では特にはっきりしている。
 
-ただし、ここで気をつけなければならない。**分布が仮説と矛盾しないことと、仮説を支持することは別だ。**タイマーが遅れて発火するシナリオは複数ある。サーバーレスの凍結以外にも、重いレンダリングがイベントループを掴んでいたのかもしれないし、コンテナがCPUを絞っていたのかもしれない。ライブラリ設定の再試行の総予算が600秒で、観測された最大値504秒がその中に収まるという点も、候補として残しておいた。すべて同じ形の分布を作り得るのだから、このグラフは候補を絞ってくれない。
-
-候補をひとつ消してくれるのは**同じ区間のCPU使用時間**だ。wall-clock timeで61秒が過ぎる間、CPU時間がほぼ0なら、重いレンダリングがイベントループを掴んでいたという説明は外れる。先ほど見たprofileシグナルが答える質問がこれだ。
-
-ただしCPU時間で終わりではない。応答を実際に待っている間もCPU時間は0に近いため、待っていた区間と止まっていた区間が同じ形に見える。二つを分けるには、その区間の中で時間が均等に流れたかを見なければならない。短い間隔で繰り返し発火するタイマーを掛けておき、その間隔が一度に開く地点があるかを見るやり方だ。実行環境が凍っていたなら間隔が跳び、実際に待っていたのなら均等に流れる。呼び出し直前と直後の時刻だけを測るのではだめだ。関数が凍っている間もwall-clock timeはそのまま流れるので、すでに持っている数字を作り直すだけになる。
-
-付け加えると、このイシュー一覧とタグ分布と時間の値を、私はダッシュボードを開いて見たのではなく、[Sentry公式MCPサーバー](https://github.com/getsentry/sentry-mcp)を取り付けてエージェントに尋ねて受け取った。計装を取り付けるコストが下がっただけでなく、積もったデータを開いて見るコストも下がった。
-
-## 発生が止まった理由は修正ではなかった
-
-この記事を書きながら、そのイシューをもう一度照会した。直したと信じたものが、今も直っているか確認するためだ。
-
-2026年9月14日の時点で、その系列のイシューは合計144件で止まっていた。最後の発生は8月18日で、その後27日間0件だ。タグ分布は最後まで`stats`と`popular`の対だけだった。発生グラフだけを見れば、問題は消えたように見える。
-
-しかし私はその間、前の節に書いた測定をひとつもしていない。仮説を検証して直したことがないのに、なぜ止まったのか。デプロイ履歴を突き合わせてみると、答えは別のところにあった。最後のイベントが記録されたその日にコミットされた多言語化の改編が、ホームから訪問者統計と人気記事の領域を外していた。`stats`と`popular`の再検証経路を呼ぶ画面がちょうどその二つだったのだから、その改編がプロダクションにデプロイされて以降は、失敗するコードが呼ばれること自体がない。失敗していたコードが直ったのではなく、そのコードを呼ぶ画面が消えたのだ。
-
-つまりこの障害は解決されたのではなく、**観測対象が消えた**のだ。サーバーレス凍結の仮説は確認されないまま残り、プロダクションでその分布をもう一度作ってみる再現条件も一緒に消えた。最初に65.877秒を報告した最初のイシューの元イベントは、保存期間を過ぎてもう開くこともできない。
-
-私がこの節を残しておく理由がある。イシュー一覧のresolvedは原因究明の証明ではない。発生が0になる経路は複数ある。実際に直ったか、誰もその経路を踏まなくなったか、計装そのものが消えたか。エラーシグナルだけでは、この三つを区別できない。区別してくれるのは呼び出し量や最後の成功時点のような正常経路のシグナルであり、それが前の節で述べた「発生しなかった出来事」の観測が必要なもうひとつの理由だ。計装を取り付けるのが一度きりの作業なら、観測は測り続ける仕事だ。
-
-## サンプリングの知識の限界
-
-traceとreplay、profileは保存コストとclientのoverheadのために:term[sampling]{key="sampling"}が必要だ。問題は、sample rateを下げるとコストだけが減るのではなく、答えられる質問も減るという点だ。
-
-無作為の10% samplingは全体分布を推定するには悪くないかもしれないが、稀なエラーを見逃し得る。エラーが発生したsessionだけreplayを追加で残したり、遅いtraceと失敗したtraceを優先的に保存したりする方針が必要な理由だ。
-
-逆にエラーが出たリクエストだけを残すと、正常なユーザーと比較する基準が消える。遅いリクエストが特別に遅いのか、システム全体が遅いのか判断できない。
-
-私もこのコストを払った。このブログはコストを節約しようとtraceのサンプルを10%だけ受けるようにしておいたのだが、上の調査で膨らんだ経過時間が実際の待機だったのかを分けるには該当呼び出し区間の開始と終了が必要で、サンプルが浅くて問題のリクエストに対するtraceがなかった。節約したのは私の料金で、失ったのは答えられる質問だった。
-
-samplingはひとつの数字ではなく、質問ごとの方針であるべきだ。
-
-- baselineのための確率サンプル
-- エラーとlatency thresholdのための優先サンプル
-- 特定のreleaseと機能を調査するための一時サンプル
-- 個人情報とコストが大きいreplay・profileの別サンプル
-
-保存しなかったデータは、後からAIでも復元できない。
-
-## AI以後の計装設計
-
-AIがシステム観測で有用な理由は、データがすでに構造化されているからだ。issue、event、tag、span、trace、releaseはAPIで照会でき、ログとprofileも時間と識別子を持つ。私がイシューのタグ分布と発生が止まった日付を、エディターからエージェントに尋ねて受け取れたのも、この構造のおかげだ。
-
-Sentryは2026年6月、tracing、profiling、attachment関連のendpointを含めて[agentと自動化が使うAPIドキュメントを拡張](https://sentry.io/changelog/the-sentry-api-endpoints-your-agents-use-are-now-fully-documented/)した。観測データが、人がダッシュボードで読む情報だけでなく、agentが根拠を照会するインターフェースとしても使われていることを示している。
-
-AIは次のような探索を速くする。
-
-- 最近のrelease以後に増えたissueとtagの組み合わせを探す
-- 特定traceの遅いspanと関連ログを要約する
-- 複数のイベントに共通して現れたbreadcrumbとブラウザ環境を探す
-- profileのhot pathと関連commit候補をつなぐ
-- 再現仮説と追加の計装地点を提案する
-
-しかし計装されていないdomain stateは、agentにも分からない。`checkout.result`、`cache.status`、`fallback.reason`のような属性をどの位置に残すべきかは、コードとユーザーの期待を理解してこそ決められる。私の調査でエージェントが分布とタグを即座に取り出せたのは、計装地点を下の層へ降ろしてタグを付けておいた判断が先にあったからだ。
-
-AIがroot causeを提案することはできるが、何を失敗と定義し、どんなコストでどのユーザーを観測するのかは、エンジニアリングの判断だ。
-
-## シグナルをひとつの出来事へ
-
-Sentryの各機能を全部オンにすることが、この記事の結論ではない。エラーからbreadcrumbで過去を見て、traceでリクエスト経路をたどり、metricで影響範囲を確認し、必要なときにreplayとprofileへ降りていけるべきだ。ここにCron monitorのような期待した出来事の不在と、正常レスポンスに分類された逸脱までが、同じ調査の流れに入ってこなければならない。
-
-![Sentryで答えられる質問の層とこのブログがオンにしている範囲](2.png?w=720)
-
-このブログが五つの層のうち、まるごとオンにしたのがタグひとつだけだという事実は、恥ずかしい成績表ではないと思っている。どの層をオンにするかは機能一覧を眺めて決まるのではなく、何を失敗と見るのかを先に決めてこそ、どの層が必要か分かるからだ。ただし今回の調査でtraceサンプルの浅さと週次収集の死角という二つの層の空白が実際のコストとして返ってきたのだから、次にオンにする層は決まったわけだ。
-
-OpenTelemetryのtrace contextとsemantic conventionは、この移動経路を特定の製品の外へ拡張する。ただしJavaScriptのbrowser instrumentationは依然としてexperimentalで、profileシグナルはAlphaだ。標準に含まれたという事実と、各runtimeで安定して使えるという事実は、区別しなければならない。
-
-AIはこのシグナルを検索してつなぐ候補を素早く見つける。しかし観測の深さは製品の機能の数ではなく、**シグナルの間を移動できるか、正常経路から外れた状態を表現したか**で決まる。私の200レスポンスは、シグナルを植えるまで失敗を一度も語らず、植えた後になって初めて、それが失敗だったという事実が明らかになった。
-
-次の記事[観測から判断へ](/260916)では、このシステム情報とGA4、Search Consoleのユーザーデータをどう一緒に解釈するかを見ていこうと思う。システムを詳しく見るだけでは、何を先に直すべきか決められないからだ。その前に、この記事を読む読者のみなさんも、resolvedで閉じておいたイシューをひとつ思い浮かべてみてほしい。そのイシューは直ったから止まったのか、それとも誰も測り直していないだけなのか。
+この記事の数値はすべてlabか、筆者のローカルでの確認だった。実際のユーザーから集まったfield dataがブラウザの外に出て、CrUXやSearch Console、検索でどんな意味を持つのかは、[次の記事](/260916)で続けるつもりだ。
 
 :::ref
-- [docs] [OpenTelemetry, Context Propagation](https://opentelemetry.io/docs/concepts/context-propagation/)
-- [docs] [OpenTelemetry, Sampling](https://opentelemetry.io/docs/concepts/sampling/)
-- [docs] [Grafana Loki Documentation](https://grafana.com/docs/loki/latest/)
-- [docs] [Google SRE Book, Monitoring Distributed Systems](https://sre.google/sre-book/monitoring-distributed-systems/)
+- [docs] [MDN, PerformanceLongAnimationFrameTiming](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming)
+- [docs] [web.dev, Optimize Interaction to Next Paint](https://web.dev/articles/optimize-inp)
 :::

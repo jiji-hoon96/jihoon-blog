@@ -1,14 +1,14 @@
 import { isLocale, LOCALES } from '../i18n/locales.ts'
 
-// 내려간 글의 슬러그와 그 자리를 대신할 글. 통합본이던 260703 을 관측 3부작으로
-// 쪼개면서 원글을 내렸다.
+// 내려간 글의 슬러그와 그 자리를 대신할 글. 통합본이던 260703 을 관측 시리즈로
+// 쪼개면서 원글을 내렸다. 시리즈를 4편으로 다시 짜면서 첫 편인 260913 을 가리킨다.
 //
 // next.config.ts 의 redirects 로는 부족하다. Netlify 에서는 이 미들웨어가 edge 에서
 // 먼저 돌아 `/260703` 을 `/ko/260703` 으로 rewrite 해버리고, rewrite 된 경로는
 // redirects 를 다시 타지 않아 404 가 된다. 로컬 `next start` 는 redirects 를 먼저
 // 평가해서 308 이 나오므로 로컬 실측만으로는 드러나지 않는다. (프로덕션에서 확인)
 const RETIRED_POSTS: Record<string, string> = {
-  '260703': '260914',
+  '260703': '260913',
 }
 
 const RETIRED_POST_PATTERN = new RegExp(

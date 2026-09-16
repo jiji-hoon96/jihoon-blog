@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { allPosts } from 'contentlayer/generated'
-import { getAdjacentPosts, getRelatedPosts } from '@/lib/post-navigation'
+import { getAdjacentPosts } from '@/lib/post-navigation'
 import { isHiddenPost } from '@/lib/filter-posts'
 import { siteMetadata } from '@/lib/site-metadata'
 import Utterances from '@/components/Utterances'
@@ -83,7 +83,6 @@ export default async function PostPage({ params }: Props) {
   const dictionary = getDictionary(lang)
   const glossary = getGlossaryForLocale(glossarySource, lang)
   const { prev, next } = getAdjacentPosts(post.slug, localePosts)
-  const relatedPosts = getRelatedPosts(post.slug, 3, localePosts)
 
   const postUrl = `${siteMetadata.siteUrl}${post.slug}`
   const ogImageUrl = `${postUrl}/opengraph-image`
@@ -255,32 +254,6 @@ export default async function PostPage({ params }: Props) {
         />
         <CodeCopyButton />
         <InteractiveWidgets />
-
-      {/* Related Posts */}
-      {relatedPosts.length > 0 && (
-        <section className="mt-12 pt-10 border-t border-mineral">
-          <h2 className="text-xl font-bold tracking-[-0.02em] mb-1">
-            {dictionary.post.relatedPosts}
-          </h2>
-          <div className="flex flex-col">
-            {relatedPosts.map(related => (
-              <a
-                key={related.slug}
-                href={related.slug}
-                className="group block border-t border-mineral py-5"
-              >
-                <p className="home-meta text-stone">
-                  {new Date(related.date).toLocaleDateString(lang)} ·{' '}
-                  {interpolate(dictionary.post.readingTime, { minutes: related.readingMinutes })}
-                </p>
-                <h3 className="mt-1.5 text-base font-bold leading-snug line-clamp-2 transition-colors group-hover:text-accent">
-                  {related.title}
-                </h3>
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Post Navigation */}
       <nav className="flex justify-between items-start gap-8 py-8 border-t border-mineral">
