@@ -1,135 +1,133 @@
 ---
 emoji: 🔭
 title: 'Observabilidade do navegador'
-seoTitle: 'Observabilidade do navegador: Web Vitals e RUM no frontend'
+seoTitle: 'Desempenho web: PerformanceObserver, Web Vitals e soft navs'
 date: '2026-09-14'
+updatedAt: '2026-09-16'
 categories: observabilidade frontend navegador RUM
-description: 'O Performance Timeline, como as Web Vitals são calculadas e os critérios de design de um RUM, e por que abri mão de 79KB de instrumentação.'
-keywords: 'observabilidade frontend, medir desempenho web, PerformanceObserver exemplo, medir Web Vitals, monitoramento de usuários reais RUM, LCP INP CLS explicado, web-vitals GA4, Soft Navigations API'
+description: 'O que se vê no navegador sem SDK: Performance Timeline, fases de rede, como LCP, INP e CLS são calculados e o reportSoftNavs do web-vitals na prática.'
+keywords: 'medir desempenho web, PerformanceObserver exemplo, como as Web Vitals são calculadas, medir INP, CLS session window, Soft Navigations API, web-vitals reportSoftNavs, Resource Timing Timing-Allow-Origin'
 locale: pt-BR
 translationOf: '260914'
-sourceHash: 8777b7334d208ef6328ddb366d187cd5dd7af88a5c4e5368606f2ae46b2e2afb
+sourceHash: 3976b490db6bef1a28388bab84a42d789e23e2df6fc503abd0ac827c7b892867
 ---
 
 Neste post, quero falar sobre observabilidade do navegador.
 
-Enquanto adicionava a este blog um código que coleta diretamente o desempenho percebido pelos visitantes, descobri que meu conhecimento do lado do navegador, que eu acreditava ser terreno familiar, era mais raso do que eu pensava. Faz tempo que abro o painel Performance do DevTools e executo o Lighthouse. Mas coletar continuamente o que os usuários reais vivenciaram muda a pergunta. É preciso saber quando o navegador produz quais valores, o que esses valores incluem e por que, em certas condições, eles simplesmente não são produzidos.
+No [post anterior](/260913), contei como adicionei a este blog o Sentry, que uso há anos no trabalho, e revisei de novo seus recursos. Mas essa configuração tem uma lacuna evidente. Conectei o Sentry só ao servidor e nunca ativei o SDK do navegador.
 
-Esse conhecimento não está reunido em um único documento. Ele está espalhado por várias especificações, como `Performance Timeline`, `Navigation Timing`, `Resource Timing`, `Paint Timing` e `Event Timing`, e sobre elas as Web Vitals acrescentam suas próprias regras de cálculo. Quando entram em cena as transições de tela de uma SPA, a restauração do estado da página via :term[bfcache]{key="bfcache"}, as abas em segundo plano e os iframes, cada ferramenta reporta números diferentes para a mesma página. (Quando um valor diferia do que eu esperava, o lugar onde mais fiquei travado foi em distinguir se o site estava lento ou se a culpa era das regras de medição)
+O motivo foi o tamanho do bundle. (As medições que embasam isso estão na primeira seção) Isso não queria dizer que eu desistiria de olhar o que acontece dentro do navegador. Mesmo sem SDK, o navegador registra por conta própria bastante coisa sobre carregamento e renderização.
 
-Por isso este artigo amplia o escopo da observação em três etapas: os eventos que o navegador deixou, a experiência que o usuário percebeu e a distribuição na população real de usuários. No meio do caminho, coloco também os valores que este blog coleta de fato e, na direção oposta, uma decisão de não ampliar a observação. A profundidade da observabilidade do navegador não é determinada por quantas APIs você usa. Só quando se distingue matéria-prima, métricas e distribuições, e se registram pelo caminho os usuários que ficaram de fora e as condições que distorcem os valores, os dados observados se tornam informação útil para decidir.
+Então a pergunta deste post é esta. **Sem um SDK externo, o que dá para ver com os sinais de carregamento e renderização que o próprio navegador informa dentro da página?** Vou passar pelas fases de rede, pelas regras de cálculo das Web Vitals e pela fronteira da página que fica borrada numa SPA, e no final vou registrar o que este blog realmente envia e o que não envia. (CPU e memória ficam para o próximo post, e a ligação dos valores coletados com o CrUX e a busca fica para o último)
 
-## Os sinais que o navegador deixa
+## Por que não ativei o SDK do navegador
 
-Quando uma página web é aberta, o navegador cria internamente vários tipos de :term[PerformanceEntry]{key="performance-entry"}. O [Performance Timeline](https://www.w3.org/TR/performance-timeline/) do W3C é a base comum que permite tratar esses itens em um único eixo de tempo.
+Primeiro registro a base da decisão. Fui mudando a configuração do Sentry e comparei o total em gzip de `.next/static/chunks/*.js` em builds limpos.
 
-O ponto importante é que o desenvolvedor não precisa marcar início e fim como em um cronômetro. O navegador já conhece eventos como a navegação do documento, as requisições de recursos, os paints e a entrada do usuário. O ponto de partida da observabilidade frontend é ler esse registro interno.
-
-| O que se observa | Entry representativo | Pergunta que pode responder |
+| Configuração | client JS (gzip) | Aumento |
 |---|---|---|
-| Navegação do documento | `navigation` | Onde o tempo foi gasto entre DNS, conexão, TLS, resposta e processamento do DOM |
-| Imagens, scripts, CSS | `resource` | Quais recursos atrasaram e como ficaram o cache e o tamanho transferido |
-| Exibição na tela | `paint`, `largest-contentful-paint` | Quando a primeira tela e o conteúdo principal ficaram visíveis |
-| Mudanças de layout | `layout-shift` | Quando a tela que o usuário vê se moveu, e por causa de quê |
-| Entrada do usuário | `event` | Onde ficou o atraso entre a entrada e o próximo quadro pintado pelo navegador |
-| Trabalho longo de renderização | `long-animation-frame` | Quais scripts e etapas de renderização consumiram tempo dentro de um quadro |
-| Trechos da aplicação | `mark`, `measure` | Quanto tempo levaram as operações definidas pelo serviço |
+| Sem Sentry | 181.6 KB | Referência |
+| **Só servidor (atual)** | **182.3 KB** | **+0.7 KB** |
+| Só servidor + chamada a `captureException` na UI de fallback de erro | 186.0 KB | +4.4 KB |
+| Cliente + servidor | 260.4 KB | +78.8 KB |
 
-Essa tabela deixa claro que a observabilidade do navegador não é uma simples medição do tempo de carregamento da página. Rede, thread principal, pipeline de renderização e entrada do usuário podem ser colocados sobre o mesmo eixo de tempo.
+Esta tabela foi medida em 2026-08-04, com Next 16.1.4. A instrumentação do servidor saía praticamente de graça, enquanto a do navegador exigia 78.8KB. Também tentei ativar `bundleSizeOptimizations.excludeTracing`, mas o número não mudou, e a única forma de eliminar o custo era não ter o arquivo de inicialização do navegador (`src/instrumentation-client.ts`). A terceira linha segue a mesma lógica. Sem o SDK do navegador, `captureException` na UI de fallback não faz nada, mas o código do SDK vai junto no bundle. Por isso tirei a chamada.
 
-Mas cada entry não é uma conclusão pronta. Está mais próximo da matéria-prima que o navegador fornece.
+Também medi de novo o estado atual. Pelo mesmo método, em 2026-09-16 deu 206.1KB. São 23.8KB acima da referência, mas nesse meio-tempo o Next subiu para 16.3.4 e entrou o reporte de soft navigations que abordo mais adiante. A configuração do Sentry continua só no servidor, então esse aumento não vem do Sentry. (Não sei quanto cada um dos dois representa, porque não refiz o build commit a commit)
 
-## Coletando entries de desempenho
+Neste blog, desempenho de carregamento é a própria experiência do visitante, e quem paga os 78.8KB não sou eu, é o visitante. Julguei que os erros de navegador de um blog pessoal não compensariam esse custo. Só que, uma vez decidido isso, é preciso observar o lado do navegador de outra forma. O ponto de partida é o registro que o navegador já está deixando.
 
-A interface padrão para receber essa matéria-prima em tempo real é o :term[PerformanceObserver]{key="performance-observer"}.
+## O registro que o navegador deixa
+
+Quando uma página abre, o navegador cria vários tipos de :term[PerformanceEntry]{key="performance-entry"}. O [Performance Timeline](https://www.w3.org/TR/performance-timeline/) do W3C é o quadro comum para ler essas entradas numa única linha do tempo. Mesmo que o desenvolvedor não marque início e fim como num cronômetro, o navegador já sabe de eventos como a navegação do documento, as requisições de recursos, as pinturas e a entrada do usuário.
+
+| O que é observado | entry type | Pergunta que pode responder |
+|---|---|---|
+| Navegação do documento | `navigation` | Onde o tempo foi gasto entre DNS, conexão, resposta e processamento do DOM? |
+| Imagens, scripts, CSS | `resource` | Qual recurso atrasou e qual foi o tamanho da transferência? |
+| Exibição | `paint`, `largest-contentful-paint` | Quando a primeira tela e o conteúdo principal ficaram visíveis? |
+| Mudanças de layout | `layout-shift` | Quando a tela que estava sendo vista se mexeu? |
+| Entrada do usuário | `event` | Quanto tempo levou, depois da entrada, até o próximo frame ser pintado? |
+| Trechos da aplicação | `mark`, `measure` | Quanto tempo levou o trabalho definido pelo próprio serviço? |
+
+`long-animation-frame`, que mostra os frames que seguraram a main thread por muito tempo, também pertence a esse quadro, mas é assunto de CPU, então fica para o próximo post.
+
+A interface padrão que recebe esses registros é o :term[PerformanceObserver]{key="performance-observer"}.
 
 ```ts
 const observer = new PerformanceObserver((list) => {
   for (const entry of list.getEntries()) {
-    sendPerformanceEntry(entry)
+    console.log(entry.entryType, entry.startTime, entry.duration)
   }
 })
 
 observer.observe({ type: 'resource', buffered: true })
 ```
 
-O código é curto, mas várias condições importantes se escondem nele.
+O código é curto, mas esconde algumas condições. Segundo a [documentação de `observe()`](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceObserver/observe) do MDN, `buffered` precisa ser usado junto com `type` e não pode ser combinado com `entryTypes`, que recebe vários tipos de uma vez. Scripts de coleta costumam rodar quando a página já avançou bastante, então, se o registro for feito sem `buffered`, os candidatos a LCP e os registros de recursos criados antes disso não chegam.
 
-Primeiro, como explica a [documentação do `observe()`](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceObserver/observe) no MDN, `buffered` precisa ser usado junto com `type`. Ele não pode ser combinado com `entryTypes`, que recebe vários tipos de uma vez. Se você precisa receber os candidatos de LCP ou os registros de recursos criados antes de o seu script inicial rodar, essa diferença decide se você perde dados.
-
-Segundo, entries que o navegador não suporta podem ser ignorados em silêncio. Por isso o coletor deve verificar `PerformanceObserver.supportedEntryTypes`. Se você presumir que os valores visíveis no Chrome mais recente também chegarão de todos os Safari e Firefox, vai interpretar os trechos vazios do dashboard como problemas de desempenho.
-
-Terceiro, os entries têm limite de buffer. Se o código de observação começar tarde, ou em aplicações que requisitam muitíssimos recursos, itens antigos podem ser empurrados para fora do buffer. Assim como "não houve erros" difere de "não recebemos erros", é preciso distinguir "não há entry" de "o entry não foi gerado".
-
-O próprio código de observação também roda na thread principal. Se você serializar objetos grandes dentro do callback e disparar requisições de rede imediatamente, o código que mede a experiência do usuário pode piorar a experiência do usuário. É por isso que é preciso separar coleta de envio, normalizar apenas as propriedades necessárias e projetar batching e sampling.
+Além disso, um type que o navegador não suporta é ignorado sem exceção, e segundo o mesmo documento no máximo pode ficar um aviso no console. Sem verificar com `PerformanceObserver.supportedEntryTypes`, não dá para distinguir **não haver entries** de **ser um navegador que não gera essas entries**. Um trecho vazio num dashboard pode ser diferença na composição de navegadores, e não um problema de desempenho.
 
 ## A composição do tempo de rede
 
-"A página está lenta" costuma ser traduzido primeiro como um problema de rede. Mas olhando apenas `duration` é difícil distinguir as causas.
+Dizer que uma página está lenta costuma ser traduzido como problema de rede. Mas um único `duration` não separa as causas. A entry `navigation` (`PerformanceNavigationTiming`) e a entry `resource` (`PerformanceResourceTiming`) dividem uma requisição em vários timestamps.
 
-`PerformanceNavigationTiming` e `PerformanceResourceTiming` contêm várias fronteiras em torno da requisição. Dá para separar a consulta DNS, a conexão TCP, a negociação TLS, o envio da requisição, o primeiro byte e a conclusão da resposta. Também dá para verificar se o navegador passou por um Service Worker, quanto o tamanho transferido difere do decodificado e se um recurso bloqueou a renderização.
+| Fase | Cálculo | Onde suspeitar se for grande |
+|---|---|---|
+| DNS | `domainLookupEnd - domainLookupStart` | A camada de DNS |
+| Conexão e TLS | `connectEnd - connectStart` | Reutilização de conexão, negociação TLS |
+| Até o primeiro byte | `responseStart - requestStart` | Processamento no servidor e latência de ida e volta |
+| Transferência do corpo | `responseEnd - responseStart` | Tamanho da resposta e velocidade de transferência |
 
-Essa separação muda a resposta.
+A especificação [Navigation Timing](https://www.w3.org/TR/navigation-timing-2/) do W3C tem um diagrama que mostra em que ordem esses timestamps são registrados. Se os nomes das fases não forem familiares, olhar esse diagrama uma vez é mais rápido do que a tabela.
 
-- Se `domainLookupEnd - domainLookupStart` for grande, olhe a camada DNS.
-- Se `connectEnd - connectStart` for grande, olhe a conexão e o TLS.
-- Se `responseStart - requestStart` for grande, suspeite ao mesmo tempo do processamento do servidor e das idas e voltas pela rede.
-- Se `responseEnd - responseStart` for grande, olhe o tamanho da resposta e a velocidade de transferência.
-- Se `transferSize` for 0, verifique a possível reutilização de cache, mas considere também as restrições de exposição cross-origin e as condições de implementação do navegador.
+Uma armadilha são os recursos cross-origin. Pela [especificação Resource Timing](https://www.w3.org/TR/resource-timing/) do W3C, num recurso de outra origin os timestamps detalhados, como DNS, conexão e início de requisição e resposta, ficam ocultos como 0, a menos que o servidor que o entrega os libere com o cabeçalho de resposta `Timing-Allow-Origin`. Se uma imagem de CDN externa parecia lenta e, ao abrir, DNS e conexão estavam todos em 0, ela não foi rápida: você só não tinha permissão para ver. **Nesta área, 0 pode não significar rápido.**
 
-Porém, os trechos detalhados de recursos cross-origin ficam ocultos por padrão. Como explica a [especificação de Resource Timing](https://www.w3.org/TR/resource-timing/) do W3C, alguns valores detalhados só são expostos quando o servidor de origem permite com o cabeçalho de resposta `Timing-Allow-Origin`. Mesmo que um CDN ou uma imagem externa pareçam lentos, dentro do navegador os trechos podem aparecer como 0.
+O tempo até o primeiro byte deste blog também não é leve. Em 2026-09-16, ao requisitar com `curl` dois posts e a home uma vez cada a partir de um ponto na Coreia, `time_starttransfer` ficou entre 0.95 e 2.43 segundos (um valor que inclui o tempo de DNS, conexão e TLS), e os cabeçalhos de resposta indicavam hit no cache Durable da Netlify e miss no cache de edge. Com só três amostras não vou generalizar, mas está na mesma escala do TTFB de 798ms da medição que aparece mais adiante. Só com esse tipo de decomposição por fases dá para escolher, quando o LCP atrasa, entre diminuir a imagem ou antecipar a chegada do documento.
 
-Por isso, nos dados de RUM, 0 nem sempre significa rápido. Pode ser um valor invisível por questão de permissão.
+## Como as Web Vitals são calculadas
 
-## A interpretação das Web Vitals
+Se as fases de rede são a matéria-prima, as :term[Web Vitals]{key="web-vitals"} são métricas que colocam regras de cálculo por cima. As Core Web Vitals definidas pela documentação de Web Vitals do Google são três, LCP, INP e CLS, e os limites de bom são LCP de 2.5 segundos, INP de 200ms e CLS de 0.1 ou menos.
 
-LCP, INP e CLS, as métricas incluídas nas :term[Web Vitals]{key="web-vitals"}, não são timestamps que o navegador simplesmente registrou uma vez. São métricas centradas no usuário, construídas interpretando vários entries e o ciclo de vida da página.
+![Faixas bom, precisa melhorar e ruim das três métricas LCP, INP e CLS. Os limites são 2.5 e 4.0 segundos para LCP, 200ms e 500ms para INP, e 0.1 e 0.25 para CLS](1.png?w=720)
 
-O LCP é atualizado sempre que muda o candidato a conteúdo principal visível na tela. O INP observa os cliques, toques e interações de teclado ao longo da vida da página e então escolhe como valor representativo um próximo do mais lento. Quando as interações passam de 50, alguns valores extremos são excluídos, mas na maioria das páginas a interação mais lenta vira o INP. O CLS não soma todos os deslocamentos indefinidamente; ele seleciona o maior valor entre janelas de sessão agrupadas por intervalos fixos de tempo.
+(Fonte da figura: as três figuras de limites de [web.dev, Web Vitals](https://web.dev/articles/vitals) unidas lado a lado, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/))
 
-Dá para calcular tudo isso por conta própria, mas é difícil acertar as condições de fronteira, incluindo os momentos em que a página é ocultada ou restaurada. A biblioteca [`web-vitals`](https://github.com/GoogleChrome/web-vitals) do Google não é uma ferramenta que repassa os entries do navegador como estão; é uma implementação que aplica, sobre as APIs padrão, esse tratamento de ciclo de vida e as regras de cálculo de cada métrica.
+Nenhuma das três métricas é um timestamp que o navegador registra uma única vez. O valor só aparece depois de interpretar várias entries e o ciclo de vida da página. Sem conhecer essa diferença, quando os valores de um código de coleta próprio não batem com os de uma biblioteca ou ferramenta, não dá para julgar qual está certo.
 
-Um passo mais fundo surge o problema de que a pontuação sozinha não basta. Você descobriu que o LCP foi de 4 segundos, mas sem saber qual elemento e qual recurso produziram esse valor, não consegue encontrar o que corrigir. O build `web-vitals/attribution` adiciona informações mais próximas das causas, como o elemento do LCP, o alvo do evento e os trechos de processamento do INP, e os elementos que contribuíram para o CLS.
+### O candidato a LCP muda o tempo todo
 
-Ou seja, a observação se aprofunda em três etapas.
+Segundo a [documentação de LCP](https://web.dev/articles/lcp), o navegador envia uma nova entry `largest-contentful-paint` toda vez que um elemento de conteúdo maior é pintado. Se o texto for pintado primeiro, um `<p>` vira o candidato, e se depois uma imagem grande carregar, passa a ser `<img>`. E, no momento em que o usuário toca, rola ou pressiona uma tecla, o navegador para de reportar novas entries. Por isso o LCP não é a primeira entry, e sim o último candidato válido reportado antes da entrada, e decidir esse momento de fechamento passa a ser papel do código de coleta.
 
-1. Coletar as métricas.
-2. Encontrar a distribuição dos usuários e ambientes lentos.
-3. Atribuir a métrica aos elementos, scripts e requisições que a produziram.
+### O INP soma três fases de uma entrada
 
-Só com a primeira etapa nasce um relatório; é preciso chegar à terceira para nascer informação sobre a qual se pode agir.
+A documentação de INP do web.dev divide uma interação em três fases. O input delay, desde a chegada da entrada até o handler de evento começar; o processing duration, enquanto o handler executa; e o presentation delay, até o próximo frame aparecer na tela.
 
-## Laboratório e usuários reais
+![Como uma entrada é processada na main thread. Uma blocking task gera input delay, os handlers pointerup, mouseup e click formam o processing duration, e o trecho que passa por render e paint até o frame ser apresentado é o presentation delay. Abaixo de paint seguem os trabalhos de compositing, GPU e raster](2.png?w=720)
 
-Lighthouse e DevTools são bons para medir repetidamente a mesma página em condições controladas. São úteis para pegar regressões antes de fazer o deploy do código ou para analisar a fundo um perfil específico. Mas não conseguem mostrar em quais dispositivos e redes os usuários reais estavam, nem como interagiram.
+(Fonte da figura: [web.dev, Interaction to Next Paint (INP)](https://web.dev/articles/inp), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), convertida para PNG com fundo branco)
 
-:term[RUM]{key="rum"}(Real User Monitoring) coleta valores nos navegadores dos visitantes reais. A [documentação de Web Vitals](https://web.dev/articles/vitals) do Google recomenda avaliar as Core Web Vitals no percentil 75 das visitas de página e olhar mobile e desktop separadamente. Uma única média pode apagar o grupo de usuários lentos.
+O que vale notar nesta figura é que, no momento em que o usuário clica, uma blocking task cinza já está rodando. Por mais rápido que seja o código do handler, se outro trabalho estiver segurando a main thread logo antes da entrada, o INP piora. (Descobrir que outro trabalho é esse é o tema do próximo post)
 
-O INP, em particular, só pode ser calculado quando há entrada real. O Lighthouse, que não tem usuários, usa o TBT como métrica substituta do INP. Os dois estão relacionados, mas não são o mesmo valor.
+O INP de uma página se aproxima do valor mais lento entre as interações observadas durante uma visita. O mesmo documento explica que, a cada 50 interações, o maior valor é ignorado. Assim, numa visita com menos de 50 interações, a interação mais lenta é o próprio INP.
 
-O Chrome UX Report (CrUX) também é RUM, mas seu caráter difere do RUM interno de um serviço. A [CrUX API](https://developer.chrome.com/docs/crux/api) fornece field data agregada dos usuários do Chrome por página ou por origin. É boa para se comparar com o padrão do setor, mas não permite ver junto uma release específica, um fluxo de usuário ou o estado da aplicação.
+### O CLS conta os deslocamentos em grupos
 
-Na direção oposta, um RUM próprio permite anexar o contexto que você quiser, mas o viés da amostra e os erros de implementação ficam por sua conta. Se bloqueadores de anúncios barram as requisições de coleta, se você exclui usuários que não consentiram, ou se determinado navegador não suporta uma API, os usuários observados deixam de corresponder ao total de usuários.
+A [documentação de CLS](https://web.dev/articles/cls) define o CLS não como a soma de todos os deslocamentos ao longo da vida da página, e sim como a pontuação da maior rajada (burst). Se o intervalo entre deslocamentos for menor que 1 segundo, eles entram na mesma session window, e uma window dura no máximo 5 segundos. Dessas windows, a de maior pontuação total vira o CLS. É uma regra feita para que pequenos deslocamentos numa aba aberta por muito tempo não se acumulem sem fim.
 
-Meu blog é um pequeno exemplo dessa escolha. Neste blog, um único componente de cliente chamado `WebVitalsReporter` carrega dinamicamente o `web-vitals`, mede LCP, INP, CLS, FCP e TTFB, e os envia ao GA4 como um único evento chamado `web_vitals`. Os nomes das métricas são distinguidos por `event_label`, e `metric.id` vai junto para não contar duas vezes valores atualizados dentro da mesma vida de página. Como o value de um evento do GA4 é um inteiro, o CLS é multiplicado por 1000 e arredondado. É uma configuração montada sobre o GA4 que eu já operava, sem servidor de coleta separado.
+Dá para implementar por conta própria as regras das três métricas. Mas acertar as condições de contorno, até o momento em que a aba é ocultada ou a página é restaurada, é difícil. A biblioteca [`web-vitals`](https://github.com/GoogleChrome/web-vitals) do Google não é uma ferramenta que repassa as entries do jeito que vêm, e sim uma implementação que aplica essas regras de ciclo de vida sobre as APIs padrão. Este blog também a usa.
 
-Sendo honesto, o que confirmei até agora com essa configuração vai só até o fato de que os valores estão sendo enviados. Para ver no GA4 a distribuição p75 ou o ranking de páginas lentas que um produto RUM dedicado entrega por padrão, eu teria que montar à parte um relatório de exploração, e esse trabalho ainda não fiz. Ou seja, essa camada está ligada e os dados estão se acumulando, mas o lado que os lê está vazio. E ela herda como estão os vieses acima. Se um bloqueador de anúncios barrar a requisição do GA, aquele visitante some da minha distribuição.
-
-Nenhum dos dois é a resposta certa; eles respondem perguntas diferentes.
-
-- Esta mudança ficou mais lenta, antes do deploy: lab data
-- Onde estão os trechos lentos dos usuários reais: RUM próprio
-- Em que nível está este origin na web pública: CrUX
-
-Se você escolhe um RUM próprio, a próxima pergunta é o que contar como uma experiência de página. Só depois de fixada essa fronteira é possível projetar de forma consistente os valores e o contexto a coletar.
+Só que todas essas regras pressupõem uma unidade chamada "uma página". O que acontece quando essa unidade fica borrada?
 
 ## A fronteira borrada da página
 
-Na navegação tradicional, o navegador sabe onde um documento começa e termina. Na client-side navigation de uma SPA, a URL e a tela mudam, mas nenhum documento novo é criado. Do ponto de vista do navegador, tende a permanecer como uma única e longa vida de página.
+Numa navigation tradicional, o navegador sabe onde um documento começa. Na client-side navigation de uma SPA, a URL e a tela mudam, mas nenhum documento novo é criado. Para o navegador é como um único primeiro carregamento que se estende, então a segunda tela, alcançada ao passar da lista para um post, não tem LCP próprio.
 
-Para resolver esse problema, cada ferramenta de RUM e cada framework vem usando suas próprias heurísticas. Mas cada implementação definia "tela nova" de um jeito, o que dificultava a comparação. Por meio da [Soft Navigations API](https://developer.chrome.com/docs/web-platform/soft-navigations), o time do Chrome vem empurrando a direção de o navegador reconhecer diretamente uma soft navigation, amarrando entrada do usuário, mudança de URL e atualização da tela.
+Até agora, ferramentas de RUM e frameworks definiam cada um uma "tela nova" com suas próprias heurísticas. A equipe do Chrome trouxe esse julgamento para o navegador com a [Soft Navigations API](https://developer.chrome.com/docs/web-platform/soft-navigations). Quando entrada do usuário, mudança de URL e pintura da tela acontecem juntas, o navegador cria uma entry `soft-navigation`. O recurso está ativado por padrão desde o Chrome 151, e a data de lançamento estável do Chrome 151 é [2026-07-28](https://chromiumdash.appspot.com/fetch_milestone_schedule?mstone=151). O `web-vitals` também reporta métricas por soft navigation com a opção `reportSoftNavs` desde a 6.0. Segundo o README, esse reporte só funciona no Chromium 151 ou superior, e nos outros navegadores ativar a opção não muda a forma de reportar.
 
-Essa API passa a vir por padrão a partir do Chrome 151, lançado em agosto de 2026. A biblioteca `web-vitals` também começou a suportar, a partir da 6.0, o relatório de métricas por unidade de soft navigation com a opção `reportSoftNavs`. Porém, por enquanto ela só funciona nos navegadores da família Chromium, e Firefox e Safari não têm implementação correspondente, então não dá para substituir de imediato a instrumentação de rotas existente. Meu blog também entra da lista de posts para um post com a client-side navigation do Next.js, e enquanto o código de coleta era baseado na 5.x, essa transição não era capturada como uma experiência de página separada. Ao escrever este artigo, subi para a 6.2.1, liguei o `reportSoftNavs` e então conectei um Chrome headless à produção para abrir como estavam as requisições que saíam para o GA4. Em uma sessão, saíram estes valores.
+### Valores medidos com reportSoftNavs ativado
+
+Este blog também vai da lista de posts para um post com o `Link` do Next.js. Em 2026-09-14, depois de atualizar o `web-vitals` para 6.2.1 e ativar `reportSoftNavs` (`cc21a0d`), conectei via CDP a um Chrome headless que tinha aberto a página de produção e abri do jeito que estavam as requisições que saíam para o GA4. Estes foram os valores enviados numa sessão. (As métricas que não estão na tabela não apareciam nas requisições dessa sessão, e não verifiquei o motivo)
 
 | Métrica | Valor | `navigationType` |
 |---|---|---|
@@ -139,91 +137,54 @@ Essa API passa a vir por padrão a partir do Chrome 151, lançado em agosto de 2
 | FCP | 542ms | `soft-navigation` |
 | TTFB | 0ms | `soft-navigation` |
 
-Como pretendido, a transição da lista para o post foi capturada como uma experiência separada. Mas a mesma tabela também mostra por que não termina com uma opção só. **O TTFB de uma soft navigation é 0.** É um valor óbvio, já que nenhuma requisição foi feita ao servidor, mas se esse 0 se acumula no mesmo lugar que os 798ms do carregamento inicial, a média de TTFB cai em silêncio sem ninguém mexer no código. Por isso tive que alterar o código para enviar como parâmetro do evento o `navigationType` que chega com cada métrica. Você adiciona uma observação e crescem junto as dimensões necessárias para distingui-la.
+A transição da lista para um post foi capturada como uma experiência separada, como pretendido. Mas esta tabela também mostra por que não basta uma opção. **O TTFB de uma soft navigation é 0.** Nenhum documento foi requisitado ao servidor, então é exatamente o valor descrito no README, mas se esse 0 se acumular no mesmo evento que os 798ms do primeiro carregamento, a média de TTFB cai em silêncio sem que o código mude. Por isso alterei o código para enviar também, como parâmetro do GA4, o `navigationType` que acompanha cada métrica. Ao acrescentar uma unidade de observação, crescem junto as dimensões necessárias para distingui-la.
 
-Ao medir de novo, aprendi mais duas coisas. Uma é que, para o navegador reconhecer uma soft navigation, **precisa haver entrada do usuário**. Quando chamei `click()` por script, o entry `soft-navigation` não foi gerado mesmo com a URL mudando e a tela atualizando; ele só foi capturado depois que enviei uma entrada real de mouse. A outra é que os lugares onde essa transição acontece neste blog são mais estreitos do que eu pensava. Os links da lista e do cabeçalho são o `Link` do Next, então são client-side navigation, mas **os links internos dentro do corpo do post são tags `a` comuns geradas pelo Markdown, então são carregamentos de página completos**. Mesmo dentro do mesmo site, alguns movimentos são soft navigations e outros não.
+Medindo, aprendi mais duas coisas. Uma é que a soft navigation **exige entrada real do usuário**. Quando chamei `click()` por script dentro da página, nenhuma entry `soft-navigation` foi criada, embora a URL tenha mudado e a tela tenha sido atualizada, e ela só foi capturada depois que enviei um clique por coordenadas com o `Input.dispatchMouseEvent` do CDP. Para verificar esse recurso com automação de testes, é preciso enviar eventos de entrada no nível do navegador, e não o `click()` do DOM.
 
-O fato mais importante que este caso mostra é que medir o desempenho de uma SPA não é um simples problema de configuração de biblioteca, mas a questão de **quem define a fronteira da página**.
+A outra é que os lugares deste blog onde soft navigations acontecem são mais restritos do que eu imaginava. Os links da lista e do cabeçalho são `Link`, então são client-side navigations, mas **os links internos dentro do corpo de um post são tags `a` comuns geradas a partir do Markdown, então são carregamentos completos de página**. Mesmo dentro do mesmo site, algumas navegações são soft navigations e outras não.
 
-Definida a fronteira da página, também dá para decidir em que unidade armazenar rota, metric id e contexto de sessão. Agora vamos levar essa pergunta para o modelo de dados do RUM.
+### Quando as métricas da primeira página são fechadas
 
-## O modelo de dados do RUM
+Depois de medir, reli o README e encontrei uma frase que tinha deixado passar.
 
-O código que envia valores com `navigator.sendBeacon()` não é longo. O difícil é controlar o custo e a :term[cardinalidade]{key="cardinality"} sem perder as perguntas que você vai querer responder depois.
+> Note that this will change the way the first page loads are measured as the metrics for the initial URL will be finalized once the first soft nav occurs.
 
-No mínimo, você acaba considerando junto o seguinte contexto.
+Isso quer dizer que, com a opção ativada, as métricas da primeira página são fechadas no momento da primeira soft navigation. INP e CLS são métricas que normalmente se observam até o usuário sair da página, mas agora a observação da página de lista termina assim que o usuário clica no link de um post, e o INP e o CLS da nova tela recomeçam do 0. O mesmo README diz que LCP e FCP também contam só os elementos pintados de novo depois da soft navigation. Elementos que permanecem entre telas, como o cabeçalho, não podem ser candidatos da nova tela.
 
-| Contexto | Por que é necessário |
+Por isso a distribuição das métricas do primeiro carregamento pode mudar antes e depois de ativar a opção. Se, medindo o mesmo site, o INP melhorou a partir de um deploy, pode ser que não tenha sido o código que melhorou, e sim a janela de observação que encurtou. Como só se comporta assim no Chromium 151 ou superior, também surgem diferenças entre navegadores. (Eu deveria ter conhecido essa diferença antes de medir. Essa única frase pesa mais na interpretação do que os valores da tabela)
+
+### A restauração do bfcache também é uma experiência nova
+
+Há mais um caminho que borra a fronteira da página. O :term[bfcache]{key="bfcache"} restaura a página inteira da memória nas navegações de voltar e avançar. O [artigo sobre bfcache](https://web.dev/articles/bfcache) do web.dev diz que, nos dados de uso do Chrome, 1 em cada 10 navegações no desktop e 1 em cada 5 no mobile são de voltar ou avançar. A restauração não é um carregamento novo, então as revisitas, que teriam sido as mais rápidas, saem da distribuição de carregamentos, e a distribuição coletada pode pender para o lado lento mesmo que a experiência real tenha melhorado. O mesmo artigo recomenda olhar métricas como o TTFB separadas por navigation type. Nesse caso o `web-vitals` reporta `navigationType` como `back-forward-cache`, então o parâmetro que este blog adicionou por causa das soft navigations também distingue as restaurações do bfcache.
+
+## O que este blog realmente envia
+
+Levando tudo isso para o código deste blog, é um único `src/components/WebVitalsReporter.tsx`. Um client component carrega `web-vitals` dinamicamente, registra LCP, INP, CLS, FCP e TTFB e os envia ao GA4 como um único evento chamado `web_vitals`. A versão instalada é a 6.2.1, segundo o lockfile.
+
+| Parâmetro | Conteúdo |
 |---|---|
-| Página e rota | Distinguir as telas lentas |
-| Release e commit | Encontrar o deploy que introduziu a regressão |
-| Tipo de navegação | Distinguir navegação nova, recarga e restauração por bfcache |
-| Dispositivo e conexão | Ver como a distribuição difere conforme o ambiente |
-| Metric id | Não contar duas vezes valores atualizados na mesma vida de página |
-| Session e trace id | Conectar comportamento, erros e requisições ao servidor |
-| Visibility state | Filtrar valores distorcidos em abas em segundo plano |
+| `event_label` | Nome da métrica (`LCP`, `INP` etc.) |
+| `value` | Valor da métrica. O value do GA4 é inteiro, então o CLS é multiplicado por 1000 e arredondado |
+| `metric_id` | Id que identifica uma métrica dentro da vida de uma página. Se a mesma métrica for reportada de novo, é agrupada por esse valor |
+| `metric_rating` | good, needs-improvement ou poor, conforme o julgamento da biblioteca |
+| `metric_navigation_type` | `navigate`, `soft-navigation`, `back-forward-cache` etc. |
 
-Se em cima disso você anexar sem critério o seletor DOM inteiro, a URL inteira e o ID do usuário, a análise parece mais fácil, mas o custo e o risco de privacidade crescem. URLs dinâmicas explodem a cardinalidade, e em seletores e corpos de rede podem se misturar dados pessoais.
+É uma configuração de :term[RUM]{key="rum"} montada sobre o GA4 que eu já operava, sem servidor de coleta separado. Se o próprio carregamento do módulo falhar, fica registrado um evento `web_vitals_unavailable`. É a falha que acontece logo após um deploy, quando um HTML antigo pede um chunk que já não existe, e como não há Sentry no navegador, sem esse evento a coleta poderia parar por completo sem deixar rastro.
 
-Dados de observação não são melhores quanto mais numerosos. **É melhor não coletar atributos que não se conectam a uma decisão que você tomará depois.**
+O que ele não envia também está claro. Como usa o build padrão do `web-vitals`, e não o build de attribution, não coleta qual foi o elemento do LCP, quanto durou cada uma das três fases do INP nem qual elemento empurrou o layout. Lembrando a figura do INP de antes, este blog só sabe a soma das três fases, não qual delas foi longa. E erros de JS que acontecem só no navegador não ficam registrados em lugar nenhum. É o preço de economizar 79KB.
 
-## As opções de coleta e armazenamento
+Registro mais uma coisa. Estou enviando `metric_navigation_type`, mas, enquanto escrevia este post, não verifiquei se esse parâmetro está registrado como custom dimension no GA4 e se está sendo de fato desmembrado. A GA4 Admin API está desativada neste projeto do GCP, então também não havia como verificar na hora. Enviar algo e conseguir lê-lo separado são problemas diferentes.
 
-Não é preciso construir a observabilidade do navegador do zero.
+## O navegador já está registrando
 
-- O `web-vitals` fornece o cálculo das Core Web Vitals e a attribution.
-- O [Boomerang](https://github.com/akamai/boomerang) é um coletor RUM de código aberto com longa história, que oferece vários plugins de desempenho e formas de envio por beacon.
-- O [Grafana Faro Web SDK](https://grafana.com/docs/grafana-cloud/monitor-applications/frontend-observability/) coleta desempenho, erros, logs e traces no navegador e os conecta à observabilidade do backend.
-- O OpenTelemetry JavaScript consegue produzir traces do navegador, mas a [documentação oficial](https://opentelemetry.io/docs/languages/js/) ainda marca a client instrumentation do navegador como experimental.
+Resumindo, mesmo sem ativar um SDK de navegador, o navegador já registra fases de rede, pinturas, deslocamentos de layout e atraso de entrada. O `PerformanceObserver` é a porta de entrada para ler esse registro, e as Web Vitals são métricas que acrescentam por cima regras de cálculo como a atualização de candidatos, a soma de três fases e as session windows.
 
-Ao escolher uma ferramenta, olhe antes o escopo que você vai possuir do que a quantidade de recursos. A escolha muda conforme você for usar só o SDK, operar também o endpoint de coleta e o armazenamento, ou assumir a responsabilidade até pela exclusão de dados pessoais e pelas políticas de retenção.
+E essas regras de cálculo pressupõem uma unidade chamada página. Ao ativar soft navigation, as telas novas ganham métricas próprias, mas em troca a janela de observação da primeira página encurta, zeros se misturam ao TTFB e as restaurações do bfcache saem da distribuição de carregamentos. O que entendi de novo desta vez é que uma única opção muda não só os valores, mas também **o que conta como uma experiência**. Por isso, antes de comparar números, é preciso ver primeiro em que fronteira eles foram cortados. Se você está lendo isto, talvez valha a pena conferir uma vez em que momento foram fechados os números de desempenho que você está olhando agora.
 
-Com um SaaS, o fardo operacional diminui; operando você mesmo um stack de código aberto, dá para controlar com mais detalhe o caminho dos dados e o modelo de custos. Nenhum dos dois sai de graça.
-
-## A decisão de abrir mão de 79KB
-
-Já que o assunto custo apareceu, deixo registrada uma decisão que tomei de verdade neste blog. A instrumentação de erros deste blog (Sentry) é só de servidor. Ficava me incomodando não conseguir ver os erros que acontecem apenas no navegador, então liguei a instrumentação de cliente e comparei o total gzip do JS de cliente em um clean build.
-
-| Configuração | client JS (gzip) | Acréscimo |
-|---|---|---|
-| Sem Sentry | 181.6 KB | base |
-| **Só servidor (atual)** | **182.3 KB** | **+0.7 KB** |
-| Só servidor + chamar `captureException` na UI de fallback de erro | 186.0 KB | +4.4 KB |
-| Cliente + servidor | 260.4 KB | +78.8 KB |
-
-A instrumentação de servidor era praticamente de graça, mas a do navegador exigia 78.8KB. Também tentei as opções de otimização do bundle, mas o número não se moveu, e o único jeito de reduzir o custo do cliente era não ter arquivo de inicialização do navegador nenhum. A terceira linha custa 4.4KB pela mesma estrutura. Sem o SDK do navegador, o `captureException` da UI de fallback de erro é um no-op que não faz nada, mas o código do SDK ainda assim embarca no bundle. Por isso removi a própria chamada.
-
-Essa medição também tem falhas. É a soma de todos os artefatos estáticos, então difere do que um visitante realmente baixa, e o fato de ligar as opções de otimização não ter cortado um único byte pode ser sinal de que essas opções não estavam surtindo efeito. Então, para ser exato, o correto não é "a observabilidade do navegador custa 79KB", e sim "na minha configuração, não consegui baixar disso".
-
-Ainda assim, a decisão foi clara. Neste blog, o desempenho de carregamento é ao mesmo tempo a experiência do usuário e a premissa da visibilidade na busca, e quem paga os 78.8KB não sou eu, é o visitante. Se é uma observação cujo custo os usuários pagam, é preciso perguntar o que essa observação devolve a eles, e a minha resposta sobre a instrumentação de erros de cliente em um blog pessoal foi "não devolve o suficiente". Em uma seção anterior eu disse que o código que mede a experiência do usuário pode piorar a experiência do usuário; estenda esse princípio à escala da adoção de uma ferramenta e você chega aqui. **Tornar a observação mais densa nem sempre é a escolha certa.**
-
-## A barreira de entrada das perguntas
-
-Ao conectar as APIs e ferramentas vistas acima a perguntas reais, a IA é útil em três pontos.
-
-Primeiro, ela estreita o caminho do sintoma até a especificação. Sintomas como "o LCP chega duas vezes", "todos os trechos de um recurso cross-origin são 0" ou "o valor não atualiza depois de uma transição na SPA" podem ser conectados às APIs e condições pertinentes.
-
-Segundo, ela ajuda a traduzir os resultados de ferramentas diferentes para o mesmo eixo de tempo. Quando o trace do DevTools, o event do RUM, o span do Sentry e os logs do servidor apontam para horários e identificadores diferentes, dá para gerar rapidamente candidatos de comparação.
-
-Terceiro, ela permite explorar distribuições e trechos anômalos nos dados coletados. Em vez de médias simples, sugere diferenças por navegador, rota, release e dispositivo, e baixa o custo de montar a próxima consulta.
-
-Porém, esse processo produz candidatos; ele não substitui a evidência. Usuários não coletados não estão nos dados, e uma métrica mal definida produz conclusões erradas por mais refinada que seja a análise. Se dados pessoais podem ser enviados, ou se os usuários devem arcar com o custo do código de observação, também não dá para decidir só com documentação técnica.
-
-A IA não é tanto um novo sensor que faz observar melhor o navegador; está mais para uma ferramenta que barateia ler o manual dos sensores existentes e formular perguntas.
-
-## A observação começa em uma pergunta
-
-Resumindo, o navegador já registra em detalhe a rede, a renderização, a entrada e as mudanças de layout. O `PerformanceObserver` é o ponto de partida para ler esse registro, as Web Vitals são métricas que o interpretam na linguagem da experiência do usuário, e o RUM é o sistema que coleta continuamente sua distribuição nos ambientes de usuários reais.
-
-As três etapas parecem semelhantes, mas respondem perguntas diferentes. Os entries dizem o que aconteceu no navegador, as Web Vitals comprimem o que o usuário percebeu, e o RUM mostra para quem e com que frequência aquela experiência se repete.
-
-O degrau para ler várias especificações e combinar ferramentas baixou, mas conseguir coletar com facilidade e conseguir interpretar corretamente são problemas diferentes. Só quando você consegue explicar quais usuários ficaram de fora e em quais condições os valores se distorcem, os dados de observação finalmente se tornam informação útil para decidir. Espero que quem lê este artigo também pare um momento para rever de quem é a experiência, resumida por quais regras, que os números de desempenho à sua frente representam.
-
-No próximo artigo, [Observabilidade do sistema](/260915), pretendo ver como esses dados do navegador podem ser conectados a erros, traces, profiles e logs do servidor. É a história de seguir até onde chegou, dentro do sistema, uma requisição que começou na tela do usuário.
+Dito isso, este post só foi até a soma das três fases. Que trabalho estava segurando a main thread quando uma entrada chegou, e quanta memória usa uma página aberta por muito tempo, exigem outras APIs. Pretendo continuar essa história no próximo post, [CPU e memória do navegador](/260915).
 
 :::ref
 - [docs] [W3C, Event Timing API](https://www.w3.org/TR/event-timing/)
-- [docs] [W3C, Long Animation Frames API](https://www.w3.org/TR/long-animation-frames/)
-- [docs] [web.dev, Debug Performance in the Field](https://web.dev/articles/debug-performance-in-the-field)
-- [docs] [Chrome for Developers, Back Forward Cache](https://developer.chrome.com/docs/web-platform/bfcache)
+- [docs] [web.dev, Debug performance in the field](https://web.dev/articles/debug-performance-in-the-field)
+- [docs] [WICG, Soft Navigations explainer](https://github.com/WICG/soft-navigations)
 :::

@@ -1,292 +1,150 @@
 ---
 emoji: 🧩
 title: 'Da observação ao julgamento'
-seoTitle: 'GA4 e Search Console: da observação à decisão de produto'
+seoTitle: 'CrUX e Search Console: os limites do Core Web Vitals'
 date: '2026-09-16'
-categories: observabilidade frontend GA4 Search-Console IA
-description: 'Transformar dados do GA4 e do Search Console em decisões: o ranking caiu mas os cliques subiram, e a armadilha da posição média.'
-keywords: 'análise de dados Search Console, design de eventos GA4, posição média caiu, melhorar CTR de busca, limites BigQuery Export GA4, validação Measurement Protocol GA4, Consent Mode básico avançado, decisões orientadas por dados'
+updatedAt: '2026-09-16'
+categories: observabilidade frontend GA4 Search-Console
+description: 'Como CrUX, PageSpeed Insights e Search Console filtram as Web Vitals, o que o Google diz sobre ranking e um post que ganhou cliques ao cair de posição.'
+keywords: 'dados de campo CrUX, PageSpeed Insights dados de campo, relatório Core Web Vitals Search Console, Core Web Vitals afeta o ranking, cliques por consulta e por página Search Console, posição média caiu cliques aumentaram, taxa de rastreamento 5xx 429'
 locale: pt-BR
 translationOf: '260916'
-sourceHash: ac19b6cdbc97066749d5110c0e05c7c797ec307e9d88032f20ac12cc2052d65d
+sourceHash: 09bd51bac82d7b631fb466afbd28b6124fe54187fadff533b9bbd970471079b4
 ---
 
-Neste post, quero falar sobre como transformar dados de observação em julgamento.
+Neste post, quero falar sobre o caminho que os dados de desempenho medidos no navegador percorrem até chegar à busca e ao julgamento.
 
-Há alguns anos eu mesmo opero o GA4 e o Search Console neste blog. Vejo com quais consultas de busca os visitantes chegam e, com base nisso, corrijo o título e a descrição dos posts, repetidamente. No entanto, descobri que acompanhar os dados por muito tempo e tomar boas decisões com esses dados são problemas diferentes. Como vou contar mais adiante neste post, quase cheguei a duas conclusões opostas sobre as mesmas métricas do mesmo post em um intervalo de dois meses.
+Os três primeiros posts desta série trataram de sinais que eu mesmo tenho. Em [Reabrindo o Sentry](/260913), vimos chamadas que falham em silêncio no servidor; em [Observabilidade do navegador](/260914), a rede e a renderização; e em [CPU e memória do navegador](/260915), a main thread e a memória. Nos três casos, são dados para os quais eu mesmo inseri o código de instrumentação e que leio do meu próprio armazenamento.
 
-No post anterior sobre [observação do navegador](/260914), vimos as informações de desempenho que o navegador produz, e em [observação do sistema](/260915), os erros, logs e traces que o sistema deixa. Quando essas informações se acumulam o suficiente, como o serviço se comporta fica muito mais visível do que antes. Mas o que corrigir primeiro, se esse problema realmente importa para os usuários e se a experiência melhorou depois da correção continuam sendo perguntas diferentes.
+Os dados deste post são de outra natureza. Os valores gerados nos navegadores dos visitantes passam para o pipeline estatístico do Chrome, e o resultado reaparece no PageSpeed Insights e no :term[Search Console]{key="search-console"}. De quem a experiência é contada, quanto precisa se acumular para ser exibido e em que unidades tudo é agrupado são decisões do Google.
 
-O núcleo deste post não está em juntar os dados à força no nível do usuário, mas em verificar a mesma hipótese de produto com unidades de observação diferentes. E ter mais fontes de dados não melhora o julgamento automaticamente. No momento em que você coloca em um mesmo gráfico números com amostras e regras de agregação diferentes, até mudanças sem relação podem ser amarradas em uma história plausível. O que a última etapa da observação precisa não é de mais dashboards, e sim da **capacidade de distinguir o que cada dado viu e o que não pôde ver**.
+Por isso, a pergunta que este post tenta responder é uma só. **O que é preciso verificar antes de usar, para tomar uma decisão, um número que já saiu do navegador?** Minha resposta é anotar primeiro a amostra e as regras de agregação de cada número, não acrescentar nada que o texto oficial não diga e medir de novo, com outro período, qualquer conclusão a que se tenha chegado.
 
-## As três camadas que este blog observa
+## Os web_vitals que eu coleto
 
-Em vez de começar com abstrações, é melhor abrir primeiro o meu próprio caso. Este blog acabou observando em três camadas.
+O ponto de partida é o :term[RUM]{key="rum"} que eu mesmo coleto. Como vimos no post de observabilidade do navegador, este blog mede LCP, INP, CLS, FCP e TTFB com `web-vitals` e os envia ao GA4 como eventos `web_vitals`. O que vale olhar de novo aqui não é quais parâmetros são enviados, e sim **de quem é a experiência que entra na amostra**.
 
-![A estrutura de observação em três camadas deste blog: erros, desempenho percebido e comportamento de busca](1.png?w=720)
+A amostra desta coleta são **os navegadores em que o gtag.js realmente foi executado**. Os eventos se acumulam primeiro no `dataLayer` e o gtag.js consome essa fila ao carregar, então, em ambientes em que a requisição do script é bloqueada, as medições são geradas mas nunca saem. Por outro lado, um navegador que não é o Chrome também entra na amostra se o gtag.js rodar e o navegador suportar a métrica. E, por causa de `reportSoftNavs: true`, uma tela trocada por roteamento no lado do cliente é contada como uma experiência de página separada. Como veremos adiante, o CrUX conta a mesma visita de outra forma.
 
-A primeira camada é o Sentry. Com instrumentação apenas de servidor, captura exceções e chamadas ao GA que falham em silêncio. A segunda camada é o desempenho percebido pelos usuários reais. Os Web Vitals medidos no navegador são enviados ao GA4 e acumulados. A terceira camada é o comportamento de busca. Os dados do Search Console são coletados automaticamente toda semana, comparando os últimos 28 dias com os 28 anteriores. Cada camada responde a uma pergunta diferente. O que quebrou, quanto os visitantes esperaram e, para começar, com quais consultas eles chegaram.
+Para ser sincero, enquanto escrevia este post não consultei de novo os valores de `web_vitals` acumulados no GA4. Também não verifiquei a pergunta que deixei para depois no post anterior, ou seja, se registrar `metric_navigation_type` como custom dimension do GA4 permite de fato segmentar os dados. Tentei consultar com uma conta de serviço, mas a Analytics Admin API não estava habilitada nesse projeto. **Enviar dados e conseguir lê-los são coisas diferentes, e neste blog só a primeira está confirmada.**
 
-As três camadas não substituem umas às outras. Mesmo com zero erros, os visitantes podem estar sofrendo com lentidão, e um site rápido pode ser um site que ninguém visita. As duas primeiras camadas foram tratadas nos dois posts anteriores, então o peso deste está na terceira camada e em como ler as três juntas.
+## Os usuários que o CrUX conta
 
-Sendo honesto, o GA4 deste blog não é usado a fundo como ferramenta de análise de comportamento. Ele está mais para um depósito de page views e eventos `web_vitals`. Por isso, a parte de GA4 deste post combina as restrições que confirmei operando-o com critérios de design verificados na documentação oficial. Vou distinguir, seção por seção, até onde vai a experiência e de onde começa a pesquisa.
+Os field data que o Google olha do lado da busca não vêm do meu GA4, e sim do Chrome User Experience Report (CrUX). Lendo a [documentação de metodologia do CrUX](https://developer.chrome.com/docs/crux/methodology), a amostra se reduz em três camadas de condições.
 
-## Unidades de observação diferentes
+A primeira é a condição de usuário. Só entram usuários que ativaram o envio de estatísticas de uso, sincronizam o histórico de navegação e não definiram uma senha longa de sincronização. As plataformas são o Chrome para desktop e o Chrome para Android; **ficam de fora o Chrome no iOS, o Android WebView e outros navegadores Chromium, como o Edge.** Não é divulgado qual porcentagem do total de usuários atende a essas condições.
 
-É fácil chamar o RUM do navegador, o Sentry, o GA4 e o Search Console de dados de usuário, mas as unidades reais de observação diferem.
+A segunda é a condição de página. A página precisa ser publicamente detectável pelo mesmo critério de um mecanismo de busca. Uma página que não retorna 200 depois dos redirecionamentos, ou que tem `noindex`, não é elegível. Ela também precisa ultrapassar um número mínimo de visitantes; esse número não é divulgado, e o mesmo valor vale para páginas e origins.
 
-| Camada | Dados representativos | Unidade de observação | Pergunta que responde principalmente |
-|---|---|---|---|
-| Experiência do navegador | LCP, INP, CLS, resource timing | Visitas de página e interações | O que o usuário esperou e por quanto tempo |
-| Estado do sistema | error, span, trace, log, profile | Eventos e requisições | Onde algo falhou ou ficou lento |
-| Comportamento de produto | GA4 event, session, key event | Ações e sessões | O que o usuário fez dentro do serviço |
-| Intenção de busca | query, impression, click, position | Impressões de busca | Com que problema o usuário chegou |
+A terceira é o método de agregação. Query strings e fragmentos são removidos e agrupados como a mesma página. E a documentação afirma explicitamente que as transições de rota em JavaScript de uma SPA, mesmo que pareçam páginas novas para o usuário, **são atribuídas à experiência da única página carregada inicialmente**. É exatamente o oposto do meu RUM, que conta soft navigations separadamente. A [documentação da equipe do Chrome sobre soft navigations](https://developer.chrome.com/docs/web-platform/soft-navigations) também registra que ainda não foi decidido como as soft navigations serão reportadas ao CrUX.
 
-Mesmo que pareça a jornada de uma mesma pessoa, nem todas as camadas observam o mesmo usuário. Bloqueadores de anúncios podem barrar as requisições do GA e do Sentry, e a amostra de analytics muda conforme o estado do consentimento de privacidade. O Search Console fornece dados agregados dos resultados de busca, não usuários individuais. O CrUX é field data de usuários do Chrome que atendem a certas condições.
+Aplicando essas condições ao meu blog, surgem resultados concretos. Em 11 de setembro de 2026, mudei para `noindex, follow` 126 páginas de categoria que tinham um único post. Essas páginas não são mais elegíveis para o CrUX no nível de página. Então elas continuam no nível de origin? A resposta da documentação se divide dentro de uma mesma página. A seção Origin diz que, se o origin for detectável, as experiências de todas as suas páginas são combinadas no nível de origin independentemente de cada página ser detectável, enquanto o início da seção Eligibility do mesmo documento diz que experiências que não cumprem as condições de Page também não entram nos dados no nível de origin. Não encontrei uma forma de confirmar qual é o comportamento real. **Por isso registro que não sei se as visitas às categorias que passaram para noindex continuam no valor do origin.**
 
-Portanto, é normal que os números das quatro camadas não batam exatamente. O problema não é eliminar as diferenças, e sim **registrar a qual pergunta de qual amostra cada número responde**.
+Até aqui estão as regras que confirmei na documentação. O ponto central é que **não sei se hooninedev.com ultrapassa o número mínimo de visitantes.** Como esse limite não é público, a única saída é consultar diretamente, e essa tentativa travou na seção seguinte.
 
-## O modelo de eventos do GA4
+## Os dois números do PageSpeed Insights
 
-Um :term[GA4 event]{key="ga4-event"} modela uma interação do usuário com um nome e parâmetros. A [documentação de configuração de eventos](https://developers.google.com/analytics/devguides/collection/ga4/events) do Google distingue os eventos que o SDK coleta automaticamente, a enhanced measurement ativada por configuração, os recommended events com nomes e parâmetros prescritos, e os custom events que o próprio serviço define. A mesma palavra event difere em quem é o dono do significado e do esquema.
+O PageSpeed Insights mostra em uma única tela dois tipos de números de natureza diferente. Segundo a [explicação oficial](https://developers.google.com/speed/docs/insights/v5/about), os dados lab são um único carregamento simulado pelo Lighthouse, e os dados field são os últimos 28 dias do CrUX. Lab é o resultado de um único dispositivo e de uma condição de rede fixos, enquanto field é o registro de usuários reais em ambientes variados, então a documentação também avisa que uma boa pontuação lab não garante uma boa experiência real.
 
-No começo dá vontade de enviar o máximo possível de cliques e transições de tela. Mas ter muitos eventos não aprofunda a compreensão do usuário. Se você transforma o local da implementação em nome, como `button_click`, `button_click_2` e `main_button_clicked`, o significado analítico desmorona sempre que o código muda.
+O lado field tem uma regra de fallback. Se não houver dados suficientes no nível de página, ele desce para o nível de origin, e se o origin também não tiver o suficiente, não consegue mostrar dados field.
 
-Um bom evento expressa a intenção do usuário mais do que um acontecimento do DOM.
+Tentei obter os dados field deste blog pela API do PSI. Ao requisitar `/260914` para mobile em 2026-09-16T08:45:51Z, recebi HTTP 429, e ao requisitar a página inicial (`/`) mais uma vez em 2026-09-16T09:11:17Z, recebi o mesmo 429. O corpo das duas respostas era `Quota exceeded for quota metric 'Queries' and limit 'Queries per day'`. Parece que esbarrei na cota compartilhada por chamar sem chave de API. **Por isso, este post não traz valores field do CrUX para este blog.** A API do CrUX exige chave de API, e no meu ambiente só existe uma conta de serviço para o Search Console, então não a chamei.
 
-```ts
-gtag('event', 'article_reference_open', {
-  article_slug: '260916',
-  reference_type: 'specification',
-  link_position: 'body',
-})
-```
+No mesmo horário, medir `/260914` com o Lighthouse local funcionou sem problema. **Valores lab podem ser gerados a qualquer momento, mas valores field só existem quando o número de visitantes e as condições de elegibilidade são atendidos.** Ter números acumulados no meu RUM não significa que o CrUX tenha um valor.
 
-Esse evento registra o fato de que o usuário abriu uma referência do artigo, não qual componente de botão foi pressionado. Mesmo mudando a UI, a pergunta de análise se mantém.
+## Os grupos de URL do Search Console
 
-Antes de projetar eventos, vale escrever primeiro o seguinte.
+A última etapa é o relatório de Core Web Vitals do Search Console. A [ajuda do relatório](https://support.google.com/webmasters/answer/9205520) informa que os dados vêm do CrUX e empilha mais algumas camadas de regras por cima.
 
-1. Qual comportamento do usuário se quer entender
-2. Qual acontecimento determina que esse comportamento ocorreu
-3. Quais são os parâmetros mínimos de que a análise precisa
-4. Que decisão será tomada quando esse número mudar
-5. Como duplicações e omissões serão verificadas
+- Páginas semelhantes são agrupadas em um **URL group**, e o status do grupo segue a pior métrica.
+- Um grupo só aparece no relatório quando **tanto** LCP quanto CLS atingem a quantidade mínima de dados. Se faltarem dados ao grupo, ele é exibido agrupado no origin group superior, e se faltarem também ao origin group, ele fica de fora.
+- **Só aparecem URLs indexadas**, e elas são uma amostra, não a lista completa.
+- "No data available" significa que a propriedade é nova ou que não há dados suficientes do CrUX para aquele tipo de dispositivo.
 
-Se as duas últimas perguntas não têm resposta, o evento facilmente vira decoração de dashboard. (Aqui também está a razão de o GA4 deste blog permanecer um depósito. O único evento que consegue responder à pergunta 4 ainda é o `web_vitals`.)
+Encadeando as quatro etapas, dá para ver a ordem em que a amostra encolhe. O RUM conta as visitas em que o gtag.js rodou; o CrUX mantém delas só os usuários elegíveis do Chrome e as páginas detectáveis e populares o bastante; o PSI mostra isso no nível de página ou de origin; e o Search Console agrupa as URLs indexadas e mantém só as que passam do limite. Como cada etapa filtra com regras diferentes, **o LCP da mesma página aparecer com valores diferentes em quatro lugares não é erro, é o normal.**
 
-## A diferença entre receber e refletir
+Meu script de coleta (`scripts/fetch-gsc.js`) só busca Search Analytics. Por isso, neste post não verifiquei em que estado está agora o relatório de Core Web Vitals deste blog. Como existe o fallback do origin group, também não posso concluir "No data available" só porque o tráfego é pequeno. Não vou saber até abrir o relatório.
 
-Com o GA4 Measurement Protocol, é possível enviar eventos de servidores ou offline systems fora do navegador. Mas a [referência do Measurement Protocol](https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference) do Google explicita uma limitação importante. O endpoint de coleta retorna `2xx` ao receber uma requisição HTTP, e não retorna um status de erro mesmo que o payload esteja malformado ou os dados não sejam processados.
+## Até onde vai o que o Google diz sobre ranking
 
-Um HTTP `2xx` significa que a requisição foi recebida; não é prova de que o evento entrou corretamente no relatório desejado. A falha dentro de uma resposta de sucesso, tratada no post de observação do sistema, também existe na coleta de analytics. Assim como neste blog havia estatísticas vazias escondidas atrás de respostas 200, em analytics o sucesso do envio também não é o sucesso do reflexo nos relatórios.
+Se os dados field são filtrados assim, a próxima pergunta é quanto esses dados pesam no ranking da busca. Este é o tema em que o exagero gruda com mais facilidade, então cito o texto original da [documentação de page experience](https://developers.google.com/search/docs/appearance/page-experience) do Google Search Central tal como está. O documento está em formato de FAQ e, primeiro, responde assim à pergunta sobre se existe um único sinal de page experience usado no ranking.
 
-Por isso, antes do deploy, verifique o payload com o validation endpoint ou o Event Builder, e depois do deploy o event pipeline deve ser verificado em pelo menos três etapas.
+> There is no single signal. Our core ranking systems look at a variety of signals that align with overall page experience.
 
-- Envio: o client ou o server enviou a requisição?
-- Coleta: o evento e seus parâmetros aparecem no Realtime e no DebugView?
-- Análise: dá para consultar com as dimensões pretendidas nos relatórios finais e no export schema?
+Quer dizer que não existe um sinal único como uma pontuação de page experience. A pergunta seguinte é quais aspectos de page experience são usados no ranking, e a resposta é esta.
 
-Mesmo que o código que envia os dados tenha testes, se faltar a configuração de coleta ou o registro de uma custom dimension, o valor não pode ser usado na etapa de análise. Analytics também é um sistema operacional que precisa de verificação pós-deploy.
+> Core Web Vitals are used by our ranking systems. We recommend site owners achieve good Core Web Vitals for success with Search and to ensure a great user experience generally. Keep in mind that getting good results in reports like Search Console's Core Web Vitals report or third-party tools doesn't guarantee that your pages will rank at the top of Google Search results; there's more to great page experience than Core Web Vitals scores alone.
 
-## As perguntas que os eventos brutos abrem
+O que o original estabelece é que as Core Web Vitals são usadas pelos sistemas de ranking, e logo em seguida traça um limite: bons resultados nos relatórios não garantem as primeiras posições. A mesma resposta continua dizendo que buscar uma pontuação perfeita só por SEO pode não ser um bom uso do tempo, e afirma que os aspectos de page experience além das Core Web Vitals não melhoram o ranking diretamente.
 
-Os relatórios padrão do GA4 são bons para ver rapidamente as perguntas frequentes sem lidar diretamente com :term[raw event]{key="raw-event"}s. Mas surgem limites quando você quer combinar eventos e parâmetros livremente ou juntá-los com outros dados.
+O que considero mais importante é **o que este documento não diz**. Em nenhum lugar aparece qual é o peso, se o efeito surge no momento em que um limite é ultrapassado, ou quanto o ranking se move ao passar de needs improvement para good. Então a frase "melhoramos as Core Web Vitals e subimos no ranking" não pode ser sustentada pela documentação oficial, e menos ainda neste blog. Como vimos na seção anterior, este blog nem conseguiu confirmar os próprios valores field.
 
-O [BigQuery Export](https://support.google.com/analytics/answer/9358801) permite exportar os raw events do GA4 diariamente ou em modo streaming. O daily export de uma standard property tem um limite de um milhão de eventos por dia. O streaming export é rápido mas best-effort, não inclui a attribution de novos usuários, e a attribution de usuários existentes pode levar tempo para ser processada por completo. É por isso que a análise do mesmo dia deve usar `events_intraday_*` e a análise diária estável deve usar as tabelas `events_*` finalizadas.
+## As respostas do servidor vistas pelo rastreamento
 
-Com acesso aos raw events, perguntas como estas se tornam possíveis.
+O lugar em que a documentação oficial liga claramente desempenho e busca é, na verdade, o rastreamento. Mesmo assim, o assunto é taxa de rastreamento e indexação, não ranking.
 
-- A taxa de navegação para a próxima página mudou nas sessões que sofreram LCP lento?
-- A taxa de conclusão das ações principais mudou nas sessões com erros depois de uma release específica?
-- A profundidade de leitura dentro da landing page varia conforme o tipo de query de busca?
-- O interaction pattern do mesmo recurso difere entre mobile e desktop?
+O [guia de crawl budget](https://developers.google.com/search/docs/crawling-indexing/large-site-managing-crawl-budget) do Google começa restringindo o público. Sites com 1 milhão ou mais de páginas únicas que mudam cerca de uma vez por semana, com 10 mil ou mais que mudam diariamente, ou com muitas URLs que o Search Console classifica como "Descoberta, mas não indexada no momento". O texto original diz diretamente que sites sem muitas páginas que mudam rápido, ou cujas páginas são rastreadas no dia da publicação, não precisam ler o guia. Este blog, com 186 URLs no sitemap em 16 de setembro de 2026, não é o público.
 
-Mas os raw data entregam, junto com a liberdade de interpretação, a responsabilidade de lidar por conta própria com duplicação, late arrival, sessionization e fusos horários. Saber escrever SQL não garante um modelo de usuário correto.
+Ainda assim, vale conhecer a regra de capacidade de rastreamento do guia. Quando o tempo de resposta fica estável ou melhora, o limite sobe; quando fica lento ou o site envia 5xx ou 429, ele desce. A [documentação de códigos de status HTTP](https://developers.google.com/search/docs/crawling-indexing/http-network-errors) descreve as consequências de forma mais concreta. 5xx e 429 desaceleram temporariamente o rastreador. URLs já indexadas são mantidas, mas, se isso continuar, acabam saindo do índice. 4xx diferentes de 429 não afetam a taxa de rastreamento. Aqui é preciso separar os caminhos com precisão. 5xx prolongado é um caminho para **sair do índice**; não encontrei nenhuma frase oficial dizendo que seja um sinal que derruba o ranking.
 
-## A intenção que a busca revela
+O maior incidente de servidor deste blog foi o JIHOON-BLOG-2, em que uma chamada à GA Data API ficou pendurada por mais de 65 segundos. Mas a resposta foi 200, e o único que chama `src/lib/google-analytics.ts` é a rota `/api/analytics`, que não é o caminho que renderiza os documentos dos posts. Não há base para ligar esse incidente ao rastreamento, e também não abri o relatório Crawl Stats enquanto escrevia este post. **Não conecto o que não confirmei.**
 
-O GA4 olha o comportamento do usuário depois que ele entra no site. O :term[Search Console]{key="search-console"} mostra, antes disso, com quais queries e resultados de busca ele foi exposto e clicado.
+## A diferença de cliques entre page e query
 
-A Search Analytics API pode agregar clicks, impressions, CTR e position por dimensões como query, page, country, device e search appearance. Mas a [documentação oficial da API](https://developers.google.com/webmaster-tools/v1/searchanalytics/query) explica que ela não garante todas as rows e retorna as rows superiores conforme limites internos. A soma das queries pequenas pode não bater exatamente com o total geral.
+Agora vamos mudar de direção e olhar os dados de busca que o Search Console devolve. São os dados que baixo toda semana em CSV e que realmente uso para corrigir títulos e descrições.
 
-Essa restrição não é um aviso que vive só na documentação; é um fenômeno visível toda semana nos meus CSVs. Nos dados dos últimos 28 dias coletados em 11 de setembro, a soma de cliques na dimensão page é 47, enquanto a soma de cliques na dimensão query é 8. Mesmo site, mesmo período, e ainda assim a maior parte dos cliques é invisível na dimensão query. Queries raras ou anonimizadas simplesmente não são retornadas como rows. Se você tentar explicar todo o tráfego com os dados de query, acaba preenchendo essa lacuna com imaginação.
+![Em dois períodos de 28 dias coletados pela API do Search Console, o total de cliques da dimensão page é 47, enquanto o da dimensão query fica em apenas 8 e 9](1.png?w=720)
 
-A position média também não é uma simples tabela de classificação. É um valor agregado de impressões geradas em múltiplas queries, devices, países e search appearances. Se a composição de queries mudar, a média pode se mover mesmo que o ranking de cada palavra-chave continue igual.
+Somando por dimensão o CSV que baixei em 11 de setembro de 2026, os números não batem. Nos últimos 28 dias (de 12 de agosto a 8 de setembro), o total de cliques da dimensão page é 47, enquanto o da dimensão query é 8. Os 28 dias anteriores (de 15 de julho a 11 de agosto) também dão 47 e 9. Como a diferença tem o mesmo tamanho nos dois períodos, não é um acaso isolado, é estrutural.
 
-## O ranking caiu, mas os cliques subiram
+A primeira suspeita foi um limite de linhas. A [documentação da Search Analytics API](https://developers.google.com/webmaster-tools/v1/searchanalytics/query) diz que não garante todas as linhas e retorna as principais. Mas meu script faz a requisição com `rowLimit: 1000`, e as linhas de query que voltaram foram 128 e 66. **O limite não foi atingido, então o corte não é a causa.**
 
-Encontrei essa propriedade da position média nos dados reais deste blog. [O Biome pode substituir o ESLint e o Prettier?](/241201) é um post de dezembro de 2024, e por muito tempo ele teve estranhamente poucos cliques em relação às impressões. Então, em junho passado, reescrevi o seoTitle dele aproximando-o da forma das consultas de busca reais. É um título comparativo que começa com "Biome vs ESLint vs Prettier".
+Sobram duas explicações, e ambas estão na [ajuda do Search Console](https://support.google.com/webmasters/answer/17010575). Uma é a anonimização. Consultas pesquisadas muito raramente são excluídas da tabela de consultas por privacidade e só entram nos totais gerais. A outra é a [unidade de agregação](https://support.google.com/webmasters/answer/17011364). A dimensão query conta por propriedade. Se um usuário clica em sequência em dois links do mesmo site, é 1 clique. A dimensão page conta por URL, então o mesmo comportamento vira 2 cliques.
 
-Na comparação de 28 dias coletada no início de agosto, os números do post se moveram assim. As impressões caíram 11%, de 230 para 204, e a position média recuou de 8.9 para 11.6. Olhando só essas duas métricas, é um post que piorou. Mas os cliques subiram de 2 para 13, e o CTR foi de 0.87% para 6.37%.
+Portanto, esses dois totais nunca foram números construídos com as mesmas regras. Deixo registrada uma tentação. Nos últimos 28 dias, seis consultas tiveram cliques, e cinco delas eram consultas comparativas do Biome, como "eslint vs biome" e "biome vs prettier". Somando os cliques dessas cinco consultas dá 6, e por coincidência os cliques de page da URL em coreano do post do Biome também são 6. Parece encaixar perfeitamente, mas **não dá para ligar dois números com regras de agregação diferentes só porque são iguais.** Os dados de query devem ser lidos não como uma decomposição do tráfego, e sim como uma amostra que deixa entrever a intenção de busca.
 
-![Comparação de 28 dias do post sobre Biome no Search Console, coletada no início de agosto: impressões e posição pioraram, mas cliques e taxa de cliques subiram muito](2.png?w=720)
+## O ranking caiu, mas os cliques aumentaram
 
-O honesto é esvaziar o entusiasmo primeiro. Esses números não provam o efeito da mudança de título. A position média é uma média ponderada por impressões, então basta sumirem impressões que apareciam no alto mas que ninguém clicava para a posição piorar e o CTR subir mecanicamente. O query mix e a sazonalidade também podem variar entre períodos, e o aumento absoluto de cliques é de 11 em 28 dias. Grande como múltiplo, pequeno em termos absolutos.
+Há um caso em que tomei de fato uma decisão com esses dados de busca. [O Biome pode substituir o ESLint e o Prettier?](/241201) é um post que escrevi em dezembro de 2024 e que tinha visivelmente poucos cliques em relação às impressões. Então, em 11 de junho de 2026, adicionei um `seoTitle` começando com "Biome vs ESLint vs Prettier", ajustado ao formato das consultas reais.
 
-Mesmo levando isso em conta, algo permanece. Se você toma o ranking como resultado, é um post que precisa de reparo; se toma o tráfego real como resultado, é um post que melhorou. **Qual métrica de resultado você escolhe muda a conclusão dos mesmos dados.** Se eu estivesse olhando só a queda do ranking, teria desmontado de novo um post que começava a funcionar.
+Na comparação de 28 dias coletada depois da troca de título, os números deste post se moveram assim. (São os valores que consultei na época. `.gsc-data/` é sobrescrito a cada coleta, então aquele CSV não está mais no repositório, e também não registrei a data exata da coleta. O que dá para confirmar é só que esses números já aparecem no snapshot do rascunho de 16 de agosto incluído em um commit de 18 de agosto) As impressões caíram 11%, de 230 para 204, e a posição média recuou de 8,9 para 11,6. Olhando só essas duas métricas, o post piorou. Mas os cliques subiram de 2 para 13, e o CTR foi de 0,87% para 6,37%.
+
+![Na comparação de 28 dias do Search Console para o post do Biome, as impressões e a posição média pioraram, mas os cliques e a taxa de cliques subiram muito](2.png?w=720)
+
+O honesto é baixar a empolgação primeiro. Esses números não provam o efeito da troca de título. A posição média na dimensão page é a média da posição mais alta daquela página registrada em cada impressão, então basta sumirem impressões que apareciam no topo mas que ninguém clicava para a posição piorar e o CTR subir. A composição das consultas e a sazonalidade também mudam de um período para outro. O aumento absoluto de cliques foi de 11 em 28 dias. Como múltiplo é grande; em termos absolutos, é pequeno.
+
+Ainda assim, algo fica. Se o ranking for o resultado, é um post que precisa de ajuste; se o tráfego real for o resultado, é um post que melhorou. **Qual métrica se escolhe como resultado muda a conclusão sobre os mesmos dados.** Se eu tivesse olhado só a queda no ranking, teria desmontado de novo um post que tinha acabado de começar a melhorar.
 
 ### Os números consultados de novo em setembro
 
-Enquanto organizava esta série, consultei de novo o estado atual do mesmo post. Quando escrevo sobre trabalho passado, minha regra é verificar se aquele estado ainda se mantém, e desta vez também fiquei feliz por ter verificado.
+Enquanto escrevia este post, verifiquei de novo o estado atual do mesmo post. No CSV coletado em 11 de setembro de 2026, a URL em coreano `/241201` fica assim.
 
-Nos últimos 28 dias coletados em 11 de setembro, este post tem 185 impressões, 6 cliques, CTR de 3.24% e position média de 20.8. Os cliques desceram para menos da metade do pico de 13, e a position média recuou o verão inteiro, 8.9 → 11.6 → 14.5 → 20.8 na ordem de coleta. Ou seja, a narrativa da virada, o ranking caiu mas os cliques subiram, foi mais nítida na janela de comparação do início de agosto, e a janela seguinte sacudiu essa narrativa de novo.
+| Período | Impressões | Cliques | CTR | Posição média |
+|---|---|---|---|---|
+| 28 dias anteriores (15 de julho a 11 de agosto) | 211 | 11 | 5,21% | 14,5 |
+| Últimos 28 dias (12 de agosto a 8 de setembro) | 185 | 6 | 3,24% | 20,8 |
 
-Essa nova consulta não derruba a conclusão da seção anterior. Os cliques ainda estão acima dos 2 de antes da mudança, e o CTR ainda está acima de 0.87%. Além disso, cinco das seis queries de busca com cliques registrados neste blog são queries comparativas deste post, como "eslint vs biome". Mas uma lição foi acrescentada. Não só a escolha da métrica: **a escolha do período de comparação também muda a conclusão.** Se você completa uma narrativa com uma única comparação de 28 dias, os próximos 28 dias a quebram. E eu ainda não sei por que a position média continua recuando. Pode ser que a composição das queries em que o post aparece tenha mudado, ou que os documentos concorrentes tenham aumentado. Até verificar, fica como não resolvido.
+Colocando em ordem de coleta os dois valores anteriores (8,9 e 11,6) e os dois deste CSV (14,5 e 20,8), a posição média foi recuando durante todo o verão. Os cliques foram 13, depois 11 e depois 6. O período recente da primeira comparação e o período anterior da coleta de setembro podem se sobrepor, então é difícil ler a passagem de 13 para 11 como queda, mas o 6 do período recente é claramente um número que desceu. A história de "o ranking caiu, mas os cliques aumentaram" estava mais nítida na primeira comparação, e o período seguinte a abalou.
 
-## Conexões que começam por uma hipótese
+Mesmo assim, a conclusão da seção anterior não se inverte. 6 cliques e CTR de 3,24% ainda são mais altos que o período anterior da primeira comparação (2 cliques, 0,87%). Mas uma lição se somou. Não só a escolha da métrica, mas **também a escolha do período de comparação muda a conclusão.** Se uma história é fechada com uma única comparação de 28 dias, os 28 dias seguintes a quebram.
 
-Quando se fala em conectar dados, o primeiro pensamento é unificar user id e session id. Claro, ter dimensões comuns como trace id, release, route e timestamp facilita a análise. Mas juntar todos os dados no nível individual não deve virar o objetivo.
+E o período recente passa a incluir as cinco traduções deste post que commitei em 17 de agosto. A versão em inglês, `/en/241201`, teve 84 impressões e 0 cliques, e a versão em chinês, 12 impressões e 1 clique. Ainda não sei se as traduções dividiram as impressões com a URL em coreano, nem por que a posição média continua recuando. Até confirmar, deixo como não resolvido.
 
-As queries do Search Console não podem ser vinculadas a indivíduos e nem devem ser. Os GA events de usuários que não consentiram podem não existir. Nos eventos do Sentry há muitos erros que não precisam identificar o usuário.
+## Mudanças sobrepostas em um mesmo período
 
-Por isso é melhor decidir primeiro a unidade de observação da hipótese.
+Não atribuir causalidade no post do Biome não é só cautela. Neste blog existem condições reais em que a causalidade não pode ser isolada.
 
-| Hipótese | Unidade de observação apropriada |
-|---|---|
-| Os erros de pagamento aumentaram depois da nova release | Error rate e key event completion por release |
-| Usuários de mobile começam a ler os posts tarde | Distribuição de LCP e engagement events por device |
-| A landing page não corresponde a certa intenção de busca | Impression e CTR por query cluster e comportamento por page |
-| Um fallback se repete sem que o usuário veja | Eventos por fallback reason e proporção de sessions afetadas |
+Só no dia 11 de setembro de 2026 entraram seis mudanças relacionadas à busca. A restauração do cluster de hreflang das categorias e do x-default, a troca dos travessões longos no frontmatter, a reescrita de 48 `seoTitle` para 60 caracteres ou menos, a correção dos 404 das imagens OG dos posts, o limite de 1680px para as imagens do corpo e o `noindex` em 126 categorias com um único post. Em 14 de setembro, dividi um post de observabilidade em vários e os publiquei, e em 16 de setembro vieram a correção da reciprocidade do hreflang, a ampliação das descriptions das categorias, a adoção do IndexNow, a reescrita de títulos e descrições que estavam sendo cortados e a publicação de um post novo. A reescrita deste post também cai nesse período.
 
-Com a hipótese em primeiro lugar, muitas vezes dá para responder bem no nível agregado, sem identificadores pessoais. O caso anterior do post sobre Biome também é assim. O que eu precisava não eram os usuários individuais que clicaram naquele post, e sim uma comparação em janelas de 28 dias da composição de queries e dos cliques. Precisão de observação e precisão de rastreamento de usuários não são a mesma coisa.
+Em 11 de setembro deixei um documento de linha de base. Nos últimos 28 dias até aquele momento, as páginas de posts em inglês tinham 892 impressões e 0 cliques, e decidi ver no início de outubro se esse número se move. Mas, mesmo que os cliques em inglês aumentem em outubro, não vou conseguir escolher uma única causa. Pode ser a correção do hreflang, a reescrita de títulos de 11 de setembro ou a correção dos cortes de 16 de setembro. Além disso, os dados da linha de base já trazem um contraexemplo. O zh-CN, que tinha só um título cortado, teve 7 cliques, o maior número entre as locales que não são coreano, o que torna difícil ver o corte de títulos como causa. **Por isso decidi que, na comparação de outubro, vou ler só a direção e não afirmar contribuições individuais.**
 
-## Os limites da correlação
+## Da observação ao julgamento
 
-O erro mais comum ao conectar dados de observação é ler como causa e efeito dois valores que se moveram no mesmo período.
+Se os três primeiros posts mostraram as falhas silenciosas do servidor, o tempo que os visitantes esperaram e o lugar onde essa espera surgiu, os dados deste post são o que resta dessa experiência depois que ela sai do navegador e é filtrada pelas regras de outra pessoa. Por isso a conclusão também é um pouco mais defensiva. Os field data encolhem a cada etapa, com regras diferentes, ao passar por RUM, CrUX, PSI e Search Console, e em um site pequeno como este blog podem não sobreviver até o fim. O que o Google diz sobre ranking para em afirmar que as Core Web Vitals são usadas, e a documentação de rastreamento para em afirmar que respostas lentas e 5xx afetam o rastreamento e a indexação. Os totais de page e query do Search Console são números contados com regras diferentes, então não se somam. **Anotar primeiro, para cada número, quem foi contado e com quais regras, e parar onde o texto oficial para.** Transformar observação em julgamento foi, na maior parte, essas duas coisas.
 
-Suponha que a conversão caiu na semana em que o LCP piorou. O desempenho pode ser a causa, mas tráfego de campaign, mudanças de preço, estoque, sazonalidade e mudanças no device mix também são possíveis. Se você compara médias globais, basta o tráfego mobile aumentar para os dois valores se moverem juntos. Pela mesma razão, eu não amarrei de imediato a mudança do seoTitle e o aumento de cliques como causa e efeito. O fato de dois acontecimentos se seguirem no tempo não basta.
-
-Estreitar a pergunta nesta ordem reduz conclusões precipitadas.
-
-1. Mudaram na mesma janela de tempo?
-2. A relação permanece no mesmo ambiente de usuário e route?
-3. Coincide com uma release ou um ponto de mudança específico?
-4. A ordem entre erro e desempenho pode ser confirmada no nível do evento?
-5. Depois de uma correção ou um experimento, volta na direção esperada?
-
-Dados de observação são fortes para estreitar os candidatos a causa. Para confirmar a causalidade, são necessários, além disso, experimentos controlados, experimentos naturais ou mudanças reproduzíveis.
-
-## Distribuições e proporções
-
-Quanto mais o sistema e a experiência do usuário são comprimidos em médias, mais os grupos importantes desaparecem.
-
-Com um LCP médio de 2 segundos, alguns usuários de mobile podem estar vivenciando 8. Mesmo com um error rate global baixo, ele pode estar concentrado só em um browser específico que recebeu a nova release. Mesmo com o CTR subindo, se as impressions caíram bruscamente, a própria composição dos usuários alcançados pode ter mudado. O CTR de 6.37% do post sobre Biome era exatamente esse caso.
-
-Por isso são necessárias combinações como estas.
-
-- Desempenho: não só a median, mas também p75 e p95
-- Erros: não só o event count, mas também os affected users e a proporção de sessions
-- Comportamento: não só o número de eventos, mas também a taxa de conclusão sobre eligible users
-- Busca: não só o CTR, mas também impression, click e query mix
-- Deploys: não só o período inteiro, mas também o antes e depois da release e o trecho de rollout gradual
-
-O denominador das proporções também deve ser armazenado. 100 checkout errors sozinhos parecem um grande problema, mas o julgamento muda conforme sejam 100 em 100 tentativas ou 100 em um milhão.
-
-## Consentimento e qualidade dos dados
-
-Quanto mais a fundo se trata a observação de usuários, mais difícil fica tratar privacidade e consentimento como uma checklist legal anexada depois. Porque o que se pode coletar determina quais análises são possíveis.
-
-A [documentação oficial](https://developers.google.com/tag-platform/security/concepts/consent-mode) do :term[Consent Mode]{key="consent-mode"} do Google descreve como tags e SDKs ajustam seu comportamento de armazenamento e envio conforme o estado de consentimento do usuário. O modo Basic bloqueia as tags antes do consentimento. O modo Advanced carrega as tags com o estado de consentimento padrão e, enquanto o consentimento está negado, envia sinais de medição sem cookies que podem ser aproveitados para um modeling mais específico.
-
-O importante aqui é não tratar :term[modeled data]{key="modeled-data"} e observed data como a mesma coisa. Conforme a configuração e os requisitos de elegibilidade, behavioral ou key event modeling podem ser aplicados aos relatórios, então não se deve presumir que o número na tela é sempre a simples soma dos eventos observados diretamente.
-
-O design da observação deve incluir estas perguntas.
-
-- Esses dados são realmente necessários para a decisão?
-- Dá para responder no nível agregado, sem identificar indivíduos?
-- O que deixa de ser coletado quando o usuário recusa?
-- Conseguimos operar a exclusão e os períodos de retenção?
-- Os padrões do SDK coincidem com a política do nosso serviço?
-
-Coletar menos dados pode reduzir as oportunidades de análise. Ao mesmo tempo, reduz o ruído desnecessário e o risco. Uma boa observação está mais próxima da coleta mínima adequada ao propósito do que da coleta máxima.
-
-## A definição de falha e de sucesso
-
-O que coletar minimamente depende, no fim, de como o serviço define sucesso e falha. As ferramentas calculam error count, latency, sessions, conversion e CTR, mas não decidem qual valor é a falha do serviço e qual é o sucesso.
-
-Retornar HTTP 200 pode ser uma falha se os dados centrais estiverem vazios. Ao contrário, mesmo que uma API externa falhe, se um fallback apareceu rápido e o usuário alcançou seu objetivo, o serviço pode ter tido sucesso. Mesmo que a position de busca caia, se os cliques dos usuários que você quer aumentaram, o resultado de produto pode ter melhorado.
-
-Para esse julgamento, são necessárias frases explícitas entre as métricas técnicas e os resultados de usuário. As frases que eu de fato defini para este blog são estas.
-
-- O usuário deve conseguir encontrar nos resultados de busca o post que esperava.
-- O conteúdo principal do post deve aparecer dentro do tempo definido no p75 de mobile.
-- Mesmo que as estatísticas acessórias falhem, a leitura do corpo do texto não deve atrasar.
-- Se um trabalho de coleta agendado não for executado, considera-se uma falha operacional.
-
-Quando essas frases existem, as metrics, alerts e eventos necessários vêm atrás. Ao contrário, se você começa ligando os dashboards padrão da ferramenta, é fácil confundir o que é mensurável com o que é importante.
-
-O papel do engenheiro que transforma a observação em julgamento não é virar a pessoa que mais conhece os dados. É virar **a pessoa que traduz as expectativas do usuário em condições que o sistema pode verificar**.
-
-## Em que os alertas devem ser colocados
-
-Quando a definição de falha existe em frases, a próxima pergunta vem logo em seguida. Onde colocar os alertas?
-
-O [documento de filosofia de alertas](https://docs.google.com/document/d/199PqyG3UsyXlwieHaqbGiWVa8eMWi8zzAn0YfcApr8Q/mobilebasic) que Rob Ewaschuk escreveu nos primórdios do SRE do Google crava que um alerta que chama uma pessoa deve ser urgente, importante, acionável e real. E recomenda colocar os alertas nos sintomas, não nas causas: em sinais que aparecem por fora, como respostas 500 ou erros visíveis ao usuário.
-
-No entanto, entre esse princípio e o que eu vivi há uma tensão sutil. Como tratado no post de observação do sistema, a falha deste blog não foi um 500, e sim uma resposta 200 com estatísticas vazias. O alerta baseado em sintomas se apoia na premissa de que a falha vem à tona, e uma falha classificada como sucesso quebra exatamente essa premissa.
-
-Por isso não acho que esse princípio precise ser rebatido. Na verdade, cheguei à conclusão de que **definir o que conta como sintoma é a parte realmente difícil desse trabalho**. Neste blog, o sintoma não foi um código de status, e sim "a função de consulta de estatísticas retornou seu valor padrão", e isso só pôde virar sintoma plantando instrumentação à mão. Aqui está a razão de, na seção anterior, eu propor definir primeiro em frases a falha e o sucesso. Só com essas frases fica decidido em quais sintomas colocar alertas.
-
-O conselho que o mesmo documento acrescenta também merece ser guardado. Incline-se a apagar os alertas barulhentos. Porque o excesso de monitoramento é um problema mais difícil de resolver do que a falta de monitoramento. Como referência, o livro de SRE do Google inclui [a própria falha do monitoramento](https://sre.google/sre-book/postmortem-culture/) na lista de gatilhos para escrever um postmortem. O mecanismo que coleta os dados de observação parar em silêncio também é uma falha. Neste blog, a coleta semanal do Search Console não rodar em alguma semana entra nessa lista.
-
-## A tradução entre os dados
-
-Com os alertas colocados, o que resta é transportar as expectativas do usuário para as diferentes query languages e esquemas do RUM do navegador, do Sentry, do GA4 e do Search Console. Nesse ponto, o papel que a AI pode assumir é menos gerar conclusões e mais traduzir uma pergunta para uma forma verificável em cada fonte de dados.
-
-Por exemplo, um fluxo como este se torna possível.
-
-1. Converter uma pergunta em linguagem natural nas API queries e no SQL de cada sistema.
-2. Criar transformações que alinhem fusos horários e dimensões diferentes.
-3. Encontrar os segments cuja distribuição muda e os contraexemplos inesperados.
-4. Reunir juntas as releases relacionadas, os code paths e a documentação oficial.
-5. Propor as próximas hipóteses a verificar e candidatos a instrumentação adicional.
-
-Aqui também está a razão de as semantic conventions do OpenTelemetry importarem. Se cada serviço envia o mesmo significado com nomes de atributo diferentes, até a AI precisa adivinhar o esquema primeiro. Se nomes, unidades e stability comuns forem respeitados, fica mais fácil para ferramentas e pessoas conectarem os sinais.
-
-Mesmo com a AI ajudando na análise, as etapas de verificação não diminuem.
-
-- Verificar se o SQL gerado trata corretamente eventos duplicados e fusos horários.
-- Verificar se a API retorna todas as rows ou só as top rows.
-- Verificar se médias e percentis, número de usuários e número de eventos não foram confundidos.
-- Distinguir modeled data de dados observados diretamente.
-- Não colocar explicações excessivas em variações casuais de amostras pequenas.
-
-Em resumo, a vantagem da AI está em transformar perguntas em queries executáveis e em ampliar os eixos de comparação. A responsabilidade de verificar de qual amostra e com quais regras de agregação o resultado saiu permanece intacta.
-
-## O feedback loop como capacidade de produto
-
-Quando o custo de transformar perguntas em queries cai, o tempo entre a observação e a próxima mudança também pode encurtar. O importante nesse momento é não aumentar só a velocidade de geração.
-
-O [relatório DORA 2025](https://cloud.google.com/blog/products/ai-machine-learning/announcing-the-2025-dora-report) publicado pelo Google Cloud, com base em uma pesquisa com cerca de 5 mil profissionais de tecnologia do mundo todo, resume que a adoção de AI mostrou uma relação positiva com o software delivery throughput e o product performance, e uma relação negativa com a delivery stability. O DORA explica o mecanismo em um [artigo de insights à parte](https://dora.dev/insights/balancing-ai-tensions/) assim. O tempo economizado na etapa de geração é realocado para a sobrecarga de verificação, e a própria velocidade com que o código a ser revisado é produzido aumenta. Como diz o resumo do relatório, a AI amplifica o que o time já tem, mais do que conserta o time. (O [relatório ROI of AI-assisted Software Development](https://dora.dev/ai/roi/report/) do DORA, atualizado em abril de 2026, também enfrenta de frente o problema de gerenciar a queda de produtividade no início da adoção.)
-
-A evidência que eu levo mais a sério é outra. Um [estudo](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/) que a METR publicou em 2025 sorteou, em 246 issues reais de 16 desenvolvedores open source experientes, se o uso de AI era permitido ou não, e nas issues em que a AI foi permitida, a conclusão levou 19% mais tempo. No entanto, os desenvolvedores esperavam de antemão ser 24% mais rápidos, e mesmo depois de vivenciar a lentidão real, acreditavam ter sido 20% mais rápidos. Citei esse estudo em [Engenheiro frontend de AI](/260302) como parte de uma discussão sobre produtividade, mas no contexto deste post ele se lê de outro jeito. É evidência de que a percepção não substitui a medição. Se não dá para confiar na percepção, é preciso medir, e como mostra o caso anterior do post sobre Biome, até um valor já medido precisa ser medido de novo mudando a janela.
-
-Se a geração acelera, a quantidade de mudança aumenta. Mesmo que os defeitos ocorram na mesma proporção, o número absoluto cresce, e o código a revisar e o impacto nos usuários se acumulam rápido. Se nesse momento a observação for lenta, o time aumenta só a velocidade de deploy, não a velocidade de aprendizado.
-
-Um :term[feedback loop]{key="feedback-loop"} rápido é a capacidade de encadear em curto os passos seguintes.
-
-1. Fazer o deploy de uma mudança.
-2. Observar o que aconteceu com o sistema e com os usuários.
-3. Encontrar a diferença entre o esperado e o real.
-4. Estreitar as hipóteses de causa.
-5. Verificar com a próxima mudança.
-
-A AI pode ajudar muito na exploração dos passos 3 e 4. Mas ela não consegue começar se os sinais necessários no passo 2 estiverem faltando ou não estiverem conectados às informações de release do passo 1.
-
-Por isso, a base de uma organização que usa bem a AI precisa não só de testes, mas também de sistemas observáveis e métricas de resultado centradas no usuário. A qualidade do feedback loop, mais do que a capacidade de geração, vira o gargalo.
-
-## Transformar a observação em julgamento
-
-Dobrando os três posts desta série em uma frase cada, fica assim. A observação do navegador mostra o que o usuário percebeu, a observação do sistema mostra em que parte do sistema essa experiência foi produzida, e o GA4 e o Search Console mostram o que o usuário fez dentro do serviço e com que intenção chegou. Esses sinais não são o registro completo de uma pessoa, e sim evidências que iluminam a mesma hipótese a partir de amostras diferentes.
-
-Portanto, o critério para conectá-los não é o volume de dados nem a precisão dos identificadores pessoais. É preciso escolher a unidade de observação que combina com a hipótese, registrar denominadores e omissões, e reverificar as correlações com correções ou experimentos. Os usuários invisíveis por causa da privacidade e do consentimento também devem ser incluídos entre os limites da análise. E a conclusão obtida de uma comparação deve ser confirmada de novo mudando o período. Assim como os números do meu post sobre Biome contaram duas histórias diferentes em dois meses, a observação não é uma consulta única, e sim um medir contínuo.
-
-O próprio objeto da observação também está se ampliando. O OpenTelemetry está organizando as semantic conventions para AI generativa e chamadas MCP em um [repositório à parte](https://github.com/open-telemetry/semantic-conventions-genai). Quanto mais execução confiarmos à AI, mais essa execução também vira objeto de observação sob os mesmos princípios.
-
-A AI baixa o custo de começar essa verificação, mas não define os critérios de sucesso e falha. Decidir primeiro em frases qual experiência proteger, coletar os sinais necessários e confirmar os resultados com a próxima mudança continua sendo trabalho do engenheiro. Quando esse ciclo é curto e preciso, a observação vira uma capacidade de produto, e não um dashboard. Aos leitores deste post, proponho também escolher uma métrica do próprio serviço, escrever em uma frase o que vão considerar resultado, e consultar de novo, com outro período, uma conclusão já tomada. Na minha experiência, a segunda consulta ensina mais que a primeira.
+Eu também pretendo comparar a linha de base com o novo CSV em outubro lendo só a direção. Espero que quem lê este post também escolha uma métrica no próprio serviço, escreva em uma linha a amostra e as regras de agregação desse número e consulte de novo, com outro período, uma conclusão a que já tenha chegado.
 
 :::ref
-- [docs] [Google Analytics, BigQuery Export Schema](https://support.google.com/analytics/answer/7029846)
-- [docs] [Google Search Console, Performance Report Data](https://support.google.com/webmasters/answer/7576553)
-- [docs] [OpenTelemetry, Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/)
+- [docs] [web.dev, Why lab and field data can be different](https://web.dev/articles/lab-and-field-data-differences)
+- [docs] [Google Search Central, Understanding Core Web Vitals and Google search results](https://developers.google.com/search/docs/appearance/core-web-vitals)
 :::

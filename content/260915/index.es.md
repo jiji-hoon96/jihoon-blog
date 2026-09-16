@@ -1,345 +1,198 @@
 ---
-emoji: 🧭
-title: 'Observabilidad del sistema'
-seoTitle: 'Observabilidad: Sentry, OpenTelemetry y gray failure'
+emoji: 🧮
+title: 'CPU y memoria del navegador'
+seoTitle: 'Hilo principal y memoria del navegador: long tasks y LoAF'
 date: '2026-09-15'
-categories: observabilidad frontend Sentry OpenTelemetry
-description: 'Cómo Sentry solo en el servidor atrapó fallos ocultos tras respuestas 200: el gray failure y una llamada a GA colgada 65 segundos.'
-keywords: 'monitoreo de errores Sentry, gray failure, timeout DEADLINE_EXCEEDED, tracing distribuido Sentry, señales OpenTelemetry, observabilidad serverless, deadline gRPC, privacidad Session Replay'
+updatedAt: '2026-09-16'
+categories: observabilidad frontend navegador
+description: 'Qué muestran las long tasks, TBT, LoAF, JS Self-Profiling, las API de memoria y los crash reports, comprobado con Lighthouse y cabeceras de este blog.'
+keywords: 'hilo principal del navegador, long task 50ms, Long Animation Frames API, Total Blocking Time, JS Self-Profiling API, profiling de navegador en Sentry, measureUserAgentSpecificMemory, fuga de memoria en el navegador'
 locale: es
 translationOf: '260915'
-sourceHash: b1cd1afc9adeaed8575afdecba66519b8183b7923022f5d97b6c3a2b2bfa3fee
+sourceHash: 4e0b5c34d77d4e96bcc9d368f60407b6ed8ce76dd252e63bf908cd37e0a68225
 ---
 
-En este post quiero hablar de la observabilidad del sistema.
+En esta publicación quiero hablar de cómo observar el hilo principal y la memoria del navegador.
 
-En mi empresa llevo mucho tiempo trabajando con monitoreo de errores basado en Sentry. Cuando llega un issue, abrir el stack trace, acotar el alcance con releases y tags, y buscar las condiciones de reproducción es un trabajo que me resulta familiar. Sin embargo, este blog no tenía monitoreo de errores, y recién en agosto pasado le acoplé Sentry en una configuración solo de servidor. Y apenas lo hice, esa instrumentación atrapó un incidente real. La segunda mitad de este post es el registro de investigar ese incidente, creer que estaba arreglado, medir de nuevo y confirmar que esa creencia era errónea.
+En [la publicación anterior](/260914) seguí la red, el renderizado y las Web Vitals para ver los valores que el navegador deja sobre la carga y la interacción. Pero cuando se escarba en por qué esas métricas empeoraron, casi siempre se llega a uno de dos lugares. O el hilo principal estaba ocupado con otra cosa y no pudo atender la entrada y el renderizado a tiempo, o la memoria se fue acumulando hasta que la página se volvió lenta o acabó muriendo.
 
-En [Observabilidad del navegador](/260914) vimos qué datos deja el navegador sobre la red, el renderizado y la entrada del usuario. Pero encontrar una solicitud lenta en el navegador no termina el problema. Hay que seguir si esa solicitud fue lenta en el CDN, esperó en el servidor de API, se atascó en una llamada a la base de datos, o atrapó un fallo y devolvió un valor por defecto.
+Estas dos áreas son más difíciles de observar que las Web Vitals. La mayoría de las API son exclusivas de Chromium, algunas solo se activan cambiando una cabecera de respuesta y ciertas señales, por su propia estructura, no pueden llegar a JavaScript. En la tabla de funciones de Sentry de [la primera publicación de la serie](/260913) dejé para este artículo la decisión sobre el profiling en el navegador, y aquí también desgloso sus condiciones.
 
-Este post parte de un solo evento de error y sigue cómo cada señal complementa las preguntas que la señal anterior no podía responder. Con breadcrumbs se restaura el tiempo inmediatamente anterior, con traces y metrics se encuentra el camino y el alcance del impacto, y con profiles y Replay se confirma el costo de ejecución y el contexto en pantalla. Al final, la pregunta se amplía hacia **qué instrumentar como fallo**, incluyendo los eventos que no ocurrieron y los fallos dentro de respuestas exitosas. El incidente que viví estaba exactamente a caballo entre esas dos categorías.
+Lo que comprobé personalmente fueron dos ejecuciones de Lighthouse, las cabeceras de respuesta de producción y los archivos de build de `web-vitals` instalados. Adelanto la conclusión: este blog solo ve el contorno de su hilo principal mediante mediciones de laboratorio (lab) y no tiene ningún medio para ver la memoria ni los crashes.
 
-Para los ingenieros de frontend esta frontera se vuelve cada vez más difusa. Una solicitud que empieza en un componente de React continúa hacia Server Components, route handlers, APIs externas, queues y background jobs. El síntoma que aparece en pantalla está en el navegador, pero la causa puede estar en otra capa del sistema.
+## Qué significa que el hilo principal esté ocupado
 
-Antes, entrar en este terreno exigía conocer primero el formato de logs y las herramientas operativas de cada servidor. Hoy, en un producto como Sentry se puede ir y venir entre un error y su trace, profile y replay relacionados, y OpenTelemetry ofrece un protocolo común para que herramientas distintas intercambien señales.
+El hilo principal del navegador procesa en una sola fila la ejecución de JavaScript, el cálculo de estilos, el layout y la gestión de la entrada del usuario. Mientras corre una tarea, nada más puede colarse, así que si el usuario pulsa un botón en ese intervalo, el evento de entrada espera a que la tarea termine.
 
-Eso no significa que la observabilidad se complete sola. Qué señales dejar, con qué identificadores conectarlas y a qué llamar fallo son decisiones que debe tomar quien construyó el sistema.
+El umbral que acota esa espera es 50ms. La [especificación de la Long Tasks API](https://w3c.github.io/longtasks/) del W3C define como long task a una tarea que ocupa el hilo principal durante 50ms o más, y también explica por qué. Para responder a una entrada en menos de 100ms, la tarea que se estaba ejecutando en el momento de la entrada debe terminar en 50ms, y la tarea que procesa esa entrada también debe terminar en 50ms. Es decir, 50ms es el objetivo de respuesta de 100ms partido en dos.
 
-## El contexto de un solo error
+### TBT suma el exceso de las long tasks
 
-El punto de partida más familiar es el evento de error. Cuando ocurre una excepción, enviar el mensaje y el stack trace permite saber en qué código falló. Pero lo que la depuración necesita en realidad, más que el objeto de la excepción, es el contexto que lo rodea.
+Si solo se cuentan, una tarea de 60ms y otra de 600ms valen lo mismo, así que las herramientas de lab usan Total Blocking Time (TBT). Según el artículo de web.dev sobre TBT, el blocking time de una long task es la parte que supera los 50ms, y TBT es la suma de los blocking times de las long tasks posteriores a FCP. Por defecto, Lighthouse solo cuenta hasta TTI (Time to Interactive).
 
-La [documentación de Issue Details](https://docs.sentry.io/product/issues/issue-details/) de Sentry muestra que a un evento pueden adjuntarse no solo el stack trace sino también breadcrumbs, tags, context, release, trace, replay y attachments. Cada elemento responde una pregunta distinta.
+![Figura con cinco tareas en la línea de tiempo del hilo principal, donde las tres que superan 50ms muestran excesos de 200, 40 y 105ms](1.png?w=720)
 
-| Información | Pregunta que responde |
-|---|---|
-| stack trace | En qué ruta de código ocurrió la excepción |
-| source map | Puede restaurarse la posición del bundle desplegado al archivo y la línea del código original |
-| breadcrumb | Qué solicitudes y acciones del usuario hubo antes de la excepción |
-| tag | En qué navegador, release, ruta o funcionalidad se repite |
-| context | Qué valores estructurados hacen falta para entender este evento |
-| release·commit | En qué despliegue apareció por primera vez y a qué cambio está cerca |
-| trace | Qué pasó en otros servicios y spans del mismo flujo de solicitud |
-| replay | Por qué estados pasó realmente el usuario en pantalla |
+(Fuente de la figura: [web.dev, Total Blocking Time (TBT)](https://web.dev/articles/tbt), CC BY 4.0)
 
-Lo importante en esta distinción es la capacidad de búsqueda. Los tags de Sentry son pares key-value diseñados para buscar y filtrar en la UI, mientras que context es un área para leer valores estructurados en el detalle del evento y no es objeto de filtros en la UI. Si se mete todo en context, cada evento individual se enriquece, pero se vuelve difícil responder preguntas recurrentes como "¿en qué tipo de cliente aumentó?".
+La parte amarilla son los primeros 50ms de cada tarea y la parte roja es el blocking time. En el ejemplo del mismo artículo, las tareas suman 560ms de ejecución, pero TBT es 345ms. Las tareas de menos de 50ms no aportan nada a TBT, por muy a menudo que aparezcan.
 
-Al revés, si se envía todo valor como tag, crecen la cardinality y el costo de almacenamiento. Los atributos cuyos valores se multiplican sin límite, como emails, URLs completas o mensajes de error arbitrarios, difícilmente sirven como tags. Diseñar la instrumentación es adjuntar información y, al mismo tiempo, **decidir qué preguntas se van a buscar repetidamente**. En la investigación mía que veremos más adelante, el papel decisivo no lo jugó un stack trace sino un tag que había dejado casi de pasada.
+### TBT no puede sustituir a INP
 
-## Instrumentación acoplada solo en el servidor
+TBT es una métrica de lab, y la métrica de capacidad de respuesta de Core Web Vitals es INP. El [artículo de web.dev sobre INP](https://web.dev/articles/inp) marca el límite: en herramientas de lab que solo miran la carga, sin interacción, TBT puede ser un proxy razonable, pero no un reemplazo.
 
-El Sentry de este blog es solo de servidor. No puse el archivo de inicialización del SDK de navegador. Decidí no pagar el costo de bundle de cliente que agrega la instrumentación del navegador; el propósito de la adopción era atrapar llamadas que fallan en silencio en el servidor, y esa parte era prácticamente gratis. Por eso se divide lo que se atrapa y lo que no. Los errores de route handlers y componentes de servidor, y los fallos de las consultas a Google Analytics que se ejecutan en el servidor, se atrapan. Los errores que solo ocurren en el navegador, como los event handlers de componentes de cliente o los desajustes de hidratación, no.
+Esto se debe a que TBT no sabe cuándo pulsó el usuario ni qué. Aunque el hilo principal esté muy bloqueado, INP puede ser bajo si el usuario pulsa después de que terminen los scripts. El camino por el que una long task llega a INP es alargando el input delay que vimos en la publicación anterior en tanto tiempo como le quede a la tarea que estaba en ejecución en el momento de pulsar. Por eso un TBT bajo solo dice "el hilo principal no estuvo muy bloqueado durante la carga". Para saber qué bloqueó una entrada real hay que mirar tareas y frames en field.
 
-Había dos cosas que quería verificar por mí mismo en esta configuración.
+## Long Tasks y Long Animation Frames
 
-Una es el alcance del hook automático. Si se cablea el hook `onRequestError` de Next.js, los errores de ruta no manejados también se capturan sin llamar directamente a `captureException`. Lo confirmé subiendo a un Deploy Preview una ruta temporal que lanzaba una excepción a propósito, y los eventos llegaron marcados con el mechanism `auto.function.nextjs.on_request_error`.
+Hay dos API del navegador para ver el hilo principal en field: la Long Tasks API (`PerformanceLongTaskTiming`), disponible desde Chrome 58, y la Long Animation Frames API (`PerformanceLongAnimationFrameTiming`, LoAF para abreviar), lanzada en Chrome 123. Ambas se suscriben mediante :term[PerformanceObserver]{key="performance-observer"}.
 
-La otra son los source maps. Antes de aplicarlos, el culprit de un evento de producción era una posición de bundle ofuscada como `y([root-of-the-server]__468aa3ae._)`. Después de subir los source maps, el mismo tipo de evento se resolvía hasta la ruta `src/...`, el número de línea e incluso el código fuente circundante. Es el punto donde la pregunta que responde la segunda fila de la tabla realmente se separa.
+### LoAF es una alternativa, no un reemplazo
 
-Dejo aquí una nota lateral. Después de subirlos, había que borrar los archivos `.map` del resultado del build. Los source maps de servidor que produce Turbopack pesan 57MB, más que el JS de servidor (15MB), y si se dejan ahí se embarcan enteros en el bundle de la función desplegada. Justo existía la opción `deleteSourcemapsAfterUpload`, que borra los source maps después de subirlos, así que la activé; pero al medirlo, incluso justo después de la subida los `.map` de servidor seguían ahí, con sus 57MB intactos. Esa opción solo borra `.next/static` y no toca `.next/server`, que es donde está el volumen de verdad. Terminé cambiando a especificar directamente las rutas a borrar, y por la misma razón dejé de silenciar siempre los logs de subida y los hice condicionales. Con los logs apagados, si la subida falla por completo porque expiró un token, nadie se entera hasta ver el siguiente stack trace ilegible. **Leer la documentación y activar una opción es una cosa distinta de confirmar que esa opción hizo lo que se esperaba.**
+El artículo del equipo de Chrome sobre LoAF (fuente de la figura de más abajo) presenta LoAF como un "update" y una "alternative" a la Long Tasks API, y nunca usa la palabra replacement. En los datos de compatibilidad de MDN, `PerformanceLongTaskTiming` tampoco lleva marca de deprecated; ambas API son experimental, y ni Firefox ni Safari las soportan.
 
-## La diferencia entre grupo y causa
+La razón por la que hacía falta una API nueva es la atribución (attribution). Según el mismo artículo, la atribución de la Long Tasks API "at best only tells you the container", es decir, llega a indicar si fue el documento de nivel superior o algún iframe, pero no dice qué script consumió el tiempo.
 
-Sentry agrupa eventos similares en un mismo :term[issue]{key="issue-grouping"}. En el grouping por defecto, el stack trace es la señal central, y también se usa información como la exception y el message. Si hace falta, se puede cambiar el criterio de agrupación con fingerprints.
+LoAF no reporta como entry una tarea individual, sino **un frame cuya actualización de renderizado se retrasó más de 50ms**. También lo detecta cuando varias tareas cortas y el renderizado suman juntos más que el umbral.
 
-Pero el mismo issue no significa necesariamente la misma causa. Si una función común que envuelve `fetch()` lanza los errores de red desde un solo lugar, un fallo de DNS, una credencial expirada y una respuesta 500 del upstream pueden mezclarse en un mismo grupo. Al revés, si la misma causa produce excepciones distintas en varias rutas de código, se divide en varios issues.
+### blockingDuration y atribución de scripts
 
-Un issue es un paquete de incidentes por investigar, no una tabla de clasificación de causas de dominio. Usar el grouping tal cual como recuento de incidentes o KPI de producto hace perder de vista esta diferencia.
+El campo de LoAF que conecta directamente con INP es `blockingDuration`. Suma el exceso sobre 50ms de las tareas del frame, pero a la tarea más larga le incluye también el tiempo del renderizado final. En el ejemplo del artículo, cuando a tareas de 55ms y 65ms les sigue un renderizado de 20ms, `duration` es de unos 140ms y `blockingDuration` es (55 - 50) + (65 + 20 - 50) = 40ms. Es como llevar la idea de TBT del tramo de carga a los frames de toda la página.
 
-Si hace falta, se pueden ajustar los fingerprints o agregar un domain error code como tag. Pero afinar demasiado pronto las reglas de grouping hace perder las mejoras por defecto del SDK mientras solo crecen las reglas operativas. Yo creo que el mejor orden es mirar primero la distribución real de eventos y confirmar qué preguntas bloquea el grouping por defecto.
+![Figura con varios long frames en la línea de tiempo de una página, donde el frame que se solapa con la interacción elegida como INP aparece resaltado con una línea de puntos](2.png?w=720)
 
-## La línea de tiempo del fallo
+(Fuente de la figura: [Chrome for Developers, Long Animation Frames API](https://developer.chrome.com/docs/web-platform/long-animation-frames), CC BY 4.0)
 
-Un error suele dejar solo la última escena. El :term[breadcrumb]{key="breadcrumb"} adjunta, en orden cronológico, lo que pasó antes. Además de la navigation, los clicks, los console messages y las HTTP requests del navegador, también se pueden incluir cambios de estado registrados por la propia aplicación.
+En una página aparecen muchos long frames, pero el que explica el valor de INP es el frame que se solapa con la interacción de INP. El array `scripts` de ese frame contiene, por cada script que se ejecutó más de 5ms, el punto de invocación, la URL de origen y el tiempo de ejecución. Aquí aparece el "quién" que le faltaba a la Long Tasks API.
 
-Se parece al log tradicional, pero el propósito difiere un poco. Un almacén de logs es fuerte para buscar eventos de todo el servicio; el breadcrumb es fuerte para restaurar la pequeña línea de tiempo justo antes de un error concreto.
+Eso sí, la atribución de scripts solo se aplica al hilo principal y a los iframes same-origin. Los iframes cross-origin, los workers y el código de extensiones no tienen nombre aunque alarguen un frame. El trabajo dentro del iframe de comentarios de utteranc.es en las páginas de artículos de este blog no queda atribuido ni siquiera con LoAF.
 
-Por eso, un cambio de estado importante puede necesitarse en ambos lugares. Si el estado de un pago pasó de `pending` a `failed`, en los logs operativos se agrega la tasa de fallo global, y en los breadcrumbs del evento de error se ve la secuencia de ese único usuario. No es copiar el mismo hecho, sino crear unidades de búsqueda distintas.
+### Este blog no recolecta LoAF
 
-La [documentación de Logs](https://opentelemetry.io/docs/concepts/signals/logs/) de OpenTelemetry describe cómo conectar automáticamente los logs existentes adjuntando los identificadores del trace y el span activos. La verdadera utilidad de los logs no está en el número de líneas sino en los puntos de conexión que permiten moverse hacia otras señales.
+También hay una forma de usar LoAF sin suscribirse directamente. `web-vitals` incorporó "Add INP breakdown timings and LoAF attribution" en su [changelog de la v4.0.0 (2024-05-13)](https://github.com/GoogleChrome/web-vitals/blob/main/CHANGELOG.md), y más tarde añadió el script más largo (`longestScript`) y los totales de tiempo de script, layout y paint. Pero esto solo viene en el build de atribución (`web-vitals/attribution`).
 
-## El camino donde surgió la latencia
+Como vimos en la publicación anterior, el `src/components/WebVitalsReporter.tsx` de este blog usa el build estándar mediante `import('web-vitals')`. **Recolecta el valor de INP, pero no qué script bloqueó ese INP.** En el `web-vitals@6.2.1` instalado, la cadena `long-animation-frame` aparece 0 veces en `dist/web-vitals.js` y 1 vez en `dist/web-vitals.attribution.js`. El build estándar ni siquiera registra un observer de LoAF. (Este hecho vuelve a ser importante en la sección sobre memoria)
 
-Si el error responde "qué se rompió", el :term[trace]{key="distributed-trace"} responde "por dónde pasó una solicitud y en qué usó el tiempo".
+Según el [README](https://github.com/GoogleChrome/web-vitals#attribution-build), el build de atribución pesa unos 1.5K más en brotli, pero lo que me hizo dudar fue más el destino que el tamaño. No he comprobado si con el tráfico de este blog saldría en GA4 una distribución por script con sentido, así que decidí mirar primero el lab antes de ampliar la recolección.
 
-Un trace es un conjunto de :term[spans]{key="span"}. La carga del documento en el navegador, `fetch`, el route handler del servidor, las llamadas a APIs externas, las consultas a la base de datos y los background jobs pueden ser cada uno un span. Si comparten el mismo `trace_id`, pueden reconstruirse como un único grafo de la solicitud.
+## Las long tasks que aparecieron en este blog
 
-Esta conexión no surge de forma automática. Al cruzar el límite de una solicitud hay que transmitir el trace context. El [estándar Trace Context](https://www.w3.org/TR/trace-context/) del W3C define el formato de los headers `traceparent` y `tracestate`. Es el lenguaje común mínimo que permite unir la misma solicitud aunque los proveedores sean distintos.
+Así que ejecuté una página de artículo en el lab. Lighthouse 12.8.2 (`npx lighthouse@12`), Chrome headless en local, el form factor mobile por defecto, simulated throttling (RTT 150ms, 1638.4kbps, CPU ralentizada 4 veces), con `https://hooninedev.com/260914` como objetivo, dos ejecuciones con 25 minutos de diferencia el 2026-09-16.
 
-En el frontend también hay condiciones aquí.
-
-- Enviar trace headers a todos los dominios externos puede generar exposición de información y problemas de CORS.
-- Hay que limitar el alcance para que el SDK del navegador solo transmita el context a los API origins permitidos.
-- El servidor y el upstream también deben conservar o transformar los mismos headers.
-- Si cada servicio toma sus decisiones de sampling por separado, el medio del trace queda vacío.
-
-Cuando un trace se corta, en vez de concluir que no hay datos, hay que confirmar en qué frontera desapareció el context. El tracing distribuido desde el navegador hasta el servidor depende menos de instalar el SDK que del diseño de la context propagation.
-
-## Fronteras que merecen un span
-
-La instrumentación automática captura bien las fronteras de las bibliotecas: HTTP requests, llamadas a la DB, el lifecycle del framework. La [documentación de Instrumentation](https://opentelemetry.io/docs/concepts/instrumentation/) de OpenTelemetry explica que la zero-code instrumentation es útil como punto de partida, pero que para ver las decisiones internas de la aplicación hace falta code-based instrumentation.
-
-Por ejemplo, con solo un span automático que dice que toda la API de pedidos tardó 800ms es difícil saber por qué fue lenta. Pueden hacer falta spans de dominio como este.
-
-```ts
-await tracer.startActiveSpan('checkout.calculate-discount', async (span) => {
-  span.setAttribute('promotion.type', promotionType)
-
-  try {
-    return await calculateDiscount(cart)
-  } finally {
-    span.end()
-  }
-})
-```
-
-Ahora bien, si se crea un span por cada función, el trace se convierte en un registro de ejecución del código. La meta de la observabilidad no es almacenar todas las llamadas sino distinguir hipótesis sobre latencia y fallo.
-
-Una buena frontera de span suele ser una de estas.
-
-- Fronteras donde cambia el responsable del fallo, como red, DB o queue
-- Fronteras donde se bifurca la ruta de ejecución, como cache hit y miss
-- Fronteras donde se bifurca el resultado de dominio, como la aprobación de un pago o la decisión de permisos
-- Trabajos cuyo presupuesto de latencia debe gestionarse por separado
-
-Si mirando un span no se puede decir quién hizo qué y cuánto, hay que revisar la frontera o el nombre.
-
-## De la distribución al caso
-
-Guardar todos los traces encarece rápido. Por eso lo habitual es ver el estado global del sistema con metrics y bajar al trace para las solicitudes concretas del tramo anómalo.
-
-La [documentación de Signals](https://opentelemetry.io/docs/concepts/signals/) de OpenTelemetry distingue trace, metric, log y baggage como telemetry signals diferentes. En la [documentación de Profiles](https://opentelemetry.io/docs/concepts/signals/profiles/) aparte, la señal de profile figura como Alpha a septiembre de 2026. El modelo de datos y la vía de transporte OTLP ya existen, pero no debe asumirse que está al mismo nivel que las señales estabilizadas.
-
-Las fortalezas de cada señal son estas.
-
-| Señal | Fortaleza | Debilidad |
+| Elemento | 1.ª ejecución (08:46:15Z) | 2.ª ejecución (09:11:01Z) |
 |---|---|---|
-| metric | Tendencia global, tasas, distribuciones, alertas | Poco contexto de la solicitud individual |
-| trace | El camino y la latencia de una solicitud | Guardarlo todo cuesta caro |
-| log | Registro detallado de los hechos y búsqueda libre | El formato y la cardinality se degradan con facilidad |
-| profile | La posición del código que usó CPU y memoria | Sin conectarlo a la solicitud, el impacto en el usuario se difumina |
+| Performance score | 0.92 | 0.93 |
+| FCP, LCP | 2501ms | 2415ms |
+| TBT | 40ms | 47ms |
+| TTI | 5489ms | 5375ms |
+| Trabajo total del hilo principal | 916ms | 1035ms |
+| De ello, Style & Layout | 343ms | 344ms |
+| De ello, Script Evaluation | 254ms | 292ms |
 
-Estas señales no compiten entre sí. Por ejemplo, se encuentra en el latency histogram la franja donde empeoró el p99, se abre una solicitud lenta con un exemplar o un trace id, y se miran los logs y el profile de ese span.
+En ambas ejecuciones el elemento LCP no fue una imagen sino el primer párrafo (`div#post-content > p`), por lo que FCP y LCP coincidieron, y la partida más grande del hilo principal no fue el script sino Style & Layout.
 
-Grafana Tempo, según su [documentación oficial](https://grafana.com/docs/tempo/latest/), ofrece una estructura que genera metrics a partir de traces y los conecta con los logs de Loki y las metrics de Prometheus. La ventaja del stack open source es poder diseñar cómo se almacenan y conectan las señales sin quedar encerrado en las pantallas de un SaaS concreto. A cambio, hay que operar uno mismo el Collector, el storage, la retention, el rendimiento de las queries y las actualizaciones.
+![Gráfico de línea de tiempo en el que las cuatro long tasks (el documento, un chunk de Next y dos de gtag) aparecen en el mismo orden en las dos ejecuciones de Lighthouse](3.png?w=720)
 
-## Dónde vive el costo de ejecución
+Las dos ejecuciones tuvieron cuatro long tasks, y en el mismo orden: la tarea del documento (104ms, 122ms), un chunk de Next.js (68ms, 69ms) y dos tareas de `googletagmanager.com/gtag/js` (66ms y 56ms en la 1.ª, 69ms y 59ms en la 2.ª). Los instantes están en una línea de tiempo que Lighthouse calculó suponiendo una CPU 4 veces más lenta, así que no deben leerse como tiempos absolutos en un dispositivo real.
 
-Del trace se supo que cierto span tardó 2 segundos, pero puede no saberse en qué se usó la CPU dentro de él. El profile llena ese vacío registrando muestras de ejecución a nivel de función y el resource usage.
+TBT coincide exactamente con el exceso de las tres tareas posteriores a FCP. La 1.ª da (68 - 50) + (66 - 50) + (56 - 50) = 40ms y la 2.ª (69 - 50) + (69 - 50) + (59 - 50) = 47ms. Un TBT bajo no significa "no hay long tasks", sino "el exceso posterior a FCP es pequeño".
 
-También aquí las preguntas del trace y del profile son distintas.
+Lo siguiente es dónde cae gtag. En el layout, gtag se carga con `next/script` usando `strategy="afterInteractive"`, se ejecuta seguido algo más de 2.8 segundos después de LCP, y el punto donde termina esta última long task es justo el que se registra como TTI. Es un lugar que, más que con las métricas de carga, puede solaparse con **el input delay de una entrada pulsada justo después de que aparece la página**. Aun así, es una inferencia sobre una línea de tiempo de lab, y este blog no recolecta qué pulsaron los usuarios reales en ese momento.
 
-- trace: por qué servicios y trabajos pasó la solicitud del usuario
-- profile: qué funciones usaron la CPU durante ese tiempo
+Además, se trata de una medición de lab con n=2. Que se repita la misma forma es solo una evidencia débil de que esta estructura no es casual, y no sustituye la distribución de dispositivos y redes de los usuarios reales.
 
-En 2025, Sentry presentó [Continuous Profiling y UI Profiling](https://sentry.io/changelog/continuous-profiling-and-ui-profiling/) diferenciándolos de su producto de profiling existente. Continuous Profiling mira el resource usage de larga duración en los runtimes de servidor soportados, y UI Profiling mira el costo de ejecución de las sesiones de usuario. Al principio se centraba en iOS·macOS y Android, pero desde diciembre de 2025 [Browser JavaScript y Electron también soportan UI Profiling](https://sentry.io/changelog/ui-profiling-support-for-browser-javascript-and-electron/).
+Entonces, ¿cómo averiguar qué función consumió el tiempo dentro de esa tarea de gtag de 66ms?
 
-Aun así, no todos los runtimes se miden de la misma forma. En el navegador, el CPU profile de DevTools y los Long Animation Frames pueden ser herramientas más directas para excavar una sesión concreta. Más que el nombre del producto, hay que confirmar las platforms soportadas, el método de sampling, el overhead de recolección y el alcance de la conexión con el trace.
+## Profilers de muestreo
 
-## La reconstrucción de la sesión
+La respuesta a nivel de función la da un profiler. La JS Self-Profiling API pretende hacer el trabajo del panel Performance de DevTools dentro del navegador de los usuarios reales.
 
-Cuando un usuario dice "el botón no funcionó", con solo errores y traces es difícil conocer el estado de la pantalla. :term[Session Replay]{key="session-replay"} conecta los cambios del DOM, la entrada, la navigation, la console y la información de red en una forma reproducible.
+### JS Self-Profiling API
 
-La [FAQ de Session Replay](https://www.sentry.help/en/articles/13964404-session-replay-faq-web) de Sentry explica que el replay no es un video que graba píxeles sino el resultado de registrar el DOM del navegador y reconstruirlo después. Por eso puede no ser exactamente igual a la pantalla original, y el canvas y los recursos externos tienen condiciones aparte.
+La [especificación JS Self-Profiling](https://wicg.github.io/js-self-profiling/) del WICG define una API con la que una aplicación web controla el profiler de muestreo del navegador. Su ejemplo es `new Profiler({ sampleInterval: 10, maxBufferSize: 10000 })`, que significa capturar la pila de llamadas cada 10ms y reunir hasta 10.000 muestras. Como hace :term[muestreo]{key="sampling"} en lugar de instrumentar cada llamada, su sobrecarga es pequeña, a cambio de poder perder llamadas más cortas que el intervalo. La especificación excluye de los resultados los stack frames de scripts cross-origin no permitidos por CORS. Es decir, el interior de un script de otro origin, como gtag, puede seguir sin verse incluso con esta API.
 
-Esta diferencia también importa desde la perspectiva de la privacidad. En el DOM hay valores de entrada, información de cuentas y contenido de publicaciones. El Web Replay SDK de Sentry ofrece por defecto enmascarar el texto y bloquear los medios, pero eso no vuelve automáticamente seguros la estructura del DOM de la aplicación y los custom components. La recolección de los bodies de request y response también debe permitirse explícitamente solo para las URLs necesarias.
+La especificación no está en el standards track: es un WICG Community Group Draft, y según los datos de compatibilidad de MDN, `Profiler` solo funciona en navegadores basados en Chromium a partir de Chrome 94. Y como indica [MDN](https://developer.mozilla.org/en-US/docs/Web/API/JS_Self-Profiling_API), el documento debe servirse con una Document Policy que incluya `js-profiling`. Eso significa que la respuesta HTML necesita la cabecera `Document-Policy: js-profiling`.
 
-Antes de activar Replay hay que decidir primero lo siguiente.
+### Activar la cabecera también tiene un coste
 
-1. Qué errores y sessions dejar como muestra
-2. Qué zonas del DOM y qué entradas enmascarar o bloquear
-3. Si hace falta recolectar los network bodies y headers
-4. Quién puede ver los replays y por cuánto tiempo se conservan
-5. Si el costo del SDK y de la serialización del DOM vale la pena para que lo pague el usuario
+Durante la investigación encontré un punto en el que los documentos no coincidían. Un cambio que entró en el repositorio de la especificación en enero de 2026 marcó `js-profiling` como **deprecated** y definió en su lugar `js-profiling-mode` (`eager`, `lazy`). Las implementaciones deberían seguir soportando `js-profiling` por compatibilidad (SHOULD), pero pueden eliminarlo (MAY).
 
-Cuanto más fuerte es el contexto del Replay, más fuerte es también su alcance de recolección. La decisión entre la capacidad de depuración y la minimización de datos no debe dejarse solo en los valores por defecto del producto. (Este blog no usa Replay. Como es un servicio donde el rendimiento de carga es la premisa de la visibilidad en buscadores, juzgué que el costo que paga el visitante supera las respuestas que daría la recolección.)
+Según la especificación, `eager` (equivalente al antiguo `js-profiling`) prepara la infraestructura de profiling durante la carga, así que puede afectar a FCP y LCP aunque nunca se use el profiler. `lazy` retrasa esa preparación hasta que se crea el primer `Profiler`, pero si esa inicialización ocurre mientras se procesa una interacción, puede afectar a INP. La especificación admite así que **una cabecera activada para medir puede imponer un coste sobre las mismas métricas que se miden**. La documentación de Sentry, en cambio, seguía indicando solo `Document-Policy: js-profiling` al consultarla el 2026-09-16. No he comprobado si Chrome implementa `js-profiling-mode`, así que no puedo decir qué cabecera conviene usar hoy.
 
-## El fallo que se revela por ausencia
+### Condiciones del profiling de navegador en Sentry
 
-Los errores, los traces y el Replay muestran en profundidad el contexto de los hechos ocurridos. Pero si un trabajo programado ni siquiera arrancó, no hay hecho alguno que registrar.
+La [documentación de JavaScript profiling](https://docs.sentry.io/platforms/javascript/profiling/) de Sentry deja las condiciones claras. El profiling de navegador está en beta, usa la JS Self-Profiling API y, por tanto, solo funciona en navegadores basados en Chromium como Chrome y Edge, y el servidor debe enviar `Document-Policy: js-profiling`. Indica explícitamente que no se puede usar en un hosting donde no se pueden cambiar las cabeceras. El SDK requiere `@sentry/browser` 10.27.0 o superior y usa `browserProfilingIntegration()` junto con la tasa por sesión `profileSessionSampleRate`. El FAQ responde que lo normal es que los perfiles lleguen solo de usuarios de Chrome. Por eso no hay que leer los perfiles recogidos como representativos de todos los usuarios.
 
-Un cron monitor recibe como check-ins los estados de inicio y finalización del trabajo, y puede generar un estado missed si la señal no llega a la hora prevista. Aquí el objeto de observación no es un error lanzado por el código sino **la ausencia del evento esperado**.
+La facturación es por [UI Profile Hours](https://docs.sentry.io/pricing/quotas/manage-ui-profile-hours/), y en tamaño de bundle, según los límites gzip del repositorio `sentry-javascript`, archivo `.size-limit.js` (rama develop, consultado el 2026-09-16), añadir Profiling a la combinación de Tracing de 56 KB da 59 KB.
 
-Para mí esto no es historia ajena. Este blog recolecta automáticamente datos de Search Console todos los lunes, y si alguna semana ese trabajo no corre en silencio, hoy no tengo forma de saberlo. Como no falló sino que no ocurrió nada, no se produce ningún error. El propio dispositivo que reúne los datos de observación está en un punto ciego.
+### En este blog está apagado en dos capas
 
-Esta perspectiva se aplica también a los health checks, los queue consumers y los pipelines de recolección de datos. Con solo la metric de "cero eventos de fallo" no se puede saber si hay salud. Hay que mirar a la vez si hubo entradas que procesar, cuándo fue el último éxito y si el volumen procesado está en su rango habitual.
+Primero, no hay SDK de navegador. El Sentry de este blog es solo de servidor y no existe `src/instrumentation-client.ts`. Es una decisión tomada a partir de una medición del 2026-08-04 que mostró que el SDK de cliente añade 78.8 KB gzip al client JS (lo traté en la publicación anterior).
 
-Lo que vuelve difícil la observación suele ser, más que los hechos ocurridos, los hechos que no ocurrieron. Y esta frase regresa una vez más, de una forma que yo no esperaba.
+Segundo, no hay cabecera. La respuesta que comprobé con `curl -sI https://hooninedev.com/260914` a las 2026-09-16T09:10:42Z no tiene `document-policy`. Las cabeceras que este repositorio añade al HTML son las cuatro de la función `next.config.ts` `headers()`: `Content-Security-Policy`, `X-Frame-Options`, `Referrer-Policy` y `Permissions-Policy`, y esas cuatro aparecen también en la respuesta. (Ya había medido en este repositorio que `public/_headers` solo se aplica a los assets estáticos y no llega al HTML)
 
-## El fallo dentro de la respuesta exitosa
+Así que activar el profiling de navegador en este blog no es cuestión de una opción. Supone revertir la decisión de los 79KB, añadir una cabecera a todo el HTML y medir de nuevo el coste que esa cabecera impone sobre FCP, LCP e INP. Todavía no hay evidencia de que las dos tareas de gtag que vimos antes sean un problema que justifique ese coste.
 
-Al revés, también hay fallos donde el hecho ocurrió pero no se ve porque quedó clasificado como éxito. Lo que me encontré apenas acoplé la instrumentación fue exactamente de este tipo.
+## Qué significa medir la memoria
 
-El plan inicial era simple. Si ponía el reporte de errores en el `catch` del route handler de la API de estadísticas, sabría cuándo fallaba la consulta a Google Analytics. Pero al hacerla fallar a propósito en un build de producción local inyectando una clave de cuenta de servicio inválida, el error no llegaba al `catch` de la ruta. Los cuatro bloques `catch` del módulo de consulta de estadísticas, una capa más abajo, lo atrapaban primero y devolvían valores por defecto, y la respuesta salía así.
+Si la CPU trata de "qué está bloqueando ahora", la memoria trata de "qué se acumula con el tiempo", así que hay que observar cómo cambia dentro de una sesión. Sin embargo, el camino para traer ese valor desde field es más estrecho que en el caso de la CPU.
 
-```
-HTTP 200 OK
-{ "slug": "/260610", "views": 0 }
-```
+### performance.memory no es estándar
 
-El visitante ve las estadísticas en 0, y el servidor responde que todo está bien. Mirando solo la tasa de error y el uptime de la ruta, no pasó nada. La condición de éxito del sistema y la condición de éxito del usuario eran distintas. (En qué capa poner el catch lo traté en [Manejo de errores](/251117); aquella vez la pregunta era "dónde hay que atrapar", y esta vez me encontré con "lo atrapamos y nadie se entera".)
+`performance.memory` es una propiedad "non-standard and legacy" según [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Performance/memory), y sus datos de compatibilidad la marcan como deprecated y exclusiva de Chromium. Ni siquiera está estandarizado qué es exactamente "el heap".
 
-Así que moví los puntos de instrumentación de la ruta a esos cuatro lugares, y les puse un tag que distingue en qué consulta explotó cada uno. Este tag juega más adelante un papel decisivo.
+### measureUserAgentSpecificMemory exige aislamiento
 
-Esta situación ya tiene un nombre preciso. El [paper de Gray Failure](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/06/paper-1.pdf) que Microsoft y el equipo de Azure presentaron en HotOS 2017 dice que los grandes accidentes de disponibilidad en la nube no suelen ser del tipo que se detiene por completo sino que vienen de esta zona gris, y define así su característica central.
+La alternativa es `performance.measureUserAgentSpecificMemory()`. El [artículo de web.dev sobre medir la memoria de la página](https://web.dev/articles/monitor-total-page-memory-usage) explica que mide durante la recolección de basura, por lo que el resultado llega con retraso, y recomienda llamarla a intervalos aleatorios con una media de 5 minutos. Solo está soportada en navegadores basados en Chromium a partir de Chrome 89.
 
-::::quote
-:::translation
-Sostenemos que una característica clave del gray failure es la differential observability: que los detectores de fallos del sistema pueden no notar los problemas incluso cuando las aplicaciones los están sufriendo.
-:::
+La condición decisiva está en otra parte. [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Performance/measureUserAgentSpecificMemory) establece que el documento debe ser un secure context y además estar **cross-origin isolated**. Es decir, debe aislarse con las cabeceras `Cross-Origin-Opener-Policy` y `Cross-Origin-Embedder-Policy` para que `window.crossOriginIsolated` sea `true`.
 
-:::original
-we argue that a key feature of gray failure is differential observability: that the system's failure detectors may not notice problems even when applications are afflicted by them.
-:::
-::::
+La respuesta de `curl` anterior no tiene ninguna de las dos cabeceras, así que en este blog esta API no se puede llamar. Además, calculo que activarla costaría más que la cabecera de profiling. Con COEP activado, los recursos cross-origin que carga la página tienen que cumplir esa política, y este blog carga el script de gtag y el iframe de utteranc.es. No los he activado para comprobar si estos dos se rompen de verdad.
 
-Un sujeto está sufriendo el daño del fallo mientras otro sujeto no percibe ese fallo, y el problema es que este último es el responsable de detectarlo. Bajar mi punto de instrumentación de la ruta a la capa inferior fue exactamente el trabajo de cerrar esa brecha de percepción.
+Cuando field está cerrado, lo que queda es reproducir en local con el panel Memory de DevTools. Es el método de buscar con heap snapshots los árboles DOM detached, que la [documentación del equipo de Chrome sobre problemas de memoria](https://developer.chrome.com/docs/devtools/memory-problems) señala como causa habitual de fugas, pero no es algo que yo haya hecho en este blog.
 
-La solución no es convertir en fallo toda devolución de valores por defecto. El fallback puede ser la elección correcta para proteger la experiencia del usuario. En su lugar, hay que dejar como señales separadas el hecho de que el fallback se ejecutó, la latencia de la llamada original y la funcionalidad afectada.
+### Una fuga creada por código de observabilidad
 
-```ts
-try {
-  return await fetchAnalyticsStats()
-} catch (error) {
-  captureException(error, { tags: { gaQuery: 'stats' } })
+El caso que más me interesó en todo el tema de memoria vino de una librería de observabilidad. La primera línea del changelog de `web-vitals` v6.2.2 (2026-09-14) es "Cap pending LoAFs to avoid memory leak".
 
-  return { totalPageViews: 0, todayVisitors: 0 }
-}
-```
+Según la descripción del [issue #795](https://github.com/GoogleChrome/web-vitals/issues/795), el `onINP` del build de atribución acumula entries de LoAF en `pendingLoAFs` para encontrar los LoAF que se solapan con INP. El criterio de limpieza, el instante del "evento procesado más recientemente", solo avanza cuando hay entrada del usuario, así que en páginas que se miran mucho tiempo sin interactuar, como la reproducción de un vídeo, los LoAF no hacían más que acumularse. El [PR de corrección #796](https://github.com/GoogleChrome/web-vitals/pull/796) aplicó también a la lista de LoAF el límite `MAX_PENDING_FRAMES` (10) que ya se usaba en la lista de grupos de eventos, de modo que, salvo los frames que se solapan con un candidato a INP, solo se conservan los 10 más recientes.
 
-Lo que hay que observar no es la excepción sino el hecho de que el sistema se salió de su camino normal.
+Este blog está en 6.2.1. ¿Arrastra esta fuga? No. El único archivo fuente que cambió el PR es `src/attribution/onINP.ts` (el resto son archivos de test) y, como vimos, el build estándar de este blog no tiene observer de LoAF. **La misma decisión de no recolectar la atribución de LoAF también cerraba el camino a esta fuga.** Eso no lleva a la conclusión de "entonces no recolectemos". Lo que quiere decir es que el coste del código de observabilidad a veces solo sale a la luz en un changelog, y que cambiar al build de atribución presupone 6.2.2 o superior.
 
-## La llamada a GA colgada 65 segundos
+## Cuando el navegador muere
 
-El primer issue real de producción que llegó tras mover los puntos de instrumentación es la siguiente escena de esta historia. Una llamada a GA fallaba con `DEADLINE_EXCEEDED` tras **65,877 segundos**. Pero por la estructura vista arriba, la respuesta seguía siendo 200. En ese momento la home usaba renderizado dinámico y transmitía por streaming la zona de estadísticas, así que la página en sí aparecía de inmediato. En cambio, ese hueco quedaba largo rato en estado de carga y luego se llenaba de ceros en silencio.
+Si la memoria se agota por completo, la página muere. La señal que queda en ese momento es el crash report de la Reporting API.
 
-Al excavar la causa, en el archivo de configuración de la biblioteca cliente de GA que uso estaba grabado esto.
+### La forma de un crash report
 
-```json
-"RunReport": { "timeout_millis": 60000, "retry_params_name": "default" }
-```
+La [especificación Crash Reporting](https://wicg.github.io/crash-reporting/) del WICG define el report type `"crash"` y declara ella misma que no es un estándar del W3C ni está en el standards track. El `reason` del body incluye `oom`, cuando la página agotó la memoria, y `unresponsive`, cuando se terminó por no responder. La entrega va, si la cabecera `Reporting-Endpoints` define un endpoint `crash-reporting`, a ese endpoint; si no, a `default`; y si no existe ninguno de los dos, no se envía nada.
 
-El timeout RPC por defecto de la biblioteca es de 60 segundos, y mi código no pasaba un timeout en ninguno de los cinco puntos de llamada. No es un error solo mío sino un tipo de error sobre el que se ha advertido ampliamente. El [artículo sobre deadlines del blog oficial de gRPC](https://grpc.io/blog/deadlines/), escrito por Gráinne Sheerin de Google SRE, tiene como primera línea bajo el título "TL;DR: Always set a deadline", y explica que sin deadline una solicitud en curso puede retener recursos y quedar colgada hasta el timeout máximo. El cliente de GA que uso también está basado en gRPC, así que la documentación ya advertía el mismo principio, pero los puntos de llamada no lo estaban cumpliendo.
+### JavaScript no puede recibirlo
 
-El arreglo fue fijar el timeout en 5 segundos y pasarlo a todos los puntos de llamada. Y lo reproduje de forma determinista levantando un servidor TCP local que no responde.
+La propiedad clave de esta señal está en una frase de la especificación.
 
-| Condición | Tiempo transcurrido | Mensaje de error |
-|---|---|---|
-| Sin timeout (antes del arreglo) | **60,04 segundos** | `Deadline exceeded after 60.000s` |
-| `timeout: 5000` (después del arreglo) | **5,00 segundos** | `Deadline exceeded after 5.000s` |
+> Crash reports are not observable to JavaScript, as the page which would receive them is, by definition, not able to.
 
-Como los números se movieron según lo descrito, quedó confirmado al menos que la configuración del timeout llega al código. Aclaro una cosa: el número 5 en sí no tiene fundamento. Como no medí la distribución de latencia de respuesta de GA cuando está sana, es en la práctica un valor elegido arbitrariamente. Pero la dirección sí tenía dónde apoyarse. [Embracing Risk](https://sre.google/sre-book/embracing-risk/), del libro de Google SRE, dice que el 100% nunca es la meta de confiabilidad correcta. En este blog, las cifras de visitantes son información accesoria. Para la experiencia del visitante es mejor rendirse rápido y dibujar los valores por defecto que traerlas con exactitud.
+La página que tendría que recibir el reporte ya murió por ese mismo crash, así que, por definición, JavaScript no tiene forma de observarlo. El navegador simplemente hace un POST a un endpoint del servidor desde fuera de la página.
 
-## La distribución medida de nuevo tras el arreglo
+Lo que esto significa para los SDK de navegador se ve en el código. En `sentry-javascript`, el [código fuente de `reportingObserverIntegration`](https://github.com/getsentry/sentry-javascript/blob/develop/packages/browser/src/integrations/reportingobserver.ts) incluye `'crash'`, `'deprecation'` e `'intervention'` entre los tipos suscritos por defecto, y hasta tiene una rama `report.type === 'crash'`. Pero esta integración usa un `ReportingObserver` dentro de la página, así que, si la especificación se cumple, no hay camino por el que esa rama se ejecute en un crash OOM real. (Es una inferencia mía a partir de la especificación, y no he provocado un crash para comprobarlo)
 
-Hasta aquí iba a ser el desenlace original de esta investigación. Encontré la causa, la reproduje y la arreglé. Pero descubrí que en la release donde se desplegó el commit del arreglo se habían acumulado más de cien `DEADLINE_EXCEEDED` de la misma familia.
+Del lado del servidor, ¿podría Sentry ser el destino de `Reporting-Endpoints`? [getsentry/sentry#38940](https://github.com/getsentry/sentry/issues/38940), que pedía esta función, se abrió el 2022-09-15 y seguía open al consultarlo el 2026-09-16. Lo que se puede hacer hoy llega solo a montar un endpoint propio y reenviar a Sentry.
 
-Saqué los 100 más recientes y miré la distribución de los tiempos reportados. Algo que conviene señalar de antemano: este valor no es el tiempo que GA usó realmente en responder. Es el wall-clock time desde el momento en que se armó el temporizador del deadline hasta el momento en que ese temporizador sonó de verdad.
+### Los crashes de este blog no se registran
 
-![Distribución de los tiempos reportados de los 100 DEADLINE_EXCEEDED que siguieron llegando tras fijar el timeout en 5 segundos](1.png?w=720)
+La respuesta de `curl` anterior tampoco tiene la cabecera `reporting-endpoints`. Según las reglas de entrega de la especificación, sin endpoint el reporte no se envía. Aunque la pestaña de alguien se muriera por falta de memoria mientras leía este blog, ese hecho no quedaría en ningún sitio. Independientemente de si Sentry lo soporta, es porque no declaré dónde recibirlo.
 
-La lectura es esta. **El límite inferior se respetó.** No hay ni un solo caso cortado antes de 5 segundos, y el más corto es de 5,16 segundos, así que la configuración de 5 segundos en sí llega al código. Pero hacia arriba sube hasta 8 minutos 24 segundos, y la mediana es de 61 segundos. Lo más extraño es que los valores no se concentran en ningún tramo. Si fueran demoras causadas por un GA realmente lento, deberían acumularse cerca del tope, y no es así.
+Como son páginas para leer artículos estáticos largos, no pienso cambiarlo por ahora. Aun así, dejo anotado que "no hay crashes" y "no hay medios para ver los crashes" se ven como la misma pantalla vacía en un dashboard.
 
-Los tags me dijeron más. Los únicos tags marcados en los 100 casos son `stats` y `popular`, y por lo general llegan de a pares. Lo que estos dos caminos tienen en común es que **ambos son rutas de revalidación detrás de una caché de una hora**. En cambio, las rutas restantes que reciben la solicitud del visitante y llaman a GA en el acto, sin caché (`page`, `pages`), no aparecen ni una vez entre los 100. Significa que el fallo no ocurre mientras se atiende la solicitud del visitante sino **solo en el trabajo que rellena la caché después de terminada la respuesta**.
+## Conclusión
 
-Esta observación sacude una frase que escribí en una sección anterior. Escribí que el hueco de estadísticas quedaba largo rato cargando, pero si el fallo solo ocurre en la ruta posterior a la respuesta, puede que el visitante nunca haya esperado ese tiempo. Había una frase más escrita sin medir.
+Observar la CPU y la memoria del navegador es, en su mayor parte, **una observación que solo se abre bajo condiciones**. Las long tasks y LoAF solo llegan desde Chromium, y la atribución de scripts de LoAF no ve los iframes cross-origin. Los profilers de muestreo exigen la cabecera `Document-Policy`, cuyo nombre está cambiando en la especificación, y la propia cabecera puede imponer un coste sobre las métricas. La API de medición de memoria exige cross-origin isolation, y los crash reports, un endpoint de servidor fuera de JavaScript.
 
-La hipótesis que formulé es esta. Este blog corre sobre funciones serverless, y una función serverless, al enviar la respuesta, congela su entorno de ejecución hasta la siguiente invocación. Si durante ese tiempo el temporizador también se detiene y se dispara tarde cuando la función despierta, puede quedar registrado un valor inflado en términos de wall-clock time y no el tiempo realmente esperado. Encaja con que el límite inferior esté pegado exactamente a los 5 segundos, con que los valores superiores no se concentren en ningún lado, y también con la observación de que el fallo solo sale del trabajo posterior a la respuesta.
+Este blog no ha activado ninguna de esas condiciones. Ese estado no es abandono, sino el resultado acumulado de la decisión de los 79KB, el build estándar y la elección de no añadir cabeceras, y de todo ello el build estándar acabó además esquivando la fuga de LoAF de web-vitals. Que ampliar la observabilidad también signifique cargar en la página código que tiene un coste se ve con especial claridad en esta área.
 
-Pero aquí hay que tener cuidado. **Que la distribución no contradiga la hipótesis y que la apoye son cosas distintas.** Hay varios escenarios en los que un temporizador se dispara tarde. Además de la congelación serverless, un renderizado pesado pudo estar reteniendo el event loop, o el contenedor pudo estar estrangulando la CPU. También dejé como candidato el hecho de que el presupuesto total de reintentos de la configuración de la biblioteca es de 600 segundos, y el máximo observado de 504 segundos cabe dentro. Todos pueden producir una distribución de esta misma forma, así que este gráfico no acota los candidatos.
-
-Lo que tacha a un candidato es **el tiempo de CPU del mismo intervalo**. Si mientras pasan 61 segundos de wall-clock time el tiempo de CPU es casi 0, queda descartada la explicación de que un renderizado pesado estaba reteniendo el event loop. Esta es la pregunta que responde la señal de profile que vimos antes.
-
-Pero el tiempo de CPU no lo resuelve todo. Como mientras se espera de verdad una respuesta el tiempo de CPU también se queda cerca de 0, un intervalo de espera y un intervalo detenido se ven con la misma forma. Para separarlos hay que mirar si el tiempo fluyó de manera uniforme dentro de ese intervalo. Por ejemplo, armando un temporizador que se dispara repetidamente a intervalos cortos y viendo si hay un punto donde ese intervalo se abre de golpe. Si el entorno de ejecución se congeló, los intervalos saltan; si de verdad se estuvo esperando, fluyen de manera uniforme. Medir el reloj solo justo antes y justo después de la llamada no sirve. El wall-clock time sigue corriendo incluso mientras la función está congelada, así que solo se recrearía el número que ya se tiene.
-
-Agrego que esta lista de issues, la distribución de tags y los valores de tiempo no los vi abriendo un dashboard, sino que acoplé el [servidor MCP oficial de Sentry](https://github.com/getsentry/sentry-mcp) y se los pedí a un agente. No solo bajó el costo de acoplar la instrumentación; también bajó el costo de abrir los datos acumulados.
-
-## La razón por la que dejó de ocurrir no fue el arreglo
-
-Mientras escribía este post, volví a consultar ese issue. Para confirmar si lo que creí arreglado sigue arreglado ahora.
-
-Al 14 de septiembre de 2026, los issues de esa familia estaban detenidos en 144 casos en total. La última ocurrencia fue el 18 de agosto, y desde entonces hay 0 casos en 27 días. La distribución de tags fue hasta el final solo el par `stats` y `popular`. Mirando solo el gráfico de ocurrencias, el problema parece haber desaparecido.
-
-Pero yo, en ese lapso, no hice ninguna de las mediciones descritas en la sección anterior. Nunca verifiqué la hipótesis ni arreglé nada, entonces ¿por qué se detuvo? Al cotejar el historial de despliegues, la respuesta estaba en otro lado. La reforma multilingüe commiteada el mismo día en que se registró el último evento quitó de la home las zonas de estadísticas de visitantes y de artículos populares. Las pantallas que llaman a las rutas de revalidación de `stats` y `popular` eran exactamente esas dos, así que desde que esa reforma se desplegó a producción, el código que fallaba simplemente no tiene ocasión de ser llamado. No es que el código que fallaba se haya arreglado; desapareció la pantalla que lo llamaba.
-
-Por lo tanto, este incidente no se resolvió: **desapareció el objeto de observación**. La hipótesis de la congelación serverless quedó sin verificar, y con ella desaparecieron también las condiciones de reproducción para recrear esa distribución en producción. El evento original del primer issue que reportó los 65,877 segundos superó su período de retención y ya ni siquiera se puede abrir.
-
-Tengo una razón para dejar esta sección. El resolved de la lista de issues no es una prueba de que la causa se haya esclarecido. Hay varios caminos para que las ocurrencias lleguen a 0. Que se arregló de verdad, que nadie volvió a pisar ese camino, o que la propia instrumentación desapareció. Con solo la señal de error no se pueden distinguir estos tres. Lo que los distingue son las señales del camino normal, como el volumen de llamadas y el momento del último éxito, y esa es una razón más por la que hace falta la observación de los "eventos que no ocurrieron" de la sección anterior. Si acoplar la instrumentación es un trabajo de una sola vez, observar es el trabajo de seguir midiendo.
-
-## El límite de conocimiento del sampling
-
-Los traces, los replays y los profiles necesitan :term[sampling]{key="sampling"} por el costo de almacenamiento y el overhead en el cliente. El problema es que al bajar el sample rate no solo se reduce el costo: también se reducen las preguntas que se pueden responder.
-
-Un sampling aleatorio del 10% puede estar bien para estimar la distribución global, pero puede perder errores raros. Por eso hacen falta políticas que dejen replays adicionales solo para las sessions con error, o que conserven con prioridad los traces lentos y los traces fallidos.
-
-Al revés, si solo se guardan las solicitudes con error, desaparece la base de comparación con los usuarios normales. No se puede juzgar si una solicitud lenta es especialmente lenta o si todo el sistema está lento.
-
-Yo también pagué este costo. Este blog, para ahorrar, estaba configurado para recibir solo el 10% de las muestras de trace, y en la investigación de arriba, para dirimir si los tiempos transcurridos inflados eran espera real hacían falta el inicio y el fin del tramo de esa llamada, y la muestra era tan superficial que no había trace de las solicitudes problemáticas. Lo que ahorré fue mi factura y lo que perdí fue una pregunta que podía responder.
-
-El sampling debe ser una política por pregunta, no un solo número.
-
-- Una muestra probabilística para el baseline
-- Una muestra prioritaria para los errores y los latency thresholds
-- Una muestra temporal para investigar una release o funcionalidad concreta
-- Una muestra aparte para replay·profile, donde la privacidad y el costo pesan más
-
-Los datos que no se guardaron no los puede restaurar después ni la IA.
-
-## El diseño de instrumentación después de la IA
-
-La razón por la que la IA es útil en la observación de sistemas es que los datos ya están estructurados. Issue, event, tag, span, trace y release se pueden consultar por API, y los logs y profiles también tienen tiempo e identificadores. Que yo pudiera obtener la distribución de tags de un issue y la fecha en que dejaron de ocurrir preguntándole a un agente desde el editor también se debe a esta estructura.
-
-En junio de 2026, Sentry [amplió la documentación de la API que usan los agents y la automatización](https://sentry.io/changelog/the-sentry-api-endpoints-your-agents-use-are-now-fully-documented/), incluyendo endpoints relacionados con tracing, profiling y attachments. Muestra que los datos de observación se usan no solo como información que las personas leen en dashboards, sino también como interfaz donde los agents consultan evidencia.
-
-La IA acelera exploraciones como estas.
-
-- Encontrar combinaciones de issue y tag que crecieron tras una release reciente
-- Resumir los spans lentos de un trace concreto y sus logs asociados
-- Encontrar breadcrumbs y entornos de navegador comunes a varios eventos
-- Conectar los hot paths de un profile con commits candidatos
-- Proponer hipótesis de reproducción y puntos de instrumentación adicionales
-
-Pero el domain state que no se instrumentó tampoco lo puede conocer el agent. Dónde dejar atributos como `checkout.result`, `cache.status` y `fallback.reason` solo puede decidirse entendiendo el código y las expectativas del usuario. Que en mi investigación el agente pudiera extraer al instante la distribución y los tags fue porque antes existió la decisión de bajar los puntos de instrumentación de capa y ponerles tags.
-
-La IA puede proponer root causes, pero qué definir como fallo y a qué usuarios observar con qué costo es un juicio de ingeniería.
-
-## Las señales en un solo incidente
-
-Encender todas las funciones de Sentry no es la conclusión de este post. Desde un error hay que poder mirar el pasado con breadcrumbs, seguir el camino de la solicitud con el trace, confirmar el alcance del impacto con metrics, y bajar a replay y profile cuando haga falta. A esto deben sumarse, en el mismo flujo de investigación, la ausencia de eventos esperados, como con el cron monitor, y las desviaciones clasificadas como respuestas normales.
-
-![Las capas de preguntas que Sentry puede responder y el alcance que este blog tiene encendido](2.png?w=720)
-
-No creo que sea un boletín vergonzoso el hecho de que, de las cinco capas, lo único que este blog encendió por completo sea un solo tag. Qué capa encender no se decide hojeando la lista de funciones: solo después de decidir qué se va a considerar fallo se puede saber qué capa hace falta. Eso sí, en esta investigación los vacíos de dos capas, la muestra superficial de traces y el punto ciego de la recolección semanal, volvieron como costos reales, así que las próximas capas a encender ya quedaron decididas.
-
-El trace context y las semantic conventions de OpenTelemetry extienden este camino de navegación más allá de un producto concreto. Eso sí, la browser instrumentation de JavaScript sigue siendo experimental y la señal de profile es Alpha. Hay que distinguir entre el hecho de estar incluido en el estándar y el hecho de poder usarse de forma estable en cada runtime.
-
-La IA encuentra rápido candidatos para buscar y conectar estas señales. Pero la profundidad de la observación no la decide el número de funciones del producto sino **si se puede uno mover entre las señales y si se expresó el estado que se salió del camino normal**. Mis respuestas 200 no hablaron de fallo ni una sola vez hasta que planté la señal, y solo después de plantarla se reveló que aquello había sido un fallo.
-
-En el próximo artículo, [De la observación al juicio](/260916), quiero ver cómo interpretar junta esta información del sistema con los datos de usuario de GA4 y Search Console. Porque con solo mirar el sistema en detalle no se puede decidir qué arreglar primero. Antes de eso, me gustaría que los lectores de este post recuerden un issue que hayan cerrado como resolved. ¿Ese issue se detuvo porque se arregló, o simplemente nadie volvió a medirlo?
+Todas las cifras de este artículo salieron del lab o de mis comprobaciones en local. Qué significa la field data recogida de usuarios reales una vez que sale del navegador, en CrUX, Search Console y la búsqueda, es algo que pienso continuar en [la siguiente publicación](/260916). Ojalá quienes lean esto también se tomen un momento para separar qué observaciones no han activado en sus propios servicios y si cada una es fruto de una decisión o algo que simplemente pasaron por alto.
 
 :::ref
-- [docs] [OpenTelemetry, Context Propagation](https://opentelemetry.io/docs/concepts/context-propagation/)
-- [docs] [OpenTelemetry, Sampling](https://opentelemetry.io/docs/concepts/sampling/)
-- [docs] [Grafana Loki Documentation](https://grafana.com/docs/loki/latest/)
-- [docs] [Google SRE Book, Monitoring Distributed Systems](https://sre.google/sre-book/monitoring-distributed-systems/)
+- [docs] [MDN, PerformanceLongAnimationFrameTiming](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming)
+- [docs] [web.dev, Optimize Interaction to Next Paint](https://web.dev/articles/optimize-inp)
 :::

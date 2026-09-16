@@ -1,292 +1,150 @@
 ---
 emoji: 🧩
 title: '从观测到判断'
-seoTitle: '解读 GA4 与 Search Console 数据：把观测数据变成产品判断的标准'
+seoTitle: '用 CrUX 与 Search Console 看清 Core Web Vitals 与搜索数据的边界'
 date: '2026-09-16'
-categories: 观测 前端 GA4 Search-Console AI
-description: '基于运营 GA4 和 Search Console 的经验，整理把观测数据变成判断的标准：排名下降但点击上升的真实案例、平均排名的陷阱、Measurement Protocol 与 BigQuery Export 的限制，以及告警与反馈循环。'
-keywords: 'Search Console 数据分析, GA4 事件设计, 平均排名下降, 提升搜索 CTR, GA4 BigQuery Export 限制, GA4 Measurement Protocol 验证, Consent Mode 区别, 数据驱动决策'
+updatedAt: '2026-09-16'
+categories: 观测 前端 GA4 Search-Console
+description: '整理浏览器测得的 Web Vitals 经过 CrUX、PageSpeed Insights、Search Console 时如何被层层筛选，以及 Google 关于排名的表述说到哪里为止。还收录了排名下降但点击增加的真实案例与重新查询的结果。'
+keywords: 'CrUX 实测数据, PageSpeed Insights 实测数据, Search Console 核心网页指标报告, Core Web Vitals 对排名的影响, Search Console 查询与网页点击差异, 平均排名下降 点击增加, 抓取速度 5xx 429'
 locale: zh-CN
 translationOf: '260916'
-sourceHash: ac19b6cdbc97066749d5110c0e05c7c797ec307e9d88032f20ac12cc2052d65d
+sourceHash: 09bd51bac82d7b631fb466afbd28b6124fe54187fadff533b9bbd970471079b4
 ---
 
-这篇文章想聊聊如何把观测数据变成判断。
+这篇文章想聊聊在浏览器里测得的性能数据，是如何一路走到搜索和判断的。
 
-几年来，我一直在这个博客上亲自运营 GA4 和 Search Console。看访问者通过什么搜索词进来，然后据此修改文章的标题和描述，如此反复。然而事实证明，长期看数据和用这些数据做出好的判断是两个不同的问题。这篇文章后面会讲到，面对同一篇文章的同一批指标，我在两个月之间差点得出截然相反的结论。
+这个系列的前三篇讲的都是我自己直接掌握的信号。[重新打开 Sentry](/260913) 看的是在服务器上悄无声息地失败的调用，[浏览器可观测性](/260914) 看的是网络与渲染，[浏览器的 CPU 与内存](/260915) 看的是主线程与内存。三篇里的数据，都是我自己埋下计测代码、从自己的存储里读出来的。
 
-此前的[浏览器观测](/260914)看了浏览器产生的性能信息，[系统观测](/260915)看了系统留下的错误、日志和 trace。这些信息积累得足够多之后，服务如何运转比以前清楚得多。但先修什么、那个问题对用户是否真的重要、修完之后体验有没有变好，仍然是不同的问题。
+这一篇的数据性质不同。访问者浏览器里产生的值会被交给 Chrome 的统计管道，其结果再出现在 PageSpeed Insights 和 :term[Search Console]{key="search-console"} 里。统计谁的体验、积累到多少才展示、按什么单位归并，全都由 Google 决定。
 
-这篇文章的核心不在于把数据强行合并到用户维度，而在于用不同的观测单位去验证同一个产品假设。而且数据源变多，判断并不会自动变好。把样本和聚合规则各不相同的数字放到同一张图上的那一刻，毫无关系的变化也可能被编成一个貌似合理的故事。观测的最后一个阶段需要的不是更多的仪表盘，而是**分辨每份数据看到了什么、没能看到什么的能力**。
+所以这篇文章想回答的问题只有一个。**要把已经离开浏览器的数字用于判断，需要先确认什么？** 我的答案是：先为每个数字写下它的样本和聚合规则，不给官方表述没说的内容添油加醋，并且把得出的结论换一个时间段重新测一遍。
 
-## 这个博客观测的三层
+## 我收集的 web_vitals
 
-与其从抽象的话题开始，不如先摊开我自己的案例。这个博客最终形成了三层观测。
+起点是我自己收集的 :term[RUM]{key="rum"}。正如在浏览器可观测性那篇里看到的，这个博客用 `web-vitals` 测量 LCP、INP、CLS、FCP、TTFB，并以 `web_vitals` 事件发送到 GA4。这里要重新审视的不是发送了哪些参数，而是**谁的体验进入了样本**。
 
-![这个博客的三层观测结构：错误、体感性能、搜索行为](1.png?w=720)
+这项收集的样本是**真正执行了 gtag.js 的浏览器**。事件先堆积在 `dataLayer` 里，gtag.js 加载后再消费这个队列，所以在脚本请求被拦截的环境中，测量值即使产生了也发不出去。反过来，即便不是 Chrome，只要 gtag.js 能运行、浏览器支持相应指标，也会进入样本。另外，由于 `reportSoftNavs: true`，通过客户端路由切换的页面也会被算作一次独立的页面体验。后面会看到，CrUX 对同一次访问的计法并不一样。
 
-第一层是 Sentry。用仅服务器端的埋点捕获异常和悄悄失败的 GA 调用。第二层是真实用户的体感性能。在浏览器里测量的 Web Vitals 被发送到 GA4 积累起来。第三层是搜索行为。每周自动收集 Search Console 数据，比较最近 28 天和之前 28 天。每一层回答的问题都不一样。什么坏了，访问者等了多久，他们当初是通过什么搜索词进来的。
+坦白说，写这篇文章时我没有重新查询 GA4 里积累的 `web_vitals` 数值。上一篇搁置的问题，也就是把 `metric_navigation_type` 注册为 GA4 的 custom dimension 后能否真正拆分查看，我同样没有确认。我试过用服务账号查询，但那个项目没有启用 Analytics Admin API。**能发送和能读取是两回事，这个博客目前只确认了前者。**
 
-三层之间无法互相替代。错误为零，访问者也可能觉得慢；速度很好，也可能根本没人来。前两层在前面两篇文章里讲过了，所以这篇文章的重心在第三层，以及把三层放在一起阅读的方法。
+## CrUX 统计的用户
 
-坦白说，这个博客的 GA4 并没有被深入用作行为分析工具。它更接近页面浏览量和 `web_vitals` 事件的存储库。所以这篇文章的 GA4 部分，会把我在运营中确认的限制和用官方文档验证过的设计标准放在一起写。哪些是经验、哪些是调研，我会按小节区分清楚。
+Google 在搜索这一侧看的 field data，不是来自我的 GA4，而是来自 Chrome User Experience Report（CrUX）。读 [CrUX 方法论文档](https://developer.chrome.com/docs/crux/methodology)就会发现，样本要经过三层条件的筛选。
 
-## 各不相同的观测单位
+第一层是用户条件。只有开启了使用情况统计信息发送、同步浏览记录、且没有设置同步密码短语的用户才会被纳入。平台是桌面版 Chrome 和 Android 版 Chrome，**iOS 上的 Chrome、Android WebView，以及 Edge 等其他 Chromium 浏览器都不在其中。** 满足这些条件的用户占全体的百分之多少，并未公开。
 
-人们很容易把浏览器 RUM、Sentry、GA4、Search Console 都叫作用户数据，但它们实际的观测单位并不相同。
+第二层是页面条件。页面必须按照与搜索引擎相同的标准可被公开发现。重定向后不是 200 的页面，或带有 `noindex` 的页面，都没有资格。此外还必须超过最低访问者数量，这个数字没有公开，页面和 origin 适用同一个值。
 
-| 层 | 代表性数据 | 观测单位 | 主要回答的问题 |
-|---|---|---|---|
-| 浏览器体验 | LCP, INP, CLS, resource timing | 页面访问和交互 | 用户等了什么、等了多久 |
-| 系统状态 | error, span, trace, log, profile | 事件和请求 | 哪里的什么失败了或变慢了 |
-| 产品行为 | GA4 event, session, key event | 行为和会话 | 用户在服务里做了什么 |
-| 搜索意图 | query, impression, click, position | 搜索展示 | 用户带着什么问题进来 |
+第三层是聚合方式。查询字符串和片段会被去掉，合并为同一个页面。而且文档明确写道，SPA 中由 JavaScript 完成的路由切换，即使在用户看来是新页面，**也会归入最初加载的那一个页面的体验**。这与我的 RUM 单独统计 soft navigation 的做法正好相反。[Chrome 团队的 soft navigation 文档](https://developer.chrome.com/docs/web-platform/soft-navigations)也写道，soft navigation 将如何报告给 CrUX 还没有定下来。
 
-即使看起来像同一个人的旅程，也不是每一层都在观测同一个用户。广告拦截器可能拦下 GA 和 Sentry 的请求，analytics 的样本会随隐私同意状态而变化。Search Console 提供的是搜索结果的聚合数据，而不是单个用户。CrUX 是满足一定条件的 Chrome 用户的 field data。
+把这些条件套到我的博客上，就会得出具体的结果。2026 年 9 月 11 日，我把只有一篇文章的 126 个分类页面改成了 `noindex, follow`。这些页面现在已经没有资格进入页面级 CrUX。那么它们还会留在 origin 级吗？文档的回答在同一个页面里出现了分歧。Origin 一节写的是，只要 origin 可被发现，就会不论单个页面是否可被发现，把所有页面的体验合并到 origin 级；而同一文档 Eligibility 一节的开头却写着，不满足 Page 条件的体验也不会进入 origin 级数据。我没有找到办法确认哪一种才是实际行为。**所以我在这里写明：改为 noindex 的分类页访问是否仍留在 origin 值里，我不知道。**
 
-因此，四层的数字对不上是正常的。问题不在于消除差异，而在于**记录每个数字回答的是哪个样本的哪个问题**。
+以上是我从文档中确认的规则。关键在于，**hooninedev.com 是否超过了最低访问者数量，我并不知道。** 既然门槛不公开，就只能直接去查，而这个尝试在下一节碰了壁。
 
-## GA4 的事件模型
+## PageSpeed Insights 的两种数字
 
-:term[GA4 event]{key="ga4-event"} 用名称和 parameter 为用户的交互建模。Google 的[事件设置文档](https://developers.google.com/analytics/devguides/collection/ga4/events)区分了 SDK 自动收集的 event、通过设置开启的 enhanced measurement、推荐使用既定名称和 parameter 的 recommended event，以及服务自行定义的 custom event。同样叫 event，谁拥有它的含义和 schema 却各不相同。
+PageSpeed Insights 在同一个界面上展示两种性质不同的数字。根据[官方说明](https://developers.google.com/speed/docs/insights/v5/about)，lab 数据是 Lighthouse 模拟的一次加载，field 数据是 CrUX 最近 28 天的数据。lab 是一组固定设备和网络条件下的结果，field 则是各种环境下真实用户的记录，所以文档也写道，lab 分数好并不保证实际体验好。
 
-一开始总想把点击和页面切换尽可能多地发出去。但事件多并不等于对用户理解得深。如果像 `button_click`、`button_click_2`、`main_button_clicked` 这样把实现位置做成名字，代码一变，分析的含义也会跟着垮掉。
+field 这边有一条回退规则。页面级数据不足时会降到 origin 级，如果 origin 也不足，就完全无法显示 field 数据。
 
-好的事件表达的是用户的意图，而不是 DOM 上发生的事。
+我曾尝试通过 PSI API 获取这个博客的 field 数据。2026-09-16T08:45:51Z 以移动端请求 `/260914` 时返回了 HTTP 429，2026-09-16T09:11:17Z 再用首页（`/`）请求一次，还是同样的 429。两次的响应正文都是 `Quota exceeded for quota metric 'Queries' and limit 'Queries per day'`。看起来是因为没带 API 密钥调用，撞上了共享配额。**所以这篇文章里没有这个博客的 CrUX field 值。** CrUX API 需要 API 密钥，而我的环境里只有用于 Search Console 的服务账号，所以没有调用。
 
-```ts
-gtag('event', 'article_reference_open', {
-  article_slug: '260916',
-  reference_type: 'specification',
-  link_position: 'body',
-})
-```
+同一时间，用本地 Lighthouse 测量 `/260914` 则毫无问题。**lab 值随时都能生成，但 field 值只有在访问者数量和资格条件都满足时才存在。** 我的 RUM 里积累了数值，并不意味着 CrUX 里就有值。
 
-这个事件记录的不是按下了哪个按钮组件，而是用户打开了文章参考资料这一事实。即使 UI 改了，分析的问题也得以保留。
+## Search Console 的 URL 组
 
-在设计事件之前，最好先写下这些。
+最后一个环节是 Search Console 的 Core Web Vitals 报告。[报告的帮助文档](https://support.google.com/webmasters/answer/9205520)说明数据来自 CrUX，并在其上又叠加了几层规则。
 
-1. 想理解哪种用户行为
-2. 用什么事件来判定该行为发生了
-3. 分析所需的最小 parameter 是什么
-4. 这个数字变化时会做出什么决策
-5. 如何验证重复和遗漏
+- 把相似的页面归为 **URL group**，组的状态取决于表现最差的指标。
+- LCP 和 CLS **两者都**达到数据量标准，组才会出现在报告中。组的数据不足时，会归入上一级的 origin 组显示；origin 组也不足时，就会被排除。
+- **只显示已编入索引的 URL**，而且是样本，不是完整列表。
+- "No data available" 的意思是该资源是新建的，或者该设备类型的 CrUX 数据不足。
 
-如果最后两个问题没有答案，事件就很容易沦为仪表盘的装饰。（这个博客的 GA4 停留在存储库层面的原因也在这里。能回答第 4 条的事件，目前还只有 `web_vitals` 一个）
+把四个环节串起来，就能看到样本缩小的顺序。RUM 统计 gtag.js 运行过的访问；CrUX 只留下其中有资格的 Chrome 用户，以及可被发现且足够热门的页面；PSI 按页面级或 origin 级展示这些数据；Search Console 则把已编入索引的 URL 归组，只留下超过数据量标准的部分。每个环节的筛选规则都不同，所以**同一个页面的 LCP 在四个地方显示为不同的值，不是错误，而是正常现象。**
 
-## 收集与反映的差异
+我的收集脚本（`scripts/fetch-gsc.js`）只获取 Search Analytics。所以这个博客的 Core Web Vitals 报告现在处于什么状态，这篇文章没有确认。既然存在 origin 组这一回退，也不能仅凭流量小就断定是 "No data available"。在打开报告之前，我不知道。
 
-用 GA4 Measurement Protocol，可以从浏览器之外的服务器或 offline system 发送 event。但 Google 的 [Measurement Protocol reference](https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference) 明确写了一个重要限制。收集 endpoint 收到 HTTP 请求就返回 `2xx`，即使 payload 有误或数据没有被处理，也不会返回错误状态。
+## 排名表述的边界
 
-HTTP `2xx` 的意思是请求被接收了，并不是 event 准确进入目标报告的证据。系统观测那篇文章讲过的、藏在成功响应里的失败，同样存在于 analytics 的收集环节。就像这个博客在 200 响应背后藏着空统计一样，在 analytics 里，发送成功也不等于反映成功。
+既然 field 数据会被这样层层筛选，下一个问题就是这些数据在搜索排名中被用到什么程度。这个话题最容易被夸大，所以我原样引用 Google Search Central [page experience 文档](https://developers.google.com/search/docs/appearance/page-experience)的原文。文档采用 FAQ 形式，对于是否存在单一的 page experience 信号用于排名这个问题，它首先这样回答。
 
-所以部署前要用 validation endpoint 或 Event Builder 确认 payload，部署后的 event pipeline 至少要在三个阶段验证。
+> There is no single signal. Our core ranking systems look at a variety of signals that align with overall page experience.
 
-- 发送：client 或 server 是否发出了请求
-- 收集：在 Realtime 和 DebugView 里能否看到 event 和 parameter
-- 分析：在最终报告和 export schema 里能否按预期的维度查询
+意思是并不存在 page experience 分数这样的单一信号。紧接着的问题是 page experience 的哪些方面被用于排名，回答如下。
 
-即使发送数据的代码有测试，只要收集设置或 custom dimension 的注册缺了，分析阶段就用不上这个值。analytics 同样是部署后需要验证的运营系统。
+> Core Web Vitals are used by our ranking systems. We recommend site owners achieve good Core Web Vitals for success with Search and to ensure a great user experience generally. Keep in mind that getting good results in reports like Search Console's Core Web Vitals report or third-party tools doesn't guarantee that your pages will rank at the top of Google Search results; there's more to great page experience than Core Web Vitals scores alone.
 
-## 原始事件打开的问题
+原文确定的是 Core Web Vitals 被排名系统使用这一事实，并且马上划清界限：报告结果好并不保证排在前列。同一个回答接着说，仅为了 SEO 去追求满分可能不是利用时间的好办法，并写明 Core Web Vitals 以外的 page experience 要素不会直接提升排名。
 
-GA4 的默认报告适合在不直接处理 :term[raw event]{key="raw-event"} 的情况下快速查看常见问题。但当你想自由组合 event 和 parameter，或与其他数据 join 时，局限就出现了。
+我更看重的是**这份文档没有说的内容**。权重有多大、跨过阈值的那一刻是否就产生效果、从 needs improvement 变成 good 排名会变动多少，哪里都没有写。所以“改进了 Core Web Vitals，排名就上去了”这句话无法用官方文档来支撑，在这个博客上更是如此。正如前面所见，这个博客连 field 值本身都没能确认。
 
-[BigQuery Export](https://support.google.com/analytics/answer/9358801) 可以把 GA4 的 raw event 按日或以 streaming 方式导出。Standard property 的 daily export 有每天 100 万 event 的限制。Streaming export 快但是 best-effort，不包含新用户的 attribution，已有用户的 attribution 也可能需要一段时间才能处理完整。这就是当日分析要用 `events_intraday_*`、稳定的按日分析要用已完成的 `events_*` table 的原因。
+## 抓取看到的服务器响应
 
-能访问 raw event 之后，下面这样的问题就成为可能。
+在官方文档中，性能与搜索明确挂钩的地方，反而是抓取。不过这说的也不是排名，而是抓取速度和编入索引。
 
-- 经历了慢 LCP 的会话里，前往下一页的比例是否发生了变化
-- 特定 release 之后出错的会话里，核心行为的完成率是否变了
-- 落在 landing page 里的阅读深度是否因搜索 query 类型而不同
-- mobile 和 desktop 上同一功能的 interaction pattern 是否不同
+Google 的 [crawl budget 指南](https://developers.google.com/search/docs/crawling-indexing/large-site-managing-crawl-budget)首先缩小了适用对象：拥有 100 万个以上唯一页面且大约每周变化一次的网站，拥有 1 万个以上唯一页面且每天变化的网站，或者有大量 URL 被 Search Console 归类为“已发现 - 尚未编入索引”的网站。原文直接写道，如果网站没有很多快速变化的页面，或者页面在发布当天就会被抓取，就不需要读这份指南。截至 2026 年 9 月 16 日，sitemap 中有 186 个 URL 的这个博客不在适用范围内。
 
-不过 raw data 在给你解读自由的同时，也把重复、late arrival、sessionization、时区都交给你自己处理。会写 SQL 这件事并不保证用户模型是对的。
+即便如此，指南里的抓取容量规则还是值得了解。响应时间稳定或变快，上限就会提高；变慢或返回 5xx、429，上限就会降低。[HTTP 状态码文档](https://developers.google.com/search/docs/crawling-indexing/http-network-errors)把后果写得更具体。5xx 和 429 会让抓取工具暂时放慢。已编入索引的 URL 会被保留，但如果持续下去，最终会从索引中移除。429 以外的 4xx 不影响抓取速度。这里必须准确区分路径。长期持续的 5xx 是通往**被移出索引**的路径，而说它是拉低排名的信号的官方表述，我没有找到。
 
-## 搜索呈现的意图
+这个博客最大的服务器事故是 JIHOON-BLOG-2，GA Data API 调用挂起了 65 秒以上。但响应是 200，而且调用 `src/lib/google-analytics.ts` 的只有 `/api/analytics` 路由，并不是渲染文章文档的路径。没有依据把这次事故和抓取联系起来，写这篇文章时我也没有打开 Crawl Stats 报告。**没有确认过的关联，就不去关联。**
 
-GA4 看的是用户进入网站之后的行为。:term[Search Console]{key="search-console"} 展示的是在那之前，用户通过哪些 query 和搜索结果获得展示并点击进来。
+## page 与 query 的点击差异
 
-Search Analytics API 可以按 query、page、country、device、search appearance 等 dimension 聚合 click、impression、CTR、position。但[官方 API 文档](https://developers.google.com/webmaster-tools/v1/searchanalytics/query)解释说，它不保证返回所有 row，而是按内部限制返回排名靠前的 row。小 query 的合计可能与整体合计对不上。
+现在换个方向，看看 Search Console 返回的搜索数据。这是我每周以 CSV 形式获取、实际用来修改标题和描述的数据。
 
-这个限制不是只存在于文档里的警告，而是我的 CSV 里每周都能看到的现象。9 月 11 日收集的最近 28 天数据里，page 维度的点击合计是 47 次，query 维度的点击合计却是 8 次。同一时期的同一个网站，大部分点击在 query 维度里却看不到。因为稀少或被匿名化的 query 不会作为 row 返回。如果想用 query 数据解释全部流量，就会用想象去填补这块空白。
+![通过 Search Console API 收集的两个 28 天区间里，page 维度的点击合计为 47 次，而 query 维度的点击合计只有 8 次和 9 次](1.png?w=720)
 
-平均 position 也不是一张简单的排名表。它是把多个 query、device、国家、search appearance 上产生的展示聚合起来的值。query 构成一变，即使单个关键词的排名不动，平均值也可能移动。
+把 2026 年 9 月 11 日获取的 CSV 按维度相加，数字对不上。最近 28 天（8 月 12 日至 9 月 8 日）page 维度的点击合计为 47 次，而 query 维度的点击合计为 8 次。之前 28 天（7 月 15 日至 8 月 11 日）也是 47 次和 9 次。两个区间差距一样大，所以这不是一次偶然，而是结构性的。
 
-## 排名下降了，点击却上升了
+我最先怀疑的是行数限制。[Search Analytics API 文档](https://developers.google.com/webmaster-tools/v1/searchanalytics/query)写道，它不保证返回所有行，而是返回排在前面的行。但我的脚本用 `rowLimit: 1000` 请求，返回的 query 行分别是 128 行和 66 行。**没有触及上限，所以截断不是原因。**
 
-平均 position 的这种性质，我是在这个博客的真实数据里遇到的。[Biome 能取代 ESLint 和 Prettier 吗？](/241201)是 2024 年 12 月写的文章，相对于展示量，它的点击少得奇怪，而且持续了很久。于是今年 6 月，我把这篇文章的 seoTitle 改写得更接近实际搜索查询的形态。是一个以 "Biome vs ESLint vs Prettier" 开头的比较型标题。
+剩下的解释有两个，都在 [Search Console 帮助文档](https://support.google.com/webmasters/answer/17010575)里。一个是匿名化。极少被搜索的查询出于隐私保护会从查询表中排除，只计入总合计。另一个是[聚合单位](https://support.google.com/webmasters/answer/17011364)。query 维度按 property 统计。一个用户先后点击同一网站的两个链接，也只算 1 次点击。page 维度按 URL 统计，同样的行为就变成 2 次点击。
 
-在 8 月初收集的 28 天对比里，这篇文章的数字是这样变化的。展示从 230 次减到 204 次，降了 11%，平均 position 从第 8.9 位退到第 11.6 位。只看这两个指标，这是一篇变差的文章。可是 click 从 2 次增加到 13 次，CTR 从 0.87% 变成了 6.37%。
+所以这两个合计从一开始就不是按同一规则得出的数字。有一个诱惑值得记下来：最近 28 天里有点击的查询共六个，其中五个是 "eslint vs biome"、"biome vs prettier" 这类 Biome 对比型查询。这五个查询的点击加起来是 6 次，恰好 Biome 文章韩语 URL 的 page 点击也是 6 次。看起来严丝合缝，但**不能因为两个聚合规则不同的数字相等，就把它们联系起来。** query 数据不应被读成流量的拆分，而应被读成窥见搜索意图的样本。
 
-![按 Search Console 统计的 Biome 文章 28 天对比，8 月初收集：展示和排名变差了，但点击和点击率大幅上升](2.png?w=720)
+## 排名下降了，点击却增加了
 
-先泼一盆冷水才算诚实。这些数字并不能证明标题修改的效果。平均 position 是按展示加权的平均值，只要那些排得靠前却没人点的展示消失，排名就会变差，CTR 也会机械地上升。各时期的 query mix 和季节性也可能不同，而且点击增加的绝对量是 28 天里的 11 次。按倍数看很大，按绝对量看很小。
+我确实用这些搜索数据做过一次判断。[Biome 能取代 ESLint 和 Prettier 吗？](/241201)是我在 2024 年 12 月写的文章，相对于展示次数，点击明显偏少。于是在 2026 年 6 月 11 日，我按照实际搜索查询的形式，给它加上了以 "Biome vs ESLint vs Prettier" 开头的 `seoTitle`。
 
-即使考虑到这些，仍然有剩下的东西。把排名当成果，这是一篇需要返工的文章；把实际流量当成果，这是一篇变好了的文章。**选择什么作为结果指标，会改变同一份数据的结论。**如果我当时只盯着排名下滑，恐怕会把一篇开始起色的文章重新拆掉。
+改完标题后收集的 28 天对比中，这篇文章的数字是这样变化的。（这是当时查询到的值。`.gsc-data/` 每次收集都会被覆盖，所以当时的 CSV 现在不在仓库里，我也没有记下确切的收集日期。能确认的只是：8 月 18 日的提交里包含一份 8 月 16 日的草稿快照，其中已经有这些数字）展示次数从 230 次降到 204 次，减少了 11%，平均排名从第 8.9 位退到第 11.6 位。只看这两个指标，这是一篇变差了的文章。但点击从 2 次增加到 13 次，CTR 从 0.87% 变成了 6.37%。
+
+![在 Search Console 中 Biome 文章的 28 天对比里，展示次数和平均排名变差了，但点击次数和点击率大幅上升](2.png?w=720)
+
+先泼点冷水才算诚实。这些数字并不能证明改标题的效果。page 维度的平均排名，是每次展示时记录的该页面最高位置的平均值，所以只要那些排在靠前却没人点击的展示消失，排名就会变差、CTR 就会上升。查询构成和季节性在不同时段也不一样。增加的点击绝对量是 28 天 11 次。按倍数看很大，按绝对量看很小。
+
+尽管如此，还是有东西留下来。如果把排名当作成果，这是一篇需要修改的文章；如果把实际流量当作成果，这是一篇变好了的文章。**选什么作为结果指标，会改变同一份数据的结论。** 如果我只看了排名下降，恐怕会把一篇刚开始好转的文章又大改一遍。
 
 ### 9 月重新查询的数字
 
-整理这个系列时，我重新查询了同一篇文章现在的状态。写过去的工作时，确认那个状态如今是否还维持着是我的规矩，这次也庆幸查了。
+写这篇文章时，我又确认了同一篇文章现在的状态。在 2026 年 9 月 11 日收集的 CSV 里，韩语 URL `/241201` 的情况如下。
 
-在 9 月 11 日收集的最近 28 天里，这篇文章是展示 185 次、click 6 次、CTR 3.24%、平均 position 第 20.8 位。点击从峰值的 13 次跌到一半以下，平均 position 按收集时间的顺序 8.9 → 11.6 → 14.5 → 20.8，整个夏天一路后退。也就是说，"排名下降了但点击上升了" 这个反转叙事，在 8 月初的对比区间里最鲜明，而下一个区间又动摇了这个叙事。
+| 区间 | 展示 | 点击 | CTR | 平均排名 |
+|---|---|---|---|---|
+| 之前 28 天（7 月 15 日至 8 月 11 日） | 211 | 11 | 5.21% | 14.5 |
+| 最近 28 天（8 月 12 日至 9 月 8 日） | 185 | 6 | 3.24% | 20.8 |
 
-这次重新查询并没有推翻上一节的结论。现在点击仍然多于修改前的 2 次，CTR 也仍然高于 0.87%。这个博客上有点击记录的六个搜索 query 里，五个还是 "eslint vs biome" 这类针对这篇文章的比较型 query。只是教训多了一条。不只是指标的选择，**对比期间的选择同样会改变结论。**用一次 28 天对比写完一个叙事，下一个 28 天就会把它打碎。而平均 position 为什么持续后退，我还不知道。可能是获得展示的 query 构成变了，也可能是竞争文档变多了。在确认之前，先当作未解决。
+把前面的两个值（8.9、11.6）和这份 CSV 的两个值（14.5、20.8）按收集顺序排列，平均排名整个夏天都在下滑。点击则是 13 次之后 11 次、6 次。前一次对比的最近区间和 9 月收集的之前区间可能有重叠，所以很难把 13 次到 11 次读成下降，但最近区间的 6 次明显是降下来的数字。“排名下降了，点击却增加了”这个故事在第一次对比中最鲜明，而下一个区间动摇了它。
 
-## 从假设出发的连接
+即便如此，前一节的结论并没有被推翻。6 次点击和 3.24% 的 CTR，仍然高于第一次对比的之前区间（2 次，0.87%）。只是多了一条教训。不只是指标的选择，**对比时段的选择也会改变结论。** 用一次 28 天对比就把故事讲圆，下一个 28 天就会把它打破。
 
-一说连接数据，首先想到的就是统一 user id 和 session id。当然，有 trace id、release、route、timestamp 这类公共维度，分析会容易得多。但把所有数据按个人维度 join 不应该成为目标。
+另外，最近区间里新加入了我在 8 月 17 日提交的这篇文章的五个翻译版本。英文版 `/en/241201` 展示 84 次、点击 0 次，中文版展示 12 次、点击 1 次。翻译版是否分走了韩语 URL 的展示，平均排名为什么持续下滑，我还不知道。在确认之前，先作为未解决的问题搁着。
 
-Search Console 的 query 无法和个人关联，也不应该关联。未同意的用户可能没有 GA event。Sentry 的 event 里也有很多不需要识别用户的错误。
+## 叠在同一时段的变更
 
-所以不如先确定假设的观测单位。
+没有给 Biome 文章赋予因果关系，并不只是出于谨慎。这个博客确实存在无法分离因果的条件。
 
-| 假设 | 合适的观测单位 |
-|---|---|
-| 新 release 之后支付错误变多了 | 按 release 的 error rate 和 key event completion |
-| mobile 用户开始阅读文章的时间偏晚 | 按 device 的 LCP 分布和 engagement event |
-| landing page 与特定搜索意图不匹配 | 按 query cluster 的 impression、CTR 和按 page 的行为 |
-| fallback 在用户看不到的地方反复发生 | 按 fallback reason 的 event 和受影响 session 的比例 |
+仅 2026 年 9 月 11 日一天，就上线了六项与搜索相关的变更：恢复分类页的 hreflang 集群和 x-default，替换 front matter 里的长破折号，把 48 个 `seoTitle` 重写到 60 个字符以内，修复文章 OG 图片的 404，给正文图片设置 1680px 上限，以及把 126 个只有一篇文章的分类页设为 `noindex`。9 月 14 日，我把一篇观测文章拆成多篇发布；9 月 16 日又接连进行了 hreflang 双向互指的修复、分类 description 的扩充、IndexNow 的引入、被截断的标题和描述的重写，以及新文章的发布。这篇文章的重写也落在同一时段。
 
-假设在先的话，很多情况下不需要个人标识符，在聚合层面就足以回答。前面 Biome 文章的案例也是如此。我需要的不是点开那篇文章的一个个用户，而是 query 构成和点击的 28 天粒度对比。观测的精确和用户追踪的精确不是一回事。
+9 月 11 日我留下了一份基准线文档。截至当时的最近 28 天，英文文章页面展示 892 次、点击 0 次，我决定在 10 月初看看这个数字会不会变化。但即使 10 月英文点击增加了，我也无法挑出唯一的原因。可能是 hreflang 修复，可能是 9 月 11 日的标题重写，也可能是 9 月 16 日的截断修复。何况基准线数据里已经有一个反例：被截断的标题只有 1 个的 zh-CN，以 7 次点击成为非韩语语言版本中点击最多的，这很难让人把标题截断看作原因。**所以在 10 月的对比中，我决定只读方向，不主张各项变更各自的贡献。**
 
-## 相关性的局限
+## 从观测到判断
 
-连接观测数据时最常见的错误，是把同一时期变动的两个值读成因果关系。
+如果说前三篇展示的是服务器上悄无声息的失败、访问者等待的时间，以及这段等待产生的位置，那么这一篇的数据，就是这些体验离开浏览器、经过别人的规则筛选后的结果。所以结论也稍微更保守一些。field 数据经过 RUM、CrUX、PSI、Search Console，在每个环节按不同规则缩减，在这个博客这样的小网站上，可能根本留不到最后。Google 关于排名的表述停在 Core Web Vitals 会被使用这一点上，抓取文档停在慢响应和 5xx 会影响抓取与编入索引这一点上。Search Console 的 page 合计和 query 合计是按不同规则统计的数字，所以加不到一起。**为每个数字先写下统计了谁、用的是什么规则，并在官方表述停下的地方一起停下。** 把观测变成判断，大部分工作就是这两件事。
 
-假设 LCP 变差的那一周转化率下降了。性能可能是原因，但 campaign 流量、价格变动、库存、季节性、device mix 的变化也都有可能。如果拿总体平均值互相比较，仅仅是 mobile 流量增加，两个值也可能一起变动。我没有立刻把 seoTitle 修改和点击增加绑成因果，也是同样的理由。两件事在时间上先后相继，仅凭这一点还不够。
-
-按下面的顺序收窄问题，可以减少草率的结论。
-
-1. 是否在同一时间段发生变化
-2. 在相同的用户环境和 route 里关系是否仍然存在
-3. 是否与特定 release 或变更时点吻合
-4. 错误和性能的先后关系能否在 event 层面确认
-5. 修复或实验之后，是否朝预期的方向回归
-
-观测数据擅长收窄原因候选。要确定因果关系，还需要受控实验、自然实验或可复现的变更。
-
-## 分布与比例
-
-系统和用户体验被压缩成平均值的程度越高，重要的群体消失得越多。
-
-平均 LCP 是 2 秒，也可能有一部分 mobile 用户在经历 8 秒。整体 error rate 很低，也可能只集中在收到新 release 的特定 browser 上。CTR 上升了，但如果 impression 急剧减少，触达用户的构成本身可能已经变了。Biome 文章 6.37% 的 CTR 正是这种情况。
-
-所以需要下面这样的组合。
-
-- 性能：不只是 median，还要 p75 和 p95
-- 错误：不只是 event count，还要 affected user 和 session 比例
-- 行为：不只是 event 数，还要相对 eligible user 的完成率
-- 搜索：不只是 CTR，还要 impression、click、query mix
-- 部署：不只是整个期间，还要 release 前后和灰度发布区间
-
-比例的分母也要一起保存。只看 checkout error 100 件像是大问题，但它是 100 次尝试里的 100 件，还是 100 万次里的 100 件，判断会完全不同。
-
-## 同意与数据质量
-
-对用户观测挖得越深，就越难把隐私和同意问题当作事后附加的法律检查清单。因为能收集什么，直接决定了能做什么分析。
-
-Google 的 :term[Consent Mode]{key="consent-mode"} [官方文档](https://developers.google.com/tag-platform/security/concepts/consent-mode)说明了根据用户的同意状态调整 tag 和 SDK 的存储与发送行为的方式。Basic mode 在同意之前拦下 tag。Advanced mode 以默认同意状态加载 tag，在同意被拒绝期间发送无 cookie 的测量信号，可用于更具体的 modeling。
-
-这里重要的是不把 :term[modeled data]{key="modeled-data"} 和 observed data 当成同一种东西。根据设置和资格条件，报告里可能应用了 behavioral 或 key event modeling，所以不能假定屏幕上的数字永远是直接观测到的 event 的简单合计。
-
-观测设计应当包含这些问题。
-
-- 这份数据对决策真的必要吗
-- 不识别个人，在聚合层面能否回答
-- 用户拒绝时，哪些东西不会被收集
-- 删除和保留期限能否运营起来
-- SDK 的默认值与我们服务的政策是否一致
-
-少收集数据可能会减少分析机会。同时，不必要的噪音和风险也会减少。好的观测更接近符合目的的最小收集，而不是最大收集。
-
-## 失败与成功的定义
-
-最小限度收集什么，最终取决于服务如何定义成功与失败。工具会替你计算 error count、latency、session、conversion、CTR，但不会替你决定哪个值是服务的失败、哪个值是成功。
-
-即使返回了 HTTP 200，核心数据是空的也可能是失败。反过来，即使外部 API 失败了，只要快速展示了 fallback、用户达成了目的，服务也可能是成功的。即使搜索 position 下降了，只要目标用户的 click 增加了，产品结果也可能是变好的。
-
-要做这个判断，技术指标和用户结果之间需要明确的句子。我在这个博客实际定下的句子是这些。
-
-- 用户必须能在搜索结果里找到期待的文章。
-- 文章的主要内容必须在按 mobile p75 定下的时间内呈现。
-- 即使附加统计失败，正文阅读也不得被拖慢。
-- 定时收集任务没有执行，视为运营失败。
-
-有了这些句子，需要的 metric、alert、event 就会跟着出现。反过来，如果从工具的默认 dashboard 开起，就容易把可测量的东西错当成重要的东西。
-
-把观测结果变成判断的工程师，其角色不是成为最了解数据的人，而是成为**把用户的期待翻译成系统可验证条件的人**。
-
-## 告警应该挂在什么上面
-
-失败的定义一旦成为句子，下一个问题马上跟来。告警挂在哪里。
-
-Google SRE 早期 Rob Ewaschuk 写的[告警哲学文档](https://docs.google.com/document/d/199PqyG3UsyXlwieHaqbGiWVa8eMWi8zzAn0YfcApr8Q/mobilebasic)一锤定音地说，呼叫人的告警必须紧急、重要、可处置、真实存在。并且建议把告警挂在症状而不是原因上。也就是挂在 500 响应或用户可见错误这类显露在外的信号上。
-
-然而这个原则和我经历的事情之间有一种微妙的张力。正如系统观测那篇文章讲过的，这个博客的失败不是 500，而是 200 响应和空统计。基于症状的告警建立在失败会显露在外这个前提之上，而被归类为成功的失败恰恰打破了这个前提。
-
-所以我并不认为需要反驳这个原则。相反，我得出的结论是，**把什么定义为症状，才是这件事真正难的部分**。在这个博客里，症状不是状态码，而是"统计查询函数返回了默认值"，而它只有靠手工埋点才能成为症状。上一节说要先用句子定下失败与成功，理由就在这里。有了那些句子，才能定下要挂告警的症状。
-
-同一份文档补充的建议也值得记住。对嘈杂的告警，要倾向于删除。因为过度监控是比监控不足更难解决的问题。顺便一提，Google 的 SRE 书把[监控本身的失败](https://sre.google/sre-book/postmortem-culture/)列入了需要撰写事后复盘的触发条件清单。收集观测数据的装置悄悄停摆，同样是失败。对这个博客来说，每周运行的 Search Console 收集在某一周没有运行，就属于那份清单。
-
-## 数据之间的翻译
-
-告警都挂好之后，剩下的工作就是把用户的期待转换成浏览器 RUM、Sentry、GA4、Search Console 各不相同的 query language 和 schema。在这个环节，AI 能承担的角色与其说是生成结论，不如说是把一个问题翻译成在每个数据源里可验证的形式。
-
-比如下面这样的流程是可能的。
-
-1. 把自然语言问题转换成各系统的 API query 和 SQL。
-2. 构建对齐不同时区和 dimension 的转换。
-3. 寻找分布发生变化的 segment 和意料之外的反例。
-4. 把相关的 release、code path、官方文档收集到一起。
-5. 提出接下来要确认的假设和追加埋点的候选。
-
-OpenTelemetry 的 semantic convention 之所以重要，原因也在这里。同样含义的属性如果每个服务用不同的名字发送，连 AI 也得先猜 schema。遵守公共的名称、单位和 stability，工具和人连接信号都会更容易。
-
-即使 AI 协助分析，验证的步骤也不会减少。
-
-- 确认生成的 SQL 是否正确处理了重复 event 和时区。
-- 确认 API 返回的是全部 row 还是只有 top row。
-- 确认没有混淆平均值和分位数、用户数和事件数。
-- 区分 modeled data 和直接观测到的数据。
-- 不给小样本的偶然变化附加过度的解释。
-
-也就是说，AI 的长处在于把问题变成可执行的 query、拓宽比较的轴。确认结果出自哪个样本和哪套聚合规则的责任，仍然留在原地。
-
-## 作为产品能力的反馈循环
-
-把问题变成 query 的成本降低之后，观测和下一次变更之间的时间也可以缩短。这时重要的是，不要只提高生成速度。
-
-Google Cloud 发布的 [2025 DORA 报告](https://cloud.google.com/blog/products/ai-machine-learning/announcing-the-2025-dora-report)基于对全球约五千名技术从业者的问卷，总结出 AI 的采用与 software delivery throughput 和 product performance 呈正向关系，与 delivery stability 呈负向关系。DORA 在[另一篇洞察文章](https://dora.dev/insights/balancing-ai-tensions/)里这样解释其机制。生成阶段省下的时间被重新配置到验证开销上，需要评审的代码被生产出来的速度本身也提高了。正如报告摘要所说，AI 与其说是修复团队，不如说是放大团队已有的东西。（2026 年 4 月更新的 DORA [ROI of AI-assisted Software Development 报告](https://dora.dev/ai/roi/report/)也正面讨论了管理采用初期生产率下滑的问题）
-
-我更看重的依据另有其一。METR 在 2025 年发表的[研究](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/)让 16 名熟练的开源开发者在 246 个真实 issue 上随机分配是否允许使用 AI，结果在允许 AI 的 issue 上，完成时间长了 19%。然而开发者们事先预计会快 24%，即使亲历了实际变慢之后，仍然相信自己快了 20%。我在 [AI 前端工程师](/260302)里把这项研究作为生产力讨论引用过，但在这篇文章的语境里读法不同。它是体感无法替代测量的依据。体感不可信就得去测，而且像前面 Biome 文章的案例那样，测过一次的值也要换个期间再测一次。
-
-生成速度加快，变更量就会增加。即使缺陷按同样的比例发生，绝对数量也会增加，需要评审的代码和对用户的影响也会快速堆积。此时如果观测跟不上，团队就只提高了部署速度，没有提高学习速度。
-
-快速的 :term[feedback loop]{key="feedback-loop"} 是把下面这些步骤紧密衔接的能力。
-
-1. 部署变更。
-2. 观测系统和用户身上发生了什么。
-3. 找出预期与实际的差异。
-4. 收窄原因假设。
-5. 用下一次变更验证。
-
-AI 能极大地帮助第 3 步和第 4 步的探索。但如果第 2 步需要的信号缺失，或者没有与第 1 步的 release 信息连接起来，就无从开始。
-
-所以善用 AI 的组织，其基础除了测试，还需要可观测的系统和以用户为中心的结果指标。比起生成能力，feedback loop 的质量才会成为瓶颈。
-
-## 把观测变成判断
-
-把这个系列的三篇文章各折叠成一句话，是这样的。浏览器观测展示用户体感到了什么，系统观测展示那份体验是在系统的哪里被制造出来的，GA4 和 Search Console 展示用户在服务里做了什么、带着什么意图进来。这些信号不是一个人的完整记录，而是从不同样本照亮同一个假设的证据。
-
-因此，连接的标准不是数据量，也不是个人标识符的精确程度。要选择契合假设的观测单位，记录分母和缺漏，用修复或实验重新验证相关性。因隐私和同意而看不见的用户，也要纳入分析的局限。而且从一次对比得到的结论，要换个期间再确认一次。就像我的 Biome 文章数字在两个月之间讲了两次不同的故事那样，观测不是一次查询，而是持续复测的工作。
-
-观测的对象本身也在扩大。OpenTelemetry 正在[单独的仓库](https://github.com/open-telemetry/semantic-conventions-genai)里整理面向生成式 AI 和 MCP 调用的 semantic convention。我们交给 AI 执行的事情越多，那些执行也越会成为同一套原则之下的观测对象。
-
-AI 降低了启动这种验证的成本，但不会替你定下成功与失败的标准。先用句子定下要守护哪种体验、收集需要的信号、用下一次变更确认结果，这些仍然是工程师的份内事。当这个循环短而准确时，观测就不再是仪表盘，而成为产品能力。也希望读这篇文章的读者在各自的服务里挑一个指标，用一句话写下要把什么当成果，并把曾经得出的结论换个期间再查询一次。以我的经验，第二次查询教给你的比第一次更多。
+10 月我也打算在对比基准线和新 CSV 时只读方向。也希望读这篇文章的各位，在自己的服务里挑一个指标，用一行写下这个数字的样本和聚合规则，再把已经得出的结论换个时间段重新查询一遍。
 
 :::ref
-- [docs] [Google Analytics, BigQuery Export Schema](https://support.google.com/analytics/answer/7029846)
-- [docs] [Google Search Console, Performance Report Data](https://support.google.com/webmasters/answer/7576553)
-- [docs] [OpenTelemetry, Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/)
+- [docs] [web.dev, Why lab and field data can be different](https://web.dev/articles/lab-and-field-data-differences)
+- [docs] [Google Search Central, Understanding Core Web Vitals and Google search results](https://developers.google.com/search/docs/appearance/core-web-vitals)
 :::
