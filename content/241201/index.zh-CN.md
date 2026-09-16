@@ -8,7 +8,7 @@ description: "对比 Biome 与 ESLint、Prettier 组合的 lint 与格式化性�
 keywords: "Biome vs ESLint, Biome vs Prettier, Biome 迁移, JavaScript linter 对比, Rust linter, 前端开发工具"
 locale: zh-CN
 translationOf: '241201'
-sourceHash: 49263616d316d9e1ca434e3dc7a281c0c4fef7a27c76d0cb06d518a671d3baea
+sourceHash: 09c08de2a01b115d2a003056b07b9ec373e98a19617d193019e192f006ee3551
 ---
 
 这篇文章想聊聊一款名为 Biome 的工具。
@@ -39,7 +39,7 @@ Biome 的前身是 [Rome](https://github.com/rome/tools)。**Rome Tools Inc.** �
 
 **性能非常出色。** 根据官方 benchmark，它的速度约为 Prettier 的 25 倍、ESLint 的 15 倍。后文会通过直接对比来看看这些数字在实际中意味着什么。
 
-![1.png](1.png)
+![Biome 官网的格式化速度对比：2,104 个文件共 171,127 行，Biome 0.41 秒，Prettier 14.35 秒，约快 35 倍](1.png)
 
 **与现有工具兼容。** Biome 与 Prettier 的格式化兼容度约为 97%，并内置了 ESLint 的主要规则。`eslint-plugin-react-hooks`、`eslint-plugin-jsx-a11y` 等常用插件的规则也已集成，因此迁移负担相对较小。
 
@@ -85,7 +85,7 @@ npx @biomejs/biome init
 
 ### Vite 项目的本地运行时间
 
-![biome1.png](biome1.png)  ![lint1.png](lint1.png)
+![使用 Biome 的 Vite 开发服务器启动结果，506 毫秒就绪](biome1.png)  ![使用 ESLint 与 Prettier 的 Vite 开发服务器启动结果，630 毫秒就绪](lint1.png)
 
 
 Biome 为 **506ms**，ESLint + Prettier 为 **630ms**，运行时间快了约 20%。
@@ -94,7 +94,7 @@ Biome 为 **506ms**，ESLint + Prettier 为 **630ms**，运行时间快了约 20
 
 ### Vite 项目的构建时间
 
-![biome2.png](biome2.png) ![lint2.png](lint2.png)
+![使用 Biome 的 Vite 构建结果：117.13 秒](biome2.png) ![使用 ESLint 与 Prettier 的 Vite 构建结果：131.48 秒](lint2.png)
 
 
 Biome 为 **117.13s**，ESLint + Prettier 为 **131.48s**，构建时间快了约 10%。
@@ -103,7 +103,7 @@ Biome 为 **117.13s**，ESLint + Prettier 为 **131.48s**，构建时间快了�
 
 ### Lint 任务
 
-![biome3.png](biome3.png) ![lint3.png](lint3.png)
+![Biome 的 lint 执行结果：0.79 秒，CPU 0.470 秒](biome3.png) ![ESLint 的 lint 执行结果：16.32 秒，CPU 8.600 秒](lint3.png)
 
 差距最大的是 lint 任务。Biome 为 **0.79s**（CPU 0.470s），ESLint 为 **16.32s**（CPU 8.600s），**Biome 的性能大约快了 20 倍**。CPU 使用效率也高得多。
 
@@ -111,7 +111,7 @@ Biome 为 **117.13s**，ESLint + Prettier 为 **131.48s**，构建时间快了�
 
 <hr>
 
-![3.jpeg](3.jpeg)
+![托着下巴陷入沉思的派大星角色](3.jpeg)
 
 嗯……（到这个程度，反而更难找到不用它的理由了。）
 
@@ -125,7 +125,7 @@ Biome 为 **117.13s**，ESLint + Prettier 为 **131.48s**，构建时间快了�
 
 ### Rust 的底层性能
 
-| ![5.webp](5.webp) | ![6.webp](6.webp) |
+| ![10、100、300 并发连接下的平均 CPU 使用率对比：Node.js 稳定在 89~91%，Rust 为 145~206%，用上了多个核心](5.webp) | ![相同条件下的平均内存占用对比：Node.js 为 64~89MB，Rust 为 6~14MB](6.webp) |
 | --- | --- |
 
 Biome 使用系统编程语言 Rust 编写。Rust 追求零成本抽象（Zero-cost Abstraction），即使使用高层抽象，也能达到与手动优化的底层代码相同的性能。此外，它不依赖垃圾回收器（GC），而是通过所有权（Ownership）系统管理内存，因此不会产生 GC 带来的 runtime overhead。
@@ -144,7 +144,7 @@ Biome 使用一个解析器（Parser）对代码进行一次解析，生成 AST�
 
 ### 原生并行处理
 
-![7.png](7.png)
+![同步与异步处理对比图：同步是请求与响应交替，异步则连续发出请求、稍后接收响应](7.png)
 
 Biome 利用 Rust 的并发模型，在多个线程中并行处理文件。它将任务拆分为较小的单元，并通过 work-stealing scheduler 在各线程间高效分配负载。Rust 的所有权系统会在编译阶段从根本上阻止数据竞争（Data Race），因此 runtime 的同步成本也能降到最低。
 
@@ -154,7 +154,7 @@ Node.js 默认采用基于事件循环的单线程模型。虽然可以使用 Wo
 
 ### 内存高效的 AST 处理
 
-![4.svg](4.svg)
+![语法树示例：左边是一元运算符 -1，右边是二元运算符 1 + 2，用运算符节点和整数节点表示](4.svg)
 
 Biome 使用 CST（Concrete Syntax Tree，具体语法树）。根据 Biome 官方架构文档，这棵 CST 基于 rowan 库的内部 fork 实现了 Green/Red Tree 模式，能够保留原始代码中的全部信息，包括注释和空白。Rowan 的 Arena 风格内存分配将节点放在连续的内存区域中，从而提升 CPU 缓存局部性（Cache Locality），并尽量减少不必要的对象分配。
 
@@ -189,7 +189,7 @@ Biome 的性能和便利性显然很有吸引力。不过，我并不认为所�
 
 此外，也需要记住 Rome 转变为 Biome 的历史。Rome 被归档时给现有用户造成的不便，说明选择工具时项目的可持续性有多么重要。幸运的是，Biome 通过 OpenCollective 和 GitHub Sponsors 获得资金支持，并保持着稳定的 release 周期。
 
-![8.png](8.png)
+![npm trends 一年的每周下载量：eslint 与 prettier 在三千万到五千万之间，biome 几乎贴着坐标轴底部](8.png)
 
 从 npm trends 来看，Biome 每周约 690 万次的下载量与 ESLint 约 1.2 亿次、Prettier 约 8200 万次相比，仍有很大差距。不过，Biome 的增长速度值得关注。仅仅一年多的时间里，其周下载量便增长到原来的三至四倍以上，尤其是在新项目中的采用率显著上升。
 
@@ -202,8 +202,3 @@ Biome 的性能和便利性显然很有吸引力。不过，我并不认为所�
 它的性能非常出色，配置简洁，开发速度也很快。不过，插件生态尚不成熟，而且对部分语言的支持有限，这些问题可能会因项目而异，成为实际障碍。最好仔细评估项目的技术栈与团队需求，再决定是否引入。
 
 有一点可以确定：前端工具生态正在朝着“更快、更简洁、更集成”的方向发展。不可否认，Biome 正站在这股潮流的前沿。它无疑是一款值得期待未来发展的工具。
-
-## 参考资料
-
-:::ref
-:::

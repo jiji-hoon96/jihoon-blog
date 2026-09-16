@@ -1,7 +1,7 @@
 ---
 emoji: 🧭
 title: 'AI Agent Tools'
-seoTitle: "AI Coding Agent Tools: Context Files, MCP, Code Intelligence"
+seoTitle: 'AI Coding Agent Tools: Context Files, MCP, Code Graphs'
 date: '2026-05-29'
 locale: en
 translationOf: '260529'
@@ -313,7 +313,7 @@ The representative tool is **Repomix**. It packages an entire repository into a 
 
 **code2prompt**, created by Mufeed VH, is a Rust-based CLI whose strength lies in customization through a template system.
 
-An interesting variant is **rtk** (`rtk-ai/rtk`, about 55k stars). Whereas the tools above “pack the entire repository at once,” rtk **compresses the output of CLI commands in real time**. It is a single binary written in Rust that automatically registers itself with the shell hooks of 13 tools, including Claude Code, Cursor, Copilot, Gemini CLI, and Codex. When an agent invokes `git status`, the hook rewrites it internally as `rtk git status`. (The fact that users do not need to change their workflows is its key differentiator.) It applies smart filtering, grouping, truncation, and deduplication heuristics to more than 100 commands, reducing output tokens by 60–90%. One sentence from the official site neatly summarizes this category: *“70% of your bill is noise the LLM doesn't need.”* While the earlier tools reduce the volume of context going in, rtk reduces the volume of context returned by tool calls.
+An interesting variant is **rtk** (`rtk-ai/rtk`, about 55k stars). Whereas the tools above “pack the entire repository at once,” rtk **compresses the output of CLI commands in real time**. It is a single binary written in Rust that automatically registers itself with the shell hooks of 13 tools, including Claude Code, Cursor, Copilot, Gemini CLI, and Codex. When an agent invokes `git status`, the hook rewrites it internally as `rtk git status`. (The fact that users do not need to change their workflows is its key differentiator.) It applies smart filtering, grouping, truncation, and deduplication heuristics to more than 100 commands, reducing output tokens by 60–90%. One sentence from the official site neatly summarizes this category: **“70% of your bill is noise the LLM doesn't need.”** While the earlier tools reduce the volume of context going in, rtk reduces the volume of context returned by tool calls.
 
 The limitation of this tier is clear, however: **large repositories hit token limits**. And because code is delivered only as a “block of text,” there is no structural understanding of relationships among symbols.
 

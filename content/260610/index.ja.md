@@ -8,7 +8,7 @@ description: 'AIのトークンは単語でも文字でもない。BPEトーク�
 keywords: 'LLMトークンの仕組み, BPE, Byte Pair Encoding, トークナイザー, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, 入力出力トークン料金, AIトークンとは'
 locale: ja
 translationOf: '260610'
-sourceHash: 916300304184bd08cac369236fce06eb4d3b01c7d958bc36d63fa6d4b4d9a8b1
+sourceHash: 6a6a147aafe2b372f09525cabfc507e80cc78dac0ae2696a4bae69db6199fd48
 ---
 
 この記事では、AIのトークンとはそもそも何なのか、どのような仕組みで動くのかを掘り下げる。
@@ -31,7 +31,7 @@ sourceHash: 916300304184bd08cac369236fce06eb4d3b01c7d958bc36d63fa6d4b4d9a8b1
 
 BPE（Byte Pair Encoding、バイト対符号化）は、隣接して頻出する記号のペアを繰り返し新しい一つの記号へ統合し、語彙を増やしていくアルゴリズムである。
 
-興味深いのは、もともと自然言語処理のために生まれたものではない点だ。BPEは1994年、Philip Gageによってデータ圧縮手法として初めて提案された。データ内で最も頻出するバイト対を未使用の1バイトで置き換え、その置換規則を別の表に保存する圧縮方式だった。
+興味深いのは、もともと自然言語処理のために生まれたものではない点だ。BPEは1994年、Philip Gageによって[データ圧縮](/240706)手法として初めて提案された。データ内で最も頻出するバイト対を未使用の1バイトで置き換え、その置換規則を別の表に保存する圧縮方式だった。
 
 これをニューラル機械翻訳の語彙問題へ持ち込んだのが、エディンバラ大学のSennrichらの研究チームである。2015年に公開され、ACL 2016で発表された「Neural Machine Translation of Rare Words with Subword Units」で、固定語彙では希少語や未知語を扱えないという限界をBPEで解決した。単語全体を覚える代わりに、より小さなサブワードの組み合わせで表せば、語彙にない単語も既知の断片から符号化できるという発想だ。
 

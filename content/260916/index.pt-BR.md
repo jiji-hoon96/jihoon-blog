@@ -1,10 +1,10 @@
 ---
 emoji: 🧩
 title: 'Da observação ao julgamento'
-seoTitle: 'Interpretando dados do GA4 e do Search Console: da observação à decisão de produto'
+seoTitle: 'GA4 e Search Console: da observação à decisão de produto'
 date: '2026-09-16'
 categories: observabilidade frontend GA4 Search-Console IA
-description: 'Critérios para transformar dados de observação em decisões, a partir da experiência operando GA4 e Search Console: um caso real em que o ranking caiu mas os cliques subiram, a armadilha da posição média, os limites do Measurement Protocol e do BigQuery Export, alertas e feedback loops.'
+description: 'Transformar dados do GA4 e do Search Console em decisões: o ranking caiu mas os cliques subiram, e a armadilha da posição média.'
 keywords: 'análise de dados Search Console, design de eventos GA4, posição média caiu, melhorar CTR de busca, limites BigQuery Export GA4, validação Measurement Protocol GA4, Consent Mode básico avançado, decisões orientadas por dados'
 locale: pt-BR
 translationOf: '260916'

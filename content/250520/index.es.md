@@ -6,7 +6,7 @@ date: '2025-05-20'
 categories: frontend React
 locale: es
 translationOf: '250520'
-sourceHash: 03b03964ecc49416cd4094fe6c75a2d33aa0e26153fcf9434f153632965e641c
+sourceHash: 412f62b5791d4a5cb8194d72a33592355783df8495cc4274b2e2d4d2e8162f6e
 description: "Análisis de React Fiber desde el código fuente: Stack Reconciler, prioridades por Lanes, doble búfer, scheduler con MessageChannel y Concurrent Features."
 keywords: "React Fiber, arquitectura de React Fiber, Stack Reconciler, Concurrent Mode, concurrencia en React 18, useTransition, useDeferredValue, Suspense, renderizado de React, análisis del código fuente de React, Virtual DOM, Reconciliation, prioridad por Lanes, entrevista de frontend"
 ---
@@ -560,7 +560,7 @@ Hasta ahora hemos visto la estructura y la planificación de Fiber. Organicemos 
 
 Internamente, Fiber atraviesa dos etapas: la **Render Phase** y la **Commit Phase**. Esta separación es el diseño esencial que hace posible el modelo de concurrencia de React. Si quieres observar directamente el flujo de funcionamiento de Fiber, haz clic en la imagen siguiente.
 
-[![2.png](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
+[![Demo interactiva que recorre React Fiber paso a paso, de la fase de render a la de layout, junto al árbol de componentes y la pila de trabajo](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
 
 
 

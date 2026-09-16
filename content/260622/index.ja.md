@@ -8,7 +8,7 @@ description: 'prompt engineeringからcontext engineeringへ、その次はど�
 keywords: 'context engineering, harness設計, AI agent eval, agent evaluation, containment, agent隔離, AIトレンド2026, prompt engineering, LLM agent, token節約の次'
 locale: ja
 translationOf: '260622'
-sourceHash: '3a4496827fcd34537ded61f9925a57116fbf16b6d28eee9508f66417f6d2345b'
+sourceHash: 06bdc8be3e1e0ff49702ada8265d88df2ffd88a750b85ab5e845bf748bac236e
 ---
 
 今回は、prompt engineeringとcontext engineering、そしてその次について考えてみたい。
@@ -71,7 +71,7 @@ context engineeringが「modelに何を見せるか」という問題なら、ha
 
 理由を考えると自然だ。contextを適切に構成したのか、harnessをうまく設計したのか、本当にcostを削減できたのかを、**何で確認するのか？** agentが長く複雑な仕事を自律的に処理するほど、「結局、これはうまく動いたのか」を人が一つずつ目で確かめるのは難しくなる。最終的に信頼の根拠は測定へ移る。だからこそ「agent評価をどう設計するか」「評価自体のnoiseをどう除くか」「modelが評価に気づいて行動を変えるeval awarenessをどう扱うか」といったテーマが前面に出てきた。
 
-![4.png](4.png)
+![pass@k と pass^k の違いを示すグラフ。試行回数が増えると pass@k は 100% に近づき、pass^k は 0% に落ちる](4.png)
 
 agentの評価が難しいのは、一回限りの質疑応答とは性質が違うからだ。agentは複数turnにわたりtoolを呼び、stateを変えながら進むため、一度の失敗が後方へ伝播し、蓄積する。さらに同じ入力でも実行ごとに結果が揺れる。[Anthropicは](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents)この非決定性を二つの指標に分ける。**pass@k**はk回の試行中に一度でも成功する確率なので、試行を増やすほど上がる。**pass^k**はk回すべてに成功する確率なので、試行を増やすほど下がる。一度だけ正解すればよいcode生成ではpass@1が重要で、毎回安定して動く必要があるcustomer support agentではpass^kが核心となる。（per-trial成功率が75%なら、三回連続で成功する確率は0.75³、約42%まで急落する。「だいたいうまくいく」と「毎回うまくいく」の隔たりはこれほど大きい。）
 

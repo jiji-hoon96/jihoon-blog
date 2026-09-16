@@ -8,7 +8,7 @@ description: "AIがコードを書く時代に、フロントエンドエンジ�
 keywords: 'AI時代のフロントエンド, AI時代の開発者, vibe coding, agentic engineering, AIコーディングツール, Product Engineer, フロントエンドのキャリアロードマップ'
 locale: ja
 translationOf: '260302'
-sourceHash: ea34a6b4ab472b80bbc813f947f4659d62063c3d4156c38e33495ab6ca1c0bbe
+sourceHash: 9e820add9fbee97043f989e52c79451d2190faff3d6f17cb0a4fac02eeebbba1
 ---
 
 今回の記事では、**AI時代にエンジニアがどのように成長し、生き残れるのか**について、個人的な視点から考えてみたい。
@@ -231,8 +231,3 @@ OpenAIの権威であるAndrej Karpathyの文章を見ると、彼が今強調�
 
 **（もしこの記事が1年後にはあまりにも当たり前、あるいは古い話に見えるなら、それだけ私たちがうまく対応できたということではないだろうか。）**
 
-
-## 参考資料
-
-:::ref
-:::

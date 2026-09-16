@@ -8,7 +8,7 @@ description: "通过阅读源码深入探究 Zustand 无需 Provider 就能管�
 keywords: "Zustand 原理, Zustand 不需要 Provider 的原因, React 状态管理库, Zustand 源码分析, useSyncExternalStore, React Context API"
 locale: zh-CN
 translationOf: '240818'
-sourceHash: 91250499c0cdecf71d9c15c2ccdd1ecb7e81d019b227a50af06d268d7a9d8a40
+sourceHash: 76e245173e4d4ea540ecc22c306523bbe5b81fb11873f40ac793f6ea1326be40
 ---
 
 这篇文章想聊一聊 Zustand 是如何在没有 Provider 的情况下完成状态管理的。
@@ -23,7 +23,7 @@ sourceHash: 91250499c0cdecf71d9c15c2ccdd1ecb7e81d019b227a50af06d268d7a9d8a40
 
 在一般的 React 应用中，状态会像下图这样运作。
 
-![3.png](3.png)
+![React 数据流示意图：数据通过 props 向下流动，事件向上传递](3.png)
 
 组件内部状态使用 React 提供的状态管理 hook（`useState`、`useReducer`）进行管理，状态则通过 props 传递给子组件。到这里都很简单。
 
@@ -47,7 +47,7 @@ React 使用一种名为 Fiber 的内部数据结构来管理组件树。每个 
 
 ## Zustand 活在 React 外部
 
-![4.png](4.png)
+![Flux 模式示意图：Action、Dispatcher、Store、View 单向连接](4.png)
 
 Zustand 基于 Flux 模式运行。闭包内部的 `state` 扮演 Store，用户定义的函数扮演 Action，`set` 函数扮演 Dispatcher，React 组件则扮演 View。决定性的差异就在这里。 
 
@@ -416,7 +416,7 @@ beforeEach(() => {
 
 <hr>
 
-![7.jpeg](7.jpeg)
+![手绘角色说着「等一下!!」](7.jpeg)
 
 ### 另外，还有一则新消息
 

@@ -8,7 +8,7 @@ description: "A source-code analysis of how Zustand manages state without a Prov
 keywords: "how Zustand works, why Zustand has no Provider, React state management library, Zustand source code analysis, useSyncExternalStore, React Context API"
 locale: en
 translationOf: '240818'
-sourceHash: 91250499c0cdecf71d9c15c2ccdd1ecb7e81d019b227a50af06d268d7a9d8a40
+sourceHash: 76e245173e4d4ea540ecc22c306523bbe5b81fb11873f40ac793f6ea1326be40
 ---
 
 In this post, I want to explore how Zustand manages state without a Provider.
@@ -23,7 +23,7 @@ Out of curiosity, I dug directly into Zustand's source code and found a more int
 
 In a typical React application, state works as shown below.
 
-![3.png](3.png)
+![React data flow diagram: data flows down through props while events travel back up](3.png)
 
 State inside a component is managed with the state management hooks React provides (`useState`, `useReducer`). State is then passed to child components through props. So far, this is straightforward.
 
@@ -47,7 +47,7 @@ How, then, does Zustand bypass this structure?
 
 ## Zustand Lives Outside React
 
-![4.png](4.png)
+![Flux pattern diagram: Action, Dispatcher, Store, and View connected in one direction](4.png)
 
 Zustand is based on the Flux pattern. The `state` inside a closure acts as the Store, user-defined functions act as Actions, the `set` function acts as the Dispatcher, and React components act as Views. This is where the decisive difference appears.
 
@@ -416,7 +416,7 @@ I also encourage readers to open the source code of a library they use at least 
 
 <hr>
 
-![7.jpeg](7.jpeg)
+![A hand-drawn character saying "hold on a second!"](7.jpeg)
 
 ### One More Piece of News
 

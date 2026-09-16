@@ -151,7 +151,7 @@ filteredUsers.forEach(user => {
 
 **抽象层级高的代码**则使用业务领域或问题域的语言来表达，例如 `processPayment(order)`、`sendNotification(user, message)`、`validateUserInput(formData)`。高抽象层级的代码展现的是**做什么（What）**，而隐藏了具体做法。
 
-Robert C. Martin 在 *Clean Code* 中把这一概念总结为**“每个函数只处于一个抽象层级（One Level of Abstraction per Function）”**原则。因为当高层级与低层级代码混在同一个函数中时，读者每读一行都要判断：“这是核心逻辑，还是实现细节？”
+Robert C. Martin 在 **Clean Code** 中把这一概念总结为**“每个函数只处于一个抽象层级（One Level of Abstraction per Function）”**原则。因为当高层级与低层级代码混在同一个函数中时，读者每读一行都要判断：“这是核心逻辑，还是实现细节？”
 
 放到实际代码里，这个问题会更加清楚。
 
@@ -213,7 +213,7 @@ async function registerUser(name: string, email: string, password: string) {
 
 Martin 也把它称为**“降层规则（The Stepdown Rule）”**。从上到下阅读代码时，应当像读新闻报道一样：顶部呈现全貌，越往下细节越多。
 
-Kent Beck 也在 *Smalltalk Best Practice Patterns* 中以**组合方法（Composed Method）模式**提出了相同原则：一个方法只能由处于同一抽象层级的操作组成，每个步骤都应表示为一行方法调用。
+Kent Beck 也在 **Smalltalk Best Practice Patterns** 中以**组合方法（Composed Method）模式**提出了相同原则：一个方法只能由处于同一抽象层级的操作组成，每个步骤都应表示为一行方法调用。
 
 这些讨论最终都指向同一个结论：**一个函数只能在一个抽象层级上叙事。**仅仅遵守这一点，代码可读性就会发生显著变化。
 
@@ -360,7 +360,7 @@ function registerUser(form: RegistrationForm): Promise<User>;
 function refundPayment(orderId: OrderId, amount: Money): Promise<Refund>;
 ```
 
-Robert C. Martin 在 *Clean Code* 中对此说过：**“长而具有描述性的名字，胜过短而晦涩的名字。”**他还提出了**“每个概念只使用一个词”**的原则。假如在同一上下文的操作中混用 `fetch`、`retrieve`、`get`，读者就会困惑：“这三者是不同操作吗？”
+Robert C. Martin 在 **Clean Code** 中对此说过：**“长而具有描述性的名字，胜过短而晦涩的名字。”**他还提出了**“每个概念只使用一个词”**的原则。假如在同一上下文的操作中混用 `fetch`、`retrieve`、`get`，读者就会困惑：“这三者是不同操作吗？”
 
 这一原则同样适用于 React 组件与 hook 的命名。
 

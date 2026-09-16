@@ -249,7 +249,7 @@ MCP session 启动时，会按以下顺序进行 handshake。
 
 client 会把通过 `tools/list` 获取的列表转换成 **Anthropic Messages API 的 `tools` 参数**，或 **OpenAI function calling 的 `tools` 参数**，再随 LLM API 请求一同发送。以 Anthropic 为例，传入 tool 参数后，系统会自动添加 **special system prompt**，使模型理解工具调用方式。（这正是前文所说额外 346 个 token 的来源。）
 
-当 LLM 判断应该调用工具时，响应中会包含 `tool_use` block（`{"type": "tool_use", "name": ..., "input": ...}`），并以 `stop_reason` 为 `tool_use` 结束。client 收到后，会向实际的 MCP server 发送 `tools/call`，再把返回结果装进下一条 user message 的 `tool_result` block 中发回 LLM。**这个循环会持续进行，直到 `stop_reason` 从 `tool_use` 变成其他值（如 `end_turn`、`max_tokens`）。**我们通常所说的“智能体在工作”，实际上很接近这种调用—结果—调用循环的连续运行。
+当 LLM 判断应该调用工具时，响应中会包含 `tool_use` block（`{"type": "tool_use", "name": ..., "input": ...}`），并以 `stop_reason` 为 `tool_use` 结束。client 收到后，会向实际的 MCP server 发送 `tools/call`，再把返回结果装进下一条 user message 的 `tool_result` block 中发回 LLM。**这个循环会持续进行，直到 `stop_reason` 从 `tool_use` 变成其他值（如 `end_turn`、`max_tokens`）。**我们通常所说的“智能体在工作”，实际上很接近这种调用、结果、调用的循环的连续运行。
 
 那么 MCP 与单纯的 function calling 有什么不同？可以归纳为四点。
 
@@ -313,7 +313,7 @@ Serena 能快速普及的真正原因是**节省 token**。文本 grep + 文件 
 
 **code2prompt**（由 Mufeed VH 开发）是一款基于 Rust 的 CLI，优势在于可以通过模板系统进行定制。
 
-还有一个值得一提的有趣变体：**rtk**（`rtk-ai/rtk`，约 55k stars）。上述工具是“一次打包整个仓库”，而 rtk 会**实时压缩 CLI 命令本身的输出**。它是用 Rust 编写的单一 binary，可自动注册到 Claude Code、Cursor、Copilot、Gemini CLI、Codex 等 13 种工具的 shell hook 中。当智能体调用 `git status` 时，内部会 rewrite 为 `rtk git status`。（用户无需改变 workflow，是它的核心差异。）它针对 100 多种命令应用 smart filtering、grouping、truncation、deduplication heuristic，可将输出 token 减少 60～90%。官方网站的一句话很好地概括了这个类别——*“70% of your bill is noise the LLM doesn't need.”* 如果说前面的工具减少的是“输入的上下文”，rtk 减少的则是“tool call 返回的上下文”。
+还有一个值得一提的有趣变体：**rtk**（`rtk-ai/rtk`，约 55k stars）。上述工具是“一次打包整个仓库”，而 rtk 会**实时压缩 CLI 命令本身的输出**。它是用 Rust 编写的单一 binary，可自动注册到 Claude Code、Cursor、Copilot、Gemini CLI、Codex 等 13 种工具的 shell hook 中。当智能体调用 `git status` 时，内部会 rewrite 为 `rtk git status`。（用户无需改变 workflow，是它的核心差异。）它针对 100 多种命令应用 smart filtering、grouping、truncation、deduplication heuristic，可将输出 token 减少 60～90%。官方网站的一句话很好地概括了这个类别——**“70% of your bill is noise the LLM doesn't need.”** 如果说前面的工具减少的是“输入的上下文”，rtk 减少的则是“tool call 返回的上下文”。
 
 不过这一层级的局限很明确：**大型仓库会触及 token 上限**。而且代码只是以“一块文本”的形式交付，不包含 symbol 关系或结构性理解。
 

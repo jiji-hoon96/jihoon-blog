@@ -8,7 +8,7 @@ description: "AI 编程工具的 Token 成本从哪里产生，又该如何降�
 keywords: 'AI Token 节省, Claude Code 成本, Token 成本优化, prompt caching, context engineering, subagent, MCP Token, Cursor Composer, model routing, context rot, LLM 成本优化'
 locale: zh-CN
 translationOf: '260611'
-sourceHash: e7ea965ce86523995dd6cce198d074d9895e6cd9655469a04591a7f5e2a7f1be
+sourceHash: fc7da8aff34f64d252e4a5c2b7376733a51d128f0148a4a8a2406a7f82cb3f29
 ---
 
 这篇文章想聊一聊如何节省 AI Token。
@@ -33,7 +33,7 @@ sourceHash: e7ea965ce86523995dd6cce198d074d9895e6cd9655469a04591a7f5e2a7f1be
 
 来看 Anthropic SDK 在响应的 `usage` 对象中返回的四个字段。
 
-![1.png](1.png)
+![Anthropic SDK 响应中的 usage 对象，可以看到 input_tokens、cache_creation_input_tokens、cache_read_input_tokens 和 output_tokens 字段](1.png)
 
 - `input_tokens` 已发送输入中除缓存读取之外的部分
 - `output_tokens` 模型生成的响应
@@ -107,13 +107,13 @@ sourceHash: e7ea965ce86523995dd6cce198d074d9895e6cd9655469a04591a7f5e2a7f1be
 
 我直接测量了这种差异。以工作中的 Claude Code 会话里 27 个 MCP 工具（serena 10 个、claude.ai OAuth 四组共 8 个、figma 2 个、agentmemory 7 个）为对象，使用**同一条用户消息在两种配置下调用**。一边完全没有安装 MCP，另一边已挂载了全部 27 个，但模型无法调用；两边的工具调用次数都设为 0。
 
-![6.png](6.png)
+![同一个问题分别在不接 MCP 和接入 27 个 MCP 时调用的结果：输入 token 从 41 涨到 10,335，单次成本约为 11.7 倍](6.png)
 
 问题相同、模型相同、回复含义也相同，输入 Token 却从 **41 → 10,335（+10,294）**（Opus 4.7）暴增。换算为单次费用，就是从 **$0.0048 → $0.0563，约 12 倍**。输入膨胀 250 倍，预填充负担也随之增加，响应时间多出 **+783ms**。比金额本身更直观的是：**即使用户这一轮一次 MCP 工具都没有调用，这笔费用仍会在每次调用时产生**。上一段的 Tool Search 防住的正是这笔成本。（完成这次测量后，我一直在清理平时不用的 MCP 服务器。）
 
 ### 上下文累积与 Lost in the Middle
 
-![4.jpg](4.jpg)
+![《Lost in the Middle》论文首页，图中的 U 形曲线显示答案位于上下文中段时准确率最低](4.jpg)
 
 原封不动地延续长对话，不仅会增加每次调用的输入 Token，还会降低模型本身的正确率。Stanford 的 Liu 团队在“Lost in the Middle”论文中定量展示了一条 U 形曲线：关键信息位于上下文开头或末尾时最容易被找到，埋在中间时性能明显下降。于是出现最糟糕的组合——花更多 Token，得到更差的答案。Transformer 的自注意力计算量随 Token 数平方增长；上下文越长，每个 Token 能分到的绝对注意力越稀薄。再加上训练数据的重要信息往往集中在首尾，中间便最先变弱。
 
@@ -125,7 +125,7 @@ sourceHash: e7ea965ce86523995dd6cce198d074d9895e6cd9655469a04591a7f5e2a7f1be
 
 两种习性叠加后，注意力会集中在两端（邻近的近期 Token＋第一个 Token），真正埋在中间的信息反而最弱。重要的是，这不是某个特定模型的缺陷。LLaMA、Mistral、Qwen 等多数公开模型采用 RoPE 系列，Claude、GPT 等闭源模型也被认为使用类似方法，因此 lost-in-the-middle 更像是现代 Transformer 共有的偏差。
 
-![5.png](5.png)
+![context rot 曲线图：输入越长，Claude、Qwen、OpenAI、Gemini 四个模型的准确率都在下降](5.png)
 
 近来，这种现象被称为 **context rot**。[Chroma 研究团队](https://research.trychroma.com/context-rot)让包括 GPT-4.1、Claude 4、Gemini 2.5、Qwen3 在内的 18 个前沿模型完成同一项 NIAH（needle in a haystack，大海捞针）任务。分析定量显示，当输入从 10k 增至 100k 以上时，正确率会因模型不同而降至 20～50%。18 个模型都随着长度增加而性能下降，下降最慢的是 Claude 系列。Anthropic 也将其解释为 Transformer 的 n² 注意力机制导致“注意力预算”被每个 Token 消耗的问题。保持上下文轻量，既是在省钱，也是在守住正确率。
 
@@ -195,7 +195,7 @@ Claude Code 的 `/compact` 会把截至当前的整段对话压缩成摘要，�
 
 再深入一点，`/compact` 只是用户显式调用的最后阶段，在它之前还有四级自动上下文压缩流程。根据分析 Claude Code 内部机制的外部研究[《Dive into Claude Code》](https://github.com/VILA-Lab/Dive-into-Claude-Code)，每次调用前，`query.ts` 都会依次检查以下五个阶段。
 
-![8.png](8.png)
+![智能体循环示意图：从用户提示开始，反复进行工具请求与权限确认，上下文吃紧时经过压缩再进入下一轮](8.png)
 
 - **Budget Reduction** 会截掉单个工具输出超过大小上限的部分。
 - **Snip** 会按时间轴截去较旧的历史记录。
@@ -211,7 +211,7 @@ Claude Code 的 `/compact` 会把截至当前的整段对话压缩成摘要，�
 
 ### model routing：答案相同，就交给更便宜的模型
 
-![13.png](13.png)
+![模型性能与对数成本的分布图，理想路由器落在低成本高性能的位置](13.png)
 
 Opus 4.8 与 Haiku 4.5 的输入价格相差 5 倍。如果连简单搜索、探索、短摘要都一律交给最大的模型，成本损失会很大。按照任务难度沿 Haiku → Sonnet → Opus 逐级路由，只在真正需要重度推理的阶段调用 Opus，正在成为标准模式。[LMSYS 的 RouteLLM 研究](https://lmsys.org/blog/2024-07-01-routellm/)展示了一种路由器：在保持 GPT-4 质量 95% 的同时，把强模型调用比例降至 14%（需要注意，这项基准针对一般推理，并非编程专项）。
 
@@ -223,7 +223,7 @@ Opus 4.8 与 Haiku 4.5 的输入价格相差 5 倍。如果连简单搜索、探
 
 ### Cursor Composer 2.5
 
-![10.webp](10.webp)
+![Cursor 公布的 CursorBench 3.1 分数与单任务平均成本对比图，Composer 2.5 在最便宜的区间接近高分](10.webp)
 
 这是一种稍有不同的节省方法：使用 Cursor 这样的智能体。[Cursor 于 2026 年 5 月 18 日发布的自研模型 Composer 2.5](https://cursor.com/blog/composer-2-5)以 Moonshot AI 的开源检查点 Kimi K2.5 为基础，针对编程任务进行了微调。Cursor 团队称，在自有基准中，它以大约十分之一的价格实现了可与 Claude Opus 4.7 相当的编程性能。公开基础价格为输入 $0.50、输出 $2.50；与 Opus 4.8 的输入 $5.00、输出 $25.00 相比，正好低一个数量级。
 
@@ -243,7 +243,7 @@ Anthropic 自己的评估显示，两者结合后相较基线性能提升 39%，
 
 ## 结语
 
-![14.webp](14.webp)
+![提示工程与上下文工程对照图：单轮提问只带系统提示与用户消息，而智能体需要挑选文档、工具与记忆，并把工具结果送回](14.webp)
 
 梳理到这里，节省 Token 最终可归结为三条轴线：**同一件事，发送更少；同一份输入，用更低价格发送；同一个答案，交给更便宜的模型**。Prompt caching、Batch API、subagent 隔离、`/compact`、memory tool 与 context editing、model routing、专用模型等模式，区别只在于它们攻击三条轴线中的哪一条。若用一句话概括 2026 年的趋势，那就是上下文的重心正从“填入内容的技术”转向“腾空并筛选内容的技术”，也就是 context engineering。正如 context rot 所示，轻量上下文不仅省钱，也有利于正确率。
 

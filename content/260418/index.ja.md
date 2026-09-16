@@ -8,7 +8,7 @@ description: "フロントエンドの視点からドメイン、ドメインモ
 keywords: "フロントエンド ドメインモデル, ドメイン駆動設計, DDD フロントエンド, Frontend DDD, ドメインオブジェクト, Entity Value Object, Anemic Domain Model, 貧血ドメインモデル, Clean Architecture フロントエンド, Eric Evans, Martin Fowler, ドメインロジック分離, React 設計パターン, フロントエンドアーキテクチャ, ViewModel 分離, Bounded Context"
 locale: ja
 translationOf: '260418'
-sourceHash: 660b87cbe239f955599d8c796abc4990000f522521179fc4da3a1af1773a335e
+sourceHash: b9aa3af2ee684933bfaa47fe2c6b9543a7eaf0d22299b554491c0040f6069953
 ---
 
 今回の記事では、**ドメイン（Domain）** について考えてみたい。
@@ -44,7 +44,7 @@ Eric Evansは著書 **Domain-Driven Design: Tackling Complexity in the Heart of 
 
 とはいえ、「税金」という一つのドメインだけを見ても、その内部には数多くのサブドメインが存在する。筆者が表面的に把握している総合所得税の計算パイプラインだけでも、次のとおりだ。
 
-![1.png](1.png)
+![総合所得税の計算パイプライン。総収入金額から納付・還付までの各段階が所得・控除・税額・結果の 4 つのサブドメインに色分けされている](1.png)
 
 このパイプラインの各段階は、それぞれ固有のルールとデータを持つサブドメインである。「税金」という一つの大きなドメインの中で、所得（Income）、控除（Deduction）、税額（Tax）、申告結果（Filing）という細かなドメインが絡み合っている。これらをコード上でどう分けるかが、まさにドメインモデリングの中心的な問いである。
 
@@ -57,7 +57,7 @@ Eric Evansは著書 **Domain-Driven Design: Tackling Complexity in the Heart of 
 
 ::::quote
 :::translation
-ドメインの選択された側面を記述する抽象化の体系であり、そのドメインに関する問題を解決するために使用できるもの。— Eric Evans
+ドメインの選択された側面を記述する抽象化の体系であり、そのドメインに関する問題を解決するために使用できるもの。（Eric Evans）
 :::
 
 :::original

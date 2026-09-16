@@ -8,7 +8,7 @@ description: "Refactorización de la app de reserva de salas del segundo simulac
 keywords: "Toss Frontend Fundamentals, refactorización frontend, separación de componentes React, revisión de código, simulacro de Toss, diseño frontend"
 locale: es
 translationOf: '260328'
-sourceHash: 7181f3bbbeacbdaa5d74c5e2910bfe3ff3e82df8d636a913e25019a03ff92c61
+sourceHash: e75600c42d28660cf4be9524c11586daace94efe680b2f23f02421b5f5e9d451
 ---
 
 En este artículo quiero hablar de mi experiencia de refactorización al participar en el segundo simulacro de Toss Frontend Fundamentals.

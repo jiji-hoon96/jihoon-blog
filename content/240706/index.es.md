@@ -27,7 +27,7 @@ La compresión sin pérdida permite reconstruir los datos originales a la perfec
 
 Su idea central consiste en **aprovechar la redundancia estadística presente en los datos**. Si sustituimos patrones repetidos por representaciones más cortas, reducimos el tamaño total.
 
-Entre estas técnicas, los métodos **basados en diccionarios (Dictionary-Based)** forman una de las familias más extendidas. Aquí “diccionario” no significa un libro de definiciones, sino una tabla de consulta que asocia fragmentos vistos anteriormente con códigos breves. **LZ77**, propuesto por Abraham Lempel y Jacob Ziv en el artículo de 1977 _"A Universal Algorithm for Sequential Data Compression"_ de IEEE Transactions on Information Theory, y **LZ78**, publicado un año después, son los antepasados de esta familia. “LZ” toma una letra de cada apellido. Casi todos los algoritmos posteriores basados en diccionarios, como DEFLATE, LZMA, LZ4 y Zstd, descienden de ellos. (No es exagerado decir que la mayor parte del árbol genealógico de la compresión converge en estos dos investigadores.)
+Entre estas técnicas, los métodos **basados en diccionarios (Dictionary-Based)** forman una de las familias más extendidas. Aquí “diccionario” no significa un libro de definiciones, sino una tabla de consulta que asocia fragmentos vistos anteriormente con códigos breves. **LZ77**, propuesto por Abraham Lempel y Jacob Ziv en el artículo de 1977 **"A Universal Algorithm for Sequential Data Compression"** de IEEE Transactions on Information Theory, y **LZ78**, publicado un año después, son los antepasados de esta familia. “LZ” toma una letra de cada apellido. Casi todos los algoritmos posteriores basados en diccionarios, como DEFLATE, LZMA, LZ4 y Zstd, descienden de ellos. (No es exagerado decir que la mayor parte del árbol genealógico de la compresión converge en estos dos investigadores.)
 
 Pensemos en un ejemplo sencillo. Si la palabra “Linux” aparece cien veces en un texto, podemos registrarla en el diccionario la primera vez y reemplazar las siguientes por una referencia corta que signifique “entrada número 1”. “Linux” ocupa cinco bytes, mientras que el puntero puede expresarse con menos, por lo que el conjunto se hace más pequeño.
 
@@ -46,7 +46,7 @@ La ventana se divide en dos zonas.
 
 El algoritmo busca si el comienzo del búfer de anticipación ya apareció en alguna parte del búfer de búsqueda. Si encuentra el mismo patrón, codifica la coincidencia como una tupla **(distancia, longitud, carácter siguiente)**. La distancia indica cuántos caracteres hay que retroceder para llegar al inicio de la coincidencia y la longitud, cuántos caracteres abarca.
 
-Supongamos que comprimimos la cadena `"banana_banana"` con LZ77. Al llegar al segundo `"banana"`, el algoritmo dice en la práctica: _“Retrocede siete caracteres y copia seis.”_ De ese modo, una cadena de seis bytes queda representada por solo dos números.
+Supongamos que comprimimos la cadena `"banana_banana"` con LZ77. Al llegar al segundo `"banana"`, el algoritmo dice en la práctica: **“Retrocede siete caracteres y copia seis.”** De ese modo, una cadena de seis bytes queda representada por solo dos números.
 
 La clave es que **no hace falta guardar ni transmitir el diccionario por separado**. El decodificador reconstruye el búfer de búsqueda mientras descomprime, de modo que el diccionario queda implícito en los propios datos. A cambio, la descompresión siempre debe avanzar secuencialmente desde el principio. En términos del algoritmo, no puede empezar en un punto arbitrario del archivo.
 
@@ -58,7 +58,7 @@ El tamaño de la ventana mantiene una relación directa de compromiso con la tas
 
 A diferencia de LZ77, LZ78 **construye un diccionario explícito** durante la compresión. No utiliza una ventana deslizante. Guarda los patrones observados como entradas indexadas y sustituye las repeticiones posteriores por sus índices.
 
-LZ78 produce etiquetas con la forma **(índice del diccionario, carácter siguiente)**. El codificador busca la entrada más larga que coincida, emite su índice junto al carácter que rompe la coincidencia y añade _“la entrada coincidente más el nuevo carácter”_ como otra entrada. El diccionario crece gradualmente durante el proceso.
+LZ78 produce etiquetas con la forma **(índice del diccionario, carácter siguiente)**. El codificador busca la entrada más larga que coincida, emite su índice junto al carácter que rompe la coincidencia y añade **“la entrada coincidente más el nuevo carácter”** como otra entrada. El diccionario crece gradualmente durante el proceso.
 
 La variante más conocida de LZ78 es **LZW** (Lempel-Ziv-Welch). Terry Welch publicó esta mejora en 1984, y se utilizó en el formato GIF y en la utilidad Unix `compress`, cuya extensión es `.Z`. (LZW llegó a estar en el centro de una disputa de patentes, episodio que contribuyó al nacimiento de PNG.)
 
@@ -74,7 +74,7 @@ En 1993, Phil Katz combinó LZSS con la **codificación Huffman**, que asigna se
 
 Algoritmos posteriores como **LZMA** (7-Zip y XZ), **LZ4** y **Zstd** también parten de la ventana deslizante de LZ77 y evolucionan las estructuras de búsqueda de coincidencias y los métodos de codificación entrópica. La familia LZ78, en cambio, prácticamente abandonó la escena principal después de LZW.
 
-Se ha demostrado que ambos algoritmos tienen una capacidad teórica equivalente _cuando se descomprime el conjunto completo de datos_. Aun así, LZ77 sobrevivió porque **integrar el diccionario en los datos ofrecía más flexibilidad de implementación y extensión**. El tamaño de la ventana, los algoritmos de búsqueda y el codificador entrópico posterior podían combinarse con libertad, dejando margen para evolucionar según las necesidades de cada época.
+Se ha demostrado que ambos algoritmos tienen una capacidad teórica equivalente **cuando se descomprime el conjunto completo de datos**. Aun así, LZ77 sobrevivió porque **integrar el diccionario en los datos ofrecía más flexibilidad de implementación y extensión**. El tamaño de la ventana, los algoritmos de búsqueda y el codificador entrópico posterior podían combinarse con libertad, dejando margen para evolucionar según las necesidades de cada época.
 
 El rendimiento de compresión se evalúa en dos ejes: la **tasa de compresión**, cuánto se reduce el archivo, y la **velocidad de compresión**, cuánto tarda el proceso. Perseguir una tasa más alta suele requerir más cómputo y más tiempo. La estrategia práctica consiste en encontrar el punto adecuado entre ambos.
 

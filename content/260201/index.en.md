@@ -151,7 +151,7 @@ filteredUsers.forEach(user => {
 
 **Code at a high level of abstraction** is expressed in the language of the business domain or problem space. Examples include `processPayment(order)`, `sendNotification(user, message)`, and `validateUserInput(formData)`. High-level code reveals **what** it does while hiding how it does it.
 
-In *Clean Code*, Robert C. Martin summarized this idea as the principle of **“One Level of Abstraction per Function.”** When high-level and low-level code are mixed within one function, the reader must decide at every line, “Is this core logic, or is it an implementation detail?”
+In **Clean Code**, Robert C. Martin summarized this idea as the principle of **“One Level of Abstraction per Function.”** When high-level and low-level code are mixed within one function, the reader must decide at every line, “Is this core logic, or is it an implementation detail?”
 
 The problem becomes clear in actual code.
 
@@ -213,7 +213,7 @@ Every statement speaks at the same level of abstraction. How email delivery is i
 
 Martin also called this **“The Stepdown Rule.”** When code is read from top to bottom, it should resemble a newspaper article: the big picture appears at the top, and the details emerge as the reader moves downward.
 
-Kent Beck presented the same principle as the **Composed Method pattern** in *Smalltalk Best Practice Patterns*. A method should consist only of operations at the same level of abstraction, and each step should be expressed as a one-line method call.
+Kent Beck presented the same principle as the **Composed Method pattern** in **Smalltalk Best Practice Patterns**. A method should consist only of operations at the same level of abstraction, and each step should be expressed as a one-line method call.
 
 All of this ultimately leads to one conclusion: **a function should speak at only one level of abstraction.** Following this principle alone makes a noticeable difference in readability.
 
@@ -360,7 +360,7 @@ function registerUser(form: RegistrationForm): Promise<User>;
 function refundPayment(orderId: OrderId, amount: Money): Promise<Refund>;
 ```
 
-In *Clean Code*, Robert C. Martin wrote that **“a long descriptive name is better than a short enigmatic name.”** He also proposed the principle **“pick one word per concept.”** If `fetch`, `retrieve`, and `get` are mixed for operations in the same context, the reader is left wondering, “Do these three do different things?”
+In **Clean Code**, Robert C. Martin wrote that **“a long descriptive name is better than a short enigmatic name.”** He also proposed the principle **“pick one word per concept.”** If `fetch`, `retrieve`, and `get` are mixed for operations in the same context, the reader is left wondering, “Do these three do different things?”
 
 The same principle applies directly to naming React components and hooks.
 

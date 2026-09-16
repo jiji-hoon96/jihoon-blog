@@ -1,14 +1,14 @@
 ---
 emoji: 🧭
 title: 'Ingeniería de Harness (Sistemas)'
-seoTitle: "Agentes de IA tras el contexto: harness, eval y containment"
+seoTitle: 'Agentes de IA tras el contexto: harness, eval, containment'
 date: '2026-06-22'
 categories: IA Agentes
 description: "Del prompt al context engineering, ¿qué viene después? El blog de ingeniería de Anthropic apunta a harness, eval y containment (aislamiento)."
 keywords: 'context engineering, diseño de harness, eval de agentes de IA, agent evaluation, containment, aislamiento de agentes, tendencias de IA 2026, prompt engineering, agentes LLM, después del ahorro de tokens'
 locale: es
 translationOf: '260622'
-sourceHash: '3a4496827fcd34537ded61f9925a57116fbf16b6d28eee9508f66417f6d2345b'
+sourceHash: 06bdc8be3e1e0ff49702ada8265d88df2ffd88a750b85ab5e845bf748bac236e
 ---
 
 En este artículo quiero hablar sobre prompt engineering, context engineering y lo que podría venir después.
@@ -71,7 +71,7 @@ La segunda rama fue la que más me interesó personalmente. Como si se hubieran 
 
 La razón resulta natural. **¿Con qué comprobamos** si el contexto está bien compuesto, el harness bien diseñado o el coste realmente reducido? Cuanto más largas y complejas son las tareas que un agente resuelve de forma autónoma, más difícil es revisar a simple vista cada una y decidir «¿esto funcionó bien?». La base de la confianza acaba desplazándose hacia la medición. Por eso han pasado al primer plano preguntas como «¿cómo diseñar la evaluación de agentes?», «¿cómo eliminar el ruido de la propia evaluación?» o «¿cómo tratar el eval awareness, cuando el model detecta que lo evalúan y cambia su conducta?».
 
-![4.png](4.png)
+![Gráfico que contrasta pass@k y pass^k: al aumentar los intentos, pass@k sube hacia el 100% mientras pass^k cae hacia el 0%](4.png)
 
 Evaluar agentes es difícil porque no se parece a una pregunta y respuesta de una sola vez. Un agente llama a tools y cambia estados a lo largo de varios turnos, de modo que un error se propaga y acumula. Además, los resultados varían entre ejecuciones aun con la misma entrada. [Anthropic](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) divide esta no determinación en dos métricas. **pass@k** es la probabilidad de acertar al menos una vez en k intentos, por lo que crece al aumentar los intentos. **pass^k** es la probabilidad de acertar los k intentos, por lo que disminuye. En generación de código que solo necesita funcionar una vez importa pass@1; en un agente de atención al cliente que debe funcionar siempre, pass^k es fundamental. (Con una tasa de éxito per-trial del 75%, la probabilidad de tres éxitos seguidos es 0.75³, cerca del 42%. Así de grande es la distancia entre «suele funcionar» y «funciona siempre».)
 

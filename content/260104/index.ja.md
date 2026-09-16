@@ -4,11 +4,11 @@ title: "queryKey"
 seoTitle: "TanStack Query queryKey 完全攻略: queryOptions まで"
 date: "2026-01-04"
 categories: フロントエンド React TanStack-Query queryKey
-description: "TanStack Query の queryKey がどのような仕組みで動作し、なぜインライン配列からクエリキーファクトリー、queryOptions へと進化してきたのかを整理する。TkDodo のパターンや v5 の queryOptions、setQueryData、無効化まで、実務の観点から解説する。"
+description: 'TanStack Query の queryKey がどのような仕組みで動作し、なぜインライン配列からクエリキーファクトリー、queryOptions へと進化してきたのかを整理する。TkDodo のパターンや v5 の queryOptions、setQueryData、無効化まで実務観点で解説する。'
 keywords: "queryKey, クエリキーファクトリー, TanStack Query queryKey, React Query キャッシュキー, queryOptions, setQueryData, TkDodo クエリキー, query-key-factory, React Query v5, クエリの無効化"
 locale: ja
 translationOf: '260104'
-sourceHash: f3056a824e46cda129912bb531066116db92d6347d1275c7d3ed985f216de218
+sourceHash: 09b422a19a1b5f232d512d0904f671d9d3f82d1bb8a9e0136db630e369a60e76
 ---
 
 今回は、**TanStack Query の queryKey**について掘り下げてみたい。

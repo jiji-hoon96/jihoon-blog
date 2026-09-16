@@ -8,7 +8,7 @@ description: '当产品经理和 developer 用同一个词指代不同事物时�
 keywords: 'ubiquitous language, 共享语言 领域, 跨职能沟通, 需求梳理方法, 产品经理 开发者 沟通, grounding common ground, Example Mapping, breadboarding, bounded context, 开发团队 心理安全感'
 locale: zh-CN
 translationOf: '260723'
-sourceHash: 25017392eb79f1a4a39ea4b1d5f494e88cbdd908ca984d3a3c69e1ca299d7d3f
+sourceHash: adf36bd375ece6026d5959d3cbe7a60585adf215a2f5bb429d88b18ce2381384
 ---
 
 这篇文章想聊聊与其他职能的沟通。
@@ -17,7 +17,7 @@ sourceHash: 25017392eb79f1a4a39ea4b1d5f494e88cbdd908ca984d3a3c69e1ca299d7d3f
 
 最近我读了 James Samuel 写的[工程领导者的日常工作](https://softwareleads.substack.com/p/engineering-leaders-day-to-day-activities)。作者把领导者的工作分成六项，最先讨论的就是信息收集。理由是所有的决策、方向和行动，都依赖于对当下正在发生什么的准确理解。
 
-![1.png](1.png)
+![用六个相连的圆表示的管理活动：收集信息、规划、领导、影响决策、做决策、共享信息](1.png)
 
 我确实希望将来能担任领导角色，但读到这一段之后浮现的想法有些不同。**如果领导者最先处理的工作是信息收集，那么对一线执行者而言，与之对应的就是需求的梳理。**我现在处理需求的方式，日后就会成为我处理组织信息的方式。
 
@@ -177,7 +177,7 @@ For the most part, this belief tends to be tacit—taken for granted and not giv
 
 当然，反驳是成立的。在不安全的团队里，红色卡片的格子恐怕就是空着。这个指摘没错，我也无意主张这个工具能创造出安全感。只是，格子存在的话，至少**空着这件事会变得可见。**这就有了一个可以发问的位置：是因为没人有疑问才空着，还是因为难以开口才空着。
 
-![3.jpg](3.jpg)
+![DDD 社区的 Bounded Context Canvas 模板，分为目的、战略分类、通用语言、假设、验证指标与开放问题等栏位](3.jpg)
 
 同样的想法也已经进入了实际的文档格式。看看 DDD 社区制作的[Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas)，它是一个用于设计并记录单个上下文的协作工具，格子的构成很有意思。名称与目的、战略分类、领域角色、入站与出站沟通，然后是 **Ubiquitous Language**、业务决策、**Assumptions**、验证指标，以及 **Open Questions**。
 

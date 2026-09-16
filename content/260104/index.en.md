@@ -8,7 +8,7 @@ description: "How queryKey works in TanStack Query and why it evolved from inlin
 keywords: "queryKey, query key factory, TanStack Query queryKey, React Query cache key, queryOptions, setQueryData, TkDodo query keys, query-key-factory, React Query v5, query invalidation"
 locale: en
 translationOf: '260104'
-sourceHash: f3056a824e46cda129912bb531066116db92d6347d1275c7d3ed985f216de218
+sourceHash: 09b422a19a1b5f232d512d0904f671d9d3f82d1bb8a9e0136db630e369a60e76
 ---
 
 In this post, I want to explore **TanStack Query's queryKey**.

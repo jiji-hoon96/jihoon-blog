@@ -1,14 +1,14 @@
 ---
 emoji: 🧭
 title: 'Harness (Systems) Engineering'
-seoTitle: "AI Agents After Context: Harness Design, Evals, Containment"
+seoTitle: 'AI Agents After Context: Harness, Evals, Containment'
 date: '2026-06-22'
 categories: AI Agents
 description: "After prompts gave way to context engineering, what comes next? Anthropic engineering points to harness design, evals, and containment."
 keywords: 'context engineering, harness design, AI agent evals, agent evaluation, containment, agent isolation, AI trends 2026, prompt engineering, LLM agents, beyond token efficiency'
 locale: en
 translationOf: '260622'
-sourceHash: '3a4496827fcd34537ded61f9925a57116fbf16b6d28eee9508f66417f6d2345b'
+sourceHash: 06bdc8be3e1e0ff49702ada8265d88df2ffd88a750b85ab5e845bf748bac236e
 ---
 
 In this post, I want to look at what may come after prompt engineering and context engineering.
@@ -71,7 +71,7 @@ The second branch was the most interesting to me personally. As if by agreement,
 
 The reason is intuitive. **How do we verify** that context was composed well, the harness was designed well, or costs were truly reduced? The longer and more complex the tasks agents handle autonomously, the harder it becomes for a person to inspect each one and decide, “Did this actually work well?” The basis of trust ultimately shifts to measurement. That is why questions such as “How should agent evaluation be designed?”, “How do we remove noise from the evaluation itself?”, and “How do we handle eval awareness, where a model detects an evaluation and changes its behavior?” have moved to the foreground.
 
-![4.png](4.png)
+![A chart contrasting pass@k and pass^k: as trials increase, pass@k climbs toward 100% while pass^k falls toward 0%](4.png)
 
 Evaluating agents is difficult because it differs in kind from a one-shot question and answer. An agent calls tools and changes state over multiple turns, so one mistake propagates forward and accumulates. Results also vary from run to run even with identical inputs. [Anthropic](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) divides this nondeterminism into two metrics. **pass@k** is the probability of succeeding at least once across k attempts, so it rises as attempts increase. **pass^k** is the probability of succeeding on all k attempts, so it falls as attempts increase. pass@1 matters for code generation that only needs to be right once; pass^k is central for a customer-service agent that must work reliably every time. (If the per-trial success rate is 75%, the probability of three consecutive successes is 0.75³, or about 42%. The gap between “usually works” and “works every time” is that large.)
 

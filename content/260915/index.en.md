@@ -1,10 +1,10 @@
 ---
 emoji: 🧭
 title: 'System Observability'
-seoTitle: 'System Observability: Sentry, OpenTelemetry, and Gray Failure'
+seoTitle: 'Observability: Sentry, OpenTelemetry, and Gray Failure'
 date: '2026-09-15'
 categories: observability frontend Sentry OpenTelemetry
-description: 'How server-only Sentry caught failures hidden behind 200 responses: what errors, breadcrumbs, traces, metrics, and profiles each answer, gray failure, a GA call that hung 65 seconds, and the distribution measured again after the fix.'
+description: 'How server-only Sentry caught failures hidden behind 200 responses: gray failure, a GA call that hung 65 seconds, and what each signal answers.'
 keywords: 'Sentry error monitoring, gray failure, DEADLINE_EXCEEDED timeout, Sentry distributed tracing, OpenTelemetry signals, serverless observability, gRPC deadline, Session Replay privacy'
 locale: en
 translationOf: '260915'

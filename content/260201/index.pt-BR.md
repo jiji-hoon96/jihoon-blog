@@ -151,7 +151,7 @@ filteredUsers.forEach(user => {
 
 Um **código com alto nível de abstração** é expresso na linguagem do domínio de negócio ou da área do problema. Alguns exemplos são `processPayment(order)`, `sendNotification(user, message)` e `validateUserInput(formData)`. Um código com alto nível de abstração revela **o que (What)** faz e esconde como faz.
 
-Em *Clean Code*, Robert C. Martin organizou esse conceito no princípio de **"um nível de abstração por função (One Level of Abstraction per Function)"**. Quando uma mesma função mistura código de alto e baixo nível, quem a lê precisa decidir a cada linha: "Isto é a lógica principal ou um detalhe de implementação?".
+Em **Clean Code**, Robert C. Martin organizou esse conceito no princípio de **"um nível de abstração por função (One Level of Abstraction per Function)"**. Quando uma mesma função mistura código de alto e baixo nível, quem a lê precisa decidir a cada linha: "Isto é a lógica principal ou um detalhe de implementação?".
 
 O problema fica claro quando observado em código real.
 
@@ -213,7 +213,7 @@ Todas as instruções falam no mesmo nível de abstração. Cada função de ní
 
 Martin também chama isso de **"regra descendente (The Stepdown Rule)"**. Ao ler o código de cima para baixo, como em uma matéria de jornal, devemos ver o panorama geral no topo e encontrar cada vez mais detalhes conforme descemos.
 
-Kent Beck apresentou o mesmo princípio em *Smalltalk Best Practice Patterns* por meio do padrão **Composed Method**. Um método deve ser composto apenas de operações no mesmo nível de abstração, e cada etapa deve ser expressa por uma chamada de método em uma única linha.
+Kent Beck apresentou o mesmo princípio em **Smalltalk Best Practice Patterns** por meio do padrão **Composed Method**. Um método deve ser composto apenas de operações no mesmo nível de abstração, e cada etapa deve ser expressa por uma chamada de método em uma única linha.
 
 No fim, todas essas ideias chegam à mesma conclusão: **uma função deve falar em apenas um nível de abstração.** Só esse cuidado já muda visivelmente a legibilidade do código.
 
@@ -360,7 +360,7 @@ function registerUser(form: RegistrationForm): Promise<User>;
 function refundPayment(orderId: OrderId, amount: Money): Promise<Refund>;
 ```
 
-Em *Clean Code*, Robert C. Martin afirmou que **"um nome longo e descritivo é melhor que um nome curto e enigmático"**. Ele também apresentou o princípio **"use uma palavra por conceito"**, pois, se misturarmos `fetch`, `retrieve` e `get` para operações no mesmo contexto, quem lê ficará em dúvida: "Essas três operações são diferentes?".
+Em **Clean Code**, Robert C. Martin afirmou que **"um nome longo e descritivo é melhor que um nome curto e enigmático"**. Ele também apresentou o princípio **"use uma palavra por conceito"**, pois, se misturarmos `fetch`, `retrieve` e `get` para operações no mesmo contexto, quem lê ficará em dúvida: "Essas três operações são diferentes?".
 
 O mesmo princípio se aplica diretamente à nomenclatura de componentes e hooks do React.
 

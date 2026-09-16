@@ -1,10 +1,10 @@
 ---
 emoji: 🔭
 title: 'Browser Observability'
-seoTitle: 'Frontend Browser Observability: PerformanceObserver, Web Vitals, RUM'
+seoTitle: 'Browser Observability: Web Vitals, PerformanceObserver, RUM'
 date: '2026-09-14'
 categories: observability frontend browser RUM
-description: "A three-stage map of browser observability, from the Performance Timeline and how Web Vitals are computed to the design criteria for RUM. Includes what I measured while adding web-vitals collection to my blog, and why I gave up 79KB of client instrumentation."
+description: 'The Performance Timeline, how Web Vitals are computed, and the design criteria for RUM, plus why I gave up 79KB of client instrumentation.'
 keywords: 'frontend observability, browser performance monitoring, PerformanceObserver tutorial, measuring Web Vitals, real user monitoring setup, LCP INP CLS explained, web-vitals GA4, Soft Navigations API'
 locale: en
 translationOf: '260914'

@@ -8,7 +8,7 @@ description: "O que fazer quando product manager e developer usam a mesma palavr
 keywords: 'ubiquitous language, linguagem compartilhada domínio, comunicação entre áreas, como levantar requisitos, comunicação product manager developer, grounding common ground, Example Mapping, breadboarding, bounded context, segurança psicológica time de desenvolvimento'
 locale: pt-BR
 translationOf: '260723'
-sourceHash: 25017392eb79f1a4a39ea4b1d5f494e88cbdd908ca984d3a3c69e1ca299d7d3f
+sourceHash: adf36bd375ece6026d5959d3cbe7a60585adf215a2f5bb429d88b18ce2381384
 ---
 
 Neste post, quero falar sobre a comunicação com outras áreas.
@@ -17,7 +17,7 @@ Enquanto desenvolvo, dedico tanto tempo a descobrir o que precisa ser construíd
 
 Recentemente li [As atividades cotidianas de um líder de engenharia](https://softwareleads.substack.com/p/engineering-leaders-day-to-day-activities), escrito por James Samuel. O autor divide o trabalho de um líder em seis frentes, e a primeira que ele trata é a coleta de informação. A razão é que toda decisão, toda direção e toda ação dependem de um entendimento preciso do que está acontecendo agora.
 
-![1.png](1.png)
+![As atividades gerenciais desenhadas como seis círculos ligados: coletar informação, planejar, liderar, influenciar decisões, decidir e compartilhar informação](1.png)
 
 Eu quero assumir um papel de liderança algum dia, mas o que me ocorreu ao ler essa passagem foi um pouco diferente. **Se a primeira coisa que um líder trata é coletar informação, o correspondente disso para quem está na execução é entender requisitos.** O jeito como lido com requisitos hoje será o jeito como vou lidar com a informação de uma organização depois.
 
@@ -177,7 +177,7 @@ Daqui em diante é conjectura minha. O que o artigo diz vai até a crença ser t
 
 Cabe uma objeção, claro. Num time que não é seguro, o campo do cartão vermelho vai simplesmente ficar vazio. É uma crítica justa, e não pretendo afirmar que esta ferramenta cria segurança. Mas, se o campo existe, ao menos **o fato de estar vazio se torna visível.** Cria-se um lugar para perguntar se está vazio porque ninguém tem dúvida ou porque é difícil falar.
 
-![3.jpg](3.jpg)
+![O modelo Bounded Context Canvas da comunidade DDD, com campos para propósito, classificação estratégica, linguagem ubíqua, premissas, métricas de verificação e questões em aberto](3.jpg)
 
 A mesma ideia está incorporada em formatos de documento reais. Olhando o [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas) criado pela comunidade de DDD, é uma ferramenta colaborativa para projetar e documentar um contexto, e a composição dos campos é interessante. Nome e propósito, classificação estratégica, papel no domínio, comunicação de entrada e de saída, e então **Ubiquitous Language**, decisões de negócio, **Assumptions**, métricas de verificação e **Open Questions**.
 

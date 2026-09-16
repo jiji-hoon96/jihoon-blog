@@ -8,7 +8,7 @@ description: "A frontend guide to domains, domain models, and domain objects: En
 keywords: "frontend domain model, domain-driven design, frontend DDD, Frontend DDD, Domain Object, Entity Value Object, Anemic Domain Model, Clean Architecture frontend, Eric Evans, Martin Fowler, domain logic separation, React design patterns, frontend architecture, ViewModel separation, Bounded Context"
 locale: en
 translationOf: '260418'
-sourceHash: 660b87cbe239f955599d8c796abc4990000f522521179fc4da3a1af1773a335e
+sourceHash: b9aa3af2ee684933bfaa47fe2c6b9543a7eaf0d22299b554491c0040f6069953
 ---
 
 In this post, I want to talk about the **domain**.
@@ -44,7 +44,7 @@ What does this mean for frontend developers? Ultimately, the UI we build is a **
 
 But even a single domain called "tax" contains countless subdomains when examined closely. This is true even of the comprehensive income tax calculation pipeline I only understand at a high level.
 
-![1.png](1.png)
+![The income tax calculation pipeline, from gross income through to payment or refund, with each step colour-coded into the income, deduction, tax, and filing subdomains](1.png)
 
 Each stage of this pipeline is a subdomain with its own rules and data. Within the broad domain of "tax," the detailed domains of Income, Deduction, Tax, and Filing are intertwined. How these should be divided in code is the central question of domain modeling.
 

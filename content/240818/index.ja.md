@@ -8,7 +8,7 @@ description: "ZustandがProviderなしで状態管理を実現する仕組みを
 keywords: "Zustandの仕組み, ZustandにProviderがない理由, React状態管理ライブラリ, Zustandソースコード分析, useSyncExternalStore, React Context API"
 locale: ja
 translationOf: '240818'
-sourceHash: 91250499c0cdecf71d9c15c2ccdd1ecb7e81d019b227a50af06d268d7a9d8a40
+sourceHash: 76e245173e4d4ea540ecc22c306523bbe5b81fb11873f40ac793f6ea1326be40
 ---
 
 今回の記事では、ZustandがどのようにProviderなしで状態管理を実現しているのかを取り上げる。
@@ -23,7 +23,7 @@ sourceHash: 91250499c0cdecf71d9c15c2ccdd1ecb7e81d019b227a50af06d268d7a9d8a40
 
 一般的なReactアプリケーションでは、状態は下図のように動作する。
 
-![3.png](3.png)
+![React のデータフロー図。データは props で下に流れ、イベントは上に伝わる](3.png)
 
 コンポーネント内部の状態は、Reactが提供する状態管理フック（`useState`、`useReducer`）を使って管理する。そして、子コンポーネントへの状態の受け渡しはpropsを通じて行われる。ここまでは単純な話だ。
 
@@ -47,7 +47,7 @@ ReactはコンポーネントツリーをFiberという内部データ構造で�
 
 ## ZustandはReactの外側に存在する
 
-![4.png](4.png)
+![Flux パターンの図。Action、Dispatcher、Store、View が一方向につながる](4.png)
 
 ZustandはFluxパターンに基づいて動作する。クロージャ内部の`state`がStore、ユーザー定義関数がAction、`set`関数がDispatcher、ReactコンポーネントがViewの役割を担う。ここに決定的な違いがある。 
 
@@ -416,7 +416,7 @@ beforeEach(() => {
 
 <hr>
 
-![7.jpeg](7.jpeg)
+![「ちょっと待って!!」と言う手描きのキャラクター](7.jpeg)
 
 ### それから、新しい知らせ
 

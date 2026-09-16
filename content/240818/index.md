@@ -20,7 +20,7 @@ keywords: "Zustand 원리, Zustand Provider 없는 이유, React 상태관리 �
 
 일반적인 React 애플리케이션에서 상태는 아래 그림처럼 동작한다.
 
-![3.png](3.png)
+![React 데이터 흐름 다이어그램. 데이터는 props 로 아래로 흐르고 이벤트는 위로 올라간다](3.png)
 
 컴포넌트 내부 상태는 React가 제공하는 상태 관리 훅(`useState`, `useReducer`)을 사용하여 관리한다. 그리고 하위 컴포넌트로의 상태 전달은 props를 통해 이루어진다. 여기까지는 단순한 이야기이다.
 
@@ -44,7 +44,7 @@ React는 컴포넌트 트리를 Fiber라는 내부 자료구조로 관리한다.
 
 ## Zustand는 React 바깥에 산다
 
-![4.png](4.png)
+![Flux 패턴 다이어그램. Action, Dispatcher, Store, View 가 단방향으로 연결된다](4.png)
 
 Zustand는 Flux 패턴을 기반으로 동작한다. 클로저 내부의 `state`가 Store 역할을, 사용자 정의 함수들이 Action 역할을, `set` 함수가 Dispatcher 역할을, React 컴포넌트가 View 역할을 수행한다. 여기서 결정적인 차이가 있다. 
 
@@ -413,7 +413,7 @@ beforeEach(() => {
 
 <hr>
 
-![7.jpeg](7.jpeg)
+!["여기서 잠깐!!" 이라고 말하는 손그림 캐릭터](7.jpeg)
 
 ### 아 그리고 새로운 소식
 

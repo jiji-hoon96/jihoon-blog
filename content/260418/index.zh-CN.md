@@ -8,7 +8,7 @@ description: "从前端视角梳理领域、领域模型与领域对象的概念
 keywords: "前端领域模型, 领域驱动设计, DDD 前端, 前端 DDD, 领域对象, 实体 值对象, 贫血领域模型, Clean Architecture 前端, Eric Evans, Martin Fowler, 领域逻辑分离, React 设计模式, 前端架构, ViewModel 分离, 限界上下文"
 locale: zh-CN
 translationOf: '260418'
-sourceHash: 660b87cbe239f955599d8c796abc4990000f522521179fc4da3a1af1773a335e
+sourceHash: b9aa3af2ee684933bfaa47fe2c6b9543a7eaf0d22299b554491c0040f6069953
 ---
 
 这篇文章想聊一聊**领域（Domain）**。
@@ -44,7 +44,7 @@ Eric Evans 在其著作 **Domain-Driven Design: Tackling Complexity in the Heart
 
 然而，即便只有“税务”这一个领域，深入其中也会发现大量子领域。仅以我略知皮毛的综合所得税计算流水线为例，就已经是这样。
 
-![1.png](1.png)
+![综合所得税计算流水线：从总收入到缴纳或退税的每个步骤，按收入、扣除、税额、结果四个子域着色](1.png)
 
 这条流水线的每一个阶段，都是拥有独立规则和数据的子领域。“税务”这一大领域内部，交织着收入（Income）、扣除（Deduction）、税额（Tax）、申报结果（Filing）等细分领域。如何在代码中划分它们，正是领域建模的核心问题。
 

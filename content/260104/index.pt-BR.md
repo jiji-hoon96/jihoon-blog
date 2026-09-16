@@ -8,7 +8,7 @@ description: "Como o queryKey funciona no TanStack Query e por que evoluiu de ve
 keywords: "queryKey, fábrica de chaves de consulta, queryKey do TanStack Query, chave de cache do React Query, queryOptions, setQueryData, chaves de consulta de TkDodo, query-key-factory, React Query v5, invalidação de consultas"
 locale: pt-BR
 translationOf: '260104'
-sourceHash: f3056a824e46cda129912bb531066116db92d6347d1275c7d3ed985f216de218
+sourceHash: 09b422a19a1b5f232d512d0904f671d9d3f82d1bb8a9e0136db630e369a60e76
 ---
 
 Neste artigo, quero falar sobre a **queryKey do TanStack Query**.

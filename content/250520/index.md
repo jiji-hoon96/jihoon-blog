@@ -557,7 +557,7 @@ Scheduler의 `shouldYieldToHost()`는 작업 시작 이후 경과 시간이 `fra
 
 Fiber는 내부적으로 **Render Phase**와 **Commit Phase**라는 두 단계를 거친다. 이 분리는 React의 동시성 모델을 가능하게 만드는 핵심 설계인 것이다. Fiber의 작동 흐름을 직접 확인하고 싶다면 아래 이미지를 클릭하면 된다.
 
-[![2.png](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
+[![React Fiber 작동 순서를 단계별로 보여주는 시각화 데모. 렌더 단계부터 레이아웃 단계까지를 컴포넌트 트리와 작업 스택으로 따라간다](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
 
 
 

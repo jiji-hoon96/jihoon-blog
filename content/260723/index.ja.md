@@ -8,7 +8,7 @@ description: '企画者とdeveloperが同じ単語で違うものを指してい
 keywords: 'ubiquitous language, 共有言語 ドメイン, 他職種 コミュニケーション, 要件定義 方法, 企画者 開発者 コミュニケーション, grounding common ground, Example Mapping, breadboarding, bounded context, 心理的安全性 開発チーム'
 locale: ja
 translationOf: '260723'
-sourceHash: 25017392eb79f1a4a39ea4b1d5f494e88cbdd908ca984d3a3c69e1ca299d7d3f
+sourceHash: adf36bd375ece6026d5959d3cbe7a60585adf215a2f5bb429d88b18ce2381384
 ---
 
 今回は、他職種とのコミュニケーションについて書いてみたい。
@@ -17,7 +17,7 @@ sourceHash: 25017392eb79f1a4a39ea4b1d5f494e88cbdd908ca984d3a3c69e1ca299d7d3f
 
 最近、James Samuelが書いた[エンジニアリングリーダーの日常業務](https://softwareleads.substack.com/p/engineering-leaders-day-to-day-activities)という記事を読んだ。著者はリーダーの仕事を六つに分けるのだが、最初に扱っているのが情報収集だった。あらゆる決定と方向と行動が、いま何が起きているのかについての正確な理解に依存するからだという。
 
-![1.png](1.png)
+![管理者の活動を 6 つの円で表した図。情報収集、計画、リーディング、意思決定への影響、意思決定、情報共有がつながっている](1.png)
 
 私はいつかリーダーの役割を担いたいと考えているが、この箇所を読んで浮かんだのは少し違うことだった。**リーダーが最初に扱う仕事が情報収集なら、実務者にとってその対応物は要件の把握だ。**いま要件を扱っているやり方が、のちに組織の情報を扱うやり方になる。
 
@@ -177,7 +177,7 @@ For the most part, this belief tends to be tacit—taken for granted and not giv
 
 もちろん反論は可能だ。安全でないチームでは赤いカードの欄もただ空のままだろう。もっともな指摘であり、この道具が安全性を生み出すと主張するつもりはない。ただ、欄があれば少なくとも**空であるという事実が目に見える。**誰も分からないことがなくて空なのか、言い出しにくくて空なのかを尋ねる場ができる。
 
-![3.jpg](3.jpg)
+![DDD コミュニティの Bounded Context Canvas のテンプレート。目的、戦略分類、ユビキタス言語、前提、検証指標、未解決の問いの欄に分かれている](3.jpg)
 
 同じ発想が実際の文書様式にも入っている。DDDコミュニティが作った[Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas)を見ると、一つのコンテキストを設計し記録する協働ツールなのだが、欄の構成が興味深い。名前と目的、戦略的分類、ドメイン上の役割、インバウンドとアウトバウンドのコミュニケーション、そして**Ubiquitous Language**、ビジネス上の決定、**Assumptions**、検証指標、**Open Questions**だ。
 

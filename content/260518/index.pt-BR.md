@@ -155,7 +155,7 @@ navigate(`?${params.toString()}`);
 const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
 ```
 
-Bibliotecas como [nuqs](https://nuqs.dev/) resolvem os dois problemas por meio do conceito de *parser*. Parsers como `parseAsInteger`, `parseAsBoolean` e `parseAsJson` cuidam de uma só vez da serialização, da desserialização e dos tipos. A biblioteca oferece suporte à maioria dos ambientes, incluindo Next.js (App Router e Pages Router), React Router v6/v7, TanStack Router e Remix.
+Bibliotecas como [nuqs](https://nuqs.dev/) resolvem os dois problemas por meio do conceito de **parser**. Parsers como `parseAsInteger`, `parseAsBoolean` e `parseAsJson` cuidam de uma só vez da serialização, da desserialização e dos tipos. A biblioteca oferece suporte à maioria dos ambientes, incluindo Next.js (App Router e Pages Router), React Router v6/v7, TanStack Router e Remix.
 
 
 Isso significa que podemos colocar qualquer quantidade de estado na URL? Além dos problemas de serialização e tipos, ainda existe uma última restrição a considerar. A [RFC 7230](https://datatracker.ietf.org/doc/html/rfc7230) não define um limite exato, mas recomenda que “o servidor ofereça suporte a pelo menos 8.000 octetos” (octeto é a unidade usada em redes e comunicação de dados para designar, sem ambiguidade, um conjunto de 8 bits, isto é, 1 byte). Os limites também variam entre navegadores: browsers modernos geralmente aceitam de 8 KB a dezenas de milhares de caracteres, mas **mecanismos de busca, o processamento de OG/compartilhamento em redes sociais e alguns gateways podem truncar a URL por volta de 2 KB**. Portanto, não devemos inserir dados indefinidamente na URL. É mais seguro manter nela apenas os **principais filtros compartilháveis** e deixar o restante a cargo do sessionStorage ou de um armazenamento no servidor.
@@ -246,7 +246,7 @@ Dois modelos são usados com frequência na implementação de guards de autoriz
 - **RBAC (Role-Based Access Control)**: concede permissões por papel. Por exemplo: “admin pode ver as informações de todos os usuários”. É simples e rápido, mas o número de papéis explode à medida que eles se tornam mais granulares
 - **ABAC (Attribute-Based Access Control)**: determina permissões a partir de uma combinação de atributos. Por exemplo: “se o usuário for o autor do post, pertencer à mesma equipe ou for admin”. Tem grande poder de expressão, mas é difícil de implementar e depurar
 
-Como mostra o [guia de RBAC do TanStack Router](https://tanstack.com/router/v1/docs/framework/react/how-to/setup-rbac), recomenda-se o padrão de inserir o guard em `beforeLoad`, no nível do router. O ponto central é que **as verificações de permissão devem poder ser representadas como dados — uma lista de papéis ou permissões — em vez de ficarem espalhadas pelo código**. Assim, uma mudança na política de acesso se resume a uma *mudança de dados*.
+Como mostra o [guia de RBAC do TanStack Router](https://tanstack.com/router/v1/docs/framework/react/how-to/setup-rbac), recomenda-se o padrão de inserir o guard em `beforeLoad`, no nível do router. O ponto central é que **as verificações de permissão devem poder ser representadas como dados — uma lista de papéis ou permissões — em vez de ficarem espalhadas pelo código**. Assim, uma mudança na política de acesso se resume a uma **mudança de dados**.
 
 
 ## Conclusão

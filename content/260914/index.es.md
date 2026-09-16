@@ -1,10 +1,10 @@
 ---
 emoji: 🔭
 title: 'Observabilidad del navegador'
-seoTitle: 'Observabilidad del navegador en frontend: PerformanceObserver, Web Vitals y RUM'
+seoTitle: 'Observabilidad del navegador: Web Vitals y RUM en frontend'
 date: '2026-09-14'
 categories: observabilidad frontend navegador RUM
-description: 'Una guía en tres etapas de la observabilidad del navegador: desde el Performance Timeline y el cálculo de las Web Vitals hasta los criterios de diseño de un RUM. Incluye lo que medí al añadir la recolección de web-vitals a mi blog y por qué renuncié a 79KB de instrumentación en el cliente.'
+description: 'El Performance Timeline, cómo se calculan las Web Vitals y los criterios de diseño de un RUM, y por qué renuncié a 79KB de instrumentación.'
 keywords: 'observabilidad frontend, medir rendimiento web, PerformanceObserver ejemplo, medir Web Vitals, monitoreo de usuarios reales RUM, LCP INP CLS explicado, web-vitals GA4, Soft Navigations API'
 locale: es
 translationOf: '260914'

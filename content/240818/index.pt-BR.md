@@ -8,7 +8,7 @@ description: "Uma análise do código-fonte do Zustand: como ele gerencia estado
 keywords: "como o Zustand funciona, por que o Zustand não precisa de Provider, biblioteca de gerenciamento de estado React, análise do código-fonte do Zustand, useSyncExternalStore, React Context API"
 locale: pt-BR
 translationOf: '240818'
-sourceHash: 91250499c0cdecf71d9c15c2ccdd1ecb7e81d019b227a50af06d268d7a9d8a40
+sourceHash: 76e245173e4d4ea540ecc22c306523bbe5b81fb11873f40ac793f6ea1326be40
 ---
 
 Neste post, quero falar sobre como o Zustand consegue gerenciar estado sem um Provider.
@@ -23,7 +23,7 @@ Por curiosidade, fui examinar diretamente o código-fonte do Zustand e encontrei
 
 Em uma aplicação React comum, o estado funciona como mostra a imagem abaixo.
 
-![3.png](3.png)
+![Diagrama de fluxo de dados no React: os dados descem por props e os eventos sobem](3.png)
 
 O estado interno de um componente é gerenciado com os hooks de gerenciamento de estado fornecidos pelo React (`useState`, `useReducer`). Já o estado é passado aos componentes filhos por props. Até aqui, a história é simples.
 
@@ -47,7 +47,7 @@ Então como o Zustand contorna essa estrutura?
 
 ## O Zustand vive fora do React
 
-![4.png](4.png)
+![Diagrama do padrão Flux: Action, Dispatcher, Store e View ligados em uma única direção](4.png)
 
 O Zustand funciona com base no padrão Flux. O `state` dentro do closure exerce o papel de Store; as funções definidas pelo usuário, o de Actions; a função `set`, o de Dispatcher; e os componentes React, o de Views. É aqui que aparece a diferença decisiva. 
 
@@ -416,7 +416,7 @@ Recomendo também que os leitores abram ao menos uma vez o código-fonte de algu
 
 <hr>
 
-![7.jpeg](7.jpeg)
+![Um personagem desenhado à mão dizendo "espera aí!"](7.jpeg)
 
 ### Ah, e uma novidade
 

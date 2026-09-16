@@ -8,7 +8,7 @@ description: "Dominio, modelo de dominio y objeto de dominio desde el frontend: 
 keywords: "modelo de dominio en frontend, diseño guiado por el dominio, DDD en frontend, Frontend DDD, objeto de dominio, Entity Value Object, Anemic Domain Model, modelo de dominio anémico, Clean Architecture en frontend, Eric Evans, Martin Fowler, separación de lógica de dominio, patrones de diseño en React, arquitectura frontend, separación del ViewModel, Bounded Context"
 locale: es
 translationOf: '260418'
-sourceHash: 660b87cbe239f955599d8c796abc4990000f522521179fc4da3a1af1773a335e
+sourceHash: b9aa3af2ee684933bfaa47fe2c6b9543a7eaf0d22299b554491c0040f6069953
 ---
 
 En este artículo quiero hablar del **dominio (Domain)**.
@@ -44,7 +44,7 @@ Dicho de forma sencilla, el dominio es la propia **área problemática que se qu
 
 Pero incluso dentro de un único dominio como el de los «impuestos» existen numerosos subdominios. Basta con observar el flujo de cálculo del impuesto sobre la renta global que conozco a grandes rasgos.
 
-![1.png](1.png)
+![Pipeline de cálculo del impuesto sobre la renta, de los ingresos brutos al pago o la devolución, con cada paso coloreado según los subdominios de ingreso, deducción, impuesto y declaración](1.png)
 
 Cada etapa de este flujo constituye un subdominio con reglas y datos propios. Dentro del gran dominio de los «impuestos» se entrelazan subdominios como ingresos (Income), deducciones (Deduction), cuota tributaria (Tax) y declaración (Filing). Cómo dividirlos en el código es precisamente la cuestión central del modelado de dominio.
 

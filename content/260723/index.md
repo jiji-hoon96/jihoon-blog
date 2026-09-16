@@ -14,7 +14,7 @@ keywords: 'ubiquitous language, 공유 언어 도메인, 타직군 소통, 요�
 
 최근에 James Samuel이 쓴 [엔지니어링 리더의 일상 활동](https://softwareleads.substack.com/p/engineering-leaders-day-to-day-activities)이라는 글을 읽었다. 저자는 리더의 업무를 여섯 가지로 나누는데, 가장 먼저 다루는 것이 정보 수집이었다. 모든 결정과 방향과 행동이 지금 무슨 일이 벌어지고 있는지에 대한 정확한 이해에 의존한다는 이유에서다.
 
-![1.png](1.png)
+![관리자 활동을 여섯 개의 원으로 나타낸 그림. 정보 수집, 계획, 리딩, 의사결정 영향, 의사결정, 정보 공유가 둘러 이어진다](1.png)
 
 필자는 언젠가 리더 역할을 하고 싶다는 생각을 갖고 있는데, 이 대목을 읽고 나서 든 생각은 조금 달랐다. **리더가 가장 먼저 다루는 일이 정보 수집이라면, 실무자에게 그 대응물은 요구사항 파악이다.** 지금 요구사항을 다루는 방식이 나중에 조직의 정보를 다루는 방식이 될 것이다.
 
@@ -174,7 +174,7 @@ For the most part, this belief tends to be tacit—taken for granted and not giv
 
 물론 반문이 가능하다. 안전하지 않은 팀에서는 빨간 카드 칸도 그냥 비어 있을 것이다. 맞는 지적이고, 이 도구가 안전감을 만들어낸다고 주장할 생각은 없다. 다만 칸이 있으면 최소한 **비어 있다는 사실이 눈에 보인다.** 아무도 모르는 게 없어서 비었는지, 말하기 어려워서 비었는지를 물어볼 자리가 생긴다.
 
-![3.jpg](3.jpg)
+![DDD 커뮤니티의 Bounded Context Canvas 양식. 목적, 전략 분류, 유비쿼터스 언어, 가정, 검증 지표, 미해결 질문 칸이 나뉘어 있다](3.jpg)
 
 같은 발상이 실제 문서 양식에도 들어가 있다. DDD 커뮤니티가 만든 [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas)를 보면, 하나의 컨텍스트를 설계하고 기록하는 협업 도구인데 칸 구성이 흥미롭다. 이름과 목적, 전략적 분류, 도메인 역할, 인바운드와 아웃바운드 커뮤니케이션, 그리고 **Ubiquitous Language**, 비즈니스 결정, **Assumptions**, 검증 지표, **Open Questions** 다.
 

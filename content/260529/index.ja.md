@@ -1,7 +1,7 @@
 ---
 emoji: 🧭
 title: 'AIエージェントツール'
-seoTitle: 'AIコーディングエージェントのツール地図: mdファイル、MCP、コードインテリジェンス、GitHub Trending'
+seoTitle: 'AIコーディングエージェントのツール地図: mdファイル、MCP、コード解析'
 date: '2026-05-29'
 locale: ja
 translationOf: '260529'
@@ -313,7 +313,7 @@ Serenaが急速に採用された本当の理由は、**トークンの節約**�
 
 **code2prompt**（Mufeed VH作）はRust製のCLIで、テンプレートシステムによるカスタマイズ性に強みがある。
 
-興味深い派生形として、**rtk**（`rtk-ai/rtk`、約55k stars）にも触れておきたい。前述のツールが「リポジトリ全体を一度にパッキング」するのに対し、rtkは**CLIコマンドの出力そのものをリアルタイムに圧縮**するツールだ。Rust製の単一バイナリで、Claude Code・Cursor・Copilot・Gemini CLI・Codexなど、13のツールのshell hookへ自動登録される。エージェントが`git status`を呼び出すと、内部で`rtk git status`へrewriteされる。（ユーザーがワークフローを変える必要がないことが、最大の違いだ。）100以上のコマンドにsmart filtering・grouping・truncation・deduplicationのヒューリスティクスを適用し、出力トークンを60〜90%削減する。公式サイトの一文が、このカテゴリをよく要約している——*「70% of your bill is noise the LLM doesn't need.」* 前述のツールが「入力されるコンテキスト」の量を減らすものなら、rtkは「tool callの結果として戻るコンテキスト」の量を減らすものだ。
+興味深い派生形として、**rtk**（`rtk-ai/rtk`、約55k stars）にも触れておきたい。前述のツールが「リポジトリ全体を一度にパッキング」するのに対し、rtkは**CLIコマンドの出力そのものをリアルタイムに圧縮**するツールだ。Rust製の単一バイナリで、Claude Code・Cursor・Copilot・Gemini CLI・Codexなど、13のツールのshell hookへ自動登録される。エージェントが`git status`を呼び出すと、内部で`rtk git status`へrewriteされる。（ユーザーがワークフローを変える必要がないことが、最大の違いだ。）100以上のコマンドにsmart filtering・grouping・truncation・deduplicationのヒューリスティクスを適用し、出力トークンを60〜90%削減する。公式サイトの一文が、このカテゴリをよく要約している。**「70% of your bill is noise the LLM doesn't need.」** 前述のツールが「入力されるコンテキスト」の量を減らすものなら、rtkは「tool callの結果として戻るコンテキスト」の量を減らすものだ。
 
 ただし、この階層の限界は明確である。**大規模なリポジトリではトークン上限に達する。** そして、コードを「テキストの塊」として渡すだけで、シンボル間の関係や構造的な理解は存在しない。
 

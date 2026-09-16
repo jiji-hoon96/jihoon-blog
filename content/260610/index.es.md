@@ -8,7 +8,7 @@ description: 'Cómo BPE crea tokens, los embeddings alimentan los LLM, prefill y
 keywords: 'cómo funcionan los tokens LLM, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, coste tokens de entrada y salida, qué es un token de IA'
 locale: es
 translationOf: '260610'
-sourceHash: 916300304184bd08cac369236fce06eb4d3b01c7d958bc36d63fa6d4b4d9a8b1
+sourceHash: 6a6a147aafe2b372f09525cabfc507e80cc78dac0ae2696a4bae69db6199fd48
 ---
 
 En este artículo quiero explicar qué son en realidad los tokens de IA y cómo funcionan.
@@ -31,7 +31,7 @@ El algoritmo que construye ese vocabulario es BPE, una base común a casi todos 
 
 BPE (Byte Pair Encoding o codificación por pares de bytes) amplía un vocabulario fusionando repetidamente el par de símbolos adyacentes que aparece con mayor frecuencia en un símbolo nuevo.
 
-Lo curioso es que no nació para el procesamiento del lenguaje natural. Philip Gage propuso BPE por primera vez en 1994 como técnica de compresión de datos. El método sustituía el par de bytes más frecuente por un byte que no apareciera en los datos y almacenaba aparte, en una tabla, las reglas de sustitución.
+Lo curioso es que no nació para el procesamiento del lenguaje natural. Philip Gage propuso BPE por primera vez en 1994 como técnica de [compresión de datos](/240706). El método sustituía el par de bytes más frecuente por un byte que no apareciera en los datos y almacenaba aparte, en una tabla, las reglas de sustitución.
 
 El equipo de Sennrich, de la Universidad de Edimburgo, trasladó la idea al problema del vocabulario en la traducción neuronal. En «Neural Machine Translation of Rare Words with Subword Units», publicado en 2015 y presentado en ACL 2016, resolvieron con BPE la incapacidad de un vocabulario fijo para manejar palabras raras o desconocidas. La idea consiste en representar las palabras como combinaciones de fragmentos subword más pequeños en vez de memorizarlas enteras; así, incluso una palabra ausente del vocabulario puede codificarse con piezas conocidas.
 

@@ -8,7 +8,7 @@ description: 'Meça custos de tokens com um React POC e reduza-os com prompt cac
 keywords: 'economizar tokens de IA, custo do Claude Code, Cursor Composer, React POC, prompt caching, context engineering, subagent, MCP, model routing, context rot'
 locale: pt-BR
 translationOf: '260611'
-sourceHash: e7ea965ce86523995dd6cce198d074d9895e6cd9655469a04591a7f5e2a7f1be
+sourceHash: fc7da8aff34f64d252e4a5c2b7376733a51d128f0148a4a8a2406a7f82cb3f29
 ---
 
 Neste artigo, quero falar sobre como economizar tokens de IA.
@@ -33,7 +33,7 @@ Há mais uma variável. Reenviar do zero a parte estática de chamadas repetidas
 
 Vejamos quatro campos do objeto `usage` devolvido pelo SDK da Anthropic.
 
-![1.png](1.png)
+![O objeto usage de uma resposta do SDK da Anthropic, com os campos input_tokens, cache_creation_input_tokens, cache_read_input_tokens e output_tokens](1.png)
 
 - `input_tokens` parte da entrada enviada, excluindo leituras da cache
 - `output_tokens` resposta gerada pelo modelo
@@ -107,13 +107,13 @@ Vale repetir: depois de conectar Linear, GitHub, Notion, Figma, Slack ou Sentry,
 
 Medi a diferença com 27 ferramentas MCP de uma sessão — 10 do Serena, oito de quatro integrações OAuth do claude.ai, duas do Figma e sete do agentmemory — e enviei **a mesma mensagem em duas configurações**. Uma não tinha MCP; a outra tinha as 27 conectadas, mas indisponíveis ao modelo. Ambas fizeram zero chamadas de ferramentas.
 
-![6.png](6.png)
+![A mesma pergunta feita sem servidores MCP e com 27 conectados: os tokens de entrada vão de 41 para 10.335 e o custo por chamada sobe cerca de 11,7 vezes](6.png)
 
 Com mesma pergunta, modelo e sentido da resposta, a entrada foi de **41 → 10,335 (+10,294)** tokens no Opus 4.7. O custo subiu de **$0.0048 → $0.0563, cerca de 12 vezes**; o aumento de 250 vezes na entrada adicionou **+783ms** de latência de prefill. O mais marcante é ser **um custo pago em todas as chamadas mesmo sem usar MCP naquele turno**. Tool Search evita isso. (Desde a medição, removo continuamente servidores que não uso.)
 
 ### Acúmulo de contexto e Lost in the Middle
 
-![4.jpg](4.jpg)
+![Primeira página do artigo "Lost in the Middle", com a curva em U em que a precisão despenca quando a resposta está no meio do contexto](4.jpg)
 
 Levar uma conversa longa adiante aumenta a entrada e reduz a precisão. O estudo “Lost in the Middle”, da equipe de Liu em Stanford, quantificou uma curva em U: informações no começo ou fim são recuperadas melhor; no meio, pior. Gastamos mais para receber resposta inferior. Como o self-attention cresce com o quadrado dos tokens, a atenção por token se dilui com o contexto. O meio enfraquece primeiro porque os dados de treinamento tendem a concentrar informação importante nas extremidades.
 
@@ -125,7 +125,7 @@ Segundo, o modelo **envia atenção demais ao primeiro token**. O softmax obriga
 
 As duas tendências concentram atenção nas pontas — tokens recentes e primeiro token — e enfraquecem o meio. Não é bug de um modelo. LLaMA, Mistral e Qwen usam RoPE; Claude e GPT provavelmente usam mecanismos semelhantes. Lost in the middle é um viés da arquitetura moderna.
 
-![5.png](5.png)
+![Gráfico de context rot: conforme o tamanho da entrada cresce, a precisão cai em Claude, Qwen, OpenAI e Gemini igualmente](5.png)
 
 Hoje, o fenômeno também é chamado de **context rot**. Uma [análise da Chroma](https://research.trychroma.com/context-rot) submeteu 18 modelos — incluindo GPT-4.1, Claude 4, Gemini 2.5 e Qwen3 — à mesma tarefa NIAH (needle in a haystack). Quando a entrada passou de 10k para mais de 100k tokens, a precisão caiu 20–50%, conforme o modelo. Todos pioraram; Claude caiu mais lentamente. A Anthropic descreve isso como um “orçamento de atenção” derivado do n², consumido entre tokens. Contexto leve reduz custos e preserva precisão.
 
@@ -195,7 +195,7 @@ O comando `/compact` resume toda a conversa e reinicia com contexto novo. A comp
 
 Por dentro, `/compact` é a última etapa de uma pipeline automática. Segundo [“Dive into Claude Code”,](https://github.com/VILA-Lab/Dive-into-Claude-Code) `query.ts` verifica cinco etapas antes de cada chamada.
 
-![8.png](8.png)
+![Diagrama do laço do agente: começa no prompt do usuário, repete pedidos de ferramenta e verificações de permissão e passa pela compactação quando o contexto aperta](8.png)
 
 - **Budget Reduction** corta partes de saídas que excedem o limite.
 - **Snip** remove o histórico antigo no eixo temporal.
@@ -211,7 +211,7 @@ Segundo a Anthropic, uma skill carrega em três fases. Nome e descrição — ce
 
 ### Model routing: a mesma resposta com um modelo mais barato
 
-![13.png](13.png)
+![Desempenho do modelo em relação ao custo em escala logarítmica, com o roteador ideal no canto de baixo custo e alto desempenho](13.png)
 
 A entrada do Opus 4.8 custa cinco vezes a do Haiku 4.5. Usar o maior modelo para busca, exploração ou resumo simples é desperdício. Encaminhar por dificuldade — Haiku → Sonnet → Opus — e reservar Opus ao raciocínio pesado virou padrão. [RouteLLM, da LMSYS,](https://lmsys.org/blog/2024-07-01-routellm/) preservou 95% da qualidade do GPT-4 reduzindo chamadas fortes a 14%, embora o benchmark fosse de raciocínio geral.
 
@@ -223,7 +223,7 @@ Na prática, não classifique toda chamada; divida estaticamente por tarefa. O c
 
 ### Cursor Composer 2.5
 
-![10.webp](10.webp)
+![Gráfico publicado pela Cursor com a pontuação CursorBench 3.1 em relação ao custo médio por tarefa, com o Composer 2.5 perto das melhores notas na ponta mais barata](10.webp)
 
 Outra opção é usar um agente como Cursor. [Composer 2.5, lançado em 18 de maio de 2026,](https://cursor.com/blog/composer-2-5) usa o checkpoint aberto Kimi K2.5 da Moonshot AI e foi ajustado para código. A Cursor afirma desempenho comparável ao Claude Opus 4.7 por cerca de um décimo do preço. A tarifa é $0.50 de entrada e $2.50 de saída, uma ordem abaixo dos $5.00 e $25.00 do Opus 4.8.
 
@@ -243,7 +243,7 @@ Na avaliação da Anthropic, as duas ferramentas melhoraram o desempenho em 39%;
 
 ## Conclusão
 
-![14.webp](14.webp)
+![Engenharia de prompt ao lado de engenharia de contexto: uma consulta de um turno leva só prompt de sistema e mensagem do usuário, enquanto um agente seleciona documentos, ferramentas e memória e realimenta os resultados](14.webp)
 
 No fim, a economia se resume a três eixos: **enviar menos para o mesmo trabalho, pagar menos pela mesma entrada e entregar a mesma resposta a um modelo mais barato**. Prompt caching, Batch API, isolamento com subagent, `/compact`, memory tool, context editing, model routing e modelos especializados apenas atacam eixos diferentes. Em 2026, o foco migra de preencher o contexto para esvaziá-lo e selecioná-lo — context engineering. Como mostra context rot, contexto leve melhora custo e precisão.
 

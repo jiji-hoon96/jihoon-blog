@@ -8,7 +8,7 @@ description: "Qué hacer cuando product manager y developer usan la misma palabr
 keywords: 'ubiquitous language, lenguaje compartido dominio, comunicación entre disciplinas, cómo definir requisitos, comunicación product manager developer, grounding common ground, Example Mapping, breadboarding, bounded context, seguridad psicológica equipo de desarrollo'
 locale: es
 translationOf: '260723'
-sourceHash: 25017392eb79f1a4a39ea4b1d5f494e88cbdd908ca984d3a3c69e1ca299d7d3f
+sourceHash: adf36bd375ece6026d5959d3cbe7a60585adf215a2f5bb429d88b18ce2381384
 ---
 
 En este artículo quiero hablar de la comunicación con otras disciplinas.
@@ -17,7 +17,7 @@ Mientras desarrollo, dedico tanto tiempo a averiguar qué hay que construir como
 
 Hace poco leí [Las actividades diarias de un líder de ingeniería](https://softwareleads.substack.com/p/engineering-leaders-day-to-day-activities), escrito por James Samuel. El autor divide el trabajo de un líder en seis apartados y el primero que aborda es la recopilación de información. Su razón es que toda decisión, toda dirección y toda acción dependen de una comprensión precisa de lo que está ocurriendo ahora mismo.
 
-![1.png](1.png)
+![Las actividades directivas dibujadas como seis círculos enlazados: recoger información, planificar, liderar, influir en decisiones, decidir y compartir información](1.png)
 
 Aunque quiero asumir un rol de liderazgo algún día, lo que pensé al leer ese pasaje fue algo distinto. **Si lo primero que aborda un líder es recopilar información, el equivalente para quien está en la ejecución es entender los requisitos.** La forma en que manejo hoy los requisitos será la forma en que maneje mañana la información de una organización.
 
@@ -177,7 +177,7 @@ A partir de aquí es una conjetura mía. Lo que dice el artículo llega hasta qu
 
 Cabe una objeción, por supuesto. En un equipo que no es seguro, la casilla de la tarjeta roja se quedará simplemente vacía. Es una crítica justa y no pretendo afirmar que esta herramienta genere seguridad. Pero si la casilla existe, al menos **el hecho de que esté vacía se vuelve visible.** Aparece un lugar donde preguntar si está vacía porque nadie tiene dudas o porque cuesta decirlas.
 
-![3.jpg](3.jpg)
+![La plantilla Bounded Context Canvas de la comunidad DDD, con apartados para propósito, clasificación estratégica, lenguaje ubicuo, supuestos, métricas de verificación y preguntas abiertas](3.jpg)
 
 La misma idea está incorporada en formatos de documento reales. Si miras el [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas) creado por la comunidad DDD, es una herramienta colaborativa para diseñar y documentar un contexto, y su reparto de casillas resulta interesante. Nombre y propósito, clasificación estratégica, rol de dominio, comunicación entrante y saliente, y luego **Ubiquitous Language**, decisiones de negocio, **Assumptions**, métricas de verificación y **Open Questions**.
 

@@ -4,7 +4,7 @@ title: '토큰 절약법'
 seoTitle: 'AI 토큰 절약법, Claude Code와 Cursor로 비용 줄이는 검증된 패턴'
 date: '2026-06-11'
 categories: AI 토큰
-description: 'AI 코딩 도구의 토큰 비용은 어디서 발생하고 어떻게 줄일까. Anthropic 가격표와 prompt caching, subagent, MCP 다이어트, context engineering, Cursor Composer까지 검증된 절약 패턴을 React POC로 직접 측정한다.'
+description: 'AI 코딩 도구의 토큰 비용은 어디서 발생하고 어떻게 줄일까. Anthropic 가격표와 prompt caching, subagent, MCP 다이어트, context engineering, Cursor Composer까지 절약 패턴을 React POC로 측정한다.'
 keywords: 'AI 토큰 절약, Claude Code 비용, 토큰 비용 절감, prompt caching, context engineering, subagent, MCP 토큰, Cursor Composer, 모델 라우팅, context rot, LLM 비용 최적화'
 ---
 
@@ -30,7 +30,7 @@ keywords: 'AI 토큰 절약, Claude Code 비용, 토큰 비용 절감, prompt ca
 
 Anthropic SDK 가 응답으로 돌려주는 `usage` 객체에서 네 가지 필드를 살펴보자.
 
-![1.png](1.png)
+![Anthropic SDK 응답의 usage 객체. input_tokens, cache_creation_input_tokens, cache_read_input_tokens, output_tokens 필드가 보인다](1.png)
 
 - `input_tokens` 보낸 입력 중 캐시 읽기를 제외한 부분
 - `output_tokens` 모델이 생성한 응답
@@ -104,13 +104,13 @@ AI 를 잘 쓴다고 생각하면서도 토큰이 비효율적으로 흘러나�
 
 이 차이가 얼마나 큰지 직접 재봤다. 필자가 작업 중인 Claude Code 세션의 MCP 도구 27개(serena 10, claude.ai OAuth 4세트 8, figma 2, agentmemory 7)를 두고, **같은 사용자 메시지를 두 설정으로 호출**했다. 한 쪽은 MCP 가 하나도 안 깔린 상태, 다른 한 쪽은 27개가 다 attached 됐지만 모델이 호출할 수는 없는 상태이고 도구 호출 횟수는 양쪽 모두 0회로 맞췄다.
 
-![6.png](6.png)
+![같은 질문을 MCP 없이와 MCP 27개를 붙이고 각각 호출한 결과. 입력 토큰이 41 에서 10,335 로, 1회 비용이 약 11.7배로 늘었다](6.png)
 
 같은 질문, 같은 모델, 응답 의미도 동일한데, 입력 토큰만 **41 → 10,335 (+10,294)** 늘어났다 (Opus 4.7 기준). 1회 비용으로 환산하면 **$0.0048 → $0.0563, 약 12배** 비싸진다. 입력이 250배 부풀면서 prefill 부담이 함께 늘어 응답 시간도 **+783ms** 가 따라왔다. 액수 자체보다 와닿은 건, **사용자가 그 턴에 MCP 도구를 한 번도 부르지 않았는데도 매 호출마다 내는 비용** 이라는 점이다. 앞 문단의 Tool Search 가 막아주는 게 이 비용이다. (필자는 이 측정 후로 평소 안 쓰는 MCP 서버를 지속적으로 관리중이다.)
 
 ### 컨텍스트 누적과 Lost in the Middle
 
-![4.jpg](4.jpg)
+!["Lost in the Middle" 논문 첫 페이지. 정답이 든 문서가 컨텍스트 중간에 있을 때 정확도가 가장 낮아지는 U 자 곡선이 실려 있다](4.jpg)
 
 긴 대화를 그대로 끌고 가면 호출당 입력 토큰만 늘어나는 게 아니라 모델의 정답률 자체가 떨어진다. Stanford 의 Liu 연구팀이 발표한 "Lost in the Middle" 논문은 핵심 정보가 컨텍스트의 시작이나 끝에 있을 때 가장 잘 찾고, 가운데에 묻혀 있을 때 성능이 눈에 띄게 떨어지는 U자형 곡선을 정량적으로 보였다. 토큰을 더 많이 쓰면서 답은 더 나빠지는 최악의 조합이 만들어지는 셈이다. 트랜스포머의 셀프 어텐션은 토큰 수의 제곱에 비례해 연산이 늘어나는 구조라, 컨텍스트가 길어질수록 한 토큰이 받는 어텐션의 절대량 자체가 묽어진다. 그리고 학습 분포상 시작과 끝에 중요한 정보가 몰려 있던 관성 때문에 가운데가 가장 먼저 약해진다.
 
@@ -122,7 +122,7 @@ AI 를 잘 쓴다고 생각하면서도 토큰이 비효율적으로 흘러나�
 
 이 두 습성이 겹치면 주의력이 양 끝(가까운 최근 토큰 + 맨 앞 토큰)에 쏠리고, 정작 가운데에 묻힌 정보가 가장 약하게 다뤄진다. 중요한 건 이게 특정 모델의 버그가 아니라는 점이다. LLaMA, Mistral, Qwen 같은 공개 모델 대부분이 RoPE 계열을 쓰고 Claude·GPT 같은 비공개 모델도 비슷한 계열을 쓰는 것으로 알려져 있어, lost-in-the-middle 은 현대 트랜스포머 구조에 공통으로 깔린 편향에 가깝다.
 
-![5.png](5.png)
+![context rot 그래프. 입력 길이가 늘어날수록 Claude, Qwen, OpenAI, Gemini 네 모델의 정확도가 모두 떨어진다](5.png)
 
 최근에는 이 현상을 **context rot** 이라는 이름으로 부른다. [Chroma 연구팀](https://research.trychroma.com/context-rot)이 GPT-4.1, Claude 4, Gemini 2.5, Qwen3 를 포함한 18개 프론티어 모델을 같은 NIAH(needle in a haystack, 건초 더미에서 바늘 찾기) 과제에 던져본 분석은, 입력 토큰이 10k 에서 100k 이상으로 늘어났을 때 정확도가 모델에 따라 20~50% 까지 떨어지는 것을 정량적으로 보였다. 18개 모델 모두 길이가 늘면 성능이 떨어졌고, 가장 천천히 떨어진 것이 Claude 계열이었다. Anthropic 도 이를 트랜스포머의 n² 어텐션에서 비롯된 "어텐션 예산" 이 토큰마다 소진되는 문제로 설명한다. 결국 컨텍스트를 가볍게 유지하는 일은 비용 절감인 동시에 정답률을 지키는 일이기도 하다.
 
@@ -192,7 +192,7 @@ Claude Code 의 `/compact` 는 현재까지의 대화 전체를 요약본으로 
 
 좀 더 안쪽을 들여다보면, `/compact` 는 사용자가 명시적으로 부르는 마지막 단계일 뿐 그 앞에 자동으로 동작하는 4단계의 컨텍스트 압축 파이프라인이 더 있다. [Claude Code 의 내부 동작을 분석한 외부 연구("Dive into Claude Code")](https://github.com/VILA-Lab/Dive-into-Claude-Code) 에 따르면 모든 호출 직전에 `query.ts` 가 다음 다섯 단계를 차례로 점검한다. 
 
-![8.png](8.png)
+![에이전트 루프 다이어그램. 사용자 프롬프트에서 시작해 도구 요청과 권한 확인을 반복하고, 컨텍스트 압박이 오면 compact 를 거쳐 다음 반복으로 넘어간다](8.png)
 
 - **Budget Reduction** 은 개별 도구 출력의 크기 한도를 넘은 부분을 잘라낸다. 
 - **Snip** 은 시간 축에서 오래된 히스토리를 끊는다. 
@@ -208,7 +208,7 @@ Anthropic 문서 기준으로 스킬은 세 단계로 로드된다. 이름과 �
 
 ### 모델 라우팅, 같은 답이면 더 싼 모델로
 
-![13.png](13.png)
+![비용 대비 모델 성능 분포도. 로그 비용 축에서 저비용 고성능 지점에 이상적인 라우터가 놓인다](13.png)
 
 Opus 4.8 와 Haiku 4.5 의 입력 단가 차이는 5배다. 단순 검색, 탐색, 짧은 요약 같은 작업까지 무조건 가장 큰 모델로 처리하는 것은 비용 면에서 큰 손해다. 작업의 난이도에 따라 Haiku → Sonnet → Opus 순으로 라우팅하고, 정말 추론이 무거운 단계에서만 Opus 를 부르는 패턴이 점점 표준이 되어 가고 있다. [LMSYS 의 RouteLLM 연구](https://lmsys.org/blog/2024-07-01-routellm/)는 GPT-4 품질의 95% 를 유지하면서 강한 모델 호출을 14% 로 줄이는 라우터를 보였다(벤치마크는 코딩 특화가 아닌 일반 추론 기준이라는 점은 감안해야 한다).
 
@@ -220,7 +220,7 @@ Opus 4.8 와 Haiku 4.5 의 입력 단가 차이는 5배다. 단순 검색, 탐�
 
 ### Cursor Composer 2.5
 
-![10.webp](10.webp)
+![Cursor 가 공개한 CursorBench 3.1 점수 대비 작업당 평균 비용 그래프. Composer 2.5 가 가장 싼 구간에서 상위 점수에 근접한다](10.webp)
 
 조금 결이 다른 절약법이지만 Cursor 와 같은 에이전트를 활용할 수 있다. [Cursor 가 2026년 5월 18일 공개한 자체 모델 Composer 2.5](https://cursor.com/blog/composer-2-5) 는 Moonshot AI 의 오픈소스 체크포인트 Kimi K2.5 를 기반으로 코딩 작업에 특화 파인튜닝된 모델이다. Cursor 팀은 자체 벤치마크에서 Claude Opus 4.7 과 비등한 코딩 성능을 약 1/10 가격으로 낸다고 밝혔다. 공개된 가격을 보면 기본 단가가 입력 $0.50 / 출력 $2.50 로, Opus 4.8 의 입력 $5.00 / 출력 $25.00 과 비교하면 정확히 자릿수가 하나 다르다.
 
@@ -240,7 +240,7 @@ Anthropic 자체 평가에서는 이 둘을 함께 적용했을 때 기준선 �
 
 ## 마무리
 
-![14.webp](14.webp)
+![프롬프트 엔지니어링과 컨텍스트 엔지니어링 비교 도식. 단발 질의는 시스템 프롬프트와 사용자 메시지만 담지만, 에이전트는 문서와 도구와 메모리를 골라 넣고 도구 결과를 되돌린다](14.webp)
 
 여기까지 정리하고 보면, 토큰 절약은 결국 세 가지 축으로 환원된다. **같은 일이면 더 적게 보내기, 같은 입력이면 더 싸게 보내기, 같은 답이면 더 싼 모델에 맡기기**. Prompt caching, Batch API, subagent 격리, `/compact`, memory tool 과 context editing, 모델 라우팅, 특화 모델 같은 패턴들은 결국 이 세 축 중 어디를 공격하느냐의 차이일 뿐이다. 그리고 2026년의 흐름을 한마디로 줄이면, 컨텍스트는 채우는 기술에서 비우고 골라내는 기술(context engineering)로 무게중심이 옮겨가고 있다. context rot 이 보여주듯 가벼운 컨텍스트는 비용뿐 아니라 정답률에도 이로운 쪽이기 때문이다.
 

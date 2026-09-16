@@ -27,7 +27,7 @@ Lossless compression is a method that lets us restore the original data perfectl
 
 The central idea behind lossless compression is **taking advantage of statistical redundancy in data**. Replacing repeated patterns with shorter representations reduces the total size.
 
-Among these techniques, **dictionary-based compression** is one of the most widely used families of lossless algorithms. Here, a dictionary is not a book of word definitions. It is a lookup table that maps previously seen pieces of data to short codes. **LZ77**, introduced by Abraham Lempel and Jacob Ziv in their 1977 paper _"A Universal Algorithm for Sequential Data Compression"_ in IEEE Transactions on Information Theory, and **LZ78**, published the following year, are the ancestors of this family. The letters “LZ” come from the researchers’ surnames. Nearly every dictionary-based compression algorithm that followed, including DEFLATE, LZMA, LZ4, and Zstd, can trace its roots back to these two. (It is not much of an exaggeration to say that most compression family trees converge on Lempel and Ziv.)
+Among these techniques, **dictionary-based compression** is one of the most widely used families of lossless algorithms. Here, a dictionary is not a book of word definitions. It is a lookup table that maps previously seen pieces of data to short codes. **LZ77**, introduced by Abraham Lempel and Jacob Ziv in their 1977 paper **"A Universal Algorithm for Sequential Data Compression"** in IEEE Transactions on Information Theory, and **LZ78**, published the following year, are the ancestors of this family. The letters “LZ” come from the researchers’ surnames. Nearly every dictionary-based compression algorithm that followed, including DEFLATE, LZMA, LZ4, and Zstd, can trace its roots back to these two. (It is not much of an exaggeration to say that most compression family trees converge on Lempel and Ziv.)
 
 Here is a simple example. If the word “Linux” appears 100 times in a text, the compressor can register it in a dictionary the first time and replace later occurrences with a short pointer meaning “dictionary entry number 1.” “Linux” takes five bytes, while the pointer can often be represented with fewer bytes, making the whole document smaller.
 
@@ -46,7 +46,7 @@ The window has two regions.
 
 The algorithm checks whether the beginning of the look-ahead buffer has appeared somewhere in the search buffer. When it finds the same pattern, it encodes the match as a **(distance, length, next character)** tuple. Distance tells the decoder how far back to find the start of the match, while length says how many characters the match contains.
 
-Suppose we compress the string `"banana_banana"` with LZ77. When the algorithm reaches the second `"banana"`, it is effectively saying, _“Go back seven characters and copy the next six.”_ A six-byte string can therefore be represented by only two numbers.
+Suppose we compress the string `"banana_banana"` with LZ77. When the algorithm reaches the second `"banana"`, it is effectively saying, **“Go back seven characters and copy the next six.”** A six-byte string can therefore be represented by only two numbers.
 
 The key advantage is that **the dictionary does not need to be stored or transmitted separately**. The decoder naturally reconstructs the search buffer while decompressing, so the dictionary is implicitly embedded in the data itself. The trade-off is that decompression must proceed sequentially from the beginning. In principle, it cannot start at an arbitrary point in the middle.
 
@@ -58,7 +58,7 @@ Window size has a direct trade-off with compression ratio. A larger window can r
 
 Unlike LZ77, LZ78 **constructs an explicit dictionary** as it compresses the input. There is no sliding window. Previously observed patterns are stored as indexed dictionary entries, and later occurrences are replaced by their indexes.
 
-LZ78 outputs tags in the form **(dictionary index, next character)**. The encoder finds the longest matching dictionary entry, outputs its index together with the next character that breaks the match, and then adds _“the matched entry plus the new character”_ to the dictionary. The dictionary grows incrementally as the input is processed.
+LZ78 outputs tags in the form **(dictionary index, next character)**. The encoder finds the longest matching dictionary entry, outputs its index together with the next character that breaks the match, and then adds **“the matched entry plus the new character”** to the dictionary. The dictionary grows incrementally as the input is processed.
 
 The best-known variation of LZ78 is **LZW** (Lempel-Ziv-Welch). Terry Welch published the improvement in 1984, and it was used by the GIF image format and the Unix `compress` utility with its `.Z` extension. (LZW was once at the center of a patent dispute, an episode that helped motivate the creation of PNG.)
 
@@ -74,7 +74,7 @@ In 1993, Phil Katz combined LZSS with **Huffman coding**, an entropy-coding tech
 
 Later algorithms such as **LZMA** (used by 7-Zip and XZ), **LZ4**, and **Zstd** also begin with LZ77’s sliding-window idea and evolve the data structures for match searching and the methods used for entropy coding. The LZ78 family, by contrast, largely left the mainstream stage after LZW.
 
-The two algorithms have been proven theoretically equivalent in capability _when the entire dataset is decompressed_. LZ77 nevertheless survived because **embedding the dictionary in the data made the design more flexible to implement and extend**. Window size, match-search algorithms, and entropy coders could be combined freely, giving the family room to evolve as requirements changed.
+The two algorithms have been proven theoretically equivalent in capability **when the entire dataset is decompressed**. LZ77 nevertheless survived because **embedding the dictionary in the data made the design more flexible to implement and extend**. Window size, match-search algorithms, and entropy coders could be combined freely, giving the family room to evolve as requirements changed.
 
 Compression performance is usually evaluated on two axes: **compression ratio**, or how small the result becomes, and **compression speed**, or how quickly the operation completes. Seeking a higher ratio generally requires more computation and therefore more time. A practical compression strategy is about finding the right point between the two.
 

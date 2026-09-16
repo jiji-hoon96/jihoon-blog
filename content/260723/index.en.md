@@ -8,7 +8,7 @@ description: "What to do when a product manager and a developer use the same wor
 keywords: 'ubiquitous language, shared domain language, cross-functional communication, gathering requirements, product manager developer communication, grounding common ground, Example Mapping, breadboarding, bounded context, psychological safety engineering team'
 locale: en
 translationOf: '260723'
-sourceHash: 25017392eb79f1a4a39ea4b1d5f494e88cbdd908ca984d3a3c69e1ca299d7d3f
+sourceHash: adf36bd375ece6026d5959d3cbe7a60585adf215a2f5bb429d88b18ce2381384
 ---
 
 In this post, I want to talk about communicating across functions.
@@ -17,7 +17,7 @@ As a developer, I spend as much time working out what to build as I spend writin
 
 I recently read [Engineering Leaders' Day-to-Day Activities](https://softwareleads.substack.com/p/engineering-leaders-day-to-day-activities) by James Samuel. The author divides a leader's work into six categories, and the first one he covers is gathering information. His reason is that every decision, direction, and action depends on an accurate understanding of what is happening right now.
 
-![1.png](1.png)
+![Managerial activities drawn as six linked circles: information gathering, planning, leading, influencing decisions, making decisions, and information sharing](1.png)
 
 I do hope to take on a leadership role someday, but what struck me after reading that passage was slightly different. **If the first thing a leader handles is gathering information, then the individual contributor's counterpart to that is understanding requirements.** The way I handle requirements now will become the way I handle an organization's information later.
 
@@ -177,7 +177,7 @@ From here on this is my own conjecture. What the paper says stops at the belief 
 
 There is an obvious counterargument, of course. On an unsafe team, the red card field will simply stay empty. That is a fair point, and I have no intention of claiming this tool creates safety. But if the field exists, at least **the fact that it is empty becomes visible.** It creates an opening to ask whether it is empty because nobody has an open question, or empty because it is hard to speak up.
 
-![3.jpg](3.jpg)
+![The DDD community's Bounded Context Canvas template, with sections for purpose, strategic classification, ubiquitous language, assumptions, verification metrics, and open questions](3.jpg)
 
 The same idea has made its way into actual document formats. Look at the [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas) created by the DDD community: it is a collaborative tool for designing and documenting a single context, and its arrangement of fields is interesting. Name and purpose, strategic classification, domain roles, inbound and outbound communication, and then **Ubiquitous Language**, business decisions, **Assumptions**, verification metrics, and **Open Questions**.
 

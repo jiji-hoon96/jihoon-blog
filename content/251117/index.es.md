@@ -8,7 +8,7 @@ description: "Cómo se reparten las responsabilidades React Error Boundary, try/
 keywords: "gestión de errores del frontend, React Error Boundary, react-error-boundary, TanStack Query throwOnError, gestión de errores en React Query, restablecimiento de Error Boundary, errores con try catch, gestión de errores asíncronos, gestión de errores en React"
 locale: es
 translationOf: '251117'
-sourceHash: b5b3d46faa22b16584b8851265f733dd9cd3ca7184176b880668836d5ba0bd81
+sourceHash: b655af392c19409893fbfd1fcdd57d230db81675921377f8dc5cf9251f33410a
 ---
 
 En este artículo quiero hablar de **cómo capturar errores en el frontend**.

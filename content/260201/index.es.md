@@ -151,7 +151,7 @@ filteredUsers.forEach(user => {
 
 El **código con un nivel de abstracción alto** se expresa en el lenguaje del dominio de negocio o del espacio del problema. Algunos ejemplos son `processPayment(order)`, `sendNotification(user, message)` o `validateUserInput(formData)`. El código con un nivel de abstracción alto muestra **qué (What)** hace y oculta cómo lo hace.
 
-En *Clean Code*, Robert C. Martin condensó esta idea en el principio **«un solo nivel de abstracción por función (One Level of Abstraction per Function)»**. Si dentro de una función se mezclan código de alto y de bajo nivel, quien la lee tiene que decidir en cada línea: «¿Esto forma parte de la lógica esencial o es un detalle de implementación?».
+En **Clean Code**, Robert C. Martin condensó esta idea en el principio **«un solo nivel de abstracción por función (One Level of Abstraction per Function)»**. Si dentro de una función se mezclan código de alto y de bajo nivel, quien la lee tiene que decidir en cada línea: «¿Esto forma parte de la lógica esencial o es un detalle de implementación?».
 
 El problema se vuelve evidente al verlo en código real.
 
@@ -213,7 +213,7 @@ Todas las instrucciones hablan desde el mismo nivel de abstracción. Cada funci�
 
 Martin también denominó esto **«la regla descendente (The Stepdown Rule)»**. Al leer el código de arriba abajo, la visión general debería aparecer arriba y los detalles deberían revelarse conforme descendemos, como en un artículo periodístico.
 
-Kent Beck presentó el mismo principio en *Smalltalk Best Practice Patterns* mediante el patrón **Composed Method**. Un método debe componerse únicamente de operaciones situadas en el mismo nivel de abstracción, y cada paso debe expresarse como una llamada a un método de una sola línea.
+Kent Beck presentó el mismo principio en **Smalltalk Best Practice Patterns** mediante el patrón **Composed Method**. Un método debe componerse únicamente de operaciones situadas en el mismo nivel de abstracción, y cada paso debe expresarse como una llamada a un método de una sola línea.
 
 Al final, todas estas ideas convergen en una sola: **una función debe hablar desde un único nivel de abstracción**. Solo con respetar esta regla, la legibilidad del código mejora de forma notable.
 
@@ -360,7 +360,7 @@ function registerUser(form: RegistrationForm): Promise<User>;
 function refundPayment(orderId: OrderId, amount: Money): Promise<Refund>;
 ```
 
-En *Clean Code*, Robert C. Martin afirmó al respecto que **«es mejor un nombre largo y descriptivo que uno corto y enigmático»**. También propuso el principio **«usa una palabra por concepto»**, porque si mezclamos `fetch`, `retrieve` y `get` para operaciones del mismo contexto, quien lea el código se preguntará: «¿Son tres operaciones distintas?».
+En **Clean Code**, Robert C. Martin afirmó al respecto que **«es mejor un nombre largo y descriptivo que uno corto y enigmático»**. También propuso el principio **«usa una palabra por concepto»**, porque si mezclamos `fetch`, `retrieve` y `get` para operaciones del mismo contexto, quien lea el código se preguntará: «¿Son tres operaciones distintas?».
 
 Este principio se aplica igualmente a los nombres de componentes y hooks de React.
 

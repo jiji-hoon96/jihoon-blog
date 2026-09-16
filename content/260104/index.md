@@ -4,7 +4,7 @@ title: "queryKey"
 seoTitle: "TanStack Query queryKey 완전 정복: query key factory 가이드"
 date: "2026-01-04"
 categories: 프론트엔드 React TanStack-Query queryKey
-description: "TanStack Query의 queryKey가 어떤 원리로 동작하고 왜 인라인 배열에서 query key factory, queryOptions까지 진화해왔는지 정리한다. TkDodo 패턴과 v5 queryOptions, setQueryData 무효화까지 실무 관점으로 다룬다."
+description: 'TanStack Query의 queryKey가 어떤 원리로 동작하고 왜 인라인 배열에서 query key factory, queryOptions까지 진화해왔는지 정리한다. TkDodo 패턴과 v5 queryOptions, setQueryData 무효화를 실무 관점으로 다룬다.'
 keywords: "queryKey, query key factory, TanStack Query queryKey, React Query 캐시 키, queryOptions, setQueryData, TkDodo query keys, query-key-factory, React Query v5, 쿼리 무효화"
 ---
 

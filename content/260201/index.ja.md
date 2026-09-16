@@ -151,7 +151,7 @@ filteredUsers.forEach(user => {
 
 **抽象化レベルが高いコード**は、ビジネスドメインや問題領域の言葉で表現されたコードである。`processPayment(order)`、`sendNotification(user, message)`、`validateUserInput(formData)`などがそれに当たる。抽象化レベルが高いコードには、**何を（What）** するのかが表れ、どのようにするかは隠されている。
 
-Robert C. Martinは*Clean Code*で、この概念を**「一つの関数につき一つの抽象化レベル（One Level of Abstraction per Function）」** という原則にまとめた。一つの関数内に高いレベルと低いレベルのコードが混在すると、読む人は「これは中心的なロジックなのか、それとも実装の詳細なのか」を一行ごとに判断しなければならないからだ。
+Robert C. Martinは**Clean Code**で、この概念を**「一つの関数につき一つの抽象化レベル（One Level of Abstraction per Function）」** という原則にまとめた。一つの関数内に高いレベルと低いレベルのコードが混在すると、読む人は「これは中心的なロジックなのか、それとも実装の詳細なのか」を一行ごとに判断しなければならないからだ。
 
 実際のコードを見ると、この問題は明確になる。
 
@@ -213,7 +213,7 @@ async function registerUser(name: string, email: string, password: string) {
 
 Martinはこれを、**「ステップダウン・ルール（The Stepdown Rule）」** とも呼んでいる。コードを上から下へ読むとき、新聞記事のように、上には全体像があり、下へ進むほど詳細が現れるべきだという考え方だ。
 
-Kent Beckも*Smalltalk Best Practice Patterns*で、同じ原則を**Composed Methodパターン**として提示した。一つのメソッドは同じ抽象化レベルの処理だけで構成され、各ステップは一行のメソッド呼び出しで表現されるべきだというものだ。
+Kent Beckも**Smalltalk Best Practice Patterns**で、同じ原則を**Composed Methodパターン**として提示した。一つのメソッドは同じ抽象化レベルの処理だけで構成され、各ステップは一行のメソッド呼び出しで表現されるべきだというものだ。
 
 結局、これらの話はすべて一つに集約される。**一つの関数は、一つの抽象化レベルだけで語るべきである。** これを守るだけでも、コードの可読性は目に見えて変わる。
 
@@ -360,7 +360,7 @@ function registerUser(form: RegistrationForm): Promise<User>;
 function refundPayment(orderId: OrderId, amount: Money): Promise<Refund>;
 ```
 
-Robert C. Martinは*Clean Code*で、これについて**「短く謎めいた名前より、長く説明的な名前のほうがよい」** と述べている。また、**「一つの概念には一つの単語を使う」** という原則も提示した。同じ文脈の動作に`fetch`、`retrieve`、`get`を混在させると、読む人が「この三つは異なる動作なのか」と混乱するからだ。
+Robert C. Martinは**Clean Code**で、これについて**「短く謎めいた名前より、長く説明的な名前のほうがよい」** と述べている。また、**「一つの概念には一つの単語を使う」** という原則も提示した。同じ文脈の動作に`fetch`、`retrieve`、`get`を混在させると、読む人が「この三つは異なる動作なのか」と混乱するからだ。
 
 この原則は、Reactコンポーネントやフックの命名にもそのまま当てはまる。
 

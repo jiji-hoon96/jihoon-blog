@@ -155,7 +155,7 @@ navigate(`?${params.toString()}`);
 const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
 ```
 
-Libraries such as [nuqs](https://nuqs.dev/) solve both problems through the concept of a *parser*. Parsers such as `parseAsInteger`, `parseAsBoolean`, and `parseAsJson` handle serialization, deserialization, and types together. The library supports most common environments, including both the App Router and Pages Router in Next.js, React Router v6/v7, TanStack Router, and Remix.
+Libraries such as [nuqs](https://nuqs.dev/) solve both problems through the concept of a **parser**. Parsers such as `parseAsInteger`, `parseAsBoolean`, and `parseAsJson` handle serialization, deserialization, and types together. The library supports most common environments, including both the App Router and Pages Router in Next.js, React Router v6/v7, TanStack Router, and Remix.
 
 
 Does that mean we can put unlimited amounts of state into a URL? Separate from serialization and typing concerns, one final constraint remains. [RFC 7230](https://datatracker.ietf.org/doc/html/rfc7230) does not set an exact limit, but recommends that servers support at least 8,000 octets (an octet is the term used in networking and data communications to refer unambiguously to a group of eight bits, or one byte). Browser limits also vary. Modern browsers generally permit anything from 8 KB to tens of thousands of characters, but **search engines, social media Open Graph and sharing pipelines, and some gateways may truncate URLs at around 2 KB**. So do not treat the URL as boundless storage. Keep only the **essential, shareable filters** there, and leave the rest to sessionStorage or server-side storage.
@@ -246,7 +246,7 @@ Two models are commonly used when implementing permission guards.
 - **RBAC(Role-Based Access Control)** : Grants permissions by role—for example, "an admin can view all user information." It is simple and fast, but the number of roles can explode as permissions become more granular
 - **ABAC(Attribute-Based Access Control)** : Determines permissions from combinations of attributes—for example, "the user is the author of the post, belongs to the same team, or is an admin." It is highly expressive but more difficult to implement and debug
 
-Patterns such as the [TanStack Router RBAC guide](https://tanstack.com/router/v1/docs/framework/react/how-to/setup-rbac), which places guards in `beforeLoad` at the router level, are recommended. The key is that **permission checks should be expressed as data—a list of roles and permissions—rather than scattered throughout the code**. That way, changing an authorization policy remains a *data change*.
+Patterns such as the [TanStack Router RBAC guide](https://tanstack.com/router/v1/docs/framework/react/how-to/setup-rbac), which places guards in `beforeLoad` at the router level, are recommended. The key is that **permission checks should be expressed as data—a list of roles and permissions—rather than scattered throughout the code**. That way, changing an authorization policy remains a **data change**.
 
 
 ## Conclusion

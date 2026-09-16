@@ -8,7 +8,7 @@ description: '从 prompt engineering 到 context engineering，下一步将走�
 keywords: 'context engineering, harness 设计, AI agent eval, agent evaluation, containment, agent 隔离, 2026 AI 趋势, prompt engineering, LLM agent, token 节省之后'
 locale: zh-CN
 translationOf: '260622'
-sourceHash: '3a4496827fcd34537ded61f9925a57116fbf16b6d28eee9508f66417f6d2345b'
+sourceHash: 06bdc8be3e1e0ff49702ada8265d88df2ffd88a750b85ab5e845bf748bac236e
 ---
 
 这篇文章想谈谈 prompt engineering、context engineering，以及再往后的方向。
@@ -71,7 +71,7 @@ harness 这个词可能有些陌生。直译是马具，即套在马身上、把
 
 想想原因就很自然。context 是否组织得当，harness 是否设计得好，cost 是否真的节省了，要**用什么来确认？** agent 越是自主处理漫长而复杂的工作，人就越难逐项用肉眼确认“它到底运行得好不好”。信任的依据最终会转向测量。因此，“如何设计 agent 评估”“如何消除评估本身的噪声”“如何处理 model 察觉评估后改变行为的 eval awareness”等主题走到了前台。
 
-![4.png](4.png)
+![对比 pass@k 与 pass^k 的曲线图：试验次数增加时，pass@k 趋近 100%，pass^k 趋近 0%](4.png)
 
 agent 评估之所以棘手，是因为它与一次性问答性质不同。agent 会跨多个 turn 调用 tool、改变 state，一次错误会向后传播并累积。而且即使输入相同，每次运行的结果也会波动。[Anthropic](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents)用两个指标描述这种非确定性。**pass@k** 是 k 次尝试中至少成功一次的概率，因此尝试越多越高。**pass^k** 是 k 次全部成功的概率，因此尝试越多越低。只需偶尔生成一次正确代码时，pass@1 很重要；每次都必须稳定运行的客服 agent，则以 pass^k 为核心。（若 per-trial 成功率为 75%，连续成功三次的概率是 0.75³，约 42%。“通常能用”和“每次都能用”的差距就是这么大。）
 

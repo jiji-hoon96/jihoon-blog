@@ -1,7 +1,7 @@
 ---
 emoji: 🧠
 title: "状態管理"
-seoTitle: "フロントエンド状態管理の設計眼: ローカル・グローバル・サーバー・フォーム・URLなど7つの分類とReact設計の基準"
+seoTitle: 'フロントエンド状態管理の設計眼: 7つの状態分類とReact設計の基準'
 date: "2026-05-18"
 locale: ja
 translationOf: '260518'
@@ -60,13 +60,13 @@ React公式ドキュメントは、もう少し形式的に定義している。
 
 筆者はさらに一歩進めて、フロントエンドの状態を**7つの分類**に分けて捉えている。あらかじめ断っておくと、この7つは一つの軸できれいに分割できるものではない。保存場所・出所・ライフサイクル・役割が混在しているため、一つの状態が複数の分類に同時に属することもある。完全な分類表ではなく、**状態をどう管理するか決める際に投げかける問い**だと考えてほしい。
 
-- **ローカル状態（Local State）** — 一つのコンポーネント、または狭いツリー内だけで使う状態
-- **グローバル状態（Global State）** — アプリ全体で共有する必要がある状態
-- **サーバー状態（Server State）** — サーバーがSingle Source of Truthで、クライアント側はキャッシュである状態
-- **フォーム状態（Form State）** — ユーザーの入力中だけ一時的に存在する状態
-- **URL状態（URL State）** — アドレスバーにあり、共有でき、再読み込み後も残る状態
-- **外部状態（External State）** — Cookie、localStorage、sessionStorage、IndexedDBなど、Reactの外部にある状態
-- **状態ガード（State Guard）** — 状態そのものではなく、状態の組み合わせに応じてアクセスや実行を制御・検証するロジック
+- **ローカル状態（Local State）**: 一つのコンポーネント、または狭いツリー内だけで使う状態
+- **グローバル状態（Global State）**: アプリ全体で共有する必要がある状態
+- **サーバー状態（Server State）**: サーバーがSingle Source of Truthで、クライアント側はキャッシュである状態
+- **フォーム状態（Form State）**: ユーザーの入力中だけ一時的に存在する状態
+- **URL状態（URL State）**: アドレスバーにあり、共有でき、再読み込み後も残る状態
+- **外部状態（External State）**: Cookie、localStorage、sessionStorage、IndexedDBなど、Reactの外部にある状態
+- **状態ガード（State Guard）**: 状態そのものではなく、状態の組み合わせに応じてアクセスや実行を制御・検証するロジック
 
 この分類以外にも、状態マシンで精緻化すべきワークフロー状態や、WebSocket・CRDTを基盤とするリアルタイム共同編集状態がある。
 
@@ -155,7 +155,7 @@ navigate(`?${params.toString()}`);
 const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
 ```
 
-[nuqs](https://nuqs.dev/)のようなライブラリは、*パーサー（parser）*という概念で、この二つの問題を解決する。`parseAsInteger`、`parseAsBoolean`、`parseAsJson`といったパーサーが、シリアライズ・デシリアライズ・型をまとめて担う。Next.js（App/Pages Routerの両方）、React Router v6/v7、TanStack Router、Remixなど、ほとんどの環境に対応している。
+[nuqs](https://nuqs.dev/)のようなライブラリは、**パーサー（parser）**という概念で、この二つの問題を解決する。`parseAsInteger`、`parseAsBoolean`、`parseAsJson`といったパーサーが、シリアライズ・デシリアライズ・型をまとめて担う。Next.js（App/Pages Routerの両方）、React Router v6/v7、TanStack Router、Remixなど、ほとんどの環境に対応している。
 
 
 では、URLへ状態をいくらでも詰め込んでよいのだろうか。シリアライズや型の問題とは別に、最後に考慮すべき制約が一つ残っている。[RFC 7230](https://datatracker.ietf.org/doc/html/rfc7230)は正確な上限を定めてはいないものの、「サーバーは最低でも8,000オクテット（ネットワークやデータ通信において、8 Bitからなる1 Byteを明確に指す際に使う単位）をサポートすべき」と推奨している。ブラウザごとの上限もさまざまで、モダンブラウザではおおむね8KBから数万文字まで許容されるが、**検索エンジンやソーシャルメディアのOG／共有処理、一部のゲートウェイでは2KB前後で切り捨てられることもある。** したがって、URLへ無制限に詰め込むのは避けよう。**共有可能な主要フィルター**だけを置き、残りはsessionStorageやサーバー側の保存に任せるのが安全だ。
@@ -246,7 +246,7 @@ return children;
 - **RBAC（Role-Based Access Control）**：ロール単位で権限を付与する。「adminはすべてのユーザー情報を閲覧できる」といった形だ。シンプルで高速だが、ロールを細分化するほど、その数が爆発的に増える
 - **ABAC（Attribute-Based Access Control）**：属性の組み合わせで権限を決める。「ユーザーがその投稿の作成者である、同じチームに所属している、またはadminである場合」といった形だ。表現力は高いが、実装とデバッグが難しい
 
-[TanStack RouterのRBACガイド](https://tanstack.com/router/v1/docs/framework/react/how-to/setup-rbac)のように、ルーターレベルで`beforeLoad`にガードを組み込むパターンが推奨される。重要なのは、**権限チェックをコードの各所にばらまかず、データ（ロール／権限の一覧）として表現できるようにすること**だ。そうすれば、権限ポリシーの変更は*データの変更*だけで済む。
+[TanStack RouterのRBACガイド](https://tanstack.com/router/v1/docs/framework/react/how-to/setup-rbac)のように、ルーターレベルで`beforeLoad`にガードを組み込むパターンが推奨される。重要なのは、**権限チェックをコードの各所にばらまかず、データ（ロール／権限の一覧）として表現できるようにすること**だ。そうすれば、権限ポリシーの変更は**データの変更**だけで済む。
 
 
 ## まとめ

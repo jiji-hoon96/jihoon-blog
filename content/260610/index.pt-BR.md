@@ -8,7 +8,7 @@ description: 'Como BPE cria tokens, embeddings alimentam LLMs, prefill e decode 
 keywords: 'como funcionam tokens LLM, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, custo de tokens de entrada e saída, o que é token de IA'
 locale: pt-BR
 translationOf: '260610'
-sourceHash: 916300304184bd08cac369236fce06eb4d3b01c7d958bc36d63fa6d4b4d9a8b1
+sourceHash: 6a6a147aafe2b372f09525cabfc507e80cc78dac0ae2696a4bae69db6199fd48
 ---
 
 Neste artigo, quero explicar o que são, afinal, os tokens de IA e como eles funcionam.
@@ -31,7 +31,7 @@ O algoritmo que constrói esse vocabulário é o BPE, uma base comum a praticame
 
 BPE (Byte Pair Encoding, ou codificação de pares de bytes) expande o vocabulário ao fundir repetidamente o par de símbolos adjacentes mais frequente em um novo símbolo.
 
-O curioso é que ele não nasceu para o processamento de linguagem natural. Philip Gage propôs o BPE pela primeira vez em 1994 como técnica de compressão de dados. O método substituía o par de bytes mais frequente por um byte não utilizado nos dados e armazenava as regras de substituição separadamente em uma tabela.
+O curioso é que ele não nasceu para o processamento de linguagem natural. Philip Gage propôs o BPE pela primeira vez em 1994 como técnica de [compressão de dados](/240706). O método substituía o par de bytes mais frequente por um byte não utilizado nos dados e armazenava as regras de substituição separadamente em uma tabela.
 
 A equipe de Sennrich, da Universidade de Edimburgo, levou a ideia para o problema de vocabulário na tradução neural. No artigo “Neural Machine Translation of Rare Words with Subword Units”, publicado em 2015 e apresentado na ACL 2016, os pesquisadores usaram BPE para superar a incapacidade de um vocabulário fixo de lidar com palavras raras ou desconhecidas. Em vez de memorizar palavras inteiras, elas são representadas como combinações de fragmentos subword menores; assim, até uma palavra fora do vocabulário pode ser codificada com partes conhecidas.
 

@@ -8,7 +8,7 @@ description: "梳理 React Error Boundary、try/catch 与 TanStack Query 的 thr
 keywords: "前端错误处理, React Error Boundary, react-error-boundary, TanStack Query throwOnError, React Query 错误处理, 错误边界 reset, try catch 错误, 异步错误处理, React 错误处理"
 locale: zh-CN
 translationOf: '251117'
-sourceHash: b5b3d46faa22b16584b8851265f733dd9cd3ca7184176b880668836d5ba0bd81
+sourceHash: b655af392c19409893fbfd1fcdd57d230db81675921377f8dc5cf9251f33410a
 ---
 
 这篇文章想谈一谈：**在前端，我们该如何捕获错误**。

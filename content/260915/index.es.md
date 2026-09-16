@@ -1,10 +1,10 @@
 ---
 emoji: 🧭
 title: 'Observabilidad del sistema'
-seoTitle: 'Observabilidad con Sentry y OpenTelemetry: errores, traces y gray failure'
+seoTitle: 'Observabilidad: Sentry, OpenTelemetry y gray failure'
 date: '2026-09-15'
 categories: observabilidad frontend Sentry OpenTelemetry
-description: 'Cómo la instrumentación de Sentry solo en el servidor atrapó fallos ocultos tras respuestas 200: qué responde cada señal (error, breadcrumb, trace, metric, profile), el gray failure, una llamada a GA colgada 65 segundos y la distribución medida de nuevo tras el arreglo.'
+description: 'Cómo Sentry solo en el servidor atrapó fallos ocultos tras respuestas 200: el gray failure y una llamada a GA colgada 65 segundos.'
 keywords: 'monitoreo de errores Sentry, gray failure, timeout DEADLINE_EXCEEDED, tracing distribuido Sentry, señales OpenTelemetry, observabilidad serverless, deadline gRPC, privacidad Session Replay'
 locale: es
 translationOf: '260915'

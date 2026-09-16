@@ -8,7 +8,7 @@ description: "React Fiberアーキテクチャを、Stack ReconcilerからLane�
 keywords: "React Fiber, React Fiberアーキテクチャ, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, Reactレンダリングの仕組み, Reactソースコード解析, Virtual DOM, Reconciliation, Lane優先度, フロントエンド面接"
 locale: ja
 translationOf: '250520'
-sourceHash: 03b03964ecc49416cd4094fe6c75a2d33aa0e26153fcf9434f153632965e641c
+sourceHash: 412f62b5791d4a5cb8194d72a33592355783df8495cc4274b2e2d4d2e8162f6e
 ---
 
 今回は、Reactの心臓部ともいえる**Fiberアーキテクチャ**について話したい。
@@ -560,7 +560,7 @@ Schedulerの`shouldYieldToHost()`は、作業開始後の経過時間が`frameIn
 
 Fiberは内部で、**レンダーフェーズ**と**コミットフェーズ**という二つの段階を経る。この分離は、Reactの並行処理モデルを可能にする中心的な設計だ。Fiberの動作フローを直接確認したければ、下の画像をクリックしてほしい。
 
-[![2.png](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
+[![React Fiber の動作順序を段階的に見せる可視化デモ。レンダー段階からレイアウト段階までをコンポーネントツリーと作業スタックで追う](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
 
 
 

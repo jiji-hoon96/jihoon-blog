@@ -8,7 +8,7 @@ description: 'AI Token 既不是单词也不是字符。本文系统讲解 BPE t
 keywords: 'LLM Token 原理, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, 输入输出 Token 成本, 什么是 AI Token'
 locale: zh-CN
 translationOf: '260610'
-sourceHash: 916300304184bd08cac369236fce06eb4d3b01c7d958bc36d63fa6d4b4d9a8b1
+sourceHash: 6a6a147aafe2b372f09525cabfc507e80cc78dac0ae2696a4bae69db6199fd48
 ---
 
 这篇文章想聊一聊：AI Token 究竟是什么，又按照怎样的原理工作。
@@ -31,7 +31,7 @@ sourceHash: 916300304184bd08cac369236fce06eb4d3b01c7d958bc36d63fa6d4b4d9a8b1
 
 BPE（Byte Pair Encoding，字节对编码）会反复将最常共同出现的相邻符号对合并为一个新符号，从而逐步扩充词表。
 
-有趣的是，它最初并非为自然语言处理而生。Philip Gage 在 1994 年首次将 BPE 作为一种数据压缩技术提出：用数据中未使用的一个字节替换出现频率最高的字节对，并把替换规则单独存入一张表。
+有趣的是，它最初并非为自然语言处理而生。Philip Gage 在 1994 年首次将 BPE 作为一种[数据压缩](/240706)技术提出：用数据中未使用的一个字节替换出现频率最高的字节对，并把替换规则单独存入一张表。
 
 后来，爱丁堡大学 Sennrich 团队把它引入了神经机器翻译的词表问题。在 2015 年公开、并于 ACL 2016 发表的论文《Neural Machine Translation of Rare Words with Subword Units》中，他们用 BPE 解决了固定词表无法处理生僻词和陌生词的局限。其思路是：与其完整记住单词，不如用更小的子词片段组合来表示，这样即使词表中没有某个单词，也能用已有片段编码出来。
 

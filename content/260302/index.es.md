@@ -8,7 +8,7 @@ description: "Cómo crecer como ingeniero frontend cuando la IA escribe el códi
 keywords: 'frontend en la era de la IA, desarrolladores en la era de la IA, vibe coding, agentic engineering, herramientas de programación con IA, Product Engineer, hoja de ruta profesional para frontend'
 locale: es
 translationOf: '260302'
-sourceHash: ea34a6b4ab472b80bbc813f947f4659d62063c3d4156c38e33495ab6ca1c0bbe
+sourceHash: 9e820add9fbee97043f989e52c79451d2190faff3d6f17cb0a4fac02eeebbba1
 ---
 
 En esta publicación quiero hablar, desde una perspectiva personal, de **cómo pueden crecer y sobrevivir los ingenieros en la era de la IA**.
@@ -231,8 +231,3 @@ Espero que los ingenieros frontend que lean este artículo también se lleven su
 
 **(Si dentro de un año este artículo parece demasiado obvio o anticuado, quizá signifique que hemos sabido responder bien).**
 
-
-## Referencias
-
-:::ref
-:::

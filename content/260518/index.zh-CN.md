@@ -60,13 +60,13 @@ React 官方文档给出了更形式化的定义。页面标题就是 [“State:
 
 在此基础上，我会更进一步，把前端状态分为**七个类别**。需要提前说明的是，这七类并不能沿单一维度整齐划分。存储位置、来源、生命周期和职责彼此交织，因此一个状态可能同时属于多个类别。请不要把它看作一张完美的分类表，而应把它理解为**决定如何管理状态时需要提出的一组问题**。
 
-- **局部状态（Local State）** — 只在一个组件或较小子树中使用的状态
-- **全局状态（Global State）** — 需要由整个应用共享的状态
-- **服务端状态（Server State）** — 以服务器为 Single Source of Truth、客户端副本仅作为缓存的状态
-- **表单状态（Form State）** — 用户输入期间暂时存在的状态
-- **URL 状态（URL State）** — 位于地址栏中、可分享且刷新后仍保留的状态
-- **外部状态（External State）** — 位于 React 外部的状态，如 Cookie、localStorage、sessionStorage 和 IndexedDB
-- **状态守卫（State Guard）** — 根据状态组合阻止、允许或校验访问与操作的逻辑，而不是状态本身
+- **局部状态（Local State）**: 只在一个组件或较小子树中使用的状态
+- **全局状态（Global State）**: 需要由整个应用共享的状态
+- **服务端状态（Server State）**: 以服务器为 Single Source of Truth、客户端副本仅作为缓存的状态
+- **表单状态（Form State）**: 用户输入期间暂时存在的状态
+- **URL 状态（URL State）**: 位于地址栏中、可分享且刷新后仍保留的状态
+- **外部状态（External State）**: 位于 React 外部的状态，如 Cookie、localStorage、sessionStorage 和 IndexedDB
+- **状态守卫（State Guard）**: 根据状态组合阻止、允许或校验访问与操作的逻辑，而不是状态本身
 
 除此之外，还有适合用状态机精细建模的工作流状态，以及基于 WebSocket 或 CRDT 的实时协作状态。
 
@@ -155,7 +155,7 @@ navigate(`?${params.toString()}`);
 const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
 ```
 
-[nuqs](https://nuqs.dev/) 之类的库通过*解析器（parser）*概念解决了这两个问题。`parseAsInteger`、`parseAsBoolean`、`parseAsJson` 等解析器统一负责序列化、反序列化与类型。它支持 Next.js（App/Pages Router）、React Router v6/v7、TanStack Router、Remix 等大多数环境。
+[nuqs](https://nuqs.dev/) 之类的库通过**解析器（parser）**概念解决了这两个问题。`parseAsInteger`、`parseAsBoolean`、`parseAsJson` 等解析器统一负责序列化、反序列化与类型。它支持 Next.js（App/Pages Router）、React Router v6/v7、TanStack Router、Remix 等大多数环境。
 
 
 那么，可以把任意多的状态都塞进 URL 吗？除了序列化和类型问题之外，还有最后一个约束需要注意。[RFC 7230](https://datatracker.ietf.org/doc/html/rfc7230) 并未规定精确上限，但建议“服务器至少应支持 8,000 个 octet（在网络或数据通信中，用于明确指代由 8 Bit 组成的 1 Byte 的单位）”。不同浏览器的限制也各不相同。现代浏览器大多允许 8KB 到数万字符，但**搜索引擎、社交媒体的 OG/分享处理，以及部分网关，可能在接近 2KB 时就截断内容**。因此，不要无限制地往 URL 中塞数据。只保留**可分享的核心筛选条件**，其余内容交给 sessionStorage 或服务端存储会更安全。
@@ -246,7 +246,7 @@ return children;
 - **RBAC（Role-Based Access Control）**：按角色授予权限，例如“admin 可以查看所有用户信息”。它简单、快速，但随着角色不断细分，角色数量会爆炸式增长
 - **ABAC（Attribute-Based Access Control）**：根据属性组合决定权限，例如“用户是该帖作者、与作者属于同一团队，或用户是 admin”。它表达能力强，但实现和调试更困难
 
-如 [TanStack Router 的 RBAC 指南](https://tanstack.com/router/v1/docs/framework/react/how-to/setup-rbac)所示，推荐在路由层的 `beforeLoad` 中设置守卫。关键在于：**权限检查不应散落在代码各处，而应能表达为数据（角色/权限列表）**。这样一来，权限策略调整只需变更*数据*。
+如 [TanStack Router 的 RBAC 指南](https://tanstack.com/router/v1/docs/framework/react/how-to/setup-rbac)所示，推荐在路由层的 `beforeLoad` 中设置守卫。关键在于：**权限检查不应散落在代码各处，而应能表达为数据（角色/权限列表）**。这样一来，权限策略调整只需变更**数据**。
 
 
 ## 总结

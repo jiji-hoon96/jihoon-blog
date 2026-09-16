@@ -8,7 +8,7 @@ description: "基于 React 源码，深入分析 React Fiber 架构，从 Stack 
 keywords: "React Fiber, React Fiber 架构, Stack Reconciler, Concurrent Mode, React 18 并发, useTransition, useDeferredValue, Suspense, React 渲染原理, React 源码分析, Virtual DOM, Reconciliation, Lane 优先级, 前端面试"
 locale: zh-CN
 translationOf: '250520'
-sourceHash: 03b03964ecc49416cd4094fe6c75a2d33aa0e26153fcf9434f153632965e641c
+sourceHash: 412f62b5791d4a5cb8194d72a33592355783df8495cc4274b2e2d4d2e8162f6e
 ---
 
 这篇文章想聊聊堪称 React 心脏的 **Fiber 架构**。
@@ -560,7 +560,7 @@ Scheduler 的 `shouldYieldToHost()` 会检查工作开始后的经过时间是�
 
 Fiber 在内部会经历 **Render Phase** 和 **Commit Phase** 两个阶段。这种分离正是让 React 并发模型成为可能的核心设计。如果想亲自查看 Fiber 的工作流程，可以点击下面的图片。
 
-[![2.png](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
+[![逐步展示 React Fiber 运行过程的可视化演示，从渲染阶段到布局阶段，配合组件树与工作栈](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
 
 
 

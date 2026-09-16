@@ -8,7 +8,7 @@ description: 'How BPE creates tokens, embeddings feed LLMs, prefill and decode s
 keywords: 'how LLM tokens work, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, input output token costs, what is an AI token'
 locale: en
 translationOf: '260610'
-sourceHash: 916300304184bd08cac369236fce06eb4d3b01c7d958bc36d63fa6d4b4d9a8b1
+sourceHash: 6a6a147aafe2b372f09525cabfc507e80cc78dac0ae2696a4bae69db6199fd48
 ---
 
 In this post, I want to explore what AI tokens actually are and how they work.
@@ -31,7 +31,7 @@ The algorithm used to build this vocabulary is BPE, a common foundation of nearl
 
 BPE (Byte Pair Encoding) is an algorithm that grows a vocabulary by repeatedly merging the most frequent pair of adjacent symbols into a new symbol.
 
-Interestingly, it was not originally created for natural language processing. Philip Gage first proposed BPE in 1994 as a data compression technique. The method replaced the most frequently occurring byte pair in a dataset with a single byte not otherwise used in the data, then stored those replacement rules separately in a table.
+Interestingly, it was not originally created for natural language processing. Philip Gage first proposed BPE in 1994 as a [data compression](/240706) technique. The method replaced the most frequently occurring byte pair in a dataset with a single byte not otherwise used in the data, then stored those replacement rules separately in a table.
 
 A research team led by Sennrich at the University of Edinburgh brought the technique to the vocabulary problem in neural machine translation. In “Neural Machine Translation of Rare Words with Subword Units,” released in 2015 and presented at ACL 2016, they used BPE to overcome the inability of a fixed vocabulary to handle rare or previously unseen words. The idea was that instead of memorizing whole words, a model could represent them as combinations of smaller subword pieces, allowing even out-of-vocabulary words to be encoded from known parts.
 

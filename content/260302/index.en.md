@@ -8,7 +8,7 @@ description: "How frontend engineers grow when AI writes the code: new skills in
 keywords: 'frontend in the AI era, developers in the AI era, vibe coding, agentic engineering, AI coding tools, Product Engineer, frontend career roadmap'
 locale: en
 translationOf: '260302'
-sourceHash: ea34a6b4ab472b80bbc813f947f4659d62063c3d4156c38e33495ab6ca1c0bbe
+sourceHash: 9e820add9fbee97043f989e52c79451d2190faff3d6f17cb0a4fac02eeebbba1
 ---
 
 In this post, I want to share my personal perspective on **how engineers can grow and survive alongside AI**.
@@ -231,8 +231,3 @@ I hope the frontend engineers reading this leave with their own answer to the qu
 
 **(If this article feels painfully obvious or outdated a year from now, perhaps that will mean we responded well enough.)**
 
-
-## References
-
-:::ref
-:::

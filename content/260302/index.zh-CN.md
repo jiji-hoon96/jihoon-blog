@@ -8,7 +8,7 @@ description: '在 AI 代替人编写代码的时代，前端工程师该如何�
 keywords: 'AI 时代前端, AI 时代开发者, vibe coding, agentic engineering, AI 编程工具, Product Engineer, 前端职业路线图'
 locale: zh-CN
 translationOf: '260302'
-sourceHash: ea34a6b4ab472b80bbc813f947f4659d62063c3d4156c38e33495ab6ca1c0bbe
+sourceHash: 9e820add9fbee97043f989e52c79451d2190faff3d6f17cb0a4fac02eeebbba1
 ---
 
 这篇文章想从个人视角聊一聊：**在 AI 时代，工程师该如何成长并生存下去**。
@@ -231,8 +231,3 @@ AI 生成的代码很容易变得庞大，一分钟就能产出几百行。因�
 
 **（如果一年后再看，这篇文章显得过于理所当然或已经过时，那或许正说明我们应对得很好。）**
 
-
-## 参考资料
-
-:::ref
-:::

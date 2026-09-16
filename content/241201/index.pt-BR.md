@@ -8,7 +8,7 @@ description: "Biome versus ESLint e Prettier: desempenho de linting e formataç�
 keywords: "Biome vs ESLint, Biome vs Prettier, migração para Biome, comparação de linters JavaScript, linter baseado em Rust, ferramentas de desenvolvimento frontend"
 locale: pt-BR
 translationOf: '241201'
-sourceHash: 49263616d316d9e1ca434e3dc7a281c0c4fef7a27c76d0cb06d518a671d3baea
+sourceHash: 09c08de2a01b115d2a003056b07b9ec373e98a19617d193019e192f006ee3551
 ---
 
 Neste post, quero falar sobre uma ferramenta chamada Biome.
@@ -39,7 +39,7 @@ Há três motivos principais para escolher o Biome.
 
 **O desempenho é impressionante.** Segundo os benchmarks oficiais, ele é cerca de 25 vezes mais rápido que o Prettier e aproximadamente 15 vezes mais rápido que o ESLint. Mais adiante, vamos comparar diretamente o que esses números representam na prática.
 
-![1.png](1.png)
+![Comparativo de formatação do site do Biome: 0,41 s contra 14,35 s do Prettier em 171.127 linhas de 2.104 arquivos, cerca de 35 vezes mais rápido](1.png)
 
 **Ele é compatível com as ferramentas existentes.** O Biome oferece cerca de 97% de compatibilidade de formatação com o Prettier e inclui nativamente as principais regras do ESLint. Regras de plugins usados com frequência, como `eslint-plugin-react-hooks` e `eslint-plugin-jsx-a11y`, também vêm integradas, o que torna a migração relativamente tranquila.
 
@@ -85,7 +85,7 @@ Dizer apenas que é rápido não torna a diferença muito concreta, então compa
 
 ### Tempo de execução local de um projeto Vite
 
-![biome1.png](biome1.png)  ![lint1.png](lint1.png)
+![Servidor de desenvolvimento do Vite com Biome, pronto em 506 ms](biome1.png)  ![Servidor de desenvolvimento do Vite com ESLint e Prettier, pronto em 630 ms](lint1.png)
 
 
 O Biome levou **506ms**, enquanto o ESLint + Prettier levou **630ms**, resultando em um tempo de execução cerca de 20% menor.
@@ -94,7 +94,7 @@ O Biome levou **506ms**, enquanto o ESLint + Prettier levou **630ms**, resultand
 
 ### Tempo de build de um projeto Vite
 
-![biome2.png](biome2.png) ![lint2.png](lint2.png)
+![Build do Vite com Biome: 117,13 segundos](biome2.png) ![Build do Vite com ESLint e Prettier: 131,48 segundos](lint2.png)
 
 
 O Biome levou **117.13s**, enquanto o ESLint + Prettier levou **131.48s**, resultando em um tempo de build cerca de 10% menor.
@@ -103,7 +103,7 @@ O Biome levou **117.13s**, enquanto o ESLint + Prettier levou **131.48s**, resul
 
 ### Tarefa de linting
 
-![biome3.png](biome3.png) ![lint3.png](lint3.png)
+![Execução de lint com Biome: 0,79 segundo e 0,470 segundo de CPU](biome3.png) ![Execução de lint com ESLint: 16,32 segundos e 8,600 segundos de CPU](lint3.png)
 
 A maior diferença apareceu na tarefa de linting. O Biome levou **0.79s** (CPU 0.470s), enquanto o ESLint levou **16.32s** (CPU 8.600s), ou seja, **o Biome apresentou um desempenho cerca de 20 vezes mais rápido**. O uso da CPU também foi muito mais eficiente.
 
@@ -111,7 +111,7 @@ A diferença já é perceptível no ambiente de desenvolvimento, mas se torna ai
 
 <hr>
 
-![3.jpeg](3.jpeg)
+![O personagem Patrick com a mão no queixo, pensativo](3.jpeg)
 
 Hmm... (A essa altura, é mais difícil encontrar um motivo para não usar.)
 
@@ -125,7 +125,7 @@ Hmm... (A essa altura, é mais difícil encontrar um motivo para não usar.)
 
 ### Desempenho de baixo nível do Rust
 
-| ![5.webp](5.webp) | ![6.webp](6.webp) |
+| ![Uso médio de CPU com 10, 100 e 300 conexões simultâneas: o Node.js fica entre 89% e 91% e o Rust vai de 145% a 206% usando vários núcleos](5.webp) | ![Uso médio de memória nas mesmas condições: o Node.js consome 64-89 MB e o Rust 6-14 MB](6.webp) |
 | --- | --- |
 
 O Biome é escrito em Rust, uma linguagem de programação de sistemas. O Rust é voltado para abstrações de custo zero (Zero-cost Abstraction), o que significa que abstrações de alto nível podem ter o mesmo desempenho de código de baixo nível otimizado manualmente. Além disso, ele gerencia a memória por meio de um sistema de ownership, sem garbage collector (GC), evitando o overhead de runtime causado pelo GC.
@@ -144,7 +144,7 @@ O que acontece quando usamos a combinação ESLint + Prettier? O ESLint faz o pa
 
 ### Processamento paralelo nativo
 
-![7.png](7.png)
+![Processamento síncrono versus assíncrono: o síncrono alterna requisição e resposta, o assíncrono envia requisições em sequência e recebe as respostas depois](7.png)
 
 Aproveitando o modelo de concorrência do Rust, o Biome processa arquivos em paralelo em várias threads. Ele divide o trabalho em unidades pequenas e distribui a carga de forma eficiente entre as threads por meio de um scheduler de work-stealing. Como o sistema de ownership do Rust impede data races em tempo de compilação, o custo de sincronização durante o runtime também é minimizado.
 
@@ -154,7 +154,7 @@ O Node.js usa, por padrão, um modelo single-thread baseado em event loop. É po
 
 ### Processamento de AST eficiente em memória
 
-![4.svg](4.svg)
+![Exemplo de árvore sintática: um -1 unário à esquerda e um 1 + 2 binário à direita, com nós de operador e de inteiro](4.svg)
 
 O Biome usa uma CST (Concrete Syntax Tree, árvore sintática concreta). Segundo a documentação oficial de arquitetura do Biome, essa CST implementa o padrão Green/Red Tree com base em um fork interno da biblioteca rowan, preservando todas as informações do código original, incluindo comentários e espaços em branco. A alocação de memória no estilo arena da rowan coloca os nós em regiões contíguas de memória, melhorando a localidade de cache (Cache Locality) da CPU e minimizando alocações desnecessárias de objetos.
 
@@ -189,7 +189,7 @@ Minha equipe também mantinha um projeto de grande escala no qual o linting cons
 
 Também vale lembrar a história da transição do Rome para o Biome. Os transtornos enfrentados pelos usuários existentes quando o Rome foi arquivado mostram como a sustentabilidade de um projeto é importante na escolha de uma ferramenta. Felizmente, o Biome é financiado pelo OpenCollective e pelo GitHub Sponsors e mantém um ritmo constante de releases.
 
-![8.png](8.png)
+![Downloads semanais no npm trends ao longo de um ano: eslint e prettier entre 30 e 50 milhões, enquanto o biome fica colado no eixo inferior](8.png)
 
 Segundo o npm trends, os downloads semanais do Biome, cerca de 6,9 milhões, ainda estão bem abaixo dos aproximadamente 120 milhões do ESLint e dos 82 milhões do Prettier. Mas a velocidade de crescimento do Biome chama a atenção. Em pouco mais de um ano, os downloads semanais aumentaram mais de três a quatro vezes, com uma alta especialmente visível na adoção por projetos novos.
 
@@ -202,8 +202,3 @@ Minha resposta à pergunta sobre o Biome poder substituir completamente o ESLint
 O desempenho é impressionante, a configuração é simples e o ritmo de desenvolvimento é rápido. Porém, a imaturidade do ecossistema de plugins e as limitações no suporte a algumas linguagens podem ser obstáculos, dependendo do projeto. O ideal é analisar cuidadosamente a stack tecnológica do projeto e as necessidades da equipe antes de decidir pela adoção.
 
 Uma coisa é certa: o ecossistema de ferramentas frontend está avançando na direção de soluções “mais rápidas, mais simples e mais integradas”. É inegável que o Biome está na linha de frente desse movimento. Sem dúvida, é uma ferramenta cujo crescimento futuro merece atenção.
-
-## Referências
-
-:::ref
-:::

@@ -1,14 +1,14 @@
 ---
 emoji: ⚛️
 title: 'Mastering React Fiber'
-seoTitle: "Mastering React Fiber: Architecture and Concurrent Rendering"
+seoTitle: 'React Fiber: Architecture and Concurrent Rendering'
 date: '2025-05-20'
 categories: frontend React
 description: "A source-based analysis of React Fiber: Stack Reconciler, Lane priorities, double buffering, the MessageChannel scheduler, and Concurrent Features."
 keywords: "React Fiber, React Fiber architecture, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, React rendering, React source code analysis, Virtual DOM, Reconciliation, Lane priority, frontend interview"
 locale: en
 translationOf: '250520'
-sourceHash: 03b03964ecc49416cd4094fe6c75a2d33aa0e26153fcf9434f153632965e641c
+sourceHash: 412f62b5791d4a5cb8194d72a33592355783df8495cc4274b2e2d4d2e8162f6e
 ---
 
 In this post, I want to talk about the **Fiber architecture**, which could be called the heart of React.
@@ -560,7 +560,7 @@ We have now examined Fiber's structure and scheduling. Let us put the full flow 
 
 Fiber internally passes through two stages: the **Render Phase** and the **Commit Phase**. This separation is the core design that makes React's concurrency model possible. Click the image below to see Fiber's execution flow for yourself.
 
-[![2.png](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
+[![An interactive demo that walks through React Fiber step by step, from the render phase to the layout phase, alongside the component tree and work stack](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
 
 
 

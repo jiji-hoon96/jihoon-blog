@@ -8,7 +8,7 @@ description: "Do prompt ao context engineering, o que vem depois? O blog de enge
 keywords: 'context engineering, design de harness, eval de agentes de IA, agent evaluation, containment, isolamento de agentes, tendências de IA 2026, prompt engineering, agentes LLM, depois da economia de tokens'
 locale: pt-BR
 translationOf: '260622'
-sourceHash: '3a4496827fcd34537ded61f9925a57116fbf16b6d28eee9508f66417f6d2345b'
+sourceHash: 06bdc8be3e1e0ff49702ada8265d88df2ffd88a750b85ab5e845bf748bac236e
 ---
 
 Neste artigo, quero falar sobre prompt engineering, context engineering e o que pode vir depois.
@@ -71,7 +71,7 @@ O segundo ramo foi o mais interessante para mim. Como se houvesse um acordo, os 
 
 O motivo é intuitivo. **Como verificamos** se o contexto foi bem composto, o harness bem projetado ou o custo realmente reduzido? Quanto mais longas e complexas são as tarefas que um agente executa de forma autônoma, mais difícil se torna inspecionar cada uma e decidir “isso realmente funcionou bem?”. A base da confiança acaba migrando para a medição. Por isso, questões como “como projetar avaliações de agentes?”, “como remover o ruído da própria avaliação?” e “como lidar com eval awareness, quando o model percebe a avaliação e muda o comportamento?” foram para o primeiro plano.
 
-![4.png](4.png)
+![Gráfico que contrasta pass@k e pass^k: com mais tentativas, o pass@k sobe para 100% enquanto o pass^k cai para 0%](4.png)
 
 Avaliar agentes é difícil porque isso difere de uma pergunta e resposta pontual. Um agente chama tools e altera estados ao longo de vários turnos; assim, um erro se propaga e se acumula. Além disso, os resultados variam entre execuções mesmo com a mesma entrada. A [Anthropic](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) divide essa não determinação em duas métricas. **pass@k** é a probabilidade de sucesso pelo menos uma vez em k tentativas, por isso aumenta com mais tentativas. **pass^k** é a probabilidade de sucesso em todas as k tentativas, por isso diminui. Para geração de código que só precisa acertar uma vez, pass@1 importa; para um agente de atendimento que precisa funcionar sempre de modo confiável, pass^k é essencial. (Com taxa de sucesso per-trial de 75%, a probabilidade de três sucessos consecutivos é 0.75³, cerca de 42%. A distância entre “geralmente funciona” e “funciona sempre” é tão grande assim.)
 

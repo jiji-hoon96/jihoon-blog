@@ -8,7 +8,7 @@ description: "Domínio, modelo de domínio e objeto de domínio pelo frontend: E
 keywords: "modelo de domínio no frontend, design orientado a domínio, DDD no frontend, Frontend DDD, objeto de domínio, Entity Value Object, Anemic Domain Model, modelo de domínio anêmico, Clean Architecture no frontend, Eric Evans, Martin Fowler, separação da lógica de domínio, padrões de design React, arquitetura frontend, separação de ViewModel, Bounded Context"
 locale: pt-BR
 translationOf: '260418'
-sourceHash: 660b87cbe239f955599d8c796abc4990000f522521179fc4da3a1af1773a335e
+sourceHash: b9aa3af2ee684933bfaa47fe2c6b9543a7eaf0d22299b554491c0040f6069953
 ---
 
 Neste post, quero falar sobre **domínio (Domain)**.
@@ -44,7 +44,7 @@ O que isso significa para quem desenvolve frontend? A UI que criamos é, no fim 
 
 Mas até um único domínio como "impostos" contém inúmeros subdomínios quando examinado por dentro. Basta olhar para o pipeline de cálculo do imposto de renda global, que conheço apenas superficialmente.
 
-![1.png](1.png)
+![Pipeline de cálculo do imposto de renda, da receita bruta até o pagamento ou a restituição, com cada etapa colorida pelos subdomínios de renda, dedução, imposto e declaração](1.png)
 
 Cada etapa desse pipeline é um subdomínio com regras e dados próprios. Dentro do grande domínio de "impostos", entrelaçam-se os subdomínios de renda (Income), deduções (Deduction), imposto (Tax) e declaração (Filing). Como dividi-los no código é justamente a questão central da modelagem de domínio.
 
