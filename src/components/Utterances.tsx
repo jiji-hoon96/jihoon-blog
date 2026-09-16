@@ -14,6 +14,10 @@ export default function Utterances({ repo, path }: UtterancesProps) {
 
   useEffect(() => {
     if (!ref.current || ref.current.hasChildNodes()) return
+    // next-themes 는 마운트 직후 resolvedTheme 이 undefined 다. 그대로 주입하면
+    // 다크 모드 사용자도 밝은 댓글창을 받고, 아래 postMessage 는 아직 iframe 이
+    // 없어서 놓친다. 결과적으로 테마를 한 번 토글하기 전까지 어긋난 채로 남는다.
+    if (!resolvedTheme) return
 
     const scriptElem = document.createElement('script')
     scriptElem.src = 'https://utteranc.es/client.js'
@@ -28,7 +32,7 @@ export default function Utterances({ repo, path }: UtterancesProps) {
     )
 
     ref.current.appendChild(scriptElem)
-  }, [repo, path])
+  }, [repo, path, resolvedTheme])
 
   // Re-render utterances when theme changes
   useEffect(() => {

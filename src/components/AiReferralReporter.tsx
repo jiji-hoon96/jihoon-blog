@@ -5,6 +5,7 @@ import {
   buildAiReferralEventParameters,
   classifyAiReferral,
 } from '@/lib/ai-referral'
+import { sendGaEvent } from '@/lib/ga-event'
 
 export default function AiReferralReporter() {
   useEffect(() => {
@@ -15,24 +16,13 @@ export default function AiReferralReporter() {
     })
     if (!aiSource) return
 
-    let sent = false
-    const report = () => {
-      const gtag = (window as unknown as {
-        gtag?: (...args: unknown[]) => void
-      }).gtag
-      if (sent || typeof gtag !== 'function') return
-
-      sent = true
-      gtag(
-        'event',
-        'ai_referral',
-        buildAiReferralEventParameters(aiSource, window.location),
-      )
-    }
-
-    report()
-    window.addEventListener('load', report, { once: true })
-    return () => window.removeEventListener('load', report)
+    // 예전에는 gtag 이 아직 없으면 load 이벤트를 기다렸다. effect 가 load 이후에
+    // 돌면(bfcache 복원, 긴 hydration) `{ once: true }` 리스너가 영영 불리지 않는다.
+    // 큐에 바로 넣으면 그 경로 자체가 없어진다.
+    sendGaEvent(
+      'ai_referral',
+      buildAiReferralEventParameters(aiSource, window.location),
+    )
   }, [])
 
   return null

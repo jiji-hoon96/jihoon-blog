@@ -30,9 +30,16 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       }`}
     >
       {hasThumbnail && (
+        // next/image 를 쓰지 않는 이유는 썸네일이 외부 호스트라 loader 설정이 필요해서다.
+        // 대신 치수와 lazy 로딩을 직접 준다. 없으면 카드마다 레이아웃이 밀린다.
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={project.thumbnailUrl}
-          alt={project.title}
+          alt={`${project.title} 미리보기`}
+          width={220}
+          height={124}
+          loading="lazy"
+          decoding="async"
           className="mb-4 aspect-video w-full object-cover sm:mb-0"
         />
       )}

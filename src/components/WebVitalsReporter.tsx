@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import type { Metric } from 'web-vitals'
+import { sendGaEvent } from '@/lib/ga-event'
 
 /**
  * Core Web Vitals (LCP, INP, CLS, FCP, TTFB)를 측정해 Google Analytics로 전송.
@@ -19,11 +20,9 @@ export default function WebVitalsReporter() {
 
     const send = (metric: Metric) => {
       if (cancelled) return
-      const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void })
-        .gtag
-      if (typeof gtag !== 'function') return
 
-      gtag('event', 'web_vitals', {
+      // gtag 함수를 기다리지 않는다. onTTFB 와 onFCP 는 등록 즉시 한 번만 발화한다.
+      sendGaEvent('web_vitals', {
         event_category: 'Web Vitals',
         event_label: metric.name,
         value: Math.round(
@@ -46,7 +45,10 @@ export default function WebVitalsReporter() {
         onTTFB(send, REPORT_OPTS)
       })
       .catch(() => {
-        // 로드 실패 시 조용히 무시
+        // 청크 로드 실패는 배포 직후 옛 HTML 이 사라진 청크를 부를 때 일어난다.
+        // 브라우저 Sentry 가 없으므로 GA4 로 카나리를 하나 남긴다.
+        // 이게 없으면 Core Web Vitals 가 통째로 멈춰도 어디에도 흔적이 없다.
+        sendGaEvent('web_vitals_unavailable', { non_interaction: true })
       })
 
     return () => {
