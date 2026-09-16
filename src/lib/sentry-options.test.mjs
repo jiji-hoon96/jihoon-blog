@@ -31,3 +31,19 @@ test('adds explicit release and deployment environment when configured', () => {
   assert.equal(options.release, 'blog@abc123')
   assert.equal(options.environment, 'netlify-production')
 })
+
+test('falls back to the Netlify build context so previews do not look like production', () => {
+  assert.equal(getSentryRuntimeOptions({
+    SENTRY_DSN: 'https://public@example.invalid/3',
+    NODE_ENV: 'production',
+    CONTEXT: 'deploy-preview',
+  }).environment, 'deploy-preview')
+
+  // 명시적으로 준 값이 항상 이긴다.
+  assert.equal(getSentryRuntimeOptions({
+    SENTRY_DSN: 'https://public@example.invalid/3',
+    NODE_ENV: 'production',
+    SENTRY_ENVIRONMENT: 'staging',
+    CONTEXT: 'deploy-preview',
+  }).environment, 'staging')
+})

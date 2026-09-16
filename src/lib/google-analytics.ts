@@ -13,9 +13,29 @@ const totalCalibration = parseInt(process.env.ANALYTICS_TOTAL_CALIBRATION || "0"
 
 let analyticsDataClient: BetaAnalyticsDataClient | null = null;
 
+let missingCredentialsReported = false;
+
 function getClient(): BetaAnalyticsDataClient | null {
   if (!propertyId || !clientEmail || !privateKey) {
     console.warn("Google Analytics credentials not configured");
+    // 이 경로는 catch 를 거치지 않는다. 호출부가 곧장 fallback 을 반환하고
+    // daily-visitor-baseline 이 0 위에 10~40 을 얹으므로 화면도 정상으로 보인다.
+    // 보고하지 않으면 자격증명이 통째로 빠져도 알 방법이 없다.
+    // 요청마다 같은 이벤트를 보내면 쿼터만 태우므로 프로세스당 한 번만 보낸다.
+    if (!missingCredentialsReported) {
+      missingCredentialsReported = true;
+      const missing = [
+        !propertyId && "GA_PROPERTY_ID",
+        !clientEmail && "GOOGLE_SERVICE_ACCOUNT_EMAIL",
+        !privateKey && "GOOGLE_PRIVATE_KEY",
+      ].filter(Boolean);
+      captureServerException(
+        new Error(
+          `Google Analytics credentials missing: ${missing.join(", ")}`,
+        ),
+        { routeKind: "analytics", operation: "get-client" },
+      );
+    }
     return null;
   }
 

@@ -99,8 +99,10 @@ export function rehypeImagePath() {
                 node.properties.height = dimensions.height
               }
             }
-          } catch (err) {
-            // dimensions 못 읽어도 빌드 막지 않음
+          } catch {
+            // dimensions 를 못 읽으면 width/height 가 빠지고 CLS 가 나빠진다.
+            // 그래도 빌드는 막지 않는다. 대신 로그로는 남긴다.
+            console.warn(`[rehype-image-path] 치수를 읽지 못했다: ${resolvedSrc}`)
           }
         }
 
