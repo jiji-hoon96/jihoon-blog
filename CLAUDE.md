@@ -276,12 +276,14 @@ Sentry 구성은 그대로 서버 전용이고 `src/instrumentation-client.ts` �
 
 ```bash
 pnpm build
-PORT=3111 GA_PROPERTY_ID=123456789 \
+PORT=3111 SENTRY_ENVIRONMENT=local GA_PROPERTY_ID=123456789 \
   GOOGLE_SERVICE_ACCOUNT_EMAIL=verify@example.iam.gserviceaccount.com \
   GOOGLE_PRIVATE_KEY='-----BEGIN PRIVATE KEY-----\nINVALID\n-----END PRIVATE KEY-----\n' \
   pnpm start
 curl "http://localhost:3111/api/analytics?type=page&slug=/verify"
 ```
+
+`SENTRY_ENVIRONMENT=local` 을 빼면 이벤트가 `production` 으로 찍힌다. 로컬에는 Netlify 의 `CONTEXT` 도 없어서 `sentry-options.ts` 가 환경 값을 넘기지 않기 때문이다. 2026-09-16 에 이 절차로 만든 JIHOON-BLOG-B 가 그렇게 프로덕션 이슈에 섞였다.
 
 `type=page` 를 쓰는 이유는 `getPageViews` 가 `unstable_cache` 를 거치지 않아서다. `type=stats` 는 캐시된 fallback 이 돌아와 에러가 재현되지 않을 수 있다. (`type=popular` 는 `5752e09` 이후 라우트에 없다. 지금은 400 이 돌아오고 GA 호출 자체가 일어나지 않는다)
 
