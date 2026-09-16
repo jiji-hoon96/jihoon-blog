@@ -245,3 +245,28 @@ curl "http://localhost:3111/api/analytics?type=page&slug=/verify"
 ```
 
 `type=page` 를 쓰는 이유는 `getPageViews` 가 `unstable_cache` 를 거치지 않아서다. `type=stats` 나 `type=popular` 는 캐시된 fallback 이 돌아와 에러가 재현되지 않을 수 있다.
+
+## 검색엔진 통보 (IndexNow)
+
+바뀐 글 URL 을 IndexNow 로 직접 알린다. **Google 은 이 프로토콜을 쓰지 않는다.** 받는 쪽은 Bing, Yandex, 그리고 Ahrefs Site Audit 이 AI Discoverability 로 묶는 크롤러들이다. 그래서 GSC 지표가 이것 때문에 움직이지는 않는다.
+
+| 조각 | 위치 |
+|---|---|
+| 키 파일 | `public/3176e9bf8c16a1051a52edd5ce330de5.txt` |
+| 제출 스크립트 | `scripts/submit-indexnow.mjs` (`pnpm indexnow`) |
+| 자동 실행 | `.github/workflows/indexnow.yml` |
+
+**키는 비밀이 아니다.** 같은 호스트에 공개 서빙되는 것이 프로토콜의 소유 검증 방식이라 리포에 그대로 둔다. GitHub Secret 이나 환경변수가 필요 없다.
+
+제출 범위는 바뀐 글로 한정한다. 안 바뀐 URL 을 배포마다 다시 밀어 넣는 것은 프로토콜이 권하지 않는다. 그래서 push 트리거는 그 푸시의 `content/**/index*.md` diff 만 보내고, 사이트 전역 메타(예: `src/i18n/dictionaries.ts` 의 카테고리 description 템플릿)를 고쳤을 때는 Actions 탭에서 수동 실행해 전체를 보낸다.
+
+`draft` 와 `ignore` 글은 보내지 않는다. noindex URL 을 알리는 것이 이 기능이 해를 끼칠 수 있는 유일한 경로다.
+
+**배포보다 먼저 보내면 크롤러가 옛 문서를 본다.** 워크플로가 배포를 기다리는 신호는 `x-nextjs-date` 응답 헤더다. Netlify 의 durable 캐시는 쿼리스트링으로도 `Cache-Control: no-cache` 로도 뚫리지 않지만(실측: `age` 가 그대로 유지됨), 배포가 캐시를 비우므로 헤더 값이 바뀌는 것으로 감지할 수 있다. 15분 안에 신호를 못 보면 그냥 보낸다. 몇 분 이르게 알려도 크롤러는 나중에 다시 오므로 고정 대기보다 나쁠 것이 없다.
+
+드라이런이 기본값이다. `--submit` 을 붙여야 실제로 전송한다.
+
+```bash
+pnpm indexnow content/260916/index.md content/260916/index.ja.md   # 미리보기
+pnpm indexnow --all                                                 # 공개 글 전체 미리보기
+```

@@ -1,0 +1,91 @@
+name: Submit IndexNow
+
+# 바뀐 글의 URL 을 IndexNow 로 알린다. Google 은 이 프로토콜을 쓰지 않고
+# Bing, Yandex, 그리고 Ahrefs 가 AI Discoverability 로 묶는 크롤러들이 받는다.
+#
+# 키는 비밀이 아니다. public/<key>.txt 로 공개 서빙되는 것이 프로토콜의 검증
+# 방식이라 Secret 설정이 필요 없다.
+#
+# push 로 돌면 그 푸시에서 바뀐 글만 보내고, 수동 실행하면 공개된 글 전부를
+# 보낸다. 뒤쪽은 사이트 전역 메타(카테고리 설명 템플릿 등)를 고쳤을 때 쓴다.
+#
+# 제출이 배포보다 빠르면 크롤러가 옛 문서를 보게 되므로 배포를 기다린다.
+# Netlify 의 durable 캐시는 쿼리스트링으로도 Cache-Control: no-cache 로도
+# 뚫리지 않는다(실측). 대신 배포가 캐시를 비우므로 x-nextjs-date 가 바뀌는 것을
+# 신호로 쓴다. 신호를 못 봐도 제한 시간이 지나면 그냥 보낸다. 몇 분 이르게
+# 알려도 크롤러는 나중에 다시 오므로 손해가 없다.
+
+on:
+  push:
+    branches: [main]
+    paths: ['content/**/index*.md']
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Wait for the Netlify deploy to go live
+        if: github.event_name == 'push'
+        run: |
+          started=$(date +%s)
+          read_build_date() {
+            curl -sSI --max-time 20 https://hooninedev.com/ \
+              | tr -d '\r' | awk -F': ' 'tolower($1)=="x-nextjs-date"{print $2}'
+          }
+          before=$(read_build_date)
+          echo "deployed build before this push: ${before:-unknown}"
+
+          while [ $(( $(date +%s) - started )) -lt 900 ]; do
+            sleep 30
+            now=$(read_build_date)
+            if [ -n "$now" ] && [ "$now" != "$before" ]; then
+              echo "new deploy is live: $now"
+              exit 0
+            fi
+          done
+          echo "no new deploy seen in 15 minutes, submitting anyway"
+
+      - name: Submit URLs
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          # 첫 푸시나 force push 면 BEFORE 가 0 으로만 채워져 diff 를 뜰 수 없다.
+          if [ "${{ github.event_name }}" != "push" ] ||
+             [ -z "${BEFORE//0/}" ]; then
+            node scripts/submit-indexnow.mjs --all --submit | tee indexnow.txt
+            exit 0
+          fi
+
+          # 글은 항상 content/<slug>/ 한 단계 아래에 있다. git pathspec 은
+          # 셸 globstar 가 아니므로 실제 배치에 맞는 한 단계 패턴을 쓴다.
+          git diff --name-only --diff-filter=d "$BEFORE" "$AFTER" \
+            -- 'content/*/index*.md' > changed.txt
+          cat changed.txt
+          xargs -a changed.txt -r node scripts/submit-indexnow.mjs --submit \
+            | tee indexnow.txt
+
+      - name: Write job summary
+        if: always()
+        run: |
+          {
+            echo '## IndexNow 제출 결과'
+            echo ''
+            echo '```'
+            cat indexnow.txt 2>/dev/null || echo '(제출할 URL 없음)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
