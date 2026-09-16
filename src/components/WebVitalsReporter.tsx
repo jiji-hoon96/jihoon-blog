@@ -31,6 +31,9 @@ export default function WebVitalsReporter() {
         metric_id: metric.id,
         metric_rating: metric.rating,
         metric_navigation_type: metric.navigationType,
+        // soft navigation 이 일어나면 앞 페이지의 CLS 와 INP 는 URL 이 바뀐 뒤에 확정돼
+        // 보고된다. 덮지 않으면 gtag 가 현재 URL 을 붙여 목록 페이지 값이 글 URL 로 잡힌다.
+        ...(metric.navigationURL ? { page_location: metric.navigationURL } : {}),
         non_interaction: true,
       })
     }
