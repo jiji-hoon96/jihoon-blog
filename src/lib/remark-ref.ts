@@ -30,6 +30,14 @@ export function remarkRef() {
     visit(tree, (node: any) => {
       if (node.type !== 'containerDirective' || node.name !== 'ref') return
 
+      // 항목이 하나도 없으면 렌더하지 않는다. 그대로 두면 아무것도 들어 있지 않은
+      // "참고 자료" 접이식 UI 가 페이지에 남는다. (241201, 260302 에서 실제로 나갔다)
+      if (!node.children?.length) {
+        node.data = { hName: 'div', hProperties: { className: ['ref-block-empty'] } }
+        node.children = []
+        return
+      }
+
       // 전체 블록을 <details class="ref-block">으로 변환
       const data = node.data || (node.data = {})
       data.hName = 'details'

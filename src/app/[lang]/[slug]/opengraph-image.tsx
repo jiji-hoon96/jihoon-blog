@@ -4,6 +4,7 @@ import { allPosts } from 'contentlayer/generated'
 import { loadNotoSansKR } from '@/lib/og-font'
 import { OgCard, OG_CARD_SIZE } from '@/lib/og-card'
 import { findTranslation } from '@/lib/localized-posts'
+import { isHiddenPost } from '@/lib/filter-posts'
 import { isLocale, type Locale } from '@/i18n/locales'
 import { getDictionary, interpolate } from '@/i18n/dictionaries'
 
@@ -32,7 +33,9 @@ export default async function Image({ params }: Props) {
 
   // 이 라우트는 페이지와 달리 정적 파라미터로 좁혀지지 않는다. 막지 않으면
   // 없는 slug 마다 Satori 렌더가 돌아 함수 실행 시간을 무한히 태울 수 있다.
-  if (!post || !isLocale(lang)) notFound()
+  // 숨긴 글도 막는다. 같은 slug 의 페이지는 404 인데 OG 이미지만 200 으로
+  // 제목과 날짜를 내주면 내린 글의 내용이 그림으로 남는다.
+  if (!post || !isLocale(lang) || isHiddenPost(post)) notFound()
 
   const fonts = await loadNotoSansKR()
 
