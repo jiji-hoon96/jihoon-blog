@@ -44,6 +44,8 @@
   - 대신 쉼표, 콜론(`:`), 마침표, 또는 자연스러운 문장 구조로 표현한다.
   - 지양: `방향 1 — harness`, `2025년 10월 — Agent Skills`, `Zustand — 소스코드`
   - 권장: `방향 1, harness` 또는 `방향 1: harness`, `2025년 10월, Agent Skills`, `Zustand 소스코드`
+  - **이 규칙은 한국어, 일본어, 중국어 본문에만 적용한다.** 금지의 근거가 "한국어 문장에서 번역투를 만든다" 이고 같은 문제가 CJK 전반에 있다. 영어, 스페인어, 포르투갈어에서 em dash 는 그 언어의 정상 구두점이라 걷어내면 문장이 나빠진다. 중국어의 破折号(`——`)도 그 언어의 표준 부호이므로 그대로 둔다. `pnpm audit:repo` 가 이 범위대로 검사한다.
+  - **이탤릭 금지에는 로케일 예외가 없다.** 번역본에서도 `**볼드**`를 쓴다. 책 제목처럼 라틴 조판에서 이탤릭이 관례인 경우에도 이 블로그는 강조 표기를 하나로 유지한다.
 
 ### 기술 용어
 
@@ -152,6 +154,28 @@
 
 - `/write-post [초안]` - 초안을 블로그 글 작성
 - `/refine-post [파일경로]` - 기존 글을 jihoon 스타일로 리파인
+- `/audit` - 기능, 성능, SEO, 관측, 콘텐츠 정합성을 여러 관점에서 점검하고 고친다
+
+## 정기 점검 (/audit)
+
+리포 점검은 기계가 하는 부분과 판단이 필요한 부분으로 나눠 둔다.
+
+| 조각 | 무엇을 한다 |
+|---|---|
+| `pnpm audit:repo` | 게이트 7개, 콘텐츠 정합성, 번들과 소스맵 측정. 결과는 `.audit-report.json` |
+| `pnpm audit:repo --build` | 앞에 클린 프로덕션 빌드를 돌린다 |
+| `pnpm audit:repo --live` | 프로덕션 응답 코드, TTFB, 보안 헤더, 사이트맵 유출까지 본다 |
+| `.claude/commands/audit.md` | 병렬 에이전트 5개로 판단이 필요한 레인을 본다 |
+
+**빌드는 병렬 진입 전에 혼자 한 번만 돌린다.** `pnpm build` 와 `pnpm rebuild` 가 `.contentlayer` 와 `.next` 를 지우므로,
+에이전트를 띄운 채로 누가 빌드를 돌리면 서로의 산출물을 덮어쓴다. 그러면 레포의 문제가 아니라
+경쟁 상태의 흔적을 발견하게 된다. 그래서 `/audit` 은 0단계에서 빌드를 끝내고 레인에는 로그 경로만 넘긴다.
+
+예산은 `scripts/audit.mjs` 의 `BUDGET` 에 있다. 실측이 바뀌면 이 문서의 수치와 같이 갱신한다.
+문서의 수치가 실측과 어긋난 채로 남으면 다음 번에 회귀를 판정할 기준이 사라진다.
+
+**린트는 빌드 게이트가 아니다.** `pnpm build` 는 `eslint` 를 돌리지 않으므로 린트가 깨져도 배포는 통과한다.
+그래서 `audit:repo` 는 린트 실패를 FAIL 이 아니라 WARN 으로 둔다.
 
 ## 에러 모니터링 (Sentry)
 
@@ -178,6 +202,7 @@ Sentry 프로젝트: `hooninedev/jihoon-blog` (`@sentry/nextjs`)
 | `src/sentry.server.config.ts` | Node 런타임 init |
 | `src/sentry.edge.config.ts` | Edge 런타임 init (현재 edge 라우트는 없지만 빌드가 배선함) |
 | `src/app/global-error.tsx` | 루트 렌더 에러 UI 폴백. 서버 전용 구성이라 Sentry 로 직접 보고하지는 않는다 |
+| `src/lib/sentry-options.ts` | DSN 게이트, `tracesSampleRate`, release 와 environment 를 실제로 정하는 곳 |
 
 ### 환경변수
 
@@ -213,8 +238,13 @@ Netlify 함수 런타임에서 실제 이벤트로 확인한 것들이다. Deplo
 - DSN 이 있고 `NODE_ENV === 'production'` 일 때만 전송한다. 개발 중 발생하는 에러는 무료 티어 쿼터만 태우므로 보내지 않는다.
 - `tracesSampleRate` 는 0.1. Core Web Vitals 는 기존대로 `WebVitalsReporter` 가 GA4 로 보내고, Sentry 는 에러와 낮은 샘플링 트레이싱만 담당한다.
 - **Session Replay 는 쓰지 않는다.** 블로그는 로딩 성능이 곧 SEO 라서 비용이 이득보다 크다. `next.config.ts` 의 `bundleSizeOptimizations` 로 관련 코드를 번들에서 제거한다.
-- **GA 호출에는 반드시 `gaCallOptions()` 를 넘긴다.** `src/lib/ga-request-options.ts` 에 있다. `runReport` 의 라이브러리 기본 RPC 타임아웃이 60초여서, 넘기지 않으면 GA 가 응답하지 않을 때 요청이 60초 넘게 매달린다. fallback 때문에 응답은 200 이라 조용히 통계만 빈다. 프로덕션에서 `Deadline exceeded after 65.877s` 로 실제 관측됐다(JIHOON-BLOG-2). 블랙홀 서버로 재현해 타임아웃 미지정 60.04초 / 5초 지정 5.00초를 실측했다. `src/lib/ga-request-options.test.mjs` 가 호출 지점 누락을 막는다.
-- `src/lib/google-analytics.ts` 의 catch 블록 4곳에서 `captureException` 을 호출한다. 이 함수들은 GA 호출이 실패해도 fallback 값을 반환하고 응답은 200 이라, 계측하지 않으면 통계가 0 으로 보이는 장애를 알 방법이 없다. **라우트 핸들러의 catch 만으로는 잡히지 않는다.** 실제로 검증 과정에서 이 사실이 드러났다.
+- **`unstable_cache` 가 실패 이벤트 수를 누른다.** `fetchAnalyticsStats` 는 `revalidate: 3600` 이라 실패 결과(0/0)도 한 시간 캐시된다. 트래픽이 아무리 많아도 Sentry 이벤트는 시간당 최대 1건이다. 뒤집으면 **이벤트 1건이 "한 시간 동안 통계가 0" 을 뜻한다.** 이벤트 건수를 영향 범위의 대리 지표로 쓰면 체계적으로 과소평가하게 되므로, 알림 임계치를 건수로 잡지 않는다.
+- **GA 호출에는 반드시 `gaCallOptions()` 를 넘긴다.** `src/lib/ga-request-options.ts` 에 있다. `runReport` 의 라이브러리 기본 RPC 타임아웃이 60초여서, 넘기지 않으면 GA 가 응답하지 않을 때 요청이 60초 넘게 매달린다. fallback 때문에 응답은 200 이라 조용히 통계만 빈다. 프로덕션에서 `Deadline exceeded after 65.877s` 로 실제 관측됐다(JIHOON-BLOG-2). 블랙홀 서버로 재현해 타임아웃 미지정 60.04초 / 5초 지정 5.00초를 실측했다. `src/lib/ga-request-options.test.mjs` 가 호출 지점 누락을 막는다. (이 테스트는 `src` 전체를 훑고 각 호출의 **두 번째 인자**가 `gaCallOptions()` 인지 본다. gax 는 CallOptions 를 두 번째 인자로만 읽으므로 요청 객체에 스프레드로 섞으면 타임아웃이 적용되지 않는다)
+
+  **다만 5초 타임아웃이 이 실패를 다 막지는 못한다.** fix 커밋 `927c85b` 이 배포된 릴리스에서 13일 뒤 `Deadline exceeded after 338.655s` 가 다시 잡혔다(JIHOON-BLOG-8). 그때도 `gaCallOptions()` 는 정상적으로 넘어가고 있었고 스택에도 `google-gax` 의 타임아웃 래퍼가 있었다. 보고된 338초가 Lambda 컨테이너 수명(344초)과 거의 겹치고 전 구간이 gRPC subchannel pick 이다. **서버리스에서 함수가 freeze 된 동안 wall-clock 타이머가 발화하지 못하고 thaw 후에야 만료된 것으로 보인다.** 그렇다면 in-process 타이머로는 이 실패를 경계 지을 수 없고, 338초라는 숫자도 부분적으로 측정 아티팩트다. 로컬 블랙홀 서버 실측(5.00초)은 여전히 맞지만 그 경로에만 해당한다. 2026-08-18 이후 재발은 없다.
+- `src/lib/google-analytics.ts` 의 catch 블록 3곳에서 `captureException` 을 호출한다. (`5752e09` 이 `fetchPopularPages` 를 지우기 전에는 4곳이었다) 이 함수들은 GA 호출이 실패해도 fallback 값을 반환하고 응답은 200 이라, 계측하지 않으면 통계가 0 으로 보이는 장애를 알 방법이 없다. **라우트 핸들러의 catch 만으로는 잡히지 않는다.** 실제로 검증 과정에서 이 사실이 드러났다.
+- **`getClient()` 의 자격증명 누락 경로도 보고한다.** 이 경로는 catch 를 거치지 않는다. 호출부가 곧장 fallback 을 반환하기 때문이다. 게다가 `daily-visitor-baseline.ts` 가 0 위에 10~40 을 얹으므로 화면에는 "오늘 방문자 23명" 이 그럴듯하게 뜬다. Netlify 환경변수가 통째로 빠져도 사람 눈으로도 Sentry 로도 안 보이는 유일한 구멍이었다. 쿼터를 태우지 않도록 프로세스당 한 번만 보낸다.
+- **Deploy Preview 도 `NODE_ENV === 'production'` 이라 게이트를 통과한다.** 그래서 `sentry-options.ts` 가 `SENTRY_ENVIRONMENT` 가 없으면 Netlify 의 `CONTEXT`(`production` / `deploy-preview` / `branch-deploy`)를 환경 이름으로 쓴다. 이게 없으면 프리뷰 트래픽이 프로덕션 이슈에 섞여서 알림을 걸 때 걸러낼 방법이 없다.
 
 ### 번들 비용 실측 (2026-08-04)
 
@@ -226,6 +256,12 @@ Netlify 함수 런타임에서 실제 이벤트로 확인한 것들이다. Deplo
 | **현재 구성 (서버 전용)** | **182.3 KB** | **+0.7 KB** |
 | 서버 전용 + global-error 에서 `captureException` 호출 | 186.0 KB | +4.4 KB |
 | 클라이언트 + 서버 | 260.4 KB | +78.8 KB |
+
+위 표는 Next 16.1.4 기준이다. **2026-09-16 재측정에서 같은 방법으로 206.1 KB 가 나왔다.** 기준선보다 23.8 KB 크다.
+그 사이에 Next 가 16.1.4 에서 16.3.4 로 올라갔고(`49ea2e0`) GA4 소프트 내비게이션 리포터가 들어왔다(`cc21a0d`).
+둘 중 어느 쪽이 얼마를 차지하는지는 각 커밋에서 다시 빌드해 보기 전에는 모른다. 확인하지 않았다.
+Sentry 구성은 그대로 서버 전용이고 `src/instrumentation-client.ts` 는 여전히 없으므로, 이 증가분은 Sentry 때문이 아니다.
+현재 예산은 `scripts/audit.mjs` 의 `BUDGET.clientJsGzipKb` 에 215 KB 로 박혀 있다. `pnpm audit:repo` 가 매번 확인한다.
 
 `bundleSizeOptimizations.excludeTracing: true` 도 시도했지만 260.4 KB 로 변화가 없었다. 클라이언트 비용을 줄이는 유일한 방법은 `src/instrumentation-client.ts` 를 두지 않는 것이다.
 
@@ -244,7 +280,7 @@ PORT=3111 GA_PROPERTY_ID=123456789 \
 curl "http://localhost:3111/api/analytics?type=page&slug=/verify"
 ```
 
-`type=page` 를 쓰는 이유는 `getPageViews` 가 `unstable_cache` 를 거치지 않아서다. `type=stats` 나 `type=popular` 는 캐시된 fallback 이 돌아와 에러가 재현되지 않을 수 있다.
+`type=page` 를 쓰는 이유는 `getPageViews` 가 `unstable_cache` 를 거치지 않아서다. `type=stats` 는 캐시된 fallback 이 돌아와 에러가 재현되지 않을 수 있다. (`type=popular` 는 `5752e09` 이후 라우트에 없다. 지금은 400 이 돌아오고 GA 호출 자체가 일어나지 않는다)
 
 ## 검색엔진 통보 (IndexNow)
 

@@ -1,21 +1,24 @@
 ---
 emoji: 📅
 title: 'Kalyx'
-seoTitle: 'Kalyx：React 19 headless DatePicker 的四个设计决策'
+seoTitle: 'Kalyx：我用一年打造 React 19 headless DatePicker 的复盘'
 date: '2026-06-17'
-categories: ignore 库 React DatePicker 开源
-description: 'Kalyx如何解决现有DatePicker的取舍：7个基础组件、约16KB bundle、ISO字符串API、适配器，以及4项核心设计决策。'
-keywords: 'Kalyx, React DatePicker, headless DatePicker, react-day-picker, react-datepicker, headless库, bundle大小, ISO-8601 timezone, Composition pattern, adapter pattern, Radix dot notation, Ark UI, MUI X DatePicker'
+updatedAt: '2026-09-16'
+categories: 库 React DatePicker 开源
+description: '每次挑选React DatePicker，headless、bundle体积、7个primitive总得放弃一样。所以我自己写了一个。记录四项设计决策，以及后来用卖点级的bundle上限换取正确性的三个月。'
+keywords: 'Kalyx, React DatePicker, headless DatePicker, react-day-picker, react-datepicker, headless 组件库, bundle 体积, ISO-8601 时区, Composition 组合模式, adapter 适配器模式, Radix dot notation, Ark UI, MUI X DatePicker, displayTimezone, DST 夏令时 bug, 属性测试 fast-check'
 locale: zh-CN
 translationOf: '260617'
-sourceHash: 7ced7d6aab4ab2812c3b1665328a8e5693781ef894c6a997732d5ef3d273e831
+sourceHash: b7e7be3efa404583193adba50f933c85c2d044497af8da1f75cbaa9c00bab69c
 ---
 
-这篇文章想聊聊我亲手打造、最近以1.0版本发布的React headless DatePicker库——**Kalyx**。
+这篇文章想聊聊我亲手打造的React headless DatePicker库——**Kalyx**。
 
 作为前端开发者，我经常负责涉及SaaS表单的项目。于是几乎每个页面都需要日期输入：单个日期、日期范围、时间、按月/年跳转，甚至还有timezone。然而过去一年里，每当我开始新项目，都会撞上同一堵墙。（坦白说，从来没有一次能用一个库干净地解决所有需求。）
 
-有一天，我第三次在`react-day-picker`上拼接自制的TimePicker和从别处借来的Popover，开始在笔记里写下自己真正想要的API形态。这份笔记最终成为Kalyx 1.0的公开API。本文从作者视角记录这一年的决策：为什么要做它、四个核心决策有哪些权衡，以及1.0发布后几乎没有用户时，我把时间花在了哪里。
+有一天，我第三次在`react-day-picker`上拼接自制的TimePicker和从别处借来的Popover，开始在笔记里写下自己真正想要的API形态。这份笔记最终成为Kalyx 1.0的公开API。
+
+这篇文章是我以作者视角整理的决策记录。前半是走到1.0之前做的四个决策，后半是那之后三个月的记录。后半才是我最想讲的部分。**1.0之后最大的决策不是新功能，而是我亲手打破了当作卖点的bundle上限，用它换来了正确性。** 现在的版本是1.4.7，这期间的7次patch全部用在修同一类bug上。
 
 ---
 
@@ -48,12 +51,12 @@ Ark UI的案例也传递了同样的信号。Chakra UI团队打造的Ark UI里**
 
 Kalyx是我对这个问题的回答。一句话定义就是：**“无需CSS import、安装即可运行，并能用任何样式方案自由定制的React headless DatePicker。”**
 
-1.0中ship的内容如下。
+1.0中ship的内容如下。（括号里是更新本文时1.4.7的数值）
 
 - **7个primitive组件**: `DatePicker`, `RangePicker`, `TimePicker`, `DateTimePicker`, `MonthPicker`, `YearPicker`, `WeekPicker`
-- **3个Headless Hook**: `useDatePicker`, `useRangePicker`, `useTimePicker`（想丢掉库提供的全部UI、自行构建UI时使用的入口）
+- **3个Headless Hook**: `useDatePicker`, `useRangePicker`, `useTimePicker`（想丢掉库提供的全部UI、自行构建UI时使用的入口。其余4个后来由`@kalyx/react/headless`入口补上，现在7个全都有了）
 - **单一Composition API**: 7个primitive全部使用相同的Context和dot notation模式
-- **约16KB gzip (ESM)**: 在17KB上限内完成
+- **约16KB gzip (ESM)**: 在17KB上限内完成（现在约19.5KB，上限20KB。为什么上调，是本文后半的主题）
 - **0个CSS import**: Tailwind、CSS Modules、vanilla CSS，任意选择
 
 API长这样。
@@ -208,15 +211,15 @@ DST等边界由`@kalyx/core`中基于Intl的timezone工具处理。它们并不�
 
 我选择了C。0.x时期其实从A开始，但在v1 stable、API即将freeze之前，我意识到：**一旦内置某个date库，就无法在不major bump的情况下移除。** 当时果断抽出adapter，是1.0毕业前最大的决策。
 
-后续ship的adapter也遵循相同的21方法契约，只有实现不同。
+后续ship的adapter也遵循相同的21方法契约，只有实现不同。三个adapter都会在各自的测试里运行`@kalyx/core/test-helpers`的`runAdapterConformanceTests`，验证它们是否给出相同的答案。
 
-- `@kalyx/adapter-dayjs`: 统计显示约一半React用户使用dayjs，因此优先级第一（Mantine甚至将dayjs规定为强制peer）
+- `@kalyx/adapter-dayjs`: 统计显示约一半React用户使用dayjs，因此当时优先级第一（Mantine甚至将dayjs规定为强制peer）
 - `@kalyx/adapter-luxon`: 面向企业与高级timezone场景
 - Temporal: 抽离完成后，我得出结论：TC39 Temporal API支持应在core层面解决，而非通过adapter。因为adapter接口是ISO字符串in/out，无法原样传递Temporal的独有能力。（后文“当前状态”会再次讨论这一判断。）
 
-### 17KB上限
+### bundle上限
 
-1.0发布时，bundle为ESM约15.8KB / CJS约15.9KB gzip。我最初将上限设为16KB，v1.1时提高一档到17KB（原因后述）。CI会强制执行这个上限。每个PR都运行`pnpm check-bundle`，超出上限的PR会build fail。
+1.0发布时，bundle为ESM约15.8KB / CJS约15.9KB gzip。我最初将上限设为16KB，v1.1时提高一档到17KB。CI会强制执行这个上限。每个PR都运行`pnpm check-bundle`，超出上限的PR会build fail。
 
 这个数字不是随意选择的，而是参照市场基准设定。
 
@@ -224,6 +227,8 @@ DST等边界由`@kalyx/core`中基于Intl的timezone工具处理。它们并不�
 - `react-datepicker`: 全部primitive约40～60KB
 - `MUI X`: 约58KB（而且Range是付费Pro）
 - `Kalyx`: 7个primitive比`react-day-picker`的一个Calendar还小
+
+最后这一行曾是1.0时期的骄傲。现在依然成立，但余地小了很多。约19.5KB对约22KB，只差2.5KB。
 
 bundle演变也按RC阶段进行了追踪。
 
@@ -235,10 +240,12 @@ bundle演变也按RC阶段进行了追踪。
 | rc.8 | TimePicker `filterTime`编程callback | 15 → 16KB |
 | 1.0.0 | 最终稳定化 (2026-06-08) | ESM 15.8KB / CJS 15.9KB |
 | 1.1 | a11y `announce()` live region parity | 16 → 17KB |
+| 2026-08 | timezone与约束正确性的全面修复 | 17 → 20KB |
+| 2026-08 | 仅把`/headless`入口拆出来 | 20 → 22KB |
 
-每次上调都明确记录“为什么增加”，让它成为有意的决策，而不是每次悄悄漏掉1KB。拒绝的功能也清楚留档：RTL模式、holiday plugin、virtualized year/month grid被有意排除。在17KB上限下，实际可用余量只剩CJS约126byte、ESM约221byte（更紧的CJS是binding标准）。下一个runtime功能只有两条路：(a)为现有代码减重，把新功能塞进去；或(b)有意再次提高上限并公告。（反过来，测试、独立adapter包、`/headless` entry等不进入default bundle graph的工作不会影响预算。）
+每次上调都明确记录“为什么增加”，让它成为有意的决策，而不是每次悄悄漏掉1KB。被拒绝的功能也清楚留档。表格上面六行是1.0时期的记录，那时只有一档一档往上加的决定。表格最后两行是这次更新本文时补上的，性质不同：不是一档，而是一次跳了三档。**那个决定就是本文后半的主题。**
 
-修改上限需要同步多个文件：`scripts/check-bundle-size.js`的`TARGET_KB`、`tsup.config.ts`以及CI workflow。我故意把它设计得麻烦。（如果只改一处就能悄悄上调，因此要让移动上限成为一项沉重的决定。）
+移动上限这件事，我故意做得麻烦。只改一处就容易悄悄上调，所以现在`scripts/bundle-policy.js`里的两个常量是单一来源，每个PR的必需检查都会强制它。表格最后一行的拆分，原因也是在这里暴露出来的。两个入口原本共享同一个上限，而`/headless`在与default入口相同的七种组件之外，还要多装全部七种hook和`DateTimePicker.Presets`。**装了更多代码的一侧余量反而更少，出现了这样的倒置。** 实测时default入口还剩1.4KB，headless却干到不足200byte，连与default入口无关的变更也被headless全数挡下。所以我只上调了headless的上限并把两者拆开，default入口的20KB没有动。那个数字已经写进README徽章，上调就等于改变承诺。
 
 以上就是嵌入库代码本身的四个决策。那么实际build过程中发生了什么？
 
@@ -293,6 +300,8 @@ bundle演变也按RC阶段进行了追踪。
 - GitHub stars 5个、forks 0个、watchers 0人
 - npm每周下载480次（推测大部分是CI镜像bot）
 - 直接依赖包0个
+
+三个月过去的现在，stars是7个。数字基本没动，而这个事实正是后文那次方向转变的起点。
 
 时间投入分成两条路：(a)继续加强新功能；(b)扩展到React Native adapter等新track。但两者ROI都很低。外部用户为0，新功能无法得到验证；新track也应该等用户出现后再进入才更有效。
 
@@ -418,47 +427,66 @@ axe自动化无障碍验证14项全部通过。ARIA标签也支持多语言定�
 
 ## 当前状态与承认的局限
 
-### 1.0之后实际ship的内容（截至v1.1）
+### 卖掉体积买来正确性的三个月
 
-本文前半部分是对1.0发布时的回顾，但写作此文时，库已经进入v1.1。为了不让回顾只停留在“计划”，这里准确记录实际ship的内容和改变方向的部分。
+本文前半部分是对1.0发布时的回顾。但在更新本文的此刻，库已经到了1.4.7，而这期间变化最大的不是功能列表，而是优先级。
 
-原本作为下一milestone的adapter扩展已有部分实现。
+转折点在1.0的第二天。上一节整理的“最初30秒”投资没有见效已经很清楚，外部用户为0的观测也一直持续着。于是我停掉了宣传，把还活着的marketing资产全部撤下：文档站的公告横幅、花了不少心思做的`/docs/comparison`竞品对比页，还有你正在读的这篇博客。**这就是本文有三个多月处于非公开状态的原因。** 它是在我决定停止宣传的那天一起撤下的，现在重新拿出来，顺手补上这期间的记录。
 
-- **`@kalyx/adapter-dayjs`已发布**: React用户统计中dayjs份额接近一半，Mantine等生态甚至将dayjs规定为强制peer，因此优先级第一的adapter已作为独立包publish。
-- **增加`@kalyx/core/test-helpers` conformance suite**: 每当增加新adapter时，都能自动验证相同的21方法契约。只需一行`runAdapterConformanceTests(adapter, { describe, it, expect })`，任何adapter都能按同一准确性标准验证是否通过。这是把adapter从“承诺”变为“经验证能力”的骨干工作。
-- **`@kalyx/adapter-luxon`**: 面向企业与高级timezone场景，可在conformance suite上以低成本添加的下一个候选。
+没有用户时，比起继续出新功能，先确认已经出的东西是否正确更重要。这个判断把工作顺序整个翻了过来。
 
-相反，从计划中**drop的内容**也要坦诚记录。
+**原本推迟到v1.2的property-based测试被提到了前面。** 它的做法是大量生成随机输入，找出不变式被打破的地方。对日期计算这种纯函数而言，它比基于示例的测试更能把护城河挖厚。而且确实抓到了一个：`startOfDayInTimezone`在DST切换日会返回早一小时的时刻。原因是实现只在“把当地午夜按UTC读出来的值”上测量一次offset，而那个点可能落到切换的另一侧。Australia/Sydney在10月1日进入夏令时，当地00:00还是AEST +10，但按UTC 00:00读取就会得到切换之后的AEDT +11。用基于示例的测试，除非有人恰好挑中这一天来写，否则这个bug会永远溜过去。
 
-- **决定不把`@kalyx/adapter-temporal`做成adapter。** adapter接口使用ISO-8601字符串in/out，无法原样承载Temporal特有的能力（`PlainDate`、`ZonedDateTime`等类型安全的时间model）。若包装成adapter，最终只会被压平为ISO字符串，再委托回core的Intl代码，准确性收益为0。因此Temporal支持应保留为core层面的策略。
+**接着我把bundle上限从17KB提到了20KB。** 明知体积是这个库标榜的卖点之一，还是这么做了。上调的理由是，全面修复时区与约束的正确性需要写进代码。负offset时区里日历单元格会整体错开一天，而约束（`disabled`）检查只存在于组件路径上，preset、键盘、hook、context变更这些路径全被漏掉了。一次跳三档的决定并不轻松。但在**“小”和“对”之间只能选一个时，作为一个库应该选后者**这一点上，我没有犹豫。
 
-基于用户信号考虑中的项目另行归类。
+之后1.4.x的七个patch全是同一类。与其罗列release note，不如按学到了什么来整理。
 
-- **缺少的headless hook**: 当前只有Date/Range/Time三种hook。Month/Year/Week/DateTime hook计划仅添加到`/headless` entry，避免触碰default bundle上限。
-- **fast-check属性测试**: 对日期计算等纯函数，基于属性的测试比基于示例的测试更能加深护城河。它已提升为加强core准确性的最高优先项。
-- **Integration recipes**: React Hook Form / Zod等表单库的集成指南。
-- **RTL模式 / Holiday plugin**: 等bundle余量允许或出现明确需求时再做。
+| 版本 | 修了什么 | 暴露了什么 |
+| --- | --- | --- |
+| 1.4.1 | `displayTimezone`下日历的日历日身份、约束检查路径的全面对齐 | 正确性不是从某一个函数漏掉，而是每条路径各漏各的 |
+| 1.4.2 | UTC+12到+14时区的日期保持、卡在整月全禁用时出不去的导航 | 有些缺陷只在时区符号翻转的地方才显形 |
+| 1.4.3 | `selectMonth` / `selectYear`无视自己画出的禁用标记直接提交 | 画的代码和写的代码必须看同一个判定 |
+| 1.4.4 | `workspace:*`被锁成精确版本，导致core的patch无法独自抵达 | 发布形态本身也会制造bug |
+| 1.4.5 | 一个错误的`value`在渲染中throw，把整棵树带下去 | 来自表单字段或DB行的值不是编程错误，而是数据 |
+| 1.4.6 | 拒绝不可能的日期和超出范围的时刻、具名输入的ISO提交 | 防御不能只放在一个入口，而要放在所有入口 |
+| 1.4.7 | 7种hook在每次渲染都重新生成派生数据 | 只针对组件做的优化到不了hook使用者那里 |
 
-搁置的track也明确说明。React Native adapter仍在roadmap上，但web用户优先。非Gregorian日历（Persian/Buddhist/Islamic/Hebrew）会在GitHub issue积累到一定数量或出现企业赞助者时启动。
+1.4.5尤其难忘。`value`传入无法解析的字符串时，`RangeError: Invalid time value`会在渲染中被抛出，整棵React树随之卸载；在`renderToString`下面，一行坏数据就变成500响应。可是`value`大多来自表单字段或数据库行。**那不是开发者的失误，就只是数据而已。** 站在库的立场上，把它当成编程错误本身就是错的。
+
+功能也不是没有，只不过全都在填补已有东西的空白。
+
+- **RTL支持**（1.3.0）：所有picker Root都多了`dir` prop。按WAI-ARIA grid模式只翻转物理方向键，ArrowUp/Down和Home/End保持逻辑方向。1.0时这一项被推到“等bundle余量允许时”，上调上限后腾出了位置。
+- **缺失的4种headless hook**（`useMonthPicker`、`useYearPicker`、`useWeekPicker`、`useDateTimePicker`）：为了不碰default bundle上限，只放进`@kalyx/react/headless`入口。那个入口先见底的原因就在这里。
+- **TimePicker的locale与Popover**（1.4.0）：AM/PM标签改为基于`Intl`本地化（ko-KR下是上午/下午），TimePicker也可以不用内联，改用popover。
+- **`@kalyx/adapter-luxon`、`@kalyx/adapter-dayjs`发布**：两个都已经上了npm，三个adapter全部通过conformance suite。
+
+相反，从计划中**drop的内容**也原样留着。`@kalyx/adapter-temporal`决定不做成adapter。adapter接口是ISO-8601字符串in/out，无法原样承载Temporal特有的类型能力（`PlainDate`、`ZonedDateTime`）。包成adapter最终只会被压平为ISO字符串，再委托回core的Intl代码，实测正确性收益为0。这不是放弃Temporal本身，而是把它停放在core层面的需求gate上。
+
+搁置的track，我不写成“以后再说”，而是写成**观察到什么就会改变主意**。非公历（波斯、佛历、伊斯兰、希伯来）需要GitHub issue 3件以上，或企业赞助1件。Storybook与视觉回归测试需要视觉回归发生3次以上。React Native adapter暂缓。把条件写成数字，就不用每次重复同一场争论。
 
 ### 坦诚承认的局限
 
 最后，是写给正在考虑这个库的读者的一份坦诚disclosure。（我认为给新库套上夸张marketing，最终只会损害信任。）
 
 - **单人维护者**: 可持续速度是每月1个minor。需求出现时会调整优先级。
-- **新生库**: 用户基数小，你很可能成为某个edge case的首位发现者。测试coverage在picker之间也不均衡（例如WeekPicker最薄弱）。
+- **新生库**: 用户基数小，你很可能成为某个edge case的首位发现者。不过可以说，上面那三个月把这个概率削掉了不少。1.4.x里修掉的缺陷大多不是用户报上来的，而是property测试和时区全量扫描先找到的。
 - **仅支持React 19+**: 依赖19的leverage point，包括RSC、`useId`、没有`useLayoutEffect` warning、`<Input>`的form-action集成。不做18 back-port。
-- **不声称“battle-tested”**: 新生库不应使用这个词。它拥有的是每个primitive数百项unit test、axe全部通过、Next.js App Router CI中的SSR验证，以及adapter conformance suite。
+- **不声称“battle-tested”**: 新生库不应使用这个词。它拥有的是整个workspace超过700项测试、覆盖core纯模块的property扫描、axe全部通过、Next.js App Router CI中的SSR验证，以及adapter conformance suite。
+- **还没有定下来的事**: `classNames`和`data-*`属性算不算公开API，目前没有结论。因为是Zero CSS，这两者是消费者样式的唯一接触面：如果不算公开API，minor发布就可能弄坏别人的画面；如果算公开API，改名就得等major。我判断，把“不知道”写下来更好。
 
-如果今天就需要支撑10万用户规模的生产级稳定性，坦白说`react-datepicker`是更安全的选择。Kalyx更像是对一个更小、更headless的未来所下的**赌注**，正在等待愿意成为第一个下注者的人。
+如果今天就需要支撑10万用户规模的生产级稳定性，坦白说`react-datepicker`是更安全的选择。Kalyx更像是对一个更小、更headless的未来所下的**赌注**。
 
 ---
 
 ## 结语
 
-与其说这是库的宣传文章，不如说是对一年决策的回顾。记录ship了什么、拒绝了什么、哪些决策格外沉重，是我在构建下一个库（或评估其他库）时发现的最宝贵资产。
+与其说这是库的宣传文章，不如说是一篇决策回顾。记录ship了什么、拒绝了什么、哪些决策格外沉重，是我在构建下一个库（或评估其他库）时发现的最宝贵资产。
 
-Composition over Props、强制ISO字符串、adapter模式、bundle上限。这四个决策都牺牲了一部分短期便利，换取长期适应能力。它们是否正确，恐怕要一年后才能评价。（现在能确定的是，如果没有这四项决定，这个库大概无法抵达1.0。）
+走到1.0之前的四个决策，全部关于**API的形态**：Composition over Props、强制ISO字符串、adapter模式、bundle上限。它们都牺牲了一部分短期便利，换取长期的适应能力。
+
+但重新把这篇文章拿出来更新时我才发现，真正最难的决策发生在1.0之后。**那是打破自己标榜的卖点的决策。** 17KB上限不只是一个数字，它是说明这个库是什么的那句话的一部分。把它提到20KB，就是在削弱那句话。即便如此还是上调了，理由只有一个：在负offset时区里日历整体错开一天的库，无论大小都没法用。
+
+回头看，让这个判断成为可能的，正是用户为0这个事实本身。如果有用户，我会先处理眼前的需求，不会花三个月去用property测试找一个没人报告过的DST bug。**没有用户，反而是一种可以掉头的自由。** 1.0刚结束时我只把它看成失败的信号，现在读起来有点不一样了。
 
 如果你也曾在React项目中因DatePicker撞上类似的墙，欢迎看看Kalyx。如果你曾用更好的方式解决同一问题，也非常感谢你随时在GitHub Issue中分享。归根结底，库并非由一个作者完成，而是由共同使用它的人一起打磨出来的。
 
