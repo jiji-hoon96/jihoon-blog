@@ -1,0 +1,29 @@
+# 배포 경로에서 돌지 않는 가드는 가드가 아니다.
+# scripts/ga-request-options.test.mjs 같은 회귀 테스트는 여기서만 강제된다.
+# (pnpm build 는 콘텐츠 validator 만 돌리고 lint 와 test 는 돌리지 않는다)
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # --build 를 붙여야 번들 예산까지 확인한다. audit 을 빌드보다 먼저 돌리면
+      # .next 가 없어서 client JS 측정이 INFO 로 건너뛰어진다.
+      - name: audit
+        run: pnpm audit:repo --build

@@ -55,3 +55,4 @@ next-env.d.ts
 
 # superpowers 세션 상태 (도구가 관리)
 .superpowers/
+.audit-report.json

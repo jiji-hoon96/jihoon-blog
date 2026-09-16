@@ -2,6 +2,7 @@
   "name": "jihoon-blog-nextjs",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.33.2",
   "engines": {
     "node": ">=24.0.0 <25.0.0"
   },
@@ -18,9 +19,11 @@
     "content:translations": "node scripts/validate-translations.mjs",
     "content:hreflang": "node scripts/validate-hreflang.mjs",
     "indexnow": "node scripts/submit-indexnow.mjs",
-    "build": "node scripts/validate-content-dates.mjs && node scripts/validate-translations.mjs && node scripts/validate-glossary.mjs && node scripts/validate-hreflang.mjs && node scripts/copy-content-images.js && (npx contentlayer build || true) && next build",
+    "build": "node scripts/validate-content-dates.mjs && node scripts/validate-translations.mjs && node scripts/validate-terminology.mjs && node scripts/validate-glossary.mjs && node scripts/validate-hreflang.mjs && node scripts/validate-metadata-length.mjs && node scripts/copy-content-images.js && (npx contentlayer build || true) && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "audit:repo": "node scripts/audit.mjs",
+    "content:meta": "node scripts/validate-metadata-length.mjs"
   },
   "dependencies": {
     "@google-analytics/data": "^5.2.1",
