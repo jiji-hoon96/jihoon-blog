@@ -209,10 +209,17 @@
 굵기 4종 49개 파일을 내려받고 있었다. 지금은 2종 31개다. 줄어든 18개가 236 KB 다.
 
 **폰트 CSS 는 self-host 한다.** 업스트림(`cdn.jsdelivr.net`)의 CSS 는 굵기 7종 전부라
-`@font-face` 644개 / gzip 85,042 B 인데, 그게 render-blocking 경로에 남의 origin 으로
-걸린다. `scripts/build-font-css.mjs`(`pnpm fonts:build`)가 400/700 만 남기고 폰트 URL 을
-절대 경로로 바꿔 `public/fonts/wanted-sans.css` 를 만든다. gzip 24,442 B 로 60,600 B 가 빠진다.
-폰트 파일 자체는 그대로 jsdelivr 에서 받으므로 `preconnect` 는 남긴다.
+`@font-face` 644개다. `scripts/build-font-css.mjs`(`pnpm fonts:build`)가 400/700 만 남기고
+폰트 URL 을 절대 경로로 바꿔 `public/fonts/wanted-sans.css` 를 만든다.
+
+**CSS 바이트 절감은 크지 않다.** 양쪽 다 brotli 로 협상되기 때문이다. 실측은
+업스트림 16,309 B 대 self-host 11,116 B 로 5,193 B 다. gzip 으로 재면 83,925 B 대
+24,103 B 로 59,822 B 차이가 나지만 그 인코딩은 실제로 쓰이지 않는다.
+**gzip 숫자를 이 변경의 근거로 쓰지 않는다.**
+
+self-host 의 실제 이득은 바이트가 아니라 origin 이다. 첫 렌더를 막는 요청이 남의 origin 에
+걸리지 않는다. 폰트 파일 자체는 그대로 jsdelivr 에서 받으므로 `preconnect` 는 남긴다.
+그리고 이 변경의 큰 몫은 CSS 가 아니라 위의 폰트 파일 18개 236 KB 다.
 
 `public/fonts/wanted-sans.css` 는 생성물이다. 직접 고치지 않는다. 업스트림 버전을 올릴 때
 스크립트의 `VERSION` 을 바꾸고 다시 돌린다. 새 굵기가 필요하면 `KEPT_WEIGHTS` 를 먼저 늘린다.

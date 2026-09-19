@@ -140,10 +140,12 @@ export default async function RootLayout({
 				    preconnect 는 연결만 미리 열 뿐 요청 시점을 당기지 못한다.
 
 				    업스트림 CSS 를 jsdelivr 에서 직접 받지 않는다. 그쪽은 굵기 7종
-				    전부라 `@font-face` 644개 / gzip 85,042 B 인데 이 블로그가 쓰는
-				    굵기는 둘이다. 그리고 첫 렌더를 막는 요청이 남의 origin 에 걸린다.
-				    `scripts/build-font-css.mjs` 가 굵기 400/700 만 남기고 폰트 URL 을
-				    절대 경로로 바꿔 둔다. gzip 24,442 B 로 60,600 B 가 빠진다.
+				    전부라 `@font-face` 644개인데 이 블로그가 쓰는 굵기는 둘이다.
+				    `scripts/build-font-css.mjs` 가 400/700 만 남기고 폰트 URL 을
+				    절대 경로로 바꿔 둔다. 다만 양쪽 다 brotli 로 협상되므로 CSS
+				    전송 차이는 16,309 B 대 11,116 B 로 작다(실측). 이득은 첫 렌더를
+				    막는 요청이 남의 origin 에 걸리지 않는 쪽이고, 큰 몫은 굵기를 줄여
+				    폰트 파일 18개 236 KB 를 안 받게 된 것이다.
 				    폰트 파일 자체는 그대로 jsdelivr 에서 받으므로 preconnect 는 남긴다. */}
 				<link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
 				<link rel="stylesheet" href="/fonts/wanted-sans.css" />
