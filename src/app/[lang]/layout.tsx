@@ -137,12 +137,16 @@ export default async function RootLayout({
 				/>
 				{/* 폰트 CSS 는 여기서 직접 건다. globals.css 안에 @import 로 두면
 				    app CSS 를 받아 파싱한 뒤에야 요청이 시작돼 왕복이 하나 더 붙는다.
-				    preconnect 는 연결만 미리 열 뿐 요청 시점을 당기지 못한다. */}
+				    preconnect 는 연결만 미리 열 뿐 요청 시점을 당기지 못한다.
+
+				    업스트림 CSS 를 jsdelivr 에서 직접 받지 않는다. 그쪽은 굵기 7종
+				    전부라 `@font-face` 644개 / gzip 85,042 B 인데 이 블로그가 쓰는
+				    굵기는 둘이다. 그리고 첫 렌더를 막는 요청이 남의 origin 에 걸린다.
+				    `scripts/build-font-css.mjs` 가 굵기 400/700 만 남기고 폰트 URL 을
+				    절대 경로로 바꿔 둔다. gzip 24,442 B 로 60,600 B 가 빠진다.
+				    폰트 파일 자체는 그대로 jsdelivr 에서 받으므로 preconnect 는 남긴다. */}
 				<link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
-				<link
-					rel="stylesheet"
-					href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/static/split/WantedSans.min.css"
-				/>
+				<link rel="stylesheet" href="/fonts/wanted-sans.css" />
 			</head>
 			<body>
 				<ThemeProvider attribute="class" defaultTheme="light">

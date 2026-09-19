@@ -198,6 +198,30 @@
 그래서 `--live` 는 경로마다 5회를 재 중앙값을 쓰고 `cache-status` 를 같이 남긴다.
 이 숫자를 읽을 때는 함수 경로인지 edge hit 인지를 먼저 본다.
 
+## 폰트
+
+**굵기는 400 과 700 두 종만 쓴다.** 위계는 크기로 준다. Wanted Sans 는 굵기마다 한글
+서브셋을 따로 받으므로 굵기 하나가 곧 수십 KB 다.
+
+이 규칙이 CSS 에서 지켜지지 않고 있었다. `prose.css` 가 `em`, `.ref-summary`,
+`.interactive-widget::before`, `.tep-stage-label` 에 600 을, `.copy-button` 에 500 을 쓰고
+있었고 전부 Wanted Sans 를 상속받았다. 헤드리스 Chrome 으로 글 페이지를 재니 프로덕션이
+굵기 4종 49개 파일을 내려받고 있었다. 지금은 2종 31개다. 줄어든 18개가 236 KB 다.
+
+**폰트 CSS 는 self-host 한다.** 업스트림(`cdn.jsdelivr.net`)의 CSS 는 굵기 7종 전부라
+`@font-face` 644개 / gzip 85,042 B 인데, 그게 render-blocking 경로에 남의 origin 으로
+걸린다. `scripts/build-font-css.mjs`(`pnpm fonts:build`)가 400/700 만 남기고 폰트 URL 을
+절대 경로로 바꿔 `public/fonts/wanted-sans.css` 를 만든다. gzip 24,442 B 로 60,600 B 가 빠진다.
+폰트 파일 자체는 그대로 jsdelivr 에서 받으므로 `preconnect` 는 남긴다.
+
+`public/fonts/wanted-sans.css` 는 생성물이다. 직접 고치지 않는다. 업스트림 버전을 올릴 때
+스크립트의 `VERSION` 을 바꾸고 다시 돌린다. 새 굵기가 필요하면 `KEPT_WEIGHTS` 를 먼저 늘린다.
+늘리지 않고 CSS 에만 적으면 브라우저가 가장 가까운 굵기로 스냅하거나 합성한다.
+
+**이 맥에는 Wanted Sans 가 설치돼 있다.** 그래서 폴백과 CLS 는 로컬 렌더로 측정할 수 없다.
+다만 `@font-face` 의 `src` 가 `url()` 뿐이라 다운로드는 그대로 일어나므로, 어떤 굵기를
+받는지는 CDP 의 `Network.responseReceived` 로 확인할 수 있다. 위 수치가 그렇게 나왔다.
+
 ## 라우팅에서 조심할 것
 
 **잘못된 percent-escape 는 프록시에서 끊는다.** 디코딩할 수 없는 escape(`/posts/%E0`)가

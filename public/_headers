@@ -5,3 +5,9 @@
 # 30일 캐시로 재방문 시 재검증 왕복만 없앤다.
 /content/*
   Cache-Control: public, max-age=2592000
+
+# 폰트 CSS 도 파일명에 해시가 없다. scripts/build-font-css.mjs 로 다시 만드는 것은
+# 업스트림 버전을 올릴 때뿐이라 30일이면 길다. 첫 렌더를 막는 요청이므로
+# 재방문에서 재검증 왕복을 없애는 값이 크다.
+/fonts/*
+  Cache-Control: public, max-age=2592000

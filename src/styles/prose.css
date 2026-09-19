@@ -139,7 +139,7 @@
    파서가 em을 생성하더라도 일반 본문처럼 보이도록 normalize한다. */
 .prose em {
   font-style: normal;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* Lists */
@@ -406,7 +406,7 @@
   transition: opacity 0.2s, background-color 0.2s;
   color: var(--color-light-gray60);
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: 0.5px;
 }
 
@@ -564,7 +564,7 @@
   gap: 0.5rem;
   padding: 0.625rem 1rem;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.03em;
   color: var(--color-light-gray60);
   background-color: var(--color-light-gray10);
@@ -710,7 +710,7 @@
 .prose .interactive-widget::before {
   display: inline-block;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.02em;
   color: var(--color-light-black40, #6b7280);
   background: var(--color-light-gray20, #e9eaed);
@@ -738,7 +738,7 @@
 }
 .prose .tep-stage-label {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-light-black40, #6b7280);
   letter-spacing: 0.06em;
   margin-bottom: 8px;
