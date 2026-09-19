@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { allPosts } from 'contentlayer/generated'
 import { getAdjacentPosts } from '@/lib/post-navigation'
@@ -229,13 +230,13 @@ export default async function PostPage({ params }: Props) {
           </div>
           <div className="home-meta mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-stone">
             {post.categoryArray.map((category: string) => (
-              <a
+              <Link
                 key={category}
                 href={toPublicPath(lang, `/posts/${encodeURIComponent(category)}`)}
                 className="transition-colors hover:text-accent"
               >
                 {category}
-              </a>
+              </Link>
             ))}
           </div>
         </header>
@@ -268,7 +269,7 @@ export default async function PostPage({ params }: Props) {
         className="flex justify-between items-start gap-8 py-8 border-t border-mineral"
       >
         {prev ? (
-          <a
+          <Link
             href={prev.slug}
             className="flex-1 group text-left"
           >
@@ -278,13 +279,13 @@ export default async function PostPage({ params }: Props) {
             <div className="font-bold leading-snug transition-colors group-hover:text-accent">
               {prev.title}
             </div>
-          </a>
+          </Link>
         ) : (
           <div className="flex-1" />
         )}
 
         {next ? (
-          <a
+          <Link
             href={next.slug}
             className="flex-1 group text-right"
           >
@@ -294,7 +295,7 @@ export default async function PostPage({ params }: Props) {
             <div className="font-bold leading-snug transition-colors group-hover:text-accent">
               {next.title}
             </div>
-          </a>
+          </Link>
         ) : (
           <div className="flex-1" />
         )}
