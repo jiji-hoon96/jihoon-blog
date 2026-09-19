@@ -3,7 +3,7 @@ emoji: 📅
 title: 'Kalyx'
 seoTitle: 'React DatePicker 타임존 하루 밀림을 막는 법, 헤드리스 라이브러리 Kalyx 설계 기록'
 date: '2026-06-17'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: 라이브러리 React DatePicker 오픈소스
 description: 'React 헤드리스 DatePicker Kalyx를 왜 만들었고 Ark UI, React Aria, react-day-picker와 무엇이 다른지 정리했다. ISO 8601 UTC 값 모델, Intl 기반 DST 처리, IANA 타임존 속성 테스트를 코드와 실측으로 설명한다.'
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React DatePicker 타임존, ISO 8601 UTC, DST 버그, fast-check 속성 테스트, react-day-picker 비교'
@@ -37,13 +37,15 @@ react-datepicker는 시간 선택을 `showTimeSelect`, 월 선택을 `showMonthY
 
 ### 값 타입과 타임존이 새는 자리
 
-react-datepicker와 react-day-picker는 native `Date`를 주고받는다. 둘 다 IANA `timeZone` prop이 있지만(react-datepicker는 optional peer `date-fns-tz`가 필요하고 react-day-picker는 실험적이다) 값 타입은 `Date`다. `Date`는 실행 환경의 로컬 타임존으로 해석되기 때문에 서울에서 `new Date(2026, 3, 15)`의 `toISOString()`은 `2026-04-14T15:00:00.000Z`다. 4월 15일을 골랐는데 서버에는 14일로 보이는 문제다. react-datepicker의 ["Date Selected is One Day Off"](https://github.com/Hacker0x01/react-datepicker/issues/1018) 이슈는 2017년 9월에 열려 2025년 12월에 닫혔다.
+react-datepicker와 react-day-picker는 native `Date`를 주고받는다. 둘 다 IANA `timeZone` prop이 있기는 하다. react-datepicker는 optional peer로 `date-fns-tz`를 요구하고 react-day-picker의 것은 실험적인데, 어느 쪽이든 값 타입은 여전히 `Date`다. `Date`는 실행 환경의 로컬 타임존으로 해석되기 때문에 서울에서 `new Date(2026, 3, 15)`의 `toISOString()`은 `2026-04-14T15:00:00.000Z`다. 4월 15일을 골랐는데 서버에는 14일로 보이는 문제다. react-datepicker의 ["Date Selected is One Day Off"](https://github.com/Hacker0x01/react-datepicker/issues/1018) 이슈는 2017년 9월에 열려 2025년 12월에 닫혔다.
 
 반대편의 Ark UI와 React Aria는 `@internationalized/date`의 `CalendarDate`, `ZonedDateTime` 객체를 쓴다. 의미는 정확하지만 폼 상태와 서버 응답이 전부 문자열인 앱에서는 경계마다 변환 코드가 생긴다.
 
 타임존 지원이 날짜 라이브러리 선택에 묶이기도 한다. MUI X Date Pickers 9.13.0의 어댑터 코드를 보면 dayjs, Luxon, Moment 어댑터는 `isTimezoneCompatible = true`, date-fns 계열은 `false`다. date-fns를 쓰는 앱이 `timezone` prop을 쓰려면 날짜 라이브러리를 하나 더 들여야 한다.
 
-정리하면 모드는 prop 조합으로, 값은 해석이 실행 환경에 기대는 `Date`로, 타임존 지원은 날짜 라이브러리 선택으로 흩어져 있어서 **선언 하나로 의도를 적기 어려웠다.**
+모드는 prop 조합으로, 값은 해석이 실행 환경에 기대는 `Date`로, 타임존 지원은 날짜 라이브러리 선택으로 흩어져 있다.
+
+**선언 하나로 의도를 적기 어려웠다.**
 
 ### 만들며 배우기
 
@@ -266,9 +268,13 @@ MonthPicker의 Root는 표시 형식 기본값을 `yyyy-MM`으로 바꾸고 Date
 | `Asia/Seoul` (+9) | `2026-01-14T15:00:00.000Z` | 15일 (맞음) |
 | `America/New_York` (-5) | `2026-01-15T05:00:00.000Z` | 16일 (틀림) |
 
-양수 오프셋 존에서는 두 번의 밀림이 상쇄돼 우연히 맞았고, 기존 테스트는 서울만 덮고 있었다. 같은 점검에서 반대 방향 위반도 나왔다. 보여줄 월을 정할 때 시점에 `startOfMonth`를 바로 걸어서, 서울에서 1월 1일을 값으로 주면 12월 달력이 열렸다. 기전은 달라도 어긴 규칙은 하나다. 변환은 방향마다 정해진 함수로 한 번만 한다.
+양수 오프셋 존에서는 두 번의 밀림이 상쇄돼 우연히 맞았고, 기존 테스트는 서울만 덮고 있었다. 같은 점검에서 반대 방향 위반도 나왔다. 보여줄 월을 정할 때 시점에 `startOfMonth`를 바로 걸어서, 서울에서 1월 1일을 값으로 주면 12월 달력이 열렸다.
 
-이 사고로 core의 왕복 속성 테스트가 "대표 존 몇 개"에서 "런타임이 아는 존 전부"로 넓어졌다. (React 쪽 컴포넌트 테스트는 아직 `America/New_York` 같은 대표 존을 쓴다) **부호가 바뀌는 자리에서만 드러나는 결함은 표본으로 잡히지 않는다.**
+기전은 달라도 어긴 규칙은 하나다. 변환은 방향마다 정해진 함수로 한 번만 한다.
+
+이 사고로 core의 왕복 속성 테스트가 "대표 존 몇 개"에서 "런타임이 아는 존 전부"로 넓어졌다. (React 쪽 컴포넌트 테스트는 아직 `America/New_York` 같은 대표 존을 쓴다)
+
+**부호가 바뀌는 자리에서만 드러나는 결함은 표본으로 잡히지 않는다.**
 
 ### 런던에서 늦게 잡히던 01:30
 
@@ -280,13 +286,15 @@ MonthPicker의 Root는 표시 형식 기본값을 `yyyy-MM`으로 바꾸고 Date
 
 이 수정들에는 코드가 들었다. Kalyx는 기본 엔트리 번들에 CI 천장을 두고, 넘기는 PR은 필수 체크에서 실패한다. 12KB에서 시작해 기능이 들어올 때마다 1KB씩 올리던 그 천장을, 2026년 8월 타임존과 제약 정확성을 전면 수정하면서 17KB에서 20KB로 한 번에 올렸다.
 
-크기는 README 배지에 나가 있던 셀링 포인트였다. 음수 오프셋 존에서 하루씩 밀리는 날짜 피커는 작든 크든 쓸 수 없다. **작다와 맞다 중 하나를 골라야 한다면 맞는 쪽이다.**
+크기는 README 배지에 나가 있던 셀링 포인트였다. 음수 오프셋 존에서 하루씩 밀리는 날짜 피커는 작든 크든 쓸 수 없다.
+
+**작다와 맞다 중 하나를 골라야 한다면 맞는 쪽이다.**
 
 지금 천장은 빠듯하다. 레포의 2026-09-11 번들 바이트 지도 문서에 따르면 `dist/index.cjs`를 Node 기본 gzip으로 잰 값이 20,259B, 천장이 20,480B로 여유가 221B다. (의존성을 외부로 남긴 자기 파일 크기라 앞 도표와는 다른 양이다) 다음 기능은 바이트를 먼저 회수해야 들어온다.
 
 ---
 
-## 마무리
+## 처음 생각과 달라진 결론
 
 필자가 원한 것은 복잡한 날짜 라이브러리를 선언적으로 쓰는 것이었다. 만들고 나서 보니 선언적인 합성 API와 헤드리스 완성형은 이미 있었다. 남은 차이는 더 안쪽에 있었다. **값을 시점 하나로 고정하고, 좌표와 시점 사이의 변환을 두 함수로 좁히고, 그 왕복을 모든 타임존에서 테스트로 지키는 것.** Intl 기반 DST 처리, 문자열 어댑터 경계, 컨텍스트 세 개로 만든 일곱 피커는 그 결정의 결과다.
 

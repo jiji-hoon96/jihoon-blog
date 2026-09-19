@@ -9,7 +9,7 @@ description: 'Por que criei o Kalyx, DatePicker headless para React, e como dife
 keywords: 'Kalyx, DatePicker React, DatePicker headless React, DatePicker React fuso horário, ISO 8601 UTC, data com um dia a menos, bug de horário de verão JavaScript, teste de propriedades fast-check, alternativa ao react-day-picker'
 locale: pt-BR
 translationOf: '260617'
-sourceHash: 5abb83b574bf7a755c4f28002285feb908df52664684cce8182222c53694936d
+sourceHash: '869ea16c304b148a3fc5c69e038f1214b65253337268fb93c7e2cb7477fde157'
 ---
 
 Neste post, quero falar sobre o **Kalyx**, a biblioteca headless de DatePicker para React que eu criei.
@@ -40,13 +40,15 @@ O react-datepicker liga a seleção de horário com `showTimeSelect`, a de mês 
 
 ### Onde tipos de valor e fuso horário vazam
 
-O react-datepicker e o react-day-picker trocam objetos `Date` nativos. Os dois têm uma prop `timeZone` que aceita fusos IANA (o react-datepicker exige a peer opcional `date-fns-tz` e no react-day-picker ela é experimental), mas o tipo do valor continua sendo `Date`. Como um `Date` é interpretado no fuso horário local do ambiente de execução, em Seul `new Date(2026, 3, 15)` passado por `toISOString()` resulta em `2026-04-14T15:00:00.000Z`. Você escolhe 15 de abril e o servidor enxerga dia 14. A issue ["Date Selected is One Day Off"](https://github.com/Hacker0x01/react-datepicker/issues/1018) do react-datepicker foi aberta em setembro de 2017 e fechada em dezembro de 2025.
+O react-datepicker e o react-day-picker trocam objetos `Date` nativos. Os dois têm, sim, uma prop `timeZone` que aceita fusos IANA. O react-datepicker exige a peer opcional `date-fns-tz` e a do react-day-picker é experimental, mas, em qualquer um dos dois, o tipo do valor continua sendo `Date`. Como um `Date` é interpretado no fuso horário local do ambiente de execução, em Seul `new Date(2026, 3, 15)` passado por `toISOString()` resulta em `2026-04-14T15:00:00.000Z`. Você escolhe 15 de abril e o servidor enxerga dia 14. A issue ["Date Selected is One Day Off"](https://github.com/Hacker0x01/react-datepicker/issues/1018) do react-datepicker foi aberta em setembro de 2017 e fechada em dezembro de 2025.
 
 Do outro lado, Ark UI e React Aria usam objetos `@internationalized/date` como `CalendarDate` e `ZonedDateTime`. A semântica é precisa, mas em um app em que o estado dos formulários e as respostas do servidor são todos strings, surge código de conversão em cada fronteira.
 
 O suporte a fusos horários também pode ficar preso à escolha da biblioteca de datas. No código dos adapters do MUI X Date Pickers 9.13.0, os adapters de dayjs, Luxon e Moment têm `isTimezoneCompatible = true`, e a família date-fns tem `false`. Um app que usa date-fns precisa trazer mais uma biblioteca de datas para usar a prop `timezone`.
 
-Resumindo, os modos estavam espalhados em combinações de props, os valores em objetos `Date` cuja interpretação depende do ambiente e o suporte a fusos horários na escolha da biblioteca de datas, então **era difícil expressar a intenção em uma única declaração.**
+Os modos estavam espalhados em combinações de props, os valores em objetos `Date` cuja interpretação depende do ambiente e o suporte a fusos horários na escolha da biblioteca de datas.
+
+**Era difícil expressar a intenção em uma única declaração.**
 
 ### Aprender construindo
 
@@ -269,9 +271,13 @@ O segundo apareceu em uma revisão cruzada em 3 de agosto de 2026. O código que
 | `Asia/Seoul` (+9) | `2026-01-14T15:00:00.000Z` | Dia 15 (certo) |
 | `America/New_York` (-5) | `2026-01-15T05:00:00.000Z` | Dia 16 (errado) |
 
-Em fusos com offset positivo, os dois deslocamentos se anulavam e por acaso dava certo, e os testes existentes só cobriam Seul. A mesma revisão encontrou também uma violação na direção oposta. Ao decidir qual mês exibir, `startOfMonth` era aplicado direto a um instante, então, em Seul, passar 1º de janeiro como valor abria o calendário de dezembro. Os mecanismos são diferentes, mas a regra violada é uma só: converter uma única vez por direção, com a função definida para aquela direção.
+Em fusos com offset positivo, os dois deslocamentos se anulavam e por acaso dava certo, e os testes existentes só cobriam Seul. A mesma revisão encontrou também uma violação na direção oposta. Ao decidir qual mês exibir, `startOfMonth` era aplicado direto a um instante, então, em Seul, passar 1º de janeiro como valor abria o calendário de dezembro.
 
-Esse incidente ampliou os testes de propriedades de ida e volta do core de "alguns fusos representativos" para "todos os fusos que o runtime conhece". (Os testes de componentes do lado React ainda usam fusos representativos como `America/New_York`.) **Defeitos que só aparecem onde o sinal muda não são pegos por amostragem.**
+Os mecanismos são diferentes, mas a regra violada é uma só: converter uma única vez por direção, com a função definida para aquela direção.
+
+Esse incidente ampliou os testes de propriedades de ida e volta do core de "alguns fusos representativos" para "todos os fusos que o runtime conhece". (Os testes de componentes do lado React ainda usam fusos representativos como `America/New_York`.)
+
+**Defeitos que só aparecem onde o sinal muda não são pegos por amostragem.**
 
 ### O 01:30 de Londres que resolvia tarde
 
@@ -283,13 +289,15 @@ Em [#226](https://github.com/jiji-hoon96/kalyx/pull/226) mudei para ler um dia a
 
 Essas correções custaram código. O Kalyx define na CI um teto para o bundle do entry padrão, e um PR que o ultrapassa falha em um check obrigatório. Esse teto começou em 12KB e subia 1KB a cada funcionalidade que entrava, e em agosto de 2026, ao refazer por completo a exatidão de fusos horários e restrições, eu o subi de 17KB para 20KB de uma vez.
 
-O tamanho era um argumento de venda exibido no badge do README. Um seletor de datas que desloca um dia em fusos com offset negativo não serve, seja pequeno ou grande. **Se eu tiver que escolher entre pequeno e correto, fico com o correto.**
+O tamanho era um argumento de venda exibido no badge do README. Um seletor de datas que desloca um dia em fusos com offset negativo não serve, seja pequeno ou grande.
+
+**Se eu tiver que escolher entre pequeno e correto, fico com o correto.**
 
 Hoje o teto está apertado. Segundo o documento de mapa de bytes do bundle do repositório, de 2026-09-11, `dist/index.cjs` medido com o gzip padrão do Node tem 20.259 B, contra um teto de 20.480 B, deixando 221 B de folga. (É o tamanho do próprio arquivo com as dependências externas, então é uma quantidade diferente da do gráfico anterior.) A próxima funcionalidade vai precisar recuperar bytes antes de entrar.
 
 ---
 
-## Conclusão
+## Uma conclusão diferente da inicial
 
 O que eu queria era usar bibliotecas de datas complexas de forma declarativa. Depois de construir, percebi que APIs de composição declarativas e opções headless completas já existiam. A diferença que restou estava mais para dentro. **Fixar o valor como um único instante, reduzir a conversão entre coordenadas e instantes a duas funções e proteger essa ida e volta com testes em todos os fusos horários.** O tratamento de DST baseado em Intl, a fronteira de adapter com strings e os sete pickers feitos com três contextos são consequências dessa decisão.
 

@@ -9,7 +9,7 @@ description: '整理了我为什么开发 React headless DatePicker Kalyx，以�
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React 日期选择器 时区, ISO 8601 UTC, 日期 差一天, DST 夏令时 bug, fast-check 属性测试, react-day-picker 对比'
 locale: zh-CN
 translationOf: '260617'
-sourceHash: 5abb83b574bf7a755c4f28002285feb908df52664684cce8182222c53694936d
+sourceHash: '869ea16c304b148a3fc5c69e038f1214b65253337268fb93c7e2cb7477fde157'
 ---
 
 这篇文章想聊聊我开发的 React headless DatePicker 库 **Kalyx**。
@@ -40,13 +40,15 @@ react-datepicker 用 `showTimeSelect` 开启时间选择，用 `showMonthYearPic
 
 ### 值类型与时区泄漏的地方
 
-react-datepicker 和 react-day-picker 传递的是原生 `Date`。两者都有接收 IANA 时区的 `timeZone` prop（react-datepicker 需要可选 peer 依赖 `date-fns-tz`，react-day-picker 中则是实验性功能），但值的类型仍然是 `Date`。`Date` 会按运行环境的本地时区解释，所以在首尔，`new Date(2026, 3, 15)` 经 `toISOString()` 得到的是 `2026-04-14T15:00:00.000Z`。选的是 4 月 15 日，服务器看到的却是 14 日。react-datepicker 的 ["Date Selected is One Day Off"](https://github.com/Hacker0x01/react-datepicker/issues/1018) issue 于 2017 年 9 月打开，2025 年 12 月才关闭。
+react-datepicker 和 react-day-picker 传递的是原生 `Date`。两者确实都有接收 IANA 时区的 `timeZone` prop。react-datepicker 需要可选 peer 依赖 `date-fns-tz`，react-day-picker 的那个则是实验性功能，但无论哪一边，值的类型依然是 `Date`。`Date` 会按运行环境的本地时区解释，所以在首尔，`new Date(2026, 3, 15)` 经 `toISOString()` 得到的是 `2026-04-14T15:00:00.000Z`。选的是 4 月 15 日，服务器看到的却是 14 日。react-datepicker 的 ["Date Selected is One Day Off"](https://github.com/Hacker0x01/react-datepicker/issues/1018) issue 于 2017 年 9 月打开，2025 年 12 月才关闭。
 
 另一端的 Ark UI 和 React Aria 使用 `@internationalized/date` 的 `CalendarDate`、`ZonedDateTime` 对象。语义很精确，但在表单状态和服务器响应全是字符串的应用里，每个边界都会冒出转换代码。
 
 时区支持有时还和日期库的选择绑定在一起。查看 MUI X Date Pickers 9.13.0 的适配器代码，dayjs、Luxon、Moment 适配器是 `isTimezoneCompatible = true`，date-fns 系列则是 `false`。使用 date-fns 的应用若想用 `timezone` prop，就得再引入一个日期库。
 
-归纳起来，模式分散在 prop 组合里，值分散在解释依赖运行环境的 `Date` 里，时区支持分散在日期库的选择里，因此 **很难用一个声明写清意图。**
+模式分散在 prop 组合里，值分散在解释依赖运行环境的 `Date` 里，时区支持分散在日期库的选择里。
+
+**很难用一个声明写清意图。**
 
 ### 在构建中学习
 
@@ -269,9 +271,13 @@ MonthPicker 的 Root 只是把显示格式默认值改为 `yyyy-MM`，再把 `se
 | `Asia/Seoul`（+9） | `2026-01-14T15:00:00.000Z` | 15 日（正确） |
 | `America/New_York`（-5） | `2026-01-15T05:00:00.000Z` | 16 日（错误） |
 
-在正偏移时区，两次偏移相互抵消，碰巧是对的，而已有测试只覆盖了首尔。同一次检查还发现了反方向的违规。决定显示哪个月时，直接对时刻套用了 `startOfMonth`，于是在首尔把 1 月 1 日作为值传入，打开的却是 12 月的日历。机制不同，违反的规则却是同一条：每个方向只用指定的函数转换一次。
+在正偏移时区，两次偏移相互抵消，碰巧是对的，而已有测试只覆盖了首尔。同一次检查还发现了反方向的违规。决定显示哪个月时，直接对时刻套用了 `startOfMonth`，于是在首尔把 1 月 1 日作为值传入，打开的却是 12 月的日历。
 
-这次事故让 core 的往返属性测试从“几个代表性时区”扩展到“运行时知道的全部时区”。（React 一侧的组件测试仍在使用 `America/New_York` 这类代表性时区）**只在符号翻转处暴露的缺陷，靠抽样是抓不到的。**
+机制不同，违反的规则却是同一条：每个方向只用指定的函数转换一次。
+
+这次事故让 core 的往返属性测试从“几个代表性时区”扩展到“运行时知道的全部时区”。（React 一侧的组件测试仍在使用 `America/New_York` 这类代表性时区）
+
+**只在符号翻转处暴露的缺陷，靠抽样是抓不到的。**
 
 ### London 的 01:30 被解析成较晚的一个
 
@@ -283,13 +289,15 @@ MonthPicker 的 Root 只是把显示格式默认值改为 `yyyy-MM`，再把 `se
 
 这些修复需要代码。Kalyx 为默认入口的包设置了 CI 上限，超出的 PR 会在必需检查中失败。这个上限从 12KB 起步，每加一个功能就上调 1KB，而在 2026 年 8 月全面修正时区和约束的正确性时，我把它从 17KB 一次性提到了 20KB。
 
-体积是 README 徽章上展示的卖点。在负偏移时区每次差一天的日期选择器，不管大小都没法用。**如果必须在小和对之间选一个，那就选对的。**
+体积是 README 徽章上展示的卖点。在负偏移时区每次差一天的日期选择器，不管大小都没法用。
+
+**如果必须在小和对之间选一个，那就选对的。**
 
 现在的上限很紧。根据仓库 2026-09-11 的包字节分布文档，用 Node 默认 gzip 测量 `dist/index.cjs` 的结果是 20,259B，上限是 20,480B，余量只有 221B。（这是把依赖留在外部的自身文件大小，与前面图表测的是不同的量）下一个功能得先回收字节才能加进来。
 
 ---
 
-## 结语
+## 与最初设想不同的结论
 
 我想要的是以声明式的方式使用复杂的日期库。做完之后才发现，声明式的组合 API 和 headless 的完整方案早已存在。剩下的差异藏在更里面。**把值固定为一个时刻，把坐标与时刻之间的转换收窄到两个函数，并用测试在所有时区守住这个往返。** 基于 Intl 的夏令时处理、字符串适配器边界、由三个上下文组成的七种选择器，都是这一决定的结果。
 
