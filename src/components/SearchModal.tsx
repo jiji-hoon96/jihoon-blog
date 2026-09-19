@@ -136,7 +136,7 @@ export default function SearchModal({
         onClick={openSearch}
         className={
           trigger === "text"
-            ? "home-meta text-stone transition-colors hover:text-accent"
+            ? "home-meta cursor-pointer text-stone transition-colors hover:text-accent"
             : "p-2 transition-colors hover:text-accent cursor-pointer"
         }
         aria-label={dictionary.actions.search}
@@ -198,7 +198,7 @@ export default function SearchModal({
                 <button
                   onClick={() => setQuery("")}
                   aria-label={dictionary.actions.clearSearch}
-                  className="p-1 text-light-gray60 dark:text-dark-gray60 hover:text-light-black100 dark:hover:text-dark-black100"
+                  className="cursor-pointer p-1 text-light-gray60 hover:text-light-black100 dark:text-dark-gray60 dark:hover:text-dark-black100"
                 >
                   <svg
                     width="16"

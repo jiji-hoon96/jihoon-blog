@@ -29,8 +29,11 @@ export default function Header({ locale }: { locale: Locale }) {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
+  // `cursor-pointer` 를 유틸리티로도 적는다. 같은 규칙이 `interactions.css` 의
+  // base 레이어에도 있지만, 한 번 Netlify 가 그 파일의 규칙만 빼고 내보낸 적이
+  // 있어서 가장 눈에 띄는 컨트롤에는 유틸리티로 이중으로 둔다.
   const utilityClass =
-    "home-meta text-stone transition-colors hover:text-accent";
+    "home-meta cursor-pointer text-stone transition-colors hover:text-accent";
 
   // 음성 제어 사용자는 화면에 보이는 글자를 그대로 말한다. 접근 가능한 이름이
   // 그 글자를 포함하지 않으면 "Click Menu" 가 어떤 컨트롤에도 매칭되지 않는다.

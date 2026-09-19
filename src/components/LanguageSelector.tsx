@@ -69,7 +69,7 @@ export default function LanguageSelector({ locale }: { locale: Locale }) {
 
   return (
     <details ref={selectorRef} className="group relative">
-      <summary className="home-meta flex list-none items-center gap-1 text-stone transition-colors hover:text-accent [&::-webkit-details-marker]:hidden">
+      <summary className="home-meta flex cursor-pointer list-none items-center gap-1 text-stone transition-colors hover:text-accent [&::-webkit-details-marker]:hidden">
         <span>{localeLabels[locale]}</span>
         <svg
           aria-hidden="true"
