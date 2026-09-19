@@ -205,10 +205,30 @@
 500 으로 나간다. Sentry 에도 안 남는다. `classifyLocaleRequest` 가 맨 앞에서 404 로 끊는다.
 `src/proxy.test.mjs` 가 지킨다.
 
-**매칭되지 않은 URL 의 404 는 `src/app/global-not-found.tsx` 다.** 루트 레이아웃이
-`[lang]` 이라는 최상위 동적 세그먼트라 `<html lang>` 과 `<title>` 을 낼 자리가 여기뿐이다.
-`next.config.ts` 의 `experimental.globalNotFound` 로 켠다. `src/app/not-found.tsx` 는
-세그먼트 안에서 `notFound()` 가 던져졌을 때만 쓰인다. 본문은 `NotFoundScreen` 하나를 공유한다.
+**404 는 파일 셋이 나눠 받고, 그중 하나는 프로덕션에서 아직 동작하지 않는다.**
+
+| 파일 | 언제 |
+|---|---|
+| `src/app/global-not-found.tsx` | 매칭되지 않은 URL. `experimental.globalNotFound` 로 켠다 |
+| `src/app/[lang]/not-found.tsx` | 로케일 트리 안에서 `notFound()` 가 던져졌을 때 |
+| `src/app/not-found.tsx` | 그 밖의 세그먼트 |
+
+본문은 `NotFoundScreen` 하나를 공유한다. 루트 레이아웃이 `[lang]` 이라는 최상위 동적
+세그먼트라 `<html lang>` 과 `<title>` 을 낼 자리가 `global-not-found` 뿐이다.
+
+**`[lang]/layout.tsx` 는 로케일이 아니어도 `notFound()` 를 부르지 않는다.** 이 레이아웃이
+곧 루트 레이아웃이므로 여기서 빠져나가면 404 경계가 들어갈 자리 자체가 사라지고 Next 가
+`<html id="__next_error__">` 한 겹을 내준다. 404 판정은 페이지가 한다. 레이아웃은 껍데기를
+그릴 언어만 정한다. `generateMetadata` 도 `{}` 를 돌려주지 않는다. metadataBase 가 비면
+파일 컨벤션의 opengraph-image 가 `http://localhost:3000` 에 대해 해석돼 그 URL 이
+404 응답에 실린다.
+
+**남은 문제.** 프록시 rewrite 를 탄 요청(접두사 없는 경로)의 404 는 프로덕션에서 여전히
+본문이 빈다. 로케일 접두사가 있는 `/en/999999` 는 완전한 문서가 나가므로 갈리는 지점은
+`NextResponse.rewrite` 다. 로컬 `next start` 는 양쪽 다 정상이라 재현되지 않는다.
+상태 코드는 404 로 정상이고 JS 를 켜면 렌더되므로 영향은 JS 없는 크롤러에 한정된다.
+위 세 파일을 추가하는 것으로는 해결되지 않았다. 다음에 손댄다면 Netlify 어댑터의
+rewrite 와 notFound 조합부터 본다.
 
 **OG 이미지 경로는 정규화하지 않는다.** OG 이미지는 파일 컨벤션이 만들고 Next 가 그 내부
 경로를 메타태그에 쓴다. 홈(`[lang]/layout.tsx`)에서는 `openGraph.images` 를 줘도 덮이지
