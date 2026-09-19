@@ -9,7 +9,7 @@ description: 'Cómo CrUX, PageSpeed Insights y Search Console filtran las Web Vi
 keywords: 'datos de campo CrUX, PageSpeed Insights datos de campo, informe Core Web Vitals Search Console, Core Web Vitals afecta al posicionamiento, clics por consulta y por página Search Console, posición media bajó clics subieron, frecuencia de rastreo 5xx 429'
 locale: es
 translationOf: '260916'
-sourceHash: ffb98bcd9319ff4b9e6d07267eeaf96c6cb22ce658817b7a29f36977d6a8de15
+sourceHash: d915902baa6fa137576867f6f888285a617345599d4169da18c7fb91ab7f72dc
 ---
 
 En este artículo quiero hablar del camino que recorren los datos de rendimiento medidos en el navegador hasta llegar a la búsqueda y al juicio.

@@ -9,7 +9,7 @@ description: 'Qué muestran las long tasks, TBT, LoAF, JS Self-Profiling, las AP
 keywords: 'hilo principal del navegador, long task 50ms, Long Animation Frames API, Total Blocking Time, JS Self-Profiling API, profiling de navegador en Sentry, measureUserAgentSpecificMemory, fuga de memoria en el navegador'
 locale: es
 translationOf: '260915'
-sourceHash: a6c2a00e7d6b4f9d29de83090c3f3b829145afc5d29df4b16fd073292c191961
+sourceHash: 0e13d01735f46e59f3fcf71c9705c6272c4d26f2acf754efcb3e6dd9472f337e
 ---
 
 En esta publicación quiero hablar de cómo observar el hilo principal y la memoria del navegador.

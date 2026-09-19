@@ -8,7 +8,7 @@ description: "A source-code analysis of how Zustand manages state without a Prov
 keywords: "how Zustand works, why Zustand has no Provider, React state management library, Zustand source code analysis, useSyncExternalStore, React Context API"
 locale: en
 translationOf: '240818'
-sourceHash: 76e245173e4d4ea540ecc22c306523bbe5b81fb11873f40ac793f6ea1326be40
+sourceHash: 7265ecf6c3a01948368141403982cc212e6f42034158346c4eed4629c2dac8d6
 ---
 
 In this post, I want to explore how Zustand manages state without a Provider.

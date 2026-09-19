@@ -9,7 +9,7 @@ description: '用 Sentry MCP 先向本博客的真实数据提问，重新挑选
 keywords: 'Sentry MCP, Sentry 使用教程, Sentry breadcrumb, Sentry Crons 监控, Sentry Logs, DEADLINE_EXCEEDED 超时, Serverless 错误监控, gray failure'
 locale: zh-CN
 translationOf: '260913'
-sourceHash: c717851611adbe411abedd18c0cf5bf172617ab1085cf90c45a16d553aa1e6d2
+sourceHash: 3bd57c6206b799c75de310dc955d7f85d00f74ea4f425ff2d795b0803fbc6a4e
 ---
 
 这篇文章想聊聊重新打开用了很久的 Sentry 这件事。

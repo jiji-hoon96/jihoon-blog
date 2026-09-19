@@ -8,7 +8,7 @@ description: "通过阅读源码深入探究 Zustand 无需 Provider 就能管�
 keywords: "Zustand 原理, Zustand 不需要 Provider 的原因, React 状态管理库, Zustand 源码分析, useSyncExternalStore, React Context API"
 locale: zh-CN
 translationOf: '240818'
-sourceHash: 76e245173e4d4ea540ecc22c306523bbe5b81fb11873f40ac793f6ea1326be40
+sourceHash: 7265ecf6c3a01948368141403982cc212e6f42034158346c4eed4629c2dac8d6
 ---
 
 这篇文章想聊一聊 Zustand 是如何在没有 Provider 的情况下完成状态管理的。

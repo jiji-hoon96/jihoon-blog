@@ -67,7 +67,7 @@ observer.observe({ type: 'resource', buffered: true })
 
 또 브라우저가 지원하지 않는 type은 예외 없이 무시되고, 같은 문서에 따르면 콘솔 경고 정도만 남을 수 있다. `PerformanceObserver.supportedEntryTypes`로 확인하지 않으면 **entry가 없는 것**과 **entry가 생성되지 않는 브라우저였던 것**을 구분할 수 없다.
 
-대시보드의 빈 구간이 성능 문제가 아니라 브라우저 구성의 차이일 수 있는 것이다.
+dashboard의 빈 구간이 성능 문제가 아니라 브라우저 구성의 차이일 수 있는 것이다.
 
 ## 네트워크 시간의 구성
 

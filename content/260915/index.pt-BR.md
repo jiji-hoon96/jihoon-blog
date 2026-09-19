@@ -9,7 +9,7 @@ description: 'O que long tasks, TBT, LoAF, JS Self-Profiling, as APIs de memóri
 keywords: 'thread principal do navegador, long task 50ms, Long Animation Frames API, Total Blocking Time, JS Self-Profiling API, profiling de navegador no Sentry, measureUserAgentSpecificMemory, vazamento de memória no navegador'
 locale: pt-BR
 translationOf: '260915'
-sourceHash: a6c2a00e7d6b4f9d29de83090c3f3b829145afc5d29df4b16fd073292c191961
+sourceHash: 0e13d01735f46e59f3fcf71c9705c6272c4d26f2acf754efcb3e6dd9472f337e
 ---
 
 Neste post, quero falar sobre como observar a thread principal e a memória do navegador.

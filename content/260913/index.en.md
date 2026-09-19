@@ -9,7 +9,7 @@ description: 'Asking real data via Sentry MCP before enabling Logs, Crons, or Up
 keywords: 'Sentry MCP, Sentry features, Sentry breadcrumbs, Sentry Crons monitoring, Sentry Logs, DEADLINE_EXCEEDED timeout, serverless error monitoring, gray failure'
 locale: en
 translationOf: '260913'
-sourceHash: c717851611adbe411abedd18c0cf5bf172617ab1085cf90c45a16d553aa1e6d2
+sourceHash: 3bd57c6206b799c75de310dc955d7f85d00f74ea4f425ff2d795b0803fbc6a4e
 ---
 
 In this post, I want to talk about reopening Sentry, a tool I have used for a long time.

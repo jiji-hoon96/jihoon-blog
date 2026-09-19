@@ -9,7 +9,7 @@ description: '梳理浏览器主线程与内存的观测方法。long task 与 T
 keywords: '浏览器主线程, long task 50ms, Long Animation Frames API, Total Blocking Time, JS Self-Profiling API, Sentry 浏览器性能分析, measureUserAgentSpecificMemory, 浏览器内存泄漏'
 locale: zh-CN
 translationOf: '260915'
-sourceHash: a6c2a00e7d6b4f9d29de83090c3f3b829145afc5d29df4b16fd073292c191961
+sourceHash: 0e13d01735f46e59f3fcf71c9705c6272c4d26f2acf754efcb3e6dd9472f337e
 ---
 
 这篇文章想聊聊如何观测浏览器的主线程和内存。

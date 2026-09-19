@@ -9,7 +9,7 @@ description: 'Qué se ve en el navegador sin SDK: Performance Timeline, fases de
 keywords: 'medir rendimiento web, PerformanceObserver ejemplo, cómo se calculan las Web Vitals, medir INP, ventana de sesión CLS, Soft Navigations API, web-vitals reportSoftNavs, Resource Timing Timing-Allow-Origin'
 locale: es
 translationOf: '260914'
-sourceHash: a43afec539a5a08b07bdbe5455257807a64d72a48f7cfd8ee076b57d1d69a0c0
+sourceHash: 31357b878e6fcf1696f6857ad01e283de331eed4a4cc90499357879e3b6ba6c9
 ---
 
 En esta publicación quiero hablar de la observabilidad del navegador.

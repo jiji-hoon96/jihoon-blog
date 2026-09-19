@@ -8,7 +8,7 @@ description: "ZustandがProviderなしで状態管理を実現する仕組みを
 keywords: "Zustandの仕組み, ZustandにProviderがない理由, React状態管理ライブラリ, Zustandソースコード分析, useSyncExternalStore, React Context API"
 locale: ja
 translationOf: '240818'
-sourceHash: 76e245173e4d4ea540ecc22c306523bbe5b81fb11873f40ac793f6ea1326be40
+sourceHash: 7265ecf6c3a01948368141403982cc212e6f42034158346c4eed4629c2dac8d6
 ---
 
 今回の記事では、ZustandがどのようにProviderなしで状態管理を実現しているのかを取り上げる。

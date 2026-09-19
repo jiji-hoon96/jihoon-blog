@@ -9,7 +9,7 @@ description: '梳理不借助浏览器 SDK 就能在页面内看到的信号：P
 keywords: '浏览器性能监测, PerformanceObserver 用法, Web Vitals 计算方式, INP 测量, CLS 会话窗口, Soft Navigations API, web-vitals reportSoftNavs, Resource Timing Timing-Allow-Origin'
 locale: zh-CN
 translationOf: '260914'
-sourceHash: a43afec539a5a08b07bdbe5455257807a64d72a48f7cfd8ee076b57d1d69a0c0
+sourceHash: 31357b878e6fcf1696f6857ad01e283de331eed4a4cc90499357879e3b6ba6c9
 ---
 
 这篇文章想聊聊浏览器可观测性。

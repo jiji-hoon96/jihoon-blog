@@ -9,7 +9,7 @@ description: 'ブラウザで測ったWeb VitalsがCrUX、PageSpeed Insights、S
 keywords: 'CrUX フィールドデータ, PageSpeed Insights フィールドデータ, Search Console ウェブに関する主な指標 レポート, Core Web Vitals ランキング 影響, Search Console クエリ ページ クリック 差, 平均掲載順位 下落 クリック 増加, クロール頻度 5xx 429'
 locale: ja
 translationOf: '260916'
-sourceHash: ffb98bcd9319ff4b9e6d07267eeaf96c6cb22ce658817b7a29f36977d6a8de15
+sourceHash: d915902baa6fa137576867f6f888285a617345599d4169da18c7fb91ab7f72dc
 ---
 
 今回は、ブラウザで測った性能データが検索と判断へつながる経路について書いてみたい。

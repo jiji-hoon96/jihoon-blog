@@ -8,7 +8,7 @@ description: "Uma análise do código-fonte do Zustand: como ele gerencia estado
 keywords: "como o Zustand funciona, por que o Zustand não precisa de Provider, biblioteca de gerenciamento de estado React, análise do código-fonte do Zustand, useSyncExternalStore, React Context API"
 locale: pt-BR
 translationOf: '240818'
-sourceHash: 76e245173e4d4ea540ecc22c306523bbe5b81fb11873f40ac793f6ea1326be40
+sourceHash: 7265ecf6c3a01948368141403982cc212e6f42034158346c4eed4629c2dac8d6
 ---
 
 Neste post, quero falar sobre como o Zustand consegue gerenciar estado sem um Provider.

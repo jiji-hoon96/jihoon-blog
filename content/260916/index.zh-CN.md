@@ -9,7 +9,7 @@ description: '整理浏览器测得的 Web Vitals 经过 CrUX、PageSpeed Insigh
 keywords: 'CrUX 实测数据, PageSpeed Insights 实测数据, Search Console 核心网页指标报告, Core Web Vitals 对排名的影响, Search Console 查询与网页点击差异, 平均排名下降 点击增加, 抓取速度 5xx 429'
 locale: zh-CN
 translationOf: '260916'
-sourceHash: ffb98bcd9319ff4b9e6d07267eeaf96c6cb22ce658817b7a29f36977d6a8de15
+sourceHash: d915902baa6fa137576867f6f888285a617345599d4169da18c7fb91ab7f72dc
 ---
 
 这篇文章想聊聊在浏览器里测得的性能数据，是如何一路走到搜索和判断的。

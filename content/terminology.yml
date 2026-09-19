@@ -167,6 +167,14 @@
     {
       "pattern": "프리뷰",
       "replacement": "preview"
+    },
+    {
+      "pattern": "대시보드",
+      "replacement": "dashboard"
+    },
+    {
+      "pattern": "릴리즈",
+      "replacement": "릴리스"
     }
   ]
 }

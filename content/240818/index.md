@@ -419,7 +419,7 @@ beforeEach(() => {
 
 위 내용을 찾아보다 알게 된 사실인데, **Zustand v5.0.0이 2024년 10월에 정식 릴리스**되었다.
 
-흥미로운 점은 v5에 새로운 기능이 거의 없다는 것이다. v4.x에서 이미 새로운 기능들을 추가하면서 기존 API를 deprecated 처리해왔고, v5는 그 **정리(cleanup) 릴리스**의 성격이 강하다. 주요 변경사항은 아래와 같다. (자세한 내용은 **[릴리즈 페이지](https://github.com/pmndrs/zustand/releases)** 와 **[마이그레이션 가이드](https://zustand.docs.pmnd.rs/reference/migrations/migrating-to-v5)** 를 참고하기 바란다.)
+흥미로운 점은 v5에 새로운 기능이 거의 없다는 것이다. v4.x에서 이미 새로운 기능들을 추가하면서 기존 API를 deprecated 처리해왔고, v5는 그 **정리(cleanup) 릴리스**의 성격이 강하다. 주요 변경사항은 아래와 같다. (자세한 내용은 **[릴리스 페이지](https://github.com/pmndrs/zustand/releases)** 와 **[마이그레이션 가이드](https://zustand.docs.pmnd.rs/reference/migrations/migrating-to-v5)** 를 참고하기 바란다.)
 
 - **React 18, TypeScript 4.5 이상**으로 최소 요구사항이 상향되었다.
 - **`getServerState`가 삭제**되었다. (`useSyncExternalStore`의 세 번째 인자로 대체)

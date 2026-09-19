@@ -9,7 +9,7 @@ description: '長年使ってきたSentryで有効にしていなかった機能
 keywords: 'Sentry MCP, Sentry 使い方, Sentry breadcrumb, Sentry Crons 監視, Sentry Logs, DEADLINE_EXCEEDED タイムアウト, サーバーレス エラー監視, gray failure'
 locale: ja
 translationOf: '260913'
-sourceHash: c717851611adbe411abedd18c0cf5bf172617ab1085cf90c45a16d553aa1e6d2
+sourceHash: 3bd57c6206b799c75de310dc955d7f85d00f74ea4f425ff2d795b0803fbc6a4e
 ---
 
 今回は、長く使ってきたSentryを改めて開いてみた話を書いてみたい。

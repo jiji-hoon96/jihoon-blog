@@ -9,7 +9,7 @@ description: 'Dados reais via Sentry MCP antes de usar Logs, Crons ou Uptime: fa
 keywords: 'Sentry MCP, como usar Sentry, Sentry breadcrumbs, monitoramento com Sentry Crons, Sentry Logs, timeout DEADLINE_EXCEEDED, monitoramento de erros serverless, gray failure'
 locale: pt-BR
 translationOf: '260913'
-sourceHash: c717851611adbe411abedd18c0cf5bf172617ab1085cf90c45a16d553aa1e6d2
+sourceHash: 3bd57c6206b799c75de310dc955d7f85d00f74ea4f425ff2d795b0803fbc6a4e
 ---
 
 Neste post, quero falar sobre reabrir o Sentry, uma ferramenta que uso há muito tempo.

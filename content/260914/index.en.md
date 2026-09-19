@@ -9,7 +9,7 @@ description: 'Browser signals without an SDK: Performance Timeline, network phas
 keywords: 'browser performance monitoring, PerformanceObserver, how Web Vitals are calculated, measure INP, CLS session window, Soft Navigations API, web-vitals reportSoftNavs, Timing-Allow-Origin resource timing'
 locale: en
 translationOf: '260914'
-sourceHash: a43afec539a5a08b07bdbe5455257807a64d72a48f7cfd8ee076b57d1d69a0c0
+sourceHash: 31357b878e6fcf1696f6857ad01e283de331eed4a4cc90499357879e3b6ba6c9
 ---
 
 In this post, I want to talk about browser observability.

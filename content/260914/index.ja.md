@@ -9,7 +9,7 @@ description: 'ブラウザSDKなしでページ内から見える信号を整理
 keywords: 'ブラウザ パフォーマンス計測, PerformanceObserver 使い方, Web Vitals 計算方法, INP 計測, CLS セッションウィンドウ, Soft Navigations API, web-vitals reportSoftNavs, Resource Timing Timing-Allow-Origin'
 locale: ja
 translationOf: '260914'
-sourceHash: a43afec539a5a08b07bdbe5455257807a64d72a48f7cfd8ee076b57d1d69a0c0
+sourceHash: 31357b878e6fcf1696f6857ad01e283de331eed4a4cc90499357879e3b6ba6c9
 ---
 
 今回は、ブラウザの可観測性について書いてみたい。

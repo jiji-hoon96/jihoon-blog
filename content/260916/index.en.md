@@ -9,7 +9,7 @@ description: 'How CrUX, PageSpeed Insights, and Search Console filter Web Vitals
 keywords: 'CrUX field data, PageSpeed Insights field data, Search Console Core Web Vitals report, do Core Web Vitals affect ranking, Search Console query vs page clicks, average position dropped clicks increased, crawl rate 5xx 429'
 locale: en
 translationOf: '260916'
-sourceHash: ffb98bcd9319ff4b9e6d07267eeaf96c6cb22ce658817b7a29f36977d6a8de15
+sourceHash: d915902baa6fa137576867f6f888285a617345599d4169da18c7fb91ab7f72dc
 ---
 
 In this post, I want to talk about the path that performance data measured in the browser takes on its way to search and to judgment.
