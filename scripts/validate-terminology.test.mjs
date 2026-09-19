@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { proseOnly, validateContent } from './validate-terminology.mjs'
+import { validateContent, withoutCode } from './validate-terminology.mjs'
 
 const policy = {
   banned: [
@@ -34,10 +34,11 @@ test('matches banned spellings case-insensitively', () => {
   assert.equal(validateContent('Computer Siense', policy).length, 1)
 })
 
-test('ignores frontmatter, code fences, and inline code', () => {
-  const raw = [
+test('ignores code fences and inline code but checks frontmatter', () => {
+  const p = { banned: [{ pattern: '타임존', replacement: 'timezone' }] }
+  const codeOnly = [
     '---',
-    "keywords: '타임존, React DatePicker 타임존'",
+    "keywords: 'React DatePicker timezone'",
     '---',
     '',
     '본문에서는 timezone 이라고 적는다.',
@@ -48,7 +49,11 @@ test('ignores frontmatter, code fences, and inline code', () => {
     '',
     '인라인 `타임존` 도 식별자다.',
   ].join('\n')
-  const p = { banned: [{ pattern: '타임존', replacement: 'timezone' }] }
-  assert.deepEqual(validateContent(proseOnly(raw), p), [])
-  assert.equal(validateContent(raw, p).length, 1)
+  assert.deepEqual(validateContent(withoutCode(codeOnly), p), [])
+
+  const inFrontmatter = codeOnly.replace(
+    "keywords: 'React DatePicker timezone'",
+    "keywords: 'React DatePicker 타임존'",
+  )
+  assert.equal(validateContent(withoutCode(inFrontmatter), p).length, 1)
 })

@@ -12,11 +12,11 @@ export function validateContent(content, policy) {
   )
 }
 
-// 본문만 남긴다. 프론트매터의 keywords 는 실제 검색 쿼리라 한글 음차를 그대로 두고,
-// 코드 블록과 인라인 코드는 식별자라 번역 대상이 아니다.
-export function proseOnly(content) {
+// 코드만 걷어낸다. 코드 블록과 인라인 코드는 식별자라 번역 대상이 아니다.
+// 프론트매터는 검사한다. seoTitle 과 description 은 검색 결과에 그대로 노출되는 문장이고,
+// keywords 도 본문과 표기가 갈리면 같은 글이 두 가지 이름을 갖게 된다.
+export function withoutCode(content) {
   return content
-    .replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '')
     .replace(/```[\s\S]*?```/g, '')
     .replace(/`[^`\n]*`/g, '')
 }
@@ -45,7 +45,7 @@ export async function validateRepository(rootDirectory = process.cwd()) {
       throw error
     }
 
-    for (const violation of validateContent(proseOnly(content), policy)) {
+    for (const violation of validateContent(withoutCode(content), policy)) {
       violations.push({
         file: path.relative(rootDirectory, postPath),
         ...violation,

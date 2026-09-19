@@ -9,7 +9,7 @@ description: '整理了我为什么开发 React headless DatePicker Kalyx，以�
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React 日期选择器 时区, ISO 8601 UTC, 日期 差一天, DST 夏令时 bug, fast-check 属性测试, react-day-picker 对比'
 locale: zh-CN
 translationOf: '260617'
-sourceHash: 'fe56bc7d17813a4e0f753aa0fc0da6f1863f1e71c41154f5cdaa2b62f5b5aaec'
+sourceHash: '3ef642d1bca4f9c8c3029970e3fe56ac1bc3e6e3623f9dad7d017e7dcf9d292f'
 ---
 
 这篇文章想聊聊我开发的 React headless DatePicker 库 **Kalyx**。

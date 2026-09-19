@@ -1,12 +1,12 @@
 ---
 emoji: 📅
 title: 'Kalyx'
-seoTitle: 'React DatePicker 타임존 하루 밀림을 막는 법, 헤드리스 라이브러리 Kalyx 설계 기록'
+seoTitle: 'React DatePicker timezone 하루 밀림을 막는 headless 라이브러리 Kalyx 설계'
 date: '2026-06-17'
 updatedAt: '2026-09-19'
 categories: 라이브러리 React DatePicker 오픈소스
-description: 'React 헤드리스 DatePicker Kalyx를 왜 만들었고 Ark UI, React Aria, react-day-picker와 무엇이 다른지 정리했다. ISO 8601 UTC 값 모델, Intl 기반 DST 처리, IANA 타임존 속성 테스트를 코드와 실측으로 설명한다.'
-keywords: 'Kalyx, React DatePicker, headless DatePicker, React DatePicker 타임존, ISO 8601 UTC, DST 버그, fast-check 속성 테스트, react-day-picker 비교'
+description: 'React headless DatePicker Kalyx를 왜 만들었고 Ark UI, React Aria, react-day-picker와 무엇이 다른지 정리했다. ISO 8601 UTC 값 모델, Intl 기반 DST 처리, timezone 속성 테스트를 다룬다.'
+keywords: 'Kalyx, React DatePicker, headless DatePicker, React DatePicker timezone, ISO 8601 UTC, DST 버그, fast-check 속성 테스트, react-day-picker 비교'
 ---
 
 이번 포스팅에서는 필자가 만든 React headless DatePicker 라이브러리 **Kalyx**에 대한 이야기를 해보려고 한다.
