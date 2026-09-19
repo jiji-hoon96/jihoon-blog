@@ -74,7 +74,7 @@ export default function CodeCopyButton({ locale }: { locale: Locale }) {
     return () => {
       document.querySelectorAll(".copy-button").forEach((btn) => btn.remove());
     };
-  }, []);
+  }, [dictionary.actions.copyCode]);
 
   return null;
 }

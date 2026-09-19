@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
+import { FALLBACK_LOCALE } from "@/components/NotFoundScreen";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
 import AiReferralReporter from "@/components/AiReferralReporter";
 import { siteMetadata } from "@/lib/site-metadata";
@@ -12,10 +13,10 @@ import {
 	isLocale,
 	LOCALES,
 	toPublicPath,
+	type Locale,
 } from "@/i18n/locales";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getOpenGraphLocale } from "@/lib/localized-metadata";
-import { notFound } from "next/navigation";
 import "../globals.css";
 
 export const viewport: Viewport = {
@@ -35,7 +36,16 @@ export async function generateMetadata({
 	params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
 	const { lang } = await params;
-	if (!isLocale(lang)) return {};
+	if (!isLocale(lang)) {
+		// `{}` 를 돌려주면 metadataBase 가 없어서, 파일 컨벤션이 만드는
+		// opengraph-image 가 Next 기본값인 http://localhost:3000 에 대해 해석된다.
+		// 프로덕션 404 응답에 `http://localhost:3000/999999/opengraph-image` 가
+		// 그대로 실려 있었다. (실측)
+		return {
+			metadataBase: new URL(siteMetadata.siteUrl),
+			robots: { index: false, follow: false },
+		};
+	}
 
 	const dictionary = getDictionary(lang);
 	const homePath = toPublicPath(lang, "/");
@@ -107,12 +117,15 @@ export default async function RootLayout({
 }>) {
 	const { lang } = await params;
 
-	if (!isLocale(lang)) {
-		notFound();
-	}
+	// 여기서 `notFound()` 를 부르면 `<html>` 을 그리기 전에 레이아웃이 사라진다.
+	// 그러면 404 경계가 들어갈 자리가 없어서 Next 가 `<html id="__next_error__">`
+	// 한 겹에 본문 0바이트를 내준다. 프로덕션에서 없는 슬러그가 그렇게 나갔다.
+	// 404 판정은 페이지가 한다(`[lang]/page.tsx` 와 `[lang]/[slug]/page.tsx` 가
+	// `notFound()` 를 부른다). 레이아웃은 껍데기를 그릴 언어만 정한다.
+	const shellLang: Locale = isLocale(lang) ? lang : FALLBACK_LOCALE;
 
 	return (
-		<html lang={lang} suppressHydrationWarning>
+		<html lang={shellLang} suppressHydrationWarning>
 			<head>
 				{/* One-time kill switch: unregister stale Gatsby/old service worker that's
 				    intercepting requests with cached Next 14/React 18 chunks. Runs first so
@@ -138,19 +151,19 @@ export default async function RootLayout({
 						href="#main-content"
 						className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-canvas focus:px-4 focus:py-2 focus:text-ink focus:outline focus:outline-2 focus:outline-[var(--qa-accent)]"
 					>
-						{getDictionary(lang).actions.skipToContent}
+						{getDictionary(shellLang).actions.skipToContent}
 					</a>
 					<div className="flex min-h-screen flex-col">
-						<Header locale={lang} />
+						<Header locale={shellLang} />
 						<main
 							id="main-content"
 							className="mx-auto w-full max-w-[var(--width-content)] px-4 flex-1"
 						>
 							{children}
 						</main>
-						<Footer locale={lang} />
+						<Footer locale={shellLang} />
 					</div>
-					<ScrollToTop locale={lang} />
+					<ScrollToTop locale={shellLang} />
 				</ThemeProvider>
 
 				{/* Google Analytics */}
