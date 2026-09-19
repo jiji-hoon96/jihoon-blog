@@ -52,6 +52,9 @@ test('switches shared routes directly and uses the post index as a safe fallback
   assert.equal(getLocaleSwitchPath('es', '/pt-BR/about'), '/es/posts')
   assert.equal(getLocaleSwitchPath('ko', '/en/posts'), '/posts')
   assert.equal(getLocaleSwitchPath('ko', '/ko/260703'), '/260703')
+  // 이력서는 6개 로케일 전부에 있으므로 언어를 바꿔도 같은 페이지에 남는다.
+  assert.equal(getLocaleSwitchPath('en', '/resume'), '/en/resume')
+  assert.equal(getLocaleSwitchPath('ko', '/en/resume'), '/resume')
 })
 
 test('filters and finds posts without crossing locale boundaries', () => {

@@ -57,7 +57,10 @@ export function getLocaleSwitchPath(
     return toPublicPath(targetLocale, contentPath)
   }
 
-  const sharedPaths = new Set(['/', '/posts', '/guestbook', '/playground'])
+  // 모든 로케일에 같은 경로로 존재하는 페이지들. 여기 없는 경로는 글 목록으로 보낸다.
+  // `/resume` 은 6개 로케일 전부에 있으므로 넣는다. 빼두면 JS 가 꺼진 브라우저에서
+  // 이력서를 보다가 언어를 바꾼 사람이 글 목록으로 떨어진다.
+  const sharedPaths = new Set(['/', '/posts', '/guestbook', '/playground', '/resume'])
   if (!sharedPaths.has(contentPath)) {
     return toPublicPath(targetLocale, '/posts')
   }

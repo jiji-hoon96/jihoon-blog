@@ -22,6 +22,7 @@ export default function Header({ locale }: { locale: Locale }) {
   const homePath = toPublicPath(locale, "/");
   const navLinks = [
     { href: toPublicPath(locale, "/posts"), label: dictionary.navigation.posts },
+    { href: toPublicPath(locale, "/resume"), label: dictionary.resume.title },
   ];
 
   const toggleTheme = () => {

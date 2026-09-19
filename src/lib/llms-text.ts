@@ -15,6 +15,12 @@ export type LlmsLabels = {
   posts: string
 }
 
+export type LlmsResume = {
+  path: string
+  title: string
+  description: string
+}
+
 type LlmsTextInput = {
   locale: Locale
   siteUrl: string
@@ -24,6 +30,7 @@ type LlmsTextInput = {
   authorNickname: string
   stack: readonly string[]
   labels: LlmsLabels
+  resume?: LlmsResume
   posts: readonly LlmsPost[]
 }
 
@@ -54,6 +61,11 @@ export function buildLlmsText(input: LlmsTextInput): string {
     '',
     `- [RSS Feed](${rssUrl}): ${input.labels.rss}`,
     `- [Sitemap](${siteUrl}/sitemap.xml): ${input.labels.sitemap}`,
+    ...(input.resume
+      ? [
+          `- [${input.resume.title}](${siteUrl}${input.resume.path}): ${input.resume.description}`,
+        ]
+      : []),
     '',
     `## ${input.labels.posts}`,
     '',
