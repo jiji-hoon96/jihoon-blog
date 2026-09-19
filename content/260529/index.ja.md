@@ -5,7 +5,7 @@ seoTitle: 'AIコーディングエージェントのツール地図: mdファイ
 date: '2026-05-29'
 locale: ja
 translationOf: '260529'
-sourceHash: ac8d0775527258419f065e36b7d027f1a185e5fb48adb397eceacd38c8ae7a48
+sourceHash: e247a66c9497f5ada777da4de742036ed499bf8e72e78434eb01bfeae463d13d
 categories: AI 開発ツール Claude MCP CodeGraph
 description: 'Claudeを使ったフロントエンド開発で出会ったツールを、4つの視点から整理する。CLAUDE.md・AGENTS.md・SKILL.mdの違い、MCPの仕組みとSerena、CodeGraphなどコードインテリジェンスツールの動作原理、GitHub Trendingの読み方まで解説。'
 keywords: 'CLAUDE.md, AGENTS.md, SKILL.md, MCP, Model Context Protocol, Serena MCP, CodeGraph, コードインテリジェンス, GitHub Trending, AIコーディングエージェント, Claude Code, Cursor rules, tree-sitter, LSP'

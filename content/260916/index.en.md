@@ -3,13 +3,13 @@ emoji: 🧩
 title: 'From Observation to Judgment'
 seoTitle: 'Core Web Vitals and SEO: What CrUX and Search Console Show'
 date: '2026-09-16'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: observability frontend GA4 Search-Console
 description: 'How CrUX, PageSpeed Insights, and Search Console filter Web Vitals, what Google says about ranking, and a post whose clicks rose as its rank fell.'
 keywords: 'CrUX field data, PageSpeed Insights field data, Search Console Core Web Vitals report, do Core Web Vitals affect ranking, Search Console query vs page clicks, average position dropped clicks increased, crawl rate 5xx 429'
 locale: en
 translationOf: '260916'
-sourceHash: 28511e965ad669a872b9c5ac03c453af63c8424d8e9db750ab0e7223d13ed4fb
+sourceHash: ffb98bcd9319ff4b9e6d07267eeaf96c6cb22ce658817b7a29f36977d6a8de15
 ---
 
 In this post, I want to talk about the path that performance data measured in the browser takes on its way to search and to judgment.
@@ -107,7 +107,9 @@ So these two totals were never numbers built by the same rules in the first plac
 
 There is a case where I actually made a decision with this search data. [Can Biome Replace ESLint and Prettier?](/241201) is a post I wrote in December 2024, and it got noticeably few clicks relative to its impressions. So on June 11, 2026, I added a `seoTitle` starting with "Biome vs ESLint vs Prettier" to match the shape of real search queries.
 
-In the 28-day comparison collected after the title change, this post's numbers moved like this. (These are the values I queried at the time. `.gsc-data/` is overwritten on every collection, so that CSV is no longer in the repo, and I did not record the exact collection date. What can be confirmed is only that these numbers already appear in the draft snapshot dated August 16 included in an August 18 commit) Impressions fell 11%, from 230 to 204, and average position slipped from 8.9 to 11.6. Judging by those two metrics alone, the post got worse. But clicks rose from 2 to 13, and CTR went from 0.87% to 6.37%.
+In the 28-day comparison collected after the title change, this post's numbers moved like this. Impressions fell 11%, from 230 to 204, and average position slipped from 8.9 to 11.6. Judging by those two metrics alone, the post got worse. But clicks rose from 2 to 13, and CTR went from 0.87% to 6.37%.
+
+These four numbers are the values I queried at the time. `.gsc-data/` is overwritten on every collection, so that CSV is no longer in the repo and I did not record the exact collection date. What can be confirmed is only that these numbers already appear in the draft snapshot dated August 16 included in an August 18 commit.
 
 ![In Search Console's 28-day comparison for the Biome post, impressions and average position got worse while clicks and click-through rate rose sharply](2.png?w=720)
 

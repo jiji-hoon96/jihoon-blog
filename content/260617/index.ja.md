@@ -9,7 +9,7 @@ description: 'React headless DatePicker「Kalyx」を作った理由と、Ark UI
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React 日付 タイムゾーン, ISO 8601 UTC, 日付 1日ずれる, DST バグ, fast-check プロパティテスト, react-day-picker 比較'
 locale: ja
 translationOf: '260617'
-sourceHash: '869ea16c304b148a3fc5c69e038f1214b65253337268fb93c7e2cb7477fde157'
+sourceHash: 'fe56bc7d17813a4e0f753aa0fc0da6f1863f1e71c41154f5cdaa2b62f5b5aaec'
 ---
 
 今回は、筆者が作ったReactのheadless DatePickerライブラリ **Kalyx** について書こうと思う。

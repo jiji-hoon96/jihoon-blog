@@ -12,6 +12,15 @@ export function validateContent(content, policy) {
   )
 }
 
+// 본문만 남긴다. 프론트매터의 keywords 는 실제 검색 쿼리라 한글 음차를 그대로 두고,
+// 코드 블록과 인라인 코드는 식별자라 번역 대상이 아니다.
+export function proseOnly(content) {
+  return content
+    .replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '')
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`[^`\n]*`/g, '')
+}
+
 async function koreanPostPaths(contentDirectory) {
   const entries = await readdir(contentDirectory, { withFileTypes: true })
 
@@ -36,7 +45,7 @@ export async function validateRepository(rootDirectory = process.cwd()) {
       throw error
     }
 
-    for (const violation of validateContent(content, policy)) {
+    for (const violation of validateContent(proseOnly(content), policy)) {
       violations.push({
         file: path.relative(rootDirectory, postPath),
         ...violation,

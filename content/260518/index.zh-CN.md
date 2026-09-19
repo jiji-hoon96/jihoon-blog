@@ -8,7 +8,7 @@ description: "状态管理被视为前端开发中最棘手的工作之一。本
 keywords: "前端状态管理, React 状态管理, Zustand Jotai 对比, TanStack Query, Server State Client State, State Colocation, Single Source of Truth, React 19 useOptimistic"
 locale: zh-CN
 translationOf: '260518'
-sourceHash: a6207e949b7e05440dc8370606232bea53318b57319931f5cc038987a7495c4e
+sourceHash: cabf96853929aff5912a6fa8fe6d320eba746be8a7c4f721c09b6f08d4447b66
 ---
 
 这篇文章想聊一聊**状态管理（State Management）**。它不是一篇库的横向对比。相比判断哪个工具更好，本文更想梳理一种感觉：应该**如何看待**状态，又该在哪里**划定边界**。

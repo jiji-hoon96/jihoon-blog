@@ -56,6 +56,8 @@
 - 제품명, API, SDK, 코드 식별자와 업계에서 영어가 더 명확한 용어는 억지로 번역하지 않는다. `Computer Science`, `wall-clock time`, `OpenTelemetry`, `React Server Components`처럼 정확성과 검색 가능성이 커지는 표현은 원문을 유지한다.
 - 독자에게 낯선 핵심어는 첫 등장에만 `wall-clock time(실제 경과 시간)`처럼 짧게 설명할 수 있다. 설명이 뜻을 흐리거나 문장을 무겁게 만들면 영어만 쓴다.
 - 외부 원문 인용과 코드 안의 명칭은 번역하지 않는다. 기술 용어 기준은 `content/terminology.yml`, 검증은 `pnpm content:terms`를 사용한다.
+- **영어 단어를 한글 발음으로 옮겨 적은 것은 원어로 쓴다.** `피커`가 아니라 `picker`, `팝오버`가 아니라 `popover` 다. 다만 합성어 안에서만 등장하거나(`멀티스레드`, `프레임워크`, `자바스크립트`) 한국어 기술 문서에 이미 정착한 말(`응답 헤더`, `콜 스택`, `컨텍스트 엔지니어링`, `릴리스`)은 그대로 둔다. 기계가 막는 목록은 `terminology.yml` 의 `banned` 이고, 판단 기준은 `.claude/commands/write-post.md` 의 「음차 외래어를 영어로 되돌린다」에 있다.
+- 프론트매터의 `keywords` 와 `description` 은 검색 쿼리라 음차 규칙 대상이 아니다. 음차만 고친 수정은 번역본 내용을 건드리지 않고 `sourceHash` 만 갱신하면 된다.
 - 본문 흐름 안에서 짧은 해설이 필요한 핵심 용어는 첫 의미 있는 등장에 `:term[RUM]{key="rum"}` 형식으로 표시한다. 키는 `content/glossary.json`의 소문자 kebab-case 값을 사용한다.
 - 용어 해설은 본문 설명을 대체하지 않는다. `pnpm content:glossary`로 검증한다.
 

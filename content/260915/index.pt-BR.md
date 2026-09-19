@@ -3,13 +3,13 @@ emoji: 🧮
 title: 'CPU e memória do navegador'
 seoTitle: 'Thread principal e memória do navegador: long tasks e LoAF'
 date: '2026-09-15'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: observabilidade frontend navegador
 description: 'O que long tasks, TBT, LoAF, JS Self-Profiling, as APIs de memória e os crash reports mostram, conferido com Lighthouse e cabeçalhos deste blog.'
 keywords: 'thread principal do navegador, long task 50ms, Long Animation Frames API, Total Blocking Time, JS Self-Profiling API, profiling de navegador no Sentry, measureUserAgentSpecificMemory, vazamento de memória no navegador'
 locale: pt-BR
 translationOf: '260915'
-sourceHash: e3099827d3ce62d6111f68e8a70bca3c1d37a5f8550f952482939e5c286405ce
+sourceHash: a6c2a00e7d6b4f9d29de83090c3f3b829145afc5d29df4b16fd073292c191961
 ---
 
 Neste post, quero falar sobre como observar a thread principal e a memória do navegador.
@@ -40,7 +40,7 @@ A parte amarela são os primeiros 50ms de cada tarefa, e a parte vermelha é o b
 
 O TBT é uma métrica de lab, e a métrica de responsividade das Core Web Vitals é o INP. O [artigo do web.dev sobre INP](https://web.dev/articles/inp) traça a linha: em ferramentas de lab que olham só o carregamento, sem interação, o TBT pode ser um proxy razoável, mas não é um substituto.
 
-Isso porque o TBT não sabe quando o usuário apertou o quê. Mesmo que a thread principal esteja muito bloqueada, o INP pode ser baixo se o usuário apertar depois que os scripts terminarem. Uma long task pode aumentar o INP por vários caminhos (processing duration se o próprio handler for longo, presentation delay se a renderização seguinte for longa), mas o caminho mais diretamente ligado ao TBT é alongar o input delay que vimos no post anterior pelo tempo que ainda resta à tarefa que estava rodando no momento do clique. Por isso um TBT baixo só diz "a thread principal não ficou muito bloqueada durante o carregamento". Para saber o que bloqueou uma entrada real, é preciso olhar tarefas e frames em field.
+Isso porque o TBT não sabe quando o usuário apertou o quê. Mesmo que a thread principal esteja muito bloqueada, o INP pode ser baixo se o usuário apertar depois que os scripts terminarem. Uma long task pode aumentar o INP por vários caminhos. Se o próprio handler for longo, cresce o processing duration; se a renderização seguinte for longa, cresce o presentation delay. Desses, o caminho mais diretamente ligado ao TBT é alongar o input delay que vimos no post anterior pelo tempo que ainda resta à tarefa que estava rodando no momento do clique. Por isso um TBT baixo só diz "a thread principal não ficou muito bloqueada durante o carregamento". Para saber o que bloqueou uma entrada real, é preciso olhar tarefas e frames em field.
 
 ## Long Tasks e Long Animation Frames
 
@@ -174,7 +174,7 @@ A propriedade central desse sinal está numa frase da especificação.
 
 A página que deveria receber o relatório já morreu por causa desse mesmo crash, então, por definição, o JavaScript não tem como observá-lo. O navegador apenas faz um POST para um endpoint do servidor, de fora da página.
 
-O que isso significa para os SDKs de navegador dá para ver no código. No `sentry-javascript`, o [código-fonte de `reportingObserverIntegration`](https://github.com/getsentry/sentry-javascript/blob/develop/packages/browser/src/integrations/reportingobserver.ts) inclui `'crash'`, `'deprecation'` e `'intervention'` nos tipos assinados por padrão e tem até um ramo `report.type === 'crash'`. Mas essa integração usa um `ReportingObserver` dentro da página, então, se a especificação vale, não há caminho para esse ramo ser executado num crash OOM real. (É uma inferência minha a partir da especificação, e não provoquei um crash para confirmar)
+O que isso significa para os SDKs de navegador dá para ver no código. No `sentry-javascript`, o [código-fonte de `reportingObserverIntegration`](https://github.com/getsentry/sentry-javascript/blob/develop/packages/browser/src/integrations/reportingobserver.ts) inclui `'crash'`, `'deprecation'` e `'intervention'` nos tipos assinados por padrão e tem até um ramo `report.type === 'crash'`. Mas essa integração usa um `ReportingObserver` dentro da página, então, se a especificação vale, não há caminho para esse ramo ser executado num crash OOM real. Dito isso, é uma inferência minha a partir da especificação, e não provoquei um crash para confirmar.
 
 Do lado do servidor, o Sentry poderia ser o destino do `Reporting-Endpoints`? A [getsentry/sentry#38940](https://github.com/getsentry/sentry/issues/38940), que pediu esse recurso, foi aberta em 2022-09-15 e continuava open na consulta de 2026-09-16. O que dá para fazer hoje vai só até manter um endpoint próprio e repassar para o Sentry.
 

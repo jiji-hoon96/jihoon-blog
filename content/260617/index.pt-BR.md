@@ -9,7 +9,7 @@ description: 'Por que criei o Kalyx, DatePicker headless para React, e como dife
 keywords: 'Kalyx, DatePicker React, DatePicker headless React, DatePicker React fuso horário, ISO 8601 UTC, data com um dia a menos, bug de horário de verão JavaScript, teste de propriedades fast-check, alternativa ao react-day-picker'
 locale: pt-BR
 translationOf: '260617'
-sourceHash: '869ea16c304b148a3fc5c69e038f1214b65253337268fb93c7e2cb7477fde157'
+sourceHash: 'fe56bc7d17813a4e0f753aa0fc0da6f1863f1e71c41154f5cdaa2b62f5b5aaec'
 ---
 
 Neste post, quero falar sobre o **Kalyx**, a biblioteca headless de DatePicker para React que eu criei.

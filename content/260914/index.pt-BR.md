@@ -3,20 +3,20 @@ emoji: 🔭
 title: 'Observabilidade do navegador'
 seoTitle: 'Desempenho web: PerformanceObserver, Web Vitals e soft navs'
 date: '2026-09-14'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: observabilidade frontend navegador RUM
 description: 'O que se vê no navegador sem SDK: Performance Timeline, fases de rede, cálculo de LCP, INP e CLS, reportSoftNavs na prática e o que este blog envia ao GA4.'
 keywords: 'medir desempenho web, PerformanceObserver exemplo, como as Web Vitals são calculadas, medir INP, janela de sessão CLS, Soft Navigations API, web-vitals reportSoftNavs, Resource Timing Timing-Allow-Origin'
 locale: pt-BR
 translationOf: '260914'
-sourceHash: 7fbc5d940fc1ec9f571c6f14c22b7e64fd03a46e3853265b7f3000e6c169ed6a
+sourceHash: a43afec539a5a08b07bdbe5455257807a64d72a48f7cfd8ee076b57d1d69a0c0
 ---
 
 Neste post, quero falar sobre observabilidade do navegador.
 
 No [post anterior](/260913), contei como adicionei a este blog o Sentry, que uso há anos no trabalho, e revisei de novo seus recursos. Mas essa configuração tem uma lacuna evidente. Conectei o Sentry só ao servidor e nunca ativei o SDK do navegador.
 
-O motivo foi o tamanho do bundle. (As medições que embasam isso estão na primeira seção) Isso não queria dizer que eu desistiria de olhar o que acontece dentro do navegador. Mesmo sem SDK, o navegador registra por conta própria bastante coisa sobre carregamento e renderização.
+O motivo foi o tamanho do bundle. Isso não queria dizer que eu desistiria de olhar o que acontece dentro do navegador. Mesmo sem SDK, o navegador registra por conta própria bastante coisa sobre carregamento e renderização.
 
 Então a pergunta deste post é esta. **Sem um SDK externo, o que dá para ver com os sinais de carregamento e renderização que o próprio navegador informa dentro da página?** Vou passar pelas fases de rede, pelas regras de cálculo das Web Vitals e pela fronteira da página que fica borrada numa SPA, e no final vou registrar o que este blog realmente envia e o que não envia. (CPU e memória ficam para o próximo post, e a ligação dos valores coletados com o CrUX e a busca fica para o último)
 
@@ -33,7 +33,7 @@ Primeiro registro a base da decisão. Fui mudando a configuração do Sentry e c
 
 Esta tabela foi medida em 2026-08-04, com Next 16.1.4. A instrumentação do servidor saía praticamente de graça, enquanto a do navegador exigia 78.8KB. Também tentei ativar `bundleSizeOptimizations.excludeTracing`, mas o número não mudou, e a única forma de eliminar o custo era não ter o arquivo de inicialização do navegador (`src/instrumentation-client.ts`). A terceira linha segue a mesma lógica. Sem o SDK do navegador, `captureException` na UI de fallback não faz nada, mas o código do SDK vai junto no bundle. Por isso tirei a chamada.
 
-Também medi de novo o estado atual. Pelo mesmo método, em 2026-09-16 deu 206.1KB. São 23.8KB acima da referência, mas nesse meio-tempo o Next subiu para 16.3.4 e entrou o reporte de soft navigations que abordo mais adiante. A configuração do Sentry continua só no servidor, então esse aumento não vem do Sentry. (Não sei quanto cada um dos dois representa, porque não refiz o build commit a commit)
+Também medi de novo o estado atual. Pelo mesmo método, em 2026-09-16 deu 206.1KB. São 23.8KB acima da referência, mas nesse meio-tempo o Next subiu para 16.3.4 e entrou o reporte de soft navigations que abordo mais adiante. A configuração do Sentry continua só no servidor, então esse aumento não vem do Sentry. Não sei quanto cada um dos dois representa, porque não refiz o build commit a commit.
 
 Neste blog, desempenho de carregamento é a própria experiência do visitante, e quem paga os cerca de 79KB não sou eu, é o visitante. Julguei que os erros de navegador de um blog pessoal não compensariam esse custo. Só que, uma vez decidido isso, é preciso observar o lado do navegador de outra forma. O ponto de partida é o registro que o navegador já está deixando.
 
@@ -127,7 +127,7 @@ Até agora, ferramentas de RUM e frameworks definiam cada um uma "tela nova" com
 
 ### Valores medidos com reportSoftNavs ativado
 
-Este blog também vai da lista de posts para um post com o `Link` do Next.js. Em 2026-09-14, depois de atualizar o `web-vitals` para 6.2.1 e ativar `reportSoftNavs` (`cc21a0d`), conectei via CDP a um Chrome headless que tinha aberto a página de produção e abri do jeito que estavam as requisições que saíam para o GA4. Estes foram os valores enviados numa sessão. (As métricas que não estão na tabela não apareciam nas requisições dessa sessão. Em particular, o CLS da página de lista deveria ter sido reportado uma vez no momento da primeira soft navigation, mesmo valendo 0, porque a função de reporte do `web-vitals` envia até o 0 quando é o primeiro reporte. Acho provável que a captura tenha terminado antes do envio em lote do GA4, mas é uma suposição e não verifiquei)
+Este blog também vai da lista de posts para um post com o `Link` do Next.js. Em 2026-09-14, depois de atualizar o `web-vitals` para 6.2.1 e ativar `reportSoftNavs` (`cc21a0d`), conectei via CDP a um Chrome headless que tinha aberto a página de produção e abri do jeito que estavam as requisições que saíam para o GA4. Estes foram os valores enviados numa sessão.
 
 | Métrica | Valor | `navigationType` |
 |---|---|---|
@@ -136,6 +136,8 @@ Este blog também vai da lista de posts para um post com o `Link` do Next.js. Em
 | LCP | 1680ms | `navigate` |
 | FCP | 542ms | `soft-navigation` |
 | TTFB | 0ms | `soft-navigation` |
+
+A tabela não traz o CLS da página de lista porque é um ponto que não consegui confirmar. Esse valor deveria ter sido reportado uma vez no momento da primeira soft navigation, mesmo valendo 0, porque a função de reporte do `web-vitals` envia até o 0 quando é o primeiro reporte. Acho provável que a captura tenha terminado antes do envio em lote do GA4, mas não verifiquei.
 
 A transição da lista para um post foi capturada como uma experiência separada, como pretendido. Mas esta tabela também mostra por que não basta uma opção. **O TTFB de uma soft navigation é 0.** Nenhum documento foi requisitado ao servidor, então é exatamente o valor descrito no README, mas se esse 0 se acumular no mesmo evento que os 798ms do primeiro carregamento, a média de TTFB cai em silêncio sem que o código mude. Por isso alterei o código para enviar também, como parâmetro do GA4, o `navigationType` que acompanha cada métrica. Ao acrescentar uma unidade de observação, crescem junto as dimensões necessárias para distingui-la.
 
@@ -151,7 +153,9 @@ Depois de medir, reli o README e encontrei uma frase que tinha deixado passar.
 
 Isso quer dizer que, com a opção ativada, as métricas da primeira página são fechadas no momento da primeira soft navigation. INP e CLS são métricas que normalmente se observam até o usuário sair da página, mas agora a observação da página de lista termina assim que o usuário clica no link de um post, e o INP e o CLS da nova tela recomeçam do 0. O mesmo README diz que LCP e FCP também contam só os elementos pintados de novo depois da soft navigation. Elementos que permanecem entre telas, como o cabeçalho, não podem ser candidatos da nova tela.
 
-Por isso a distribuição das métricas do primeiro carregamento pode mudar antes e depois de ativar a opção. Se, medindo o mesmo site, o INP melhorou a partir de um deploy, pode ser que não tenha sido o código que melhorou, e sim a janela de observação que encurtou. Como só se comporta assim no Chromium 151 ou superior, também surgem diferenças entre navegadores. (Eu deveria ter conhecido essa diferença antes de medir. Essa única frase pesa mais na interpretação do que os valores da tabela)
+Por isso a distribuição das métricas do primeiro carregamento pode mudar antes e depois de ativar a opção. Se, medindo o mesmo site, o INP melhorou a partir de um deploy, pode ser que não tenha sido o código que melhorou, e sim a janela de observação que encurtou. Como só se comporta assim no Chromium 151 ou superior, também surgem diferenças entre navegadores.
+
+Essa única frase pesa mais na interpretação do que os valores da tabela. Eu deveria ter conhecido essa diferença antes de medir.
 
 ### A restauração do bfcache também é uma experiência nova
 
@@ -178,7 +182,7 @@ O que ele não envia também está claro. Como usa o build padrão do `web-vital
 
 Se esses valores podem de fato ser lidos separados no GA4 é assunto do último post. Enviar algo e conseguir lê-lo separado são problemas diferentes.
 
-## O navegador já está registrando
+## O limite que se olha antes dos números
 
 Resumindo, mesmo sem ativar um SDK de navegador, o navegador já registra fases de rede, pinturas, deslocamentos de layout e atraso de entrada. O `PerformanceObserver` é a porta de entrada para ler esse registro, e as Web Vitals são métricas que acrescentam por cima regras de cálculo como a atualização de candidatos, a soma de três fases e as session windows.
 

@@ -1,21 +1,172 @@
 {
   "terms": [
-    { "term": "wall-clock time", "preserve": true, "koFirstUse": "wall-clock time(실제 경과 시간)" },
-    { "term": "Computer Science", "preserve": true },
-    { "term": "OpenTelemetry", "preserve": true },
-    { "term": "React Server Components", "preserve": true },
-    { "term": "ubiquitous language", "preserve": true, "koFirstUse": "ubiquitous language(보편 언어)" },
-    { "term": "API", "preserve": true },
-    { "term": "SDK", "preserve": true },
-    { "term": "LLM", "preserve": true },
-    { "term": "MCP", "preserve": true },
-    { "term": "SEO", "preserve": true }
+    {
+      "term": "wall-clock time",
+      "preserve": true,
+      "koFirstUse": "wall-clock time(실제 경과 시간)"
+    },
+    {
+      "term": "Computer Science",
+      "preserve": true
+    },
+    {
+      "term": "OpenTelemetry",
+      "preserve": true
+    },
+    {
+      "term": "React Server Components",
+      "preserve": true
+    },
+    {
+      "term": "ubiquitous language",
+      "preserve": true,
+      "koFirstUse": "ubiquitous language(보편 언어)"
+    },
+    {
+      "term": "API",
+      "preserve": true
+    },
+    {
+      "term": "SDK",
+      "preserve": true
+    },
+    {
+      "term": "LLM",
+      "preserve": true
+    },
+    {
+      "term": "MCP",
+      "preserve": true
+    },
+    {
+      "term": "SEO",
+      "preserve": true
+    },
+    {
+      "term": "picker",
+      "preserve": true
+    },
+    {
+      "term": "calendar",
+      "preserve": true
+    },
+    {
+      "term": "popover",
+      "preserve": true
+    },
+    {
+      "term": "adapter",
+      "preserve": true
+    },
+    {
+      "term": "locale",
+      "preserve": true
+    },
+    {
+      "term": "context",
+      "preserve": true
+    },
+    {
+      "term": "headless",
+      "preserve": true
+    },
+    {
+      "term": "thread",
+      "preserve": true
+    },
+    {
+      "term": "sampling",
+      "preserve": true
+    },
+    {
+      "term": "profiling",
+      "preserve": true
+    },
+    {
+      "term": "timezone",
+      "preserve": true
+    },
+    {
+      "term": "dashboard",
+      "preserve": true
+    },
+    {
+      "term": "stack",
+      "preserve": true
+    },
+    {
+      "term": "session",
+      "preserve": true
+    },
+    {
+      "term": "release",
+      "preserve": true
+    },
+    {
+      "term": "header",
+      "preserve": true
+    },
+    {
+      "term": "preview",
+      "preserve": true
+    },
+    {
+      "term": "profiler",
+      "preserve": true
+    }
   ],
   "banned": [
-    { "pattern": "computer siense", "replacement": "Computer Science" },
-    { "pattern": "컴퓨터 사이언스", "replacement": "Computer Science" },
-    { "pattern": "벽시계 경과", "replacement": "wall-clock time(실제 경과 시간)" },
-    { "pattern": "벽시계 기준", "replacement": "wall-clock time 기준" },
-    { "pattern": "벽시계로", "replacement": "wall-clock time으로" }
+    {
+      "pattern": "computer siense",
+      "replacement": "Computer Science"
+    },
+    {
+      "pattern": "컴퓨터 사이언스",
+      "replacement": "Computer Science"
+    },
+    {
+      "pattern": "벽시계 경과",
+      "replacement": "wall-clock time(실제 경과 시간)"
+    },
+    {
+      "pattern": "벽시계 기준",
+      "replacement": "wall-clock time 기준"
+    },
+    {
+      "pattern": "벽시계로",
+      "replacement": "wall-clock time으로"
+    },
+    {
+      "pattern": "캘린더",
+      "replacement": "calendar"
+    },
+    {
+      "pattern": "팝오버",
+      "replacement": "popover"
+    },
+    {
+      "pattern": "피커",
+      "replacement": "picker"
+    },
+    {
+      "pattern": "어댑터",
+      "replacement": "adapter"
+    },
+    {
+      "pattern": "로케일",
+      "replacement": "locale"
+    },
+    {
+      "pattern": "헤드리스",
+      "replacement": "headless"
+    },
+    {
+      "pattern": "타임존",
+      "replacement": "timezone"
+    },
+    {
+      "pattern": "프리뷰",
+      "replacement": "preview"
+    }
   ]
 }

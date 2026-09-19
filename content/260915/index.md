@@ -3,7 +3,7 @@ emoji: 🧮
 title: '브라우저의 CPU와 메모리'
 seoTitle: '브라우저 메인 스레드와 메모리 관측: Long Task, LoAF, 프로파일링, 메모리 측정 API'
 date: '2026-09-15'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: 관측 프론트엔드 브라우저
 description: '브라우저 메인 스레드와 메모리 관측을 정리한다. long task와 TBT, LoAF, JS Self-Profiling, 메모리 측정 API, crash report가 무엇을 보여주는지 이 블로그의 Lighthouse 실측과 응답 헤더로 확인했다.'
 keywords: '브라우저 메인 스레드, long task 50ms, Long Animation Frames API, Total Blocking Time, JS Self-Profiling API, Sentry 브라우저 프로파일링, measureUserAgentSpecificMemory, 브라우저 메모리 누수'
@@ -15,7 +15,9 @@ keywords: '브라우저 메인 스레드, long task 50ms, Long Animation Frames 
 
 이 두 영역은 Web Vitals보다 관측이 까다롭다. API가 대부분 Chromium 전용이고, 어떤 API는 응답 헤더를 바꿔야 켜지고, 어떤 신호는 구조적으로 JavaScript가 받을 수 없다. [시리즈 첫 글](/260913)의 Sentry 기능 표에서 브라우저 profiling 판단을 이 글로 미뤘는데, 그 조건도 여기서 푼다.
 
-필자가 직접 확인한 것은 Lighthouse 두 번의 실행, 프로덕션 응답 헤더, 설치된 `web-vitals` 빌드 파일이다. 결론부터 말하면 이 블로그는 메인 스레드를 lab 측정으로 윤곽만 보고 있고, 메모리와 crash는 볼 수단이 없다.
+필자가 직접 확인한 것은 Lighthouse 두 번의 실행, 프로덕션 응답 헤더, 설치된 `web-vitals` 빌드 파일이다.
+
+결론부터 말하면 이 블로그는 메인 스레드를 lab 측정으로 윤곽만 보고 있고, 메모리와 crash는 볼 수단이 없다.
 
 ## 메인 스레드가 바쁘다는 것
 
@@ -31,13 +33,17 @@ keywords: '브라우저 메인 스레드, long task 50ms, Long Animation Frames 
 
 (그림 출처: [web.dev, Total Blocking Time (TBT)](https://web.dev/articles/tbt), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), SVG를 흰 배경의 PNG로 변환)
 
-노란 부분이 각 태스크의 처음 50ms, 붉은 부분이 blocking time이다. 같은 문서의 예시에서 태스크 실행 시간 합은 560ms지만 TBT는 345ms다. 50ms보다 짧은 태스크는 아무리 자주 와도 TBT에 기여하지 않는다.
+노란 부분이 각 태스크의 처음 50ms, 붉은 부분이 blocking time이다. 같은 문서의 예시에서 태스크 실행 시간 합은 560ms지만 TBT는 345ms다.
+
+50ms보다 짧은 태스크는 아무리 자주 와도 TBT에 기여하지 않는다.
 
 ### TBT는 INP를 대신하지 못한다
 
 TBT는 lab 지표이고, Core Web Vitals의 반응성 지표는 INP다. web.dev의 [INP 문서](https://web.dev/articles/inp)는 상호작용 없이 로딩만 보는 lab 도구에서 TBT가 합리적인 대리 지표일 수는 있어도 대체물은 아니라고 선을 긋는다.
 
-TBT는 사용자가 언제 무엇을 눌렀는지 모르기 때문이다. 메인 스레드가 많이 막혀도 사용자가 스크립트가 끝난 뒤에 누르면 INP는 낮을 수 있다. long task가 INP를 늘리는 경로는 여럿이지만(핸들러 자체가 길면 processing duration, 뒤따르는 렌더링이 길면 presentation delay), TBT와 가장 직접 이어지는 경로는 누른 순간 실행 중이던 태스크의 남은 시간만큼 앞 글에서 본 input delay를 늘리는 것이다. 그러니 낮은 TBT는 "로딩 중 메인 스레드가 크게 막히지 않았다"까지만 말해 준다. 실제 입력이 무엇에 막혔는지는 field에서 태스크와 프레임을 봐야 안다.
+TBT는 사용자가 언제 무엇을 눌렀는지 모르기 때문이다. 메인 스레드가 많이 막혀도 사용자가 스크립트가 끝난 뒤에 누르면 INP는 낮을 수 있다. long task가 INP를 늘리는 경로는 여럿이다. 핸들러 자체가 길면 processing duration이 늘고, 뒤따르는 렌더링이 길면 presentation delay가 는다. 그중 TBT와 가장 직접 이어지는 경로는 누른 순간 실행 중이던 태스크의 남은 시간만큼 앞 글에서 본 input delay를 늘리는 것이다. 그러니 낮은 TBT는 "로딩 중 메인 스레드가 크게 막히지 않았다"까지만 말해 준다.
+
+실제 입력이 무엇에 막혔는지는 field에서 태스크와 프레임을 봐야 안다.
 
 ## Long Tasks와 Long Animation Frames
 
@@ -91,7 +97,9 @@ attribution 빌드는 [README](https://github.com/GoogleChrome/web-vitals#attrib
 
 long task는 두 번 모두 네 개, 순서도 같았다. 문서 태스크(104ms, 122ms), Next.js 청크 하나(68ms, 69ms), 그리고 `googletagmanager.com/gtag/js`의 태스크 두 개(1회차 66ms와 56ms, 2회차 69ms와 59ms)다. 시각은 Lighthouse가 4배 CPU 감속을 가정해 계산한 시간축이라 실제 기기의 절대 시간으로 읽으면 안 된다.
 
-TBT는 FCP 이후 세 태스크의 초과분으로 정확히 맞아떨어진다. 1회차는 (68 - 50) + (66 - 50) + (56 - 50) = 40ms, 2회차는 (69 - 50) + (69 - 50) + (59 - 50) = 47ms다. 낮은 TBT는 "long task가 없다"가 아니라 "FCP 이후 초과분이 작다"는 뜻이다.
+TBT는 FCP 이후 세 태스크의 초과분으로 정확히 맞아떨어진다. 1회차는 (68 - 50) + (66 - 50) + (56 - 50) = 40ms, 2회차는 (69 - 50) + (69 - 50) + (59 - 50) = 47ms다.
+
+낮은 TBT는 "long task가 없다"가 아니라 "FCP 이후 초과분이 작다"는 뜻이다.
 
 다음은 gtag의 위치다. 루트 레이아웃(`src/app/[lang]/layout.tsx`)은 gtag를 `next/script`의 `strategy="afterInteractive"`로 불러온다. 그래서 gtag 태스크 두 개는 LCP보다 2.8초 남짓 뒤에 연달아 실행되고, 마지막 태스크가 끝나는 지점이 TTI로 잡힌다. 로딩 지표보다 **페이지가 뜬 직후 누른 입력의 input delay**와 겹칠 수 있는 자리다. 다만 lab 시간축 위의 추론이고, 실제 사용자가 그때 무엇을 눌렀는지는 이 블로그가 수집하지 않는다.
 
@@ -171,7 +179,7 @@ WICG의 [Crash Reporting 명세](https://wicg.github.io/crash-reporting/)는 rep
 
 보고를 받아야 할 페이지는 바로 그 crash로 이미 죽었으므로, JavaScript가 이 보고를 관찰할 방법은 정의상 없다. 브라우저가 페이지 밖에서 서버 엔드포인트로 POST할 뿐이다.
 
-이것이 브라우저 SDK에 주는 의미는 코드로 볼 수 있다. `sentry-javascript`의 [`reportingObserverIntegration` 소스](https://github.com/getsentry/sentry-javascript/blob/develop/packages/browser/src/integrations/reportingobserver.ts)는 기본 구독 타입에 `'crash'`, `'deprecation'`, `'intervention'`을 두고 `report.type === 'crash'` 분기도 있다. 그러나 이 통합은 페이지 안의 `ReportingObserver`를 쓰므로, 명세대로라면 실제 OOM crash에서 그 분기가 실행될 경로는 없다. (명세에서 끌어낸 필자의 추론이고, crash를 일으켜 확인하지는 않았다)
+이것이 브라우저 SDK에 주는 의미는 코드로 볼 수 있다. `sentry-javascript`의 [`reportingObserverIntegration` 소스](https://github.com/getsentry/sentry-javascript/blob/develop/packages/browser/src/integrations/reportingobserver.ts)는 기본 구독 타입에 `'crash'`, `'deprecation'`, `'intervention'`을 두고 `report.type === 'crash'` 분기도 있다. 그러나 이 통합은 페이지 안의 `ReportingObserver`를 쓰므로, 명세대로라면 실제 OOM crash에서 그 분기가 실행될 경로는 없다. 다만 이것은 명세에서 끌어낸 필자의 추론이고, crash를 일으켜 확인하지는 않았다.
 
 서버 쪽에서 Sentry가 `Reporting-Endpoints`의 목적지가 될 수는 있을까? 이 기능을 요청한 [getsentry/sentry#38940](https://github.com/getsentry/sentry/issues/38940)은 2022-09-15에 열려 2026-09-16 조회 시점에도 open이다. 지금 쓸 수 있는 방법은 엔드포인트를 직접 두고 Sentry로 중계하는 것까지다.
 
@@ -185,7 +193,8 @@ WICG의 [Crash Reporting 명세](https://wicg.github.io/crash-reporting/)는 rep
 
 브라우저의 CPU와 메모리 관측은 대부분 **조건이 맞아야 열린다**. long task와 LoAF는 Chromium에서만 오고, LoAF의 스크립트 귀속은 cross-origin iframe을 보지 못한다. 샘플링 프로파일러는 `Document-Policy` 헤더를 요구하는데, 그 헤더 이름은 명세에서 바뀌는 중이고 헤더 자체가 지표에 비용을 줄 수 있다. 메모리 측정 API는 cross-origin isolation을, crash report는 JavaScript 밖의 서버 엔드포인트를 요구한다.
 
-이 블로그는 그 조건 중 어느 것도 켜지 않았다. 그 상태는 방치가 아니라 78.8KB 결정, standard 빌드, 헤더를 늘리지 않은 선택이 쌓인 결과이고, 그중 standard 빌드는 web-vitals의 LoAF 누수를 피하는 결과로도 이어졌다. 관측을 늘리는 일도 비용이 드는 코드를 페이지에 싣는 일이라는 점이 이 영역에서 특히 선명하다.
+이 블로그는 그 조건 중 어느 것도 켜지 않았다. 그 상태는 방치가 아니라 78.8KB 결정, standard 빌드, 헤더를 늘리지 않은 선택이 쌓인 결과이고, 그중 standard 빌드는 web-vitals의 LoAF 누수를 피하는 결과로도 이어졌다. 
+관측을 늘리는 일도 비용이 드는 코드를 페이지에 싣는 일이라는 점이 이 영역에서 특히 선명하다.
 
 이 글의 수치는 전부 lab이거나 필자의 로컬 확인이었다. 실제 사용자에게서 모인 field data가 브라우저 밖으로 나가 CrUX와 Search Console, 검색에서 어떤 의미를 갖는지는 [다음 글](/260916)에서 이어가려고 한다.
 

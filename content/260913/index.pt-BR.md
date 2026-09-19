@@ -3,13 +3,13 @@ emoji: 🔭
 title: 'Reabrindo o Sentry'
 seoTitle: 'Recursos do Sentry pelo Sentry MCP: Crons, Logs e Metrics'
 date: '2026-09-13'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: observabilidade Sentry IA
 description: 'Dados reais via Sentry MCP antes de usar Logs, Crons ou Uptime: falha do GA num 200, um timeout de 5 s que disparou após 338 s e um veredito por recurso.'
 keywords: 'Sentry MCP, como usar Sentry, Sentry breadcrumbs, monitoramento com Sentry Crons, Sentry Logs, timeout DEADLINE_EXCEEDED, monitoramento de erros serverless, gray failure'
 locale: pt-BR
 translationOf: '260913'
-sourceHash: d5cf7b57be76beb05bd0e287fc534b7cb869b2fc3ff74239f87e976c42ec3876
+sourceHash: c717851611adbe411abedd18c0cf5bf172617ab1085cf90c45a16d553aa1e6d2
 ---
 
 Neste post, quero falar sobre reabrir o Sentry, uma ferramenta que uso há muito tempo.
@@ -70,7 +70,9 @@ O commit de correção `927c85b` fez todas as chamadas passarem um timeout de 5 
 | Sem timeout | **60,04 s** | `Deadline exceeded after 60.000s` |
 | `timeout: 5000` | **5,00 s** | `Deadline exceeded after 5.000s` |
 
-(O número 5 não tem fundamento. Não medi a distribuição das respostas normais do GA. Mas, neste blog, o número de visitantes é informação complementar, então considerei que desistir rápido era a direção certa, em vez de esperar muito) Essa issue não aparece mais na lista de issues. O valor de 65,877 segundos é um registro que ficou na mensagem do commit e na documentação do repositório.
+O número 5 não tem fundamento. Não medi a distribuição das respostas normais do GA. Mas, neste blog, o número de visitantes é informação complementar, então considerei que desistir rápido era a direção certa, em vez de esperar muito.
+
+Essa issue não aparece mais na lista de issues. O valor de 65,877 segundos é um registro que ficou na mensagem do commit e na documentação do repositório.
 
 Deveria ter terminado aí, mas no release em que a correção foi implantada começou a se acumular uma nova issue, JIHOON-BLOG-8. A mensagem era `Deadline exceeded after 338.655s`, e o stack ainda continha o wrapper de timeout do `google-gax`. A configuração chegava ao código, mas o tempo reportado era quase 70 vezes o configurado.
 
@@ -78,7 +80,9 @@ Por volta de 18 de agosto, extraí os 100 eventos mais recentes daquele momento 
 
 ![Mesmo após fixar o timeout em 5 segundos, os tempos reportados de 100 eventos DEADLINE_EXCEEDED se espalham de modo uniforme entre 5 e 504 segundos](1.png?w=720)
 
-O mínimo era 5,16 segundos, colado na configuração; a mediana, 61 segundos; e o máximo, 504 segundos. Os valores não se concentraram em nenhuma faixa. (Não consigo redesenhar este gráfico agora. O motivo aparece na próxima seção) A tag tinha só dois valores, `stats` e `popular`, e eles quase sempre chegavam em pares. O que os dois caminhos têm em comum é serem caminhos de revalidação atrás de um `unstable_cache` de uma hora. `page` e `pages`, que chamam o GA a cada requisição, não apareceram nenhuma vez.
+Não consigo redesenhar este gráfico agora. O motivo aparece na próxima seção.
+
+O mínimo era 5,16 segundos, colado na configuração; a mediana, 61 segundos; e o máximo, 504 segundos. Os valores não se concentraram em nenhuma faixa. A tag tinha só dois valores, `stats` e `popular`, e eles quase sempre chegavam em pares. O que os dois caminhos têm em comum é serem caminhos de revalidação atrás de um `unstable_cache` de uma hora. `page` e `pages`, que chamam o GA a cada requisição, não apareceram nenhuma vez.
 
 Então formulei uma hipótese. Numa função serverless, o ambiente de execução pode congelar depois de enviar a resposta até a próxima invocação. Se os timers também param nesse intervalo e só disparam depois de acordar, o que fica registrado não é o tempo efetivamente esperado, e sim um wall-clock time (tempo real decorrido) que inclui o período congelado. Ainda assim, uma distribuição não contradizer uma hipótese é diferente de sustentá-la. O mesmo formato apareceria se um trabalho pesado estivesse ocupando o event loop.
 
@@ -122,7 +126,7 @@ JIHOON-BLOG-B, aberta em 16 de setembro, é `Google Analytics credentials missin
 
 Por isso adicionei `SENTRY_ENVIRONMENT=local` ao comando de verificação na documentação do repositório. O motivo de não ter mudado o valor padrão no código é que ainda não confirmei que `CONTEXT` fica sempre visível no runtime de funções do Netlify. Se eu definir o padrão como `local` sem confirmar, desta vez eventos de produção poderiam se esconder sob `local`.
 
-## O que usar e onde
+## Recursos reescolhidos a partir dos dados
 
 Do mesmo jeito, verifiquei a partir dos dados os recursos que eu não tinha ativado. Nos últimos 30 dias havia 0 logs, 0 profiles, 0 replays, 0 cron monitors e 0 uptime monitors. Em vez de ler arquivos de configuração e escrever "não está ativado", confirmei que "é 0". A tabela abaixo resume o estado atual de cada recurso, conferido de novo na documentação oficial e nos changelogs em 16 de setembro de 2026.
 
@@ -176,7 +180,7 @@ O que ela não reduziu é igualmente claro.
 - **A defasagem entre datas e ferramentas.** Em recursos como o Agent Tracing, cujo status mudou cinco dias antes, precisei abrir o changelog para confirmar. As ferramentas de MCP também ainda estão correndo atrás do produto. Colocar `OR` numa busca de issues retornou 400, e a ferramenta de consulta de regras de alerta retornou 410 `This API no longer exists`.
 - **O que considerar falha.** Foi porque antes veio a decisão de definir uma resposta 200 com estatísticas zeradas como falha e de descer o ponto de instrumentação que restaram eventos para reabrir.
 
-## Conclusão
+## As lacunas definiram a ordem seguinte
 
 Resumindo, o motivo de eu ter deixado desativada a maior parte dos recursos do Sentry não era desconhecimento, e sim o custo de verificar. A IA reduziu bastante esse custo, e graças a isso minha ordem mudou: antes de ativar recursos, pergunto primeiro aos dados desta conta. Os dados que reabri assim mostraram, antes de qualquer recurso novo, alguns fatos incômodos. A falha que eu acreditava ter corrigido só parou sem nunca ter sido corrigida, a distribuição daquela época não pode mais ser redesenhada porque passou do período de retenção, e a minha verificação local estava se misturando às issues de production.
 

@@ -3,13 +3,13 @@ emoji: 🔭
 title: 'Reopening Sentry'
 seoTitle: 'Choosing Sentry Features via MCP: Crons, Logs, Metrics'
 date: '2026-09-13'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: observability Sentry AI
 description: 'Asking real data via Sentry MCP before enabling Logs, Crons, or Uptime: a GA failure hidden in a 200, a 5s timeout that fired after 338s, and verdicts.'
 keywords: 'Sentry MCP, Sentry features, Sentry breadcrumbs, Sentry Crons monitoring, Sentry Logs, DEADLINE_EXCEEDED timeout, serverless error monitoring, gray failure'
 locale: en
 translationOf: '260913'
-sourceHash: d5cf7b57be76beb05bd0e287fc534b7cb869b2fc3ff74239f87e976c42ec3876
+sourceHash: c717851611adbe411abedd18c0cf5bf172617ab1085cf90c45a16d553aa1e6d2
 ---
 
 In this post, I want to talk about reopening Sentry, a tool I have used for a long time.
@@ -70,7 +70,9 @@ The fix commit `927c85b` made every call pass a 5-second timeout. Reproducing it
 | No timeout set | **60.04s** | `Deadline exceeded after 60.000s` |
 | `timeout: 5000` | **5.00s** | `Deadline exceeded after 5.000s` |
 
-(The number 5 has no basis. I did not measure GA's normal response distribution. But on this blog the visitor count is supplementary information, so I judged that giving up quickly was the right direction rather than waiting long) That issue no longer appears in the issue list. The value 65.877 seconds is a record left in the commit message and the repository docs.
+The number 5 has no basis. I did not measure GA's normal response distribution. But on this blog the visitor count is supplementary information, so I judged that giving up quickly was the right direction rather than waiting long.
+
+That issue no longer appears in the issue list. The value 65.877 seconds is a record left in the commit message and the repository docs.
 
 It should have ended there, but in the release where the fix was deployed, a new issue, JIHOON-BLOG-8, started piling up. The message was `Deadline exceeded after 338.655s`, and the stack still contained the timeout wrapper from `google-gax`. The setting was reaching the code, yet the reported time was nearly 70 times the setting.
 
@@ -78,7 +80,9 @@ Around August 18, I pulled the 100 most recent events at the time and plotted th
 
 ![Even after fixing the timeout at 5 seconds, the reported times of 100 DEADLINE_EXCEEDED events are spread evenly from 5 to 504 seconds](1.png?w=720)
 
-The lower bound was 5.16 seconds, right next to the setting, the median was 61 seconds, and the maximum was 504 seconds. The values did not cluster in any range. (I cannot redraw this chart now. The reason comes in the next section) The tag had only two values, `stats` and `popular`, and they usually arrived in pairs. What the two paths have in common is that they are revalidation paths behind a one-hour `unstable_cache`. `page` and `pages`, which call GA on every request, never appeared.
+I cannot redraw this chart now. The reason comes in the next section.
+
+The lower bound was 5.16 seconds, right next to the setting, the median was 61 seconds, and the maximum was 504 seconds. The values did not cluster in any range. The tag had only two values, `stats` and `popular`, and they usually arrived in pairs. What the two paths have in common is that they are revalidation paths behind a one-hour `unstable_cache`. `page` and `pages`, which call GA on every request, never appeared.
 
 So I formed a hypothesis. A serverless function's execution environment can freeze after sending a response until the next invocation. If timers also stop during that time and fire only after waking up, what gets recorded is not the time actually spent waiting but wall-clock time that includes the frozen period. Still, a distribution not contradicting a hypothesis is different from supporting it. The same shape would appear if heavy work had been holding the event loop.
 
@@ -122,7 +126,7 @@ This event came from me following the local verification procedure in the reposi
 
 So I added `SENTRY_ENVIRONMENT=local` to the verification command in the repository docs. The reason I did not change the default in code is that I have not yet confirmed that `CONTEXT` is always visible in the Netlify function runtime. If I set the default to `local` without confirming, production events could this time hide under `local`.
 
-## What to use where
+## Features rechosen from the data
 
 I checked the features I had not turned on the same way, starting from the data. Over the last 30 days there were 0 logs, 0 profiles, 0 replays, 0 cron monitors, and 0 uptime monitors. Instead of reading config files and writing "not enabled", I confirmed "it is 0". The table below summarizes each feature's current state, rechecked against official documentation and changelogs on September 16, 2026.
 
@@ -176,7 +180,7 @@ What it did not reduce is just as clear.
 - **Lag between dates and tools.** For features like Agent Tracing, whose status changed five days earlier, I had to open the changelog to confirm. The MCP tools are also still catching up with the product. Putting `OR` into an issue search returned 400, and the alert rule lookup tool returned 410 `This API no longer exists`.
 - **Deciding what counts as failure.** Because the judgment to define a 200 response and statistics of 0 as failure, and to move the instrumentation point down, came first, there were events to reopen at all.
 
-## Closing
+## The gaps set the next order
 
 To sum up, the reason I left most of Sentry's features off was not a lack of knowledge but the cost of checking. AI lowered that cost considerably, and thanks to that my order changed to asking this account's data first before turning features on. The data I reopened that way showed a few uncomfortable facts before any new feature did. The outage I believed was fixed had only stopped without ever being fixed, the distribution from that time can no longer be redrawn because it passed the retention period, and my local verification was mixing into production issues.
 

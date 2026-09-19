@@ -3,13 +3,13 @@ emoji: 🧮
 title: '浏览器的 CPU 与内存'
 seoTitle: '浏览器主线程与内存观测：Long Task、LoAF、性能分析与内存测量 API'
 date: '2026-09-15'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: 观测 前端 浏览器
 description: '梳理浏览器主线程与内存的观测方法。long task 与 TBT、LoAF、JS Self-Profiling、内存测量 API、crash report 分别能看到什么，我用这个博客的 Lighthouse 实测和响应头做了验证。'
 keywords: '浏览器主线程, long task 50ms, Long Animation Frames API, Total Blocking Time, JS Self-Profiling API, Sentry 浏览器性能分析, measureUserAgentSpecificMemory, 浏览器内存泄漏'
 locale: zh-CN
 translationOf: '260915'
-sourceHash: e3099827d3ce62d6111f68e8a70bca3c1d37a5f8550f952482939e5c286405ce
+sourceHash: a6c2a00e7d6b4f9d29de83090c3f3b829145afc5d29df4b16fd073292c191961
 ---
 
 这篇文章想聊聊如何观测浏览器的主线程和内存。
@@ -40,7 +40,7 @@ sourceHash: e3099827d3ce62d6111f68e8a70bca3c1d37a5f8550f952482939e5c286405ce
 
 TBT 是 lab 指标，而 Core Web Vitals 中的响应性指标是 INP。web.dev 的 [INP 文章](https://web.dev/articles/inp)划清了界限：在不做交互、只看加载的 lab 工具里，TBT 可以是合理的代理指标，但不是替代品。
 
-因为 TBT 不知道用户什么时候按了什么。即使主线程被严重阻塞，只要用户在脚本执行完之后才按，INP 也可能很低。long task 拉长 INP 的路径不止一条(处理函数本身很长时是 processing duration，随后的渲染很长时是 presentation delay)，但与 TBT 最直接相关的路径，是按下那一刻正在运行的任务还剩多少时间，就把上一篇文章里讲过的 input delay 拉长多少。所以低 TBT 只能告诉你"加载期间主线程没有被严重阻塞"。实际输入被什么阻塞了，要在 field 中观察任务和帧才能知道。
+因为 TBT 不知道用户什么时候按了什么。即使主线程被严重阻塞，只要用户在脚本执行完之后才按，INP 也可能很低。long task 拉长 INP 的路径不止一条。处理函数本身很长时，processing duration 会变长；随后的渲染很长时，presentation delay 会变长。其中与 TBT 最直接相关的路径，是按下那一刻正在运行的任务还剩多少时间，就把上一篇文章里讲过的 input delay 拉长多少。所以低 TBT 只能告诉你"加载期间主线程没有被严重阻塞"。实际输入被什么阻塞了，要在 field 中观察任务和帧才能知道。
 
 ## Long Tasks 与 Long Animation Frames
 
@@ -174,7 +174,7 @@ WICG 的 [Crash Reporting 规范](https://wicg.github.io/crash-reporting/)定义
 
 本应接收报告的页面已经因为这次 crash 而崩溃，所以按定义，JavaScript 没有办法观察到这份报告。浏览器只是在页面之外向服务器端点发起 POST。
 
-这对浏览器 SDK 意味着什么，可以从代码中看出。`sentry-javascript` 的 [`reportingObserverIntegration` 源码](https://github.com/getsentry/sentry-javascript/blob/develop/packages/browser/src/integrations/reportingobserver.ts)在默认订阅类型中放了 `'crash'`、`'deprecation'`、`'intervention'`，还有 `report.type === 'crash'` 的分支。但这个集成使用的是页面内的 `ReportingObserver`，所以如果规范成立，在真实的 OOM crash 中这个分支就没有被执行的路径。(这是我从规范推导出的推论，并没有真的触发 crash 来验证)
+这对浏览器 SDK 意味着什么，可以从代码中看出。`sentry-javascript` 的 [`reportingObserverIntegration` 源码](https://github.com/getsentry/sentry-javascript/blob/develop/packages/browser/src/integrations/reportingobserver.ts)在默认订阅类型中放了 `'crash'`、`'deprecation'`、`'intervention'`，还有 `report.type === 'crash'` 的分支。但这个集成使用的是页面内的 `ReportingObserver`，所以如果规范成立，在真实的 OOM crash 中这个分支就没有被执行的路径。不过这是我从规范推导出的推论，并没有真的触发 crash 来验证。
 
 那在服务端，Sentry 能否成为 `Reporting-Endpoints` 的目标？请求这个功能的 [getsentry/sentry#38940](https://github.com/getsentry/sentry/issues/38940) 于 2022-09-15 开启，到 2026-09-16 查阅时仍是 open 状态。目前能用的办法，只到自己搭一个端点再转发给 Sentry 为止。
 

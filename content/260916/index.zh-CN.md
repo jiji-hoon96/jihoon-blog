@@ -3,13 +3,13 @@ emoji: 🧩
 title: '从观测到判断'
 seoTitle: 'Core Web Vitals 对 SEO 有多大作用？用 CrUX 与 Search Console 核实'
 date: '2026-09-16'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: 观测 前端 GA4 Search-Console
 description: '整理浏览器测得的 Web Vitals 经过 CrUX、PageSpeed Insights、Search Console 时如何被层层筛选，以及 Google 关于排名的表述说到哪里为止。还收录了排名下降但点击增加的真实案例与重新查询的结果。'
 keywords: 'CrUX 实测数据, PageSpeed Insights 实测数据, Search Console 核心网页指标报告, Core Web Vitals 对排名的影响, Search Console 查询与网页点击差异, 平均排名下降 点击增加, 抓取速度 5xx 429'
 locale: zh-CN
 translationOf: '260916'
-sourceHash: 28511e965ad669a872b9c5ac03c453af63c8424d8e9db750ab0e7223d13ed4fb
+sourceHash: ffb98bcd9319ff4b9e6d07267eeaf96c6cb22ce658817b7a29f36977d6a8de15
 ---
 
 这篇文章想聊聊在浏览器里测得的性能数据，是如何一路走到搜索和判断的。
@@ -107,7 +107,9 @@ Google 的 [crawl budget 指南](https://developers.google.com/search/docs/crawl
 
 我确实用这些搜索数据做过一次判断。[Biome 能取代 ESLint 和 Prettier 吗？](/241201)是我在 2024 年 12 月写的文章，相对于展示次数，点击明显偏少。于是在 2026 年 6 月 11 日，我按照实际搜索查询的形式，给它加上了以 "Biome vs ESLint vs Prettier" 开头的 `seoTitle`。
 
-改完标题后收集的 28 天对比中，这篇文章的数字是这样变化的。（这是当时查询到的值。`.gsc-data/` 每次收集都会被覆盖，所以当时的 CSV 现在不在仓库里，我也没有记下确切的收集日期。能确认的只是：8 月 18 日的提交里包含一份 8 月 16 日的草稿快照，其中已经有这些数字）展示次数从 230 次降到 204 次，减少了 11%，平均排名从第 8.9 位退到第 11.6 位。只看这两个指标，这是一篇变差了的文章。但点击从 2 次增加到 13 次，CTR 从 0.87% 变成了 6.37%。
+改完标题后收集的 28 天对比中，这篇文章的数字是这样变化的。展示次数从 230 次降到 204 次，减少了 11%，平均排名从第 8.9 位退到第 11.6 位。只看这两个指标，这是一篇变差了的文章。但点击从 2 次增加到 13 次，CTR 从 0.87% 变成了 6.37%。
+
+这四个数字是当时查询到的值。`.gsc-data/` 每次收集都会被覆盖，所以当时的 CSV 现在不在仓库里，我也没有记下确切的收集日期。能确认的只是：8 月 18 日的提交里包含一份 8 月 16 日的草稿快照，其中已经有这些数字。
 
 ![在 Search Console 中 Biome 文章的 28 天对比里，展示次数和平均排名变差了，但点击次数和点击率大幅上升](2.png?w=720)
 

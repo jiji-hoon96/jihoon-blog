@@ -3,13 +3,13 @@ emoji: 🧮
 title: 'Browser CPU and Memory'
 seoTitle: 'Browser Main Thread and Memory: Long Tasks, LoAF, Profiling'
 date: '2026-09-15'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: observability frontend browser
 description: 'What long tasks, TBT, LoAF, JS Self-Profiling, memory APIs, and crash reports show, checked with Lighthouse runs and response headers on this blog.'
 keywords: 'browser main thread, long task 50ms, Long Animation Frames API, Total Blocking Time, JS Self-Profiling API, Sentry browser profiling, measureUserAgentSpecificMemory, browser memory leak'
 locale: en
 translationOf: '260915'
-sourceHash: e3099827d3ce62d6111f68e8a70bca3c1d37a5f8550f952482939e5c286405ce
+sourceHash: a6c2a00e7d6b4f9d29de83090c3f3b829145afc5d29df4b16fd073292c191961
 ---
 
 In this post, I want to talk about how to observe the browser's main thread and memory.
@@ -40,7 +40,7 @@ The yellow part is the first 50ms of each task, and the red part is the blocking
 
 TBT is a lab metric, and the responsiveness metric in Core Web Vitals is INP. web.dev's [INP article](https://web.dev/articles/inp) draws the line: in lab tools that only look at loading without interaction, TBT can be a reasonable proxy, but it is not a replacement.
 
-That is because TBT does not know when the user pressed what. Even if the main thread is heavily blocked, INP can be low if the user presses after the scripts are done. A long task can raise INP along several paths (processing duration if the handler itself is long, presentation delay if the rendering after it is long), but the path most directly tied to TBT is lengthening the input delay from the previous post by however much time remains in the task that was running at the moment of the press. So a low TBT only tells you "the main thread was not heavily blocked during loading." To know what actual input was blocked by, you have to look at tasks and frames in the field.
+That is because TBT does not know when the user pressed what. Even if the main thread is heavily blocked, INP can be low if the user presses after the scripts are done. A long task can raise INP along several paths. If the handler itself is long, processing duration grows; if the rendering after it is long, presentation delay grows. Of those, the path most directly tied to TBT is lengthening the input delay from the previous post by however much time remains in the task that was running at the moment of the press. So a low TBT only tells you "the main thread was not heavily blocked during loading." To know what actual input was blocked by, you have to look at tasks and frames in the field.
 
 ## Long Tasks and Long Animation Frames
 
@@ -174,7 +174,7 @@ The key property of this signal is in one sentence of the specification.
 
 The page that would need to receive the report has already died from that very crash, so by definition there is no way for JavaScript to observe it. The browser simply POSTs to a server endpoint from outside the page.
 
-What this means for browser SDKs can be seen in code. In `sentry-javascript`, the [`reportingObserverIntegration` source](https://github.com/getsentry/sentry-javascript/blob/develop/packages/browser/src/integrations/reportingobserver.ts) includes `'crash'`, `'deprecation'`, and `'intervention'` in its default subscribed types and even has a `report.type === 'crash'` branch. But this integration uses a `ReportingObserver` inside the page, so if the specification holds, there is no path by which that branch runs on a real OOM crash. (This is my inference drawn from the specification, and I have not caused a crash to verify it)
+What this means for browser SDKs can be seen in code. In `sentry-javascript`, the [`reportingObserverIntegration` source](https://github.com/getsentry/sentry-javascript/blob/develop/packages/browser/src/integrations/reportingobserver.ts) includes `'crash'`, `'deprecation'`, and `'intervention'` in its default subscribed types and even has a `report.type === 'crash'` branch. But this integration uses a `ReportingObserver` inside the page, so if the specification holds, there is no path by which that branch runs on a real OOM crash. That said, this is my inference drawn from the specification, and I have not caused a crash to verify it.
 
 On the server side, could Sentry be the destination of `Reporting-Endpoints`? [getsentry/sentry#38940](https://github.com/getsentry/sentry/issues/38940), which requested this feature, was opened on 2022-09-15 and was still open when I checked on 2026-09-16. What is available today goes only as far as running your own endpoint and relaying to Sentry.
 

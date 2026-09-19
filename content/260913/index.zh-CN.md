@@ -3,13 +3,13 @@ emoji: 🔭
 title: '重新打开 Sentry'
 seoTitle: '用 Sentry MCP 重新挑选 Sentry 功能：Crons、Logs、Metrics 该用在哪里'
 date: '2026-09-13'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: 观测 Sentry AI
 description: '用 Sentry MCP 先向本博客的真实数据提问，重新挑选长期使用却从未开启的 Sentry 功能。内容涵盖藏在 200 响应里的 GA 失败、5 秒超时之后的 338 秒、breadcrumb 空白，以及逐项功能判定。'
 keywords: 'Sentry MCP, Sentry 使用教程, Sentry breadcrumb, Sentry Crons 监控, Sentry Logs, DEADLINE_EXCEEDED 超时, Serverless 错误监控, gray failure'
 locale: zh-CN
 translationOf: '260913'
-sourceHash: d5cf7b57be76beb05bd0e287fc534b7cb869b2fc3ff74239f87e976c42ec3876
+sourceHash: c717851611adbe411abedd18c0cf5bf172617ab1085cf90c45a16d553aa1e6d2
 ---
 
 这篇文章想聊聊重新打开用了很久的 Sentry 这件事。
@@ -70,7 +70,9 @@ captureServerException(error, { routeKind: 'analytics', operation: 'stats' })
 | 未指定超时 | **60.04 秒** | `Deadline exceeded after 60.000s` |
 | `timeout: 5000` | **5.00 秒** | `Deadline exceeded after 5.000s` |
 
-(5 这个数字没有依据。我没有测量 GA 正常响应的分布。只是在这个博客里访客数是附加信息，比起久等，尽快放弃的方向是对的)那个 issue 现在已经不出现在 issue 列表里了。65.877 秒这个值，是留在提交信息和仓库文档里的记录。
+5 这个数字没有依据。我没有测量 GA 正常响应的分布。只是在这个博客里访客数是附加信息，比起久等，尽快放弃的方向是对的。
+
+那个 issue 现在已经不出现在 issue 列表里了。65.877 秒这个值，是留在提交信息和仓库文档里的记录。
 
 本该到此为止，可在部署了修复的 release 里，新的 issue JIHOON-BLOG-8 开始堆积。信息是 `Deadline exceeded after 338.655s`，stack 里也原样保留着 `google-gax` 的超时包装器。配置确实作用到了代码上，报告的时间却接近配置的 70 倍。
 
@@ -78,7 +80,9 @@ captureServerException(error, { routeKind: 'analytics', operation: 'stats' })
 
 ![即使把超时固定为 5 秒，100 条 DEADLINE_EXCEEDED 的报告时间仍从 5 秒到 504 秒均匀分布](1.png?w=720)
 
-下限是 5.16 秒，紧贴配置值，中位数 61 秒，最大值 504 秒。数值没有集中在任何区间。(这张图现在已经无法重画。原因在下一节)标签只有 `stats` 和 `popular` 两个值，而且大多成对出现。两条路径的共同点是，它们都是一小时 `unstable_cache` 背后的重新验证路径。每次请求都调用 GA 的 `page`、`pages` 一次也没出现。
+这张图现在已经无法重画。原因在下一节。
+
+下限是 5.16 秒，紧贴配置值，中位数 61 秒，最大值 504 秒。数值没有集中在任何区间。标签只有 `stats` 和 `popular` 两个值，而且大多成对出现。两条路径的共同点是，它们都是一小时 `unstable_cache` 背后的重新验证路径。每次请求都调用 GA 的 `page`、`pages` 一次也没出现。
 
 于是我提出一个假设。Serverless 函数在发出响应后，到下一次调用之前，执行环境可能会被冻结。如果这期间计时器也停住，醒来后才触发，那么记录下来的就不是实际等待的时间，而是连冻结时间也算进去的 wall-clock time(实际经过时间)。不过，分布与假设不矛盾，和分布支持假设是两回事。如果有繁重的任务一直占着事件循环，也会呈现同样的形状。
 
@@ -122,7 +126,7 @@ JIHOON-BLOG-8 这个 issue 的发生计数器是 **144**。在 errors 数据集�
 
 所以我在仓库文档的验证命令里加上了 `SENTRY_ENVIRONMENT=local`。之所以没有在代码里改默认值，是因为我还没确认 Netlify 函数运行时里 `CONTEXT` 是否总是可见。如果不确认就把默认值设为 `local`，这回生产事件可能会藏进 `local` 里。
 
-## 什么功能用在哪里
+## 用数据重新挑过的功能
 
 对于没开启的功能，我也用同样的方式先从数据确认。最近 30 天里 logs 0 条、profiles 0 条、replays 0 条、cron monitor 0 个、uptime monitor 0 个。与其读配置文件写"没开启"，不如确认"是 0"。下表是在 2026 年 9 月 16 日对照官方文档和 changelog 重新确认后整理的各功能现状。
 
@@ -176,7 +180,7 @@ Session Replay 和 User Feedback 以浏览器 SDK 为前提。这个博客决定
 - **日期与工具的时差。** 像 Agent Tracing 这样五天前状态刚变的功能，必须打开 changelog 才能确认。MCP 工具也还在追赶产品。在 issue 搜索里加 `OR` 会返回 400，告警规则查询工具则返回 410 `This API no longer exists`。
 - **把什么视为失败。** 正因为先有了把 200 响应和 0 这个统计定义为失败、把埋点位置往下移的判断，才有可供重新打开的事件留存下来。
 
-## 结语
+## 空白定下的下一步顺序
 
 总结一下，我之所以没有开启 Sentry 的大部分功能，不是因为不了解，而是因为确认的成本。AI 大幅降低了这笔成本，于是我的顺序变成了在开启功能之前先问这个账号的数据。这样重新打开的数据，比任何新功能都更早地揭示了几个令人不舒服的事实。我以为修好的故障其实没修就停了，当时的分布因为超过保留期而无法重画，我的本地验证正混进 production 的 issue 里。
 

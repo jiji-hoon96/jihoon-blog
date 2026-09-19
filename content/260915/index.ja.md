@@ -3,13 +3,13 @@ emoji: 🧮
 title: 'ブラウザのCPUとメモリ'
 seoTitle: 'ブラウザのメインスレッドとメモリの観測：Long Task、LoAF、プロファイリング、メモリ計測API'
 date: '2026-09-15'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: 観測 フロントエンド ブラウザ
 description: 'ブラウザのメインスレッドとメモリの観測を整理する。long taskとTBT、LoAF、JS Self-Profiling、メモリ計測API、crash reportが何を見せるのかを、このブログのLighthouse実測とレスポンスヘッダーで確かめた。'
 keywords: 'ブラウザ メインスレッド, long task 50ms, Long Animation Frames API, Total Blocking Time TBT, JS Self-Profiling API, Sentry ブラウザ プロファイリング, measureUserAgentSpecificMemory, ブラウザ メモリリーク'
 locale: ja
 translationOf: '260915'
-sourceHash: e3099827d3ce62d6111f68e8a70bca3c1d37a5f8550f952482939e5c286405ce
+sourceHash: a6c2a00e7d6b4f9d29de83090c3f3b829145afc5d29df4b16fd073292c191961
 ---
 
 今回は、ブラウザのメインスレッドとメモリを観測する方法について書いてみたい。
@@ -40,7 +40,7 @@ sourceHash: e3099827d3ce62d6111f68e8a70bca3c1d37a5f8550f952482939e5c286405ce
 
 TBTはlab指標で、Core Web Vitalsの応答性指標はINPである。web.devの[INPの記事](https://web.dev/articles/inp)は、インタラクションなしに読み込みだけを見るlabツールではTBTが妥当な代理指標にはなりうるが、代替物ではないと線を引いている。
 
-TBTは、ユーザーがいつ何を押したかを知らないからだ。メインスレッドが大きく塞がっていても、ユーザーがスクリプトの終わった後に押せばINPは低くなりうる。long taskがINPを伸ばす経路はいくつかあるが(ハンドラー自体が長ければprocessing duration、後続のレンダリングが長ければpresentation delay)、TBTと最も直接つながる経路は、押した瞬間に実行中だったタスクの残り時間の分だけ、前回の記事で見たinput delayを伸ばすことである。だから低いTBTが教えてくれるのは「読み込み中にメインスレッドが大きく塞がらなかった」までだ。実際の入力が何に塞がれたのかは、fieldでタスクとフレームを見なければわからない。
+TBTは、ユーザーがいつ何を押したかを知らないからだ。メインスレッドが大きく塞がっていても、ユーザーがスクリプトの終わった後に押せばINPは低くなりうる。long taskがINPを伸ばす経路はいくつかある。ハンドラー自体が長ければprocessing durationが伸び、後続のレンダリングが長ければpresentation delayが伸びる。そのうちTBTと最も直接つながる経路は、押した瞬間に実行中だったタスクの残り時間の分だけ、前回の記事で見たinput delayを伸ばすことである。だから低いTBTが教えてくれるのは「読み込み中にメインスレッドが大きく塞がらなかった」までだ。実際の入力が何に塞がれたのかは、fieldでタスクとフレームを見なければわからない。
 
 ## Long TasksとLong Animation Frames
 
@@ -174,7 +174,7 @@ WICGの[Crash Reporting仕様](https://wicg.github.io/crash-reporting/)はreport
 
 報告を受け取るはずのページはそのcrashですでに落ちているので、JavaScriptがこの報告を観察する方法は定義上ない。ブラウザがページの外からサーバーのエンドポイントへPOSTするだけである。
 
-これがブラウザSDKにとって何を意味するかは、コードで見られる。`sentry-javascript`の[`reportingObserverIntegration`のソース](https://github.com/getsentry/sentry-javascript/blob/develop/packages/browser/src/integrations/reportingobserver.ts)は、デフォルトの購読タイプに`'crash'`、`'deprecation'`、`'intervention'`を置き、`report.type === 'crash'`の分岐もある。しかしこの統合はページ内の`ReportingObserver`を使うので、仕様どおりなら実際のOOM crashでその分岐が実行される経路はない。(仕様から導いた筆者の推論であり、crashを起こして確かめてはいない)
+これがブラウザSDKにとって何を意味するかは、コードで見られる。`sentry-javascript`の[`reportingObserverIntegration`のソース](https://github.com/getsentry/sentry-javascript/blob/develop/packages/browser/src/integrations/reportingobserver.ts)は、デフォルトの購読タイプに`'crash'`、`'deprecation'`、`'intervention'`を置き、`report.type === 'crash'`の分岐もある。しかしこの統合はページ内の`ReportingObserver`を使うので、仕様どおりなら実際のOOM crashでその分岐が実行される経路はない。ただしこれは仕様から導いた筆者の推論であり、crashを起こして確かめてはいない。
 
 サーバー側で、Sentryが`Reporting-Endpoints`の送信先になることはできるだろうか。この機能を要望した[getsentry/sentry#38940](https://github.com/getsentry/sentry/issues/38940)は2022-09-15に開かれ、2026-09-16の閲覧時点でもopenだ。今使える方法は、エンドポイントを自前で置いてSentryに中継するところまでである。
 

@@ -179,7 +179,7 @@ JSON.stringify({ value: undefined });
 // → "{}" — the undefined field is omitted
 ```
 
-`Date`는 JSON 왕복 과정에서 문자열이 되고, `Map`, `Set`, `undefined`는 데이터가 사라질 수 있다. `BigInt`는 기본 설정에서 `JSON.stringify`가 `TypeError`를 던져 직렬화 자체가 실패한다. 외부 저장소에 객체를 넣을 때는 **어떤 타입이 사라지거나 변하거나 직렬화를 실패하게 하는지**를 항상 의식하고, 필요하면 직렬화 어댑터를 둬야 한다.
+`Date`는 JSON 왕복 과정에서 문자열이 되고, `Map`, `Set`, `undefined`는 데이터가 사라질 수 있다. `BigInt`는 기본 설정에서 `JSON.stringify`가 `TypeError`를 던져 직렬화 자체가 실패한다. 외부 저장소에 객체를 넣을 때는 **어떤 타입이 사라지거나 변하거나 직렬화를 실패하게 하는지**를 항상 의식하고, 필요하면 직렬화 adapter를 둬야 한다.
 
 외부 상태의 진짜 어려움은 **React가 그 변화를 자동으로 감지하지 못한다**는 점이다. localStorage에 값을 써도 React 컴포넌트는 리렌더링되지 않는다. 이걸 해결하는 패턴은 보통 세 가지이다.
 

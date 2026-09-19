@@ -3,13 +3,13 @@ emoji: 🧩
 title: 'De la observación al juicio'
 seoTitle: 'Core Web Vitals y SEO: lo que muestran CrUX y Search Console'
 date: '2026-09-16'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: observabilidad frontend GA4 Search-Console
 description: 'Cómo CrUX, PageSpeed Insights y Search Console filtran las Web Vitals, qué dice Google del ranking y un artículo con más clics pese a bajar de posición.'
 keywords: 'datos de campo CrUX, PageSpeed Insights datos de campo, informe Core Web Vitals Search Console, Core Web Vitals afecta al posicionamiento, clics por consulta y por página Search Console, posición media bajó clics subieron, frecuencia de rastreo 5xx 429'
 locale: es
 translationOf: '260916'
-sourceHash: 28511e965ad669a872b9c5ac03c453af63c8424d8e9db750ab0e7223d13ed4fb
+sourceHash: ffb98bcd9319ff4b9e6d07267eeaf96c6cb22ce658817b7a29f36977d6a8de15
 ---
 
 En este artículo quiero hablar del camino que recorren los datos de rendimiento medidos en el navegador hasta llegar a la búsqueda y al juicio.
@@ -107,7 +107,9 @@ Por lo tanto, estos dos totales nunca fueron números construidos con las mismas
 
 Hay un caso en el que de verdad tomé una decisión con estos datos de búsqueda. [¿Puede Biome reemplazar a ESLint y Prettier?](/241201) es un artículo que escribí en diciembre de 2024 y que tenía llamativamente pocos clics en relación con sus impresiones. Así que el 11 de junio de 2026 le puse un `seoTitle` que empieza por "Biome vs ESLint vs Prettier", ajustado a la forma de las consultas reales.
 
-En la comparación de 28 días recogida después de cambiar el título, los números de este artículo se movieron así. (Son los valores que consulté entonces. `.gsc-data/` se sobrescribe en cada recogida, así que aquel CSV ya no está en el repositorio, y tampoco guardé la fecha exacta de la recogida. Lo único comprobable es que estos números ya aparecen en la instantánea del borrador fechada el 16 de agosto e incluida en un commit del 18 de agosto) Las impresiones bajaron un 11%, de 230 a 204, y la posición media retrocedió de 8,9 a 11,6. Mirando solo esas dos métricas, el artículo empeoró. Sin embargo, los clics subieron de 2 a 13 y el CTR pasó del 0,87% al 6,37%.
+En la comparación de 28 días recogida después de cambiar el título, los números de este artículo se movieron así. Las impresiones bajaron un 11%, de 230 a 204, y la posición media retrocedió de 8,9 a 11,6. Mirando solo esas dos métricas, el artículo empeoró. Sin embargo, los clics subieron de 2 a 13 y el CTR pasó del 0,87% al 6,37%.
+
+Estos cuatro números son los valores que consulté entonces. `.gsc-data/` se sobrescribe en cada recogida, así que aquel CSV ya no está en el repositorio y tampoco guardé la fecha exacta de la recogida. Lo único comprobable es que estos números ya aparecen en la instantánea del borrador fechada el 16 de agosto e incluida en un commit del 18 de agosto.
 
 ![En la comparación de 28 días de Search Console para el artículo de Biome, las impresiones y la posición media empeoraron, pero los clics y el porcentaje de clics subieron mucho](2.png?w=720)
 
