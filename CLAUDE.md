@@ -421,6 +421,32 @@ curl -o /dev/null -w '%{http_code}\n' http://localhost:3111/260913/opengraph-ima
 **쿼터를 태우지 않으려면 DSN 없이 돌린다.** 위 절차는 코드 경로가 도는 것까지만 확인하면
 충분하다. 실제 전송까지 보고 싶을 때만 DSN 을 주고, 끝나면 만들어진 이슈를 resolve 한다.
 
+## 손으로 쓴 CSS 는 새 파일에 둔다
+
+`src/app/globals.css` 끝에 붙인 규칙이 배포에서 사라진 적이 있다(2026-09-20, `aae52ab`).
+`@layer base` 커서 규칙과 `@keyframes qa-*` 가 프로덕션 CSS 에 하나도 없었다.
+
+**같은 빌드의 나머지는 멀쩡했다.** HTML 은 그 커밋이 맞았고, 새 컴포넌트에서 생성된
+유틸리티(`backdrop-filter`, `origin-top-right`, `shadow-2xl`)도 들어왔고, 같은 파일의
+**기존** 수제 규칙(`.home-meta`, `.utterances-wrapper`)도 남아 있었다. 새로 쓴 꼬리만
+없었다. 중괄호는 맞았고 lockfile 은 양쪽 다 tailwind 4.1.18 이며 로컬 clean build 에는
+그 규칙들이 있었다. 그 파일의 컴파일 결과가 캐시에서 온 것으로 본다.
+
+고친 방법은 경로를 바꾸는 것이다. `src/styles/interactions.css` 로 옮겨 `prose.css` 옆에서
+`@import` 했다. 빌드가 한 번도 본 적 없는 경로는 낡은 항목을 가질 수 없다. 다음 배포에서
+CSS 해시가 `3gcul2laa-bvp` 에서 `27hlba6q1xl7s` 로 바뀌며 실렸다.
+
+**그래서 새 수제 CSS 는 `globals.css` 꼬리가 아니라 `src/styles/` 의 파일에 쓴다.**
+그리고 배포 확인은 페이지가 아니라 배포된 CSS 파일을 직접 본다.
+
+```bash
+curl -s "https://hooninedev.com$(curl -s https://hooninedev.com/ \
+  | grep -oE '/_next/static/[^"]+\.css' | head -1)" | grep -c qa-fade-in
+```
+
+**유틸리티 클래스는 이 사고에서 살아남았다.** 그래서 커서처럼 눈에 띄는 것은
+base 레이어와 컴포넌트의 `cursor-pointer` 양쪽에 둔다.
+
 ## 방문자 수 (Netlify Blobs)
 
 홈 하단에 `오늘 N · 전체 N` 을 둔다. 조각은 셋이다.
