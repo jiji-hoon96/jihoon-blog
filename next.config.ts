@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ["react-icons", "date-fns"],
+    // 루트 레이아웃이 `[lang]` 이라는 최상위 동적 세그먼트라, 매칭되지 않은 URL 의
+    // 404 에 `<html lang>` 과 `<title>` 을 줄 자리가 `app/global-not-found.tsx`
+    // 뿐이다. Next 문서가 이 플래그를 드는 두 경우 중 두 번째다.
+    globalNotFound: true,
   },
   // Match Gatsby's trailing slash behavior
   trailingSlash: false,

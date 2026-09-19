@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { allPosts } from "contentlayer/generated";
 import { getDictionary } from "@/i18n/dictionaries";
 import { isLocale, toPublicPath } from "@/i18n/locales";
-import { getAuthorEntityId } from "@/lib/author-identity";
+import { getAuthorPersonNode, getSiteEntityId } from "@/lib/author-identity";
 import { getSortedPublishedPosts } from "@/lib/filter-posts";
 import { formatHomepageDate, getHomepagePosts } from "@/lib/homepage-index";
 import { getPostsForLocale } from "@/lib/localized-posts";
@@ -30,25 +30,14 @@ export default async function HomePage({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    // 글의 `isPartOf` 가 이 `@id` 를 가리킨다. 프래그먼트를 붙여 홈 URL 자체와
+    // 구분하지 않으면 한 URL 에 WebSite 와 Blog 두 타입이 따로 뜬다.
+    "@id": getSiteEntityId(siteMetadata.siteUrl),
     name: siteMetadata.title,
     url: homeUrl,
     description: dictionary.siteDescription,
     inLanguage: lang,
-    author: {
-      "@type": "Person",
-      "@id": getAuthorEntityId(siteMetadata.siteUrl),
-      name: siteMetadata.author.name,
-      alternateName: siteMetadata.brand,
-      email: siteMetadata.author.bio.email,
-      url: homeUrl,
-      image: `${siteMetadata.siteUrl}/images/jihoon.jpeg`,
-      jobTitle: "Frontend Engineer",
-      knowsAbout: siteMetadata.author.stack,
-      sameAs: [
-        siteMetadata.author.social.github,
-        siteMetadata.author.social.linkedIn,
-      ],
-    },
+    author: getAuthorPersonNode(siteMetadata.siteUrl),
   };
 
   return (

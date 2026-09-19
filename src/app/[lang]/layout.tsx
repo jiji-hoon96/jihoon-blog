@@ -133,14 +133,24 @@ export default async function RootLayout({
 			</head>
 			<body>
 				<ThemeProvider attribute="class" defaultTheme="light">
+					{/* 포커스를 받기 전에는 화면 밖에 둔다. Tab 한 번으로 헤더를 건너뛴다. */}
+					<a
+						href="#main-content"
+						className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-canvas focus:px-4 focus:py-2 focus:text-ink focus:outline focus:outline-2 focus:outline-[var(--qa-accent)]"
+					>
+						{getDictionary(lang).actions.skipToContent}
+					</a>
 					<div className="flex min-h-screen flex-col">
 						<Header locale={lang} />
-						<main className="mx-auto w-full max-w-[var(--width-content)] px-4 flex-1">
+						<main
+							id="main-content"
+							className="mx-auto w-full max-w-[var(--width-content)] px-4 flex-1"
+						>
 							{children}
 						</main>
 						<Footer locale={lang} />
 					</div>
-					<ScrollToTop />
+					<ScrollToTop locale={lang} />
 				</ThemeProvider>
 
 				{/* Google Analytics */}

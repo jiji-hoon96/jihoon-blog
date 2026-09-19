@@ -19,10 +19,26 @@ const RETIRED_POST_PATTERN = new RegExp(
 // 한국어는 접두사 없는 경로가 정규 경로다. 다른 로케일은 /en/rss.xml 처럼 그대로 쓴다.
 const FEED_PATHS = ['/rss.xml', '/llms.txt']
 
+const OG_IMAGE_PATH = '/opengraph-image'
+
 export type LocaleRequestDecision =
   | { kind: 'next' }
+  | { kind: 'not-found' }
   | { kind: 'rewrite'; pathname: string }
   | { kind: 'redirect'; pathname: string; permanent?: boolean }
+
+// 디코딩할 수 없는 percent-escape 가 섞인 경로는 Next 의 URL 정규화가 URIError 를
+// 던져서 응답이 500 으로 나간다. 스캐너가 흔히 만드는 입력이고 서버 오류로 집계되므로
+// 여기서 404 로 끊는다. (프로덕션 실측: /posts/%E0, /%E0, /posts/%ED%95 전부 500)
+function hasUndecodableEscape(pathname: string): boolean {
+  if (!pathname.includes('%')) return false
+  try {
+    decodeURIComponent(pathname)
+    return false
+  } catch {
+    return true
+  }
+}
 
 type LocaleRequestContext = {
   internalRewrite?: boolean
@@ -32,6 +48,10 @@ export function classifyLocaleRequest(
   pathname: string,
   { internalRewrite = false }: LocaleRequestContext = {},
 ): LocaleRequestDecision {
+  if (hasUndecodableEscape(pathname)) {
+    return { kind: 'not-found' }
+  }
+
   const retired = RETIRED_POST_PATTERN.exec(pathname)
   const replacement = retired && RETIRED_POSTS[retired[2]]
   if (replacement) {
@@ -70,6 +90,17 @@ export function classifyLocaleRequest(
   const firstSegment = pathname.split('/')[1]
 
   if (firstSegment === 'ko' && internalRewrite) {
+    return { kind: 'next' }
+  }
+
+  // `/ko/opengraph-image` 는 정규화하지 않고 그대로 통과시킨다.
+  //
+  // OG 이미지는 파일 컨벤션(`app/[lang]/opengraph-image.tsx`)이 만드는데, Next 는
+  // 그 내부 경로를 메타태그에 그대로 쓰고 `openGraph.images` 로 덮이지 않는다.
+  // 한국어만 공개 경로에 접두사가 없어서 메타는 `/ko/opengraph-image` 를 광고하는데
+  // 그 URL 이 여기서 307 로 돌면, 리다이렉트를 따르지 않는 소셜 unfurler 가
+  // 한국어 홈을 공유할 때 카드 이미지를 비운다. (프로덕션 실측)
+  if (firstSegment === 'ko' && pathname.endsWith(OG_IMAGE_PATH)) {
     return { kind: 'next' }
   }
 

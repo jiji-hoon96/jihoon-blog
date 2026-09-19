@@ -3,7 +3,7 @@ emoji: 📅
 title: 'Kalyx'
 seoTitle: 'React DatePickerのタイムゾーンで日付が1日ずれるのを防ぐ、headlessライブラリKalyxの設計記録'
 date: '2026-06-17'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: ライブラリ React DatePicker オープンソース
 description: 'React headless DatePicker「Kalyx」を作った理由と、Ark UI、React Aria、react-day-pickerとの違いを整理した。ISO 8601 UTCの値モデル、IntlによるDST処理、全IANAタイムゾーンのプロパティテストをコードと実測で説明する。'
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React 日付 タイムゾーン, ISO 8601 UTC, 日付 1日ずれる, DST バグ, fast-check プロパティテスト, react-day-picker 比較'

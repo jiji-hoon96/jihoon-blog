@@ -3,7 +3,7 @@ emoji: 📅
 title: 'Kalyx'
 seoTitle: 'React DatePicker 时区导致日期差一天怎么办：headless 库 Kalyx 设计记录'
 date: '2026-06-17'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: 库 React DatePicker 开源
 description: '整理了我为什么开发 React headless DatePicker Kalyx，以及它与 Ark UI、React Aria、react-day-picker 的区别。结合代码与实测，讲解 ISO 8601 UTC 值模型、基于 Intl 的夏令时处理和覆盖全部 IANA 时区的属性测试。'
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React 日期选择器 时区, ISO 8601 UTC, 日期 差一天, DST 夏令时 bug, fast-check 属性测试, react-day-picker 对比'

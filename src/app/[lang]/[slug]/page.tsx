@@ -19,7 +19,12 @@ import { isLocale, toPublicPath } from '@/i18n/locales'
 import { buildLocalizedPostMetadata } from '@/lib/localized-metadata'
 import { getDictionary, interpolate } from '@/i18n/dictionaries'
 import { getPostModifiedDate } from '@/lib/post-dates'
-import { getAuthorEntityId } from '@/lib/author-identity'
+import {
+  getAuthorEntityId,
+  getAuthorPersonNode,
+  getSiteEntityId,
+} from '@/lib/author-identity'
+import { isIndexableCategory } from '@/lib/category-indexing'
 import glossarySource from '../../../../content/glossary.json'
 import GlossaryTerms from '@/components/GlossaryTerms'
 import {
@@ -88,6 +93,15 @@ export default async function PostPage({ params }: Props) {
   const ogImageUrl = `${postUrl}/opengraph-image`
   const primaryCategory = post.categoryArray[0]
 
+  // breadcrumb 의 2번째 항목이 noindex 카테고리를 가리키면 SERP 가 색인되지 않는
+  // URL 을 표시한다. 글이 둘 이상인 카테고리를 먼저 고르고, 없으면 항목을 뺀다.
+  const breadcrumbCategory = post.categoryArray.find((category: string) =>
+    isIndexableCategory(
+      localePosts.filter(candidate => candidate.categoryArray.includes(category))
+        .length,
+    ),
+  )
+
   const siteIconUrl = `${siteMetadata.siteUrl}/icon.svg`
 
   const blogPostingLd = {
@@ -98,20 +112,7 @@ export default async function PostPage({ params }: Props) {
     name: post.seoTitle || post.title,
     description: post.description || post.excerpt,
     image: [ogImageUrl],
-    author: {
-      '@type': 'Person',
-      '@id': getAuthorEntityId(siteMetadata.siteUrl),
-      name: siteMetadata.author.name,
-      alternateName: siteMetadata.author.nickname,
-      email: siteMetadata.author.bio.email,
-      jobTitle: 'Frontend Developer',
-      url: `${siteMetadata.siteUrl}${toPublicPath(lang, '/')}`,
-      sameAs: [
-        siteMetadata.author.social.github,
-        siteMetadata.author.social.linkedIn,
-      ],
-      knowsAbout: siteMetadata.author.stack,
-    },
+    author: getAuthorPersonNode(siteMetadata.siteUrl),
     datePublished: post.date,
     dateModified: getPostModifiedDate(post),
     url: postUrl,
@@ -123,7 +124,6 @@ export default async function PostPage({ params }: Props) {
       '@type': 'Person',
       '@id': getAuthorEntityId(siteMetadata.siteUrl),
       name: siteMetadata.author.name,
-      url: `${siteMetadata.siteUrl}${toPublicPath(lang, '/')}`,
       logo: {
         '@type': 'ImageObject',
         url: siteIconUrl,
@@ -137,8 +137,9 @@ export default async function PostPage({ params }: Props) {
       : {}),
     ...(primaryCategory ? { articleSection: primaryCategory } : {}),
     isPartOf: {
-      '@type': 'Blog',
-      '@id': siteMetadata.siteUrl,
+      // 홈이 선언하는 WebSite 노드와 같은 `@id` 여야 파서가 소속 관계를 잇는다.
+      '@type': 'WebSite',
+      '@id': getSiteEntityId(siteMetadata.siteUrl),
       name: siteMetadata.title,
     },
   }
@@ -153,13 +154,13 @@ export default async function PostPage({ params }: Props) {
         name: 'Home',
         item: `${siteMetadata.siteUrl}${toPublicPath(lang, '/')}`,
       },
-      ...(primaryCategory
+      ...(breadcrumbCategory
         ? [
             {
               '@type': 'ListItem',
               position: 2,
-              name: primaryCategory,
-              item: `${siteMetadata.siteUrl}${toPublicPath(lang, `/posts/${encodeURIComponent(primaryCategory)}`)}`,
+              name: breadcrumbCategory,
+              item: `${siteMetadata.siteUrl}${toPublicPath(lang, `/posts/${encodeURIComponent(breadcrumbCategory)}`)}`,
             },
             {
               '@type': 'ListItem',
@@ -252,11 +253,14 @@ export default async function PostPage({ params }: Props) {
           entries={glossary}
           closeLabel={dictionary.post.closeGlossary}
         />
-        <CodeCopyButton />
+        <CodeCopyButton locale={lang} />
         <InteractiveWidgets />
 
       {/* Post Navigation */}
-      <nav className="flex justify-between items-start gap-8 py-8 border-t border-mineral">
+      <nav
+        aria-label={dictionary.navigation.adjacentPosts}
+        className="flex justify-between items-start gap-8 py-8 border-t border-mineral"
+      >
         {prev ? (
           <a
             href={prev.slug}

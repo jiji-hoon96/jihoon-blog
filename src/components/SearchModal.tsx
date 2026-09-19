@@ -25,6 +25,7 @@ export default function SearchModal({
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const dictionary = getDictionary(locale);
 
   const openSearch = useCallback(() => {
@@ -35,6 +36,9 @@ export default function SearchModal({
   const closeSearch = useCallback(() => {
     setIsOpen(false);
     setQuery("");
+    // 닫은 뒤 포커스를 열었던 버튼으로 되돌린다. 그러지 않으면 body 로 떨어져서
+    // 키보드 사용자가 Tab 을 문서 처음부터 다시 눌러야 한다. (WCAG 2.4.3)
+    triggerRef.current?.focus();
   }, []);
 
   // Fetch posts when modal opens
@@ -89,6 +93,34 @@ export default function SearchModal({
     }
   }, [isOpen]);
 
+  // 모달 안에 포커스를 가둔다. 그러지 않으면 시각적으로는 오버레이가 떠 있는데
+  // Tab 이 뒤 페이지의 헤더 링크로 빠져나간다. TableOfContents 와 GlossaryTerms 가
+  // 이미 쓰는 패턴이고 검색 모달에만 빠져 있었다.
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const modal = modalRef.current;
+      if (!modal) return;
+      const focusable = modal.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || !modal.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleTab);
+    return () => document.removeEventListener("keydown", handleTab);
+  }, [isOpen]);
+
   // Close modal when clicking outside
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -100,6 +132,7 @@ export default function SearchModal({
     <>
       {/* Search Button */}
       <button
+        ref={triggerRef}
         onClick={openSearch}
         className={
           trigger === "text"
@@ -131,6 +164,9 @@ export default function SearchModal({
         >
           <div
             ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={dictionary.actions.search}
             className="w-full max-w-xl mx-4 bg-light-white100 dark:bg-dark-white100 border border-light-gray20 dark:border-dark-gray20 overflow-hidden"
           >
             {/* Search Input */}
@@ -155,11 +191,13 @@ export default function SearchModal({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={dictionary.search.placeholder}
-                className="flex-1 py-4 bg-transparent outline-none text-light-black100 dark:text-dark-black100 placeholder:text-light-gray60 dark:placeholder:text-dark-gray60"
+                aria-label={dictionary.actions.search}
+                className="flex-1 py-4 bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[var(--qa-accent)] text-light-black100 dark:text-dark-black100 placeholder:text-light-gray60 dark:placeholder:text-dark-gray60"
               />
               {query && (
                 <button
                   onClick={() => setQuery("")}
+                  aria-label={dictionary.actions.clearSearch}
                   className="p-1 text-light-gray60 dark:text-dark-gray60 hover:text-light-black100 dark:hover:text-dark-black100"
                 >
                   <svg

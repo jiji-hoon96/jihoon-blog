@@ -6,11 +6,19 @@ type Dictionary = {
   navigation: {
     posts: string
     guestbook: string
+    main: string
+    adjacentPosts: string
+    externalLinks: string
   }
   actions: {
     search: string
     changeTheme: string
     openMenu: string
+    closeMenu: string
+    clearSearch: string
+    backToTop: string
+    copyCode: string
+    skipToContent: string
   }
   search: {
     placeholder: string
@@ -72,8 +80,23 @@ const dictionaries: Record<Locale, Dictionary> = {
   ko: {
     siteTitle: '훈지 · 프론트엔드 엔지니어링 기술 블로그',
     siteDescription: '프론트엔드 개발자 이지훈(후니)의 기술 블로그. React, TypeScript, Next.js 로 만들면서 겪은 설계 판단과 문제 해결 과정, 성능과 관측 실측, 학습 노트를 남깁니다.',
-    navigation: { posts: '글', guestbook: '방명록' },
-    actions: { search: '검색', changeTheme: '테마 변경', openMenu: '메뉴 열기' },
+    navigation: {
+      posts: '글',
+      guestbook: '방명록',
+      main: '주요 메뉴',
+      adjacentPosts: '이전 글과 다음 글',
+      externalLinks: '외부 링크',
+    },
+    actions: {
+      search: '검색',
+      changeTheme: '테마 변경',
+      openMenu: '메뉴 열기',
+      closeMenu: '메뉴 닫기',
+      clearSearch: '검색어 지우기',
+      backToTop: '맨 위로',
+      copyCode: '코드 복사',
+      skipToContent: '본문으로 건너뛰기',
+    },
     search: { placeholder: '검색어를 입력하세요...', loading: '로딩 중...', empty: '검색 결과가 없습니다.', help: '제목, 내용, 카테고리로 검색할 수 있습니다.', shortcut: '로 언제든 검색할 수 있습니다.' },
     home: { values: ['독특한 이름을 가진다고 독특한 사람이 되는 것은 아니라고 생각한다. 내가 더 깊이 생각하고 더 나은 것을 만드는 사람이 된다면, 내가 남기는 것들도 자연스럽게 나만의 것이 될 것이다.', '지훈을 뒤집어 훈지라고 부르기 시작한 것도 그런 생각에서였다. 익숙한 생각을 조금만 뒤집어도 다른 질문과 관점이 생긴다. 소프트웨어를 만들 때도 기술보다 먼저 사용자가 겪는 문제를 보고, 당연해 보이는 선택을 다시 묻고, 판단의 이유를 남기려고 한다.', '좋은 소프트웨어는 복잡한 코드를 능숙하게 다루는 데서 끝나지 않는다. 문제를 함께 이해할 수 있는 언어를 만들고, 실패를 관찰할 수 있게 하며, 다음 사람이 더 나은 판단을 할 수 있도록 맥락을 남기는 일이라고 믿는다.', '이곳에는 그렇게 다르게 보고, 만들고, 다시 생각한 것들을 기록한다. 글을 쓰는 일 역시 알고 있는 것을 정리하는 것보다, 내가 무엇을 모르고 있었는지 발견하는 과정에 가깝다.'], recentPosts: '최근 작성한 글', viewAll: '모든 글' },
     notFound: { title: '찾는 페이지가 없습니다', description: '주소가 바뀌었거나 글이 내려갔을 수 있습니다. 아래에서 다른 글을 찾아보세요.', backHome: '홈으로', browsePosts: '모든 글 보기' },
@@ -87,8 +110,23 @@ const dictionaries: Record<Locale, Dictionary> = {
   en: {
     siteTitle: 'hooninedev · Frontend Engineering Blog by Jihoon Lee',
     siteDescription: 'Jihoon Lee’s frontend engineering blog: notes on React, TypeScript, and Next.js covering design decisions, debugging stories, and measured performance work.',
-    navigation: { posts: 'Posts', guestbook: 'Guestbook' },
-    actions: { search: 'Search', changeTheme: 'Change theme', openMenu: 'Open menu' },
+    navigation: {
+      posts: 'Posts',
+      guestbook: 'Guestbook',
+      main: 'Main',
+      adjacentPosts: 'Previous and next post',
+      externalLinks: 'External links',
+    },
+    actions: {
+      search: 'Search',
+      changeTheme: 'Change theme',
+      openMenu: 'Open menu',
+      closeMenu: 'Close menu',
+      clearSearch: 'Clear search',
+      backToTop: 'Back to top',
+      copyCode: 'Copy code',
+      skipToContent: 'Skip to content',
+    },
     search: { placeholder: 'Search posts...', loading: 'Loading...', empty: 'No results found.', help: 'Search by title, content, or category.', shortcut: 'opens search at any time.' },
     home: { values: ['I do not think having a distinctive name makes someone distinctive. If I become a person who thinks more deeply and makes better things, what I leave behind will naturally become my own.', 'That thought is also why I began calling Jihoon in reverse, 훈지. Turning a familiar idea around just a little can reveal different questions and perspectives. When I build software, I try to see the problem the user faces before the technology, question choices that seem obvious, and leave behind the reasons for each decision.', 'Good software does not end with handling complex code skillfully. I believe it is about creating a language through which we can understand the problem together, making failure observable, and leaving enough context for the next person to make a better decision.', 'This is where I record what I have seen differently, made, and reconsidered. Writing is less about arranging what I already know than about discovering what I did not know.'], recentPosts: 'Recent posts', viewAll: 'All posts' },
     notFound: { title: 'This page does not exist', description: 'The address may have changed, or the post may have been taken down. Try finding another article below.', backHome: 'Go home', browsePosts: 'Browse all posts' },
@@ -102,8 +140,23 @@ const dictionaries: Record<Locale, Dictionary> = {
   ja: {
     siteTitle: 'hooninedev · イ・ジフンのフロントエンド技術ブログ',
     siteDescription: 'フロントエンドエンジニア、イ・ジフンの技術ブログです。React、TypeScript、Next.jsを使ったWeb開発の実践、設計上の判断、問題解決の過程、継続的な学びを詳しく共有します。',
-    navigation: { posts: '記事', guestbook: 'ゲストブック' },
-    actions: { search: '検索', changeTheme: 'テーマを変更', openMenu: 'メニューを開く' },
+    navigation: {
+      posts: '記事',
+      guestbook: 'ゲストブック',
+      main: 'メインメニュー',
+      adjacentPosts: '前の記事と次の記事',
+      externalLinks: '外部リンク',
+    },
+    actions: {
+      search: '検索',
+      changeTheme: 'テーマを変更',
+      openMenu: 'メニューを開く',
+      closeMenu: 'メニューを閉じる',
+      clearSearch: '検索語を消去',
+      backToTop: 'トップへ戻る',
+      copyCode: 'コードをコピー',
+      skipToContent: '本文へスキップ',
+    },
     search: { placeholder: '記事を検索...', loading: '読み込み中...', empty: '検索結果がありません。', help: 'タイトル、本文、カテゴリーから検索できます。', shortcut: 'でいつでも検索できます。' },
     home: { values: ['個性的な名前を持つだけで、個性的な人になれるとは思わない。自分がより深く考え、より良いものを作る人になれば、残すものも自然と自分らしいものになるはずだ。', 'ジフンを逆にして훈지と呼び始めたのも、そんな考えからだった。慣れた考えを少しだけ裏返すと、別の問いや視点が生まれる。ソフトウェアを作るときも、技術より先にユーザーが直面する問題を見て、当然に見える選択を問い直し、判断の理由を残そうとしている。', '良いソフトウェアは、複雑なコードを巧みに扱うだけでは終わらない。問題を一緒に理解するための言葉を作り、失敗を観察できるようにし、次の人がより良い判断をできるよう文脈を残すことだと信じている。', 'ここには、そうして違う角度から見て、作り、もう一度考えたことを記録する。書くことも、知っていることを整理するというより、自分が何を知らなかったのかを発見する過程に近い。'], recentPosts: '最新の記事', viewAll: 'すべての記事' },
     notFound: { title: 'お探しのページはありません', description: 'アドレスが変わったか、記事が取り下げられた可能性があります。下から別の記事を探してみてください。', backHome: 'ホームへ', browsePosts: 'すべての記事を見る' },
@@ -117,8 +170,23 @@ const dictionaries: Record<Locale, Dictionary> = {
   es: {
     siteTitle: 'hooninedev · Blog de ingeniería frontend de Jihoon Lee',
     siteDescription: 'Blog de ingeniería frontend de Jihoon Lee, con experiencias sobre React, TypeScript, Next.js, rendimiento web y decisiones de diseño en producción.',
-    navigation: { posts: 'Artículos', guestbook: 'Libro de visitas' },
-    actions: { search: 'Buscar', changeTheme: 'Cambiar tema', openMenu: 'Abrir menú' },
+    navigation: {
+      posts: 'Artículos',
+      guestbook: 'Libro de visitas',
+      main: 'Principal',
+      adjacentPosts: 'Artículo anterior y siguiente',
+      externalLinks: 'Enlaces externos',
+    },
+    actions: {
+      search: 'Buscar',
+      changeTheme: 'Cambiar tema',
+      openMenu: 'Abrir menú',
+      closeMenu: 'Cerrar menú',
+      clearSearch: 'Borrar búsqueda',
+      backToTop: 'Volver arriba',
+      copyCode: 'Copiar código',
+      skipToContent: 'Saltar al contenido',
+    },
     search: { placeholder: 'Buscar artículos...', loading: 'Cargando...', empty: 'No se encontraron resultados.', help: 'Busca por título, contenido o categoría.', shortcut: 'abre la búsqueda en cualquier momento.' },
     home: { values: ['No creo que tener un nombre singular convierta a alguien en una persona singular. Si llego a pensar con más profundidad y a crear mejores cosas, lo que deje atrás acabará siendo mío de forma natural.', 'Esa idea también me llevó a invertir Jihoon y empezar a llamarlo 훈지. Basta con girar un poco una idea familiar para que aparezcan otras preguntas y perspectivas. Al crear software, intento mirar el problema que vive la persona antes que la tecnología, volver a preguntar por las decisiones que parecen obvias y dejar constancia de por qué se tomaron.', 'El buen software no termina en saber manejar código complejo. Creo que consiste en crear un lenguaje con el que podamos entender juntos el problema, hacer observables los fallos y dejar contexto para que la siguiente persona pueda tomar una decisión mejor.', 'Aquí registro aquello que he mirado de otra manera, construido y vuelto a pensar. Escribir también se parece menos a ordenar lo que ya sé que a descubrir lo que no sabía.'], recentPosts: 'Artículos recientes', viewAll: 'Todos los artículos' },
     notFound: { title: 'Esta página no existe', description: 'Puede que la dirección haya cambiado o que el artículo se haya retirado. Busca otro artículo abajo.', backHome: 'Ir al inicio', browsePosts: 'Ver todos los artículos' },
@@ -132,8 +200,23 @@ const dictionaries: Record<Locale, Dictionary> = {
   'pt-BR': {
     siteTitle: 'hooninedev · Blog de engenharia frontend de Jihoon Lee',
     siteDescription: 'Blog de engenharia frontend de Jihoon Lee: notas sobre React, TypeScript e Next.js, com decisões de design, casos de depuração e medições de desempenho.',
-    navigation: { posts: 'Artigos', guestbook: 'Livro de visitas' },
-    actions: { search: 'Pesquisar', changeTheme: 'Alterar tema', openMenu: 'Abrir menu' },
+    navigation: {
+      posts: 'Artigos',
+      guestbook: 'Livro de visitas',
+      main: 'Principal',
+      adjacentPosts: 'Artigo anterior e próximo',
+      externalLinks: 'Links externos',
+    },
+    actions: {
+      search: 'Pesquisar',
+      changeTheme: 'Alterar tema',
+      openMenu: 'Abrir menu',
+      closeMenu: 'Fechar menu',
+      clearSearch: 'Limpar pesquisa',
+      backToTop: 'Voltar ao topo',
+      copyCode: 'Copiar código',
+      skipToContent: 'Ir para o conteúdo',
+    },
     search: { placeholder: 'Pesquisar artigos...', loading: 'Carregando...', empty: 'Nenhum resultado encontrado.', help: 'Pesquise por título, conteúdo ou categoria.', shortcut: 'abre a pesquisa a qualquer momento.' },
     home: { values: ['Não acredito que ter um nome singular torne alguém singular. Se eu me tornar uma pessoa que pensa com mais profundidade e cria coisas melhores, aquilo que eu deixar também se tornará naturalmente algo só meu.', 'Foi por essa ideia que comecei a inverter Jihoon e chamá-lo de 훈지. Basta virar um pouco um pensamento familiar para surgirem outras perguntas e perspectivas. Ao criar software, procuro enxergar o problema vivido pelo usuário antes da tecnologia, questionar escolhas que parecem óbvias e registrar as razões de cada decisão.', 'Bom software não termina em saber lidar com código complexo. Acredito que ele envolve criar uma linguagem para compreendermos o problema juntos, tornar as falhas observáveis e deixar contexto para que a próxima pessoa possa tomar uma decisão melhor.', 'Aqui registro o que observei de outra forma, construí e repensei. Escrever também se parece menos com organizar o que já sei e mais com descobrir o que eu ainda não sabia.'], recentPosts: 'Artigos recentes', viewAll: 'Todos os artigos' },
     notFound: { title: 'Esta página não existe', description: 'O endereço pode ter mudado ou o artigo pode ter sido retirado. Procure outro artigo abaixo.', backHome: 'Ir para o início', browsePosts: 'Ver todos os artigos' },
@@ -147,8 +230,23 @@ const dictionaries: Record<Locale, Dictionary> = {
   'zh-CN': {
     siteTitle: 'hooninedev · 李智勋的前端工程技术博客',
     siteDescription: '前端工程师李智勋的技术博客，深入分享使用 React、TypeScript、Next.js 进行 Web 开发的实践记录、架构判断、问题排查过程、性能优化经验以及持续学习获得的技术见解。',
-    navigation: { posts: '文章', guestbook: '留言簿' },
-    actions: { search: '搜索', changeTheme: '切换主题', openMenu: '打开菜单' },
+    navigation: {
+      posts: '文章',
+      guestbook: '留言簿',
+      main: '主菜单',
+      adjacentPosts: '上一篇和下一篇',
+      externalLinks: '外部链接',
+    },
+    actions: {
+      search: '搜索',
+      changeTheme: '切换主题',
+      openMenu: '打开菜单',
+      closeMenu: '关闭菜单',
+      clearSearch: '清除搜索内容',
+      backToTop: '返回顶部',
+      copyCode: '复制代码',
+      skipToContent: '跳到正文',
+    },
     search: { placeholder: '搜索文章...', loading: '加载中...', empty: '未找到结果。', help: '可按标题、正文或分类搜索。', shortcut: '可随时打开搜索。' },
     home: { values: ['我不认为拥有一个独特的名字，就会成为独特的人。如果我能思考得更深入，做出更好的东西，那么我留下的一切自然会带上只属于我的样子。', '我开始把 Jihoon 倒过来称作 훈지，也是因为这样的想法。把熟悉的念头稍微翻转一下，就会出现不同的问题和视角。做软件时，我也会先看用户正在经历的问题，而不是先看技术；重新追问那些看似理所当然的选择，并留下每次判断的理由。', '好的软件不止是熟练驾驭复杂的代码。我相信，它还意味着建立一种让大家共同理解问题的语言，让失败可以被观察，并留下足够的上下文，使后来的人能够做出更好的判断。', '我在这里记录那些换个角度看过、亲手做过，又重新思考过的事。写作与其说是在整理已经知道的内容，不如说是在发现自己原来并不知道什么。'], recentPosts: '最新文章', viewAll: '全部文章' },
     notFound: { title: '找不到这个页面', description: '地址可能已经变了，或者这篇文章已被撤下。可以在下面找找别的文章。', backHome: '回到首页', browsePosts: '查看全部文章' },

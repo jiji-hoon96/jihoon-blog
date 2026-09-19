@@ -61,6 +61,11 @@ export async function GET(
   return new Response(feed.rss2(), {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
+      // 이 응답은 1.2MB 다. `content: post.body.html` 로 글 전체 본문을 싣기
+      // 때문이다. 헤더가 없으면 Next 가 동적으로 취급해 Netlify durable 캐시가
+      // bypass 되고, 폴링이 올 때마다 함수 호출과 407KB egress 가 로케일 6개에서
+      // 각각 일어난다. 이웃 라우트인 llms.txt 와 같은 값을 쓴다.
+      'Cache-Control': 'public, max-age=3600, s-maxage=86400',
     },
   })
 }

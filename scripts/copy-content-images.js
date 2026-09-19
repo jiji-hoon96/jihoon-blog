@@ -26,21 +26,37 @@ async function copyAllImages() {
 }
 
 /**
- * content/ 에서 사라진 글의 이미지를 public/content/ 에서도 지운다.
+ * content/ 에서 사라진 이미지를 public/content/ 에서도 지운다.
  *
  * fs.copy 는 더하기만 해서, 글을 지워도 public/content 에는 그대로 남았다.
  * 실제로 글 44개 분량 295MB 가 아무도 안 읽는 채로 저장소와 배포에 실려 있었다.
+ *
+ * 폴더 단위로만 지우던 버전은 파일 단위 드리프트를 놓쳤다. 글 두 편의
+ * 이미지 16개가 content/ 에는 없고 public/content/ 에만 남아 git 에 추적되고
+ * 있었다. 본문이 그것을 참조하므로 화면은 멀쩡했고, 참조에서 존재를 확인하는
+ * 게이트도 통과했다. 파일 단위로 지우는 순간 6개 로케일에서 깨졌을 것이다.
+ * 그래서 파일까지 본다. 이제 public/content/ 는 content/ 의 파생물이다.
  */
 async function pruneOrphans() {
-  const published = new Set(await fs.readdir(CONTENT_DIR))
-  const copied = await fs.readdir(PUBLIC_DIR)
   const removed = []
 
-  for (const name of copied) {
-    if (published.has(name)) continue
-    if (!(await fs.stat(path.join(PUBLIC_DIR, name))).isDirectory()) continue
-    await fs.remove(path.join(PUBLIC_DIR, name))
-    removed.push(name)
+  for (const name of await fs.readdir(PUBLIC_DIR)) {
+    const copiedPath = path.join(PUBLIC_DIR, name)
+    const sourcePath = path.join(CONTENT_DIR, name)
+
+    if (!(await fs.stat(copiedPath)).isDirectory()) continue
+
+    if (!(await fs.pathExists(sourcePath))) {
+      await fs.remove(copiedPath)
+      removed.push(name)
+      continue
+    }
+
+    for (const file of await fs.readdir(copiedPath)) {
+      if (await fs.pathExists(path.join(sourcePath, file))) continue
+      await fs.remove(path.join(copiedPath, file))
+      removed.push(`${name}/${file}`)
+    }
   }
 
   return removed

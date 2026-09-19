@@ -31,9 +31,18 @@ export default function Header({ locale }: { locale: Locale }) {
   const utilityClass =
     "home-meta text-stone transition-colors hover:text-accent";
 
+  // 음성 제어 사용자는 화면에 보이는 글자를 그대로 말한다. 접근 가능한 이름이
+  // 그 글자를 포함하지 않으면 "Click Menu" 가 어떤 컨트롤에도 매칭되지 않는다.
+  // (WCAG 2.5.3 Label in Name) 그래서 보이는 글자를 이름 앞에 둔다.
+  const themeLabel = mounted && resolvedTheme === "dark" ? "Dark" : "Light";
+  const menuLabel = isMenuOpen ? "Close" : "Menu";
+
   return (
     <header className="border-b border-mineral">
-      <nav className="mx-auto max-w-[var(--width-shell)] px-4 py-5">
+      <nav
+        aria-label={dictionary.navigation.main}
+        className="mx-auto max-w-[var(--width-shell)] px-4 py-5"
+      >
         <div className="flex items-center justify-between gap-8">
           <Link
             href={homePath}
@@ -56,8 +65,12 @@ export default function Header({ locale }: { locale: Locale }) {
             <li><SearchModal locale={locale} trigger="text" /></li>
             <li><LanguageSelector locale={locale} /></li>
             <li>
-              <button onClick={toggleTheme} className={utilityClass} aria-label={dictionary.actions.changeTheme}>
-                {mounted && resolvedTheme === "dark" ? "Dark" : "Light"}
+              <button
+                onClick={toggleTheme}
+                className={utilityClass}
+                aria-label={`${themeLabel}: ${dictionary.actions.changeTheme}`}
+              >
+                {themeLabel}
               </button>
             </li>
           </ul>
@@ -66,17 +79,19 @@ export default function Header({ locale }: { locale: Locale }) {
             <button
               onClick={toggleTheme}
               className={utilityClass}
-              aria-label={dictionary.actions.changeTheme}
+              aria-label={`${themeLabel}: ${dictionary.actions.changeTheme}`}
             >
-              {mounted && resolvedTheme === "dark" ? "Dark" : "Light"}
+              {themeLabel}
             </button>
             <button
               className={utilityClass}
               onClick={() => setIsMenuOpen((open) => !open)}
               aria-expanded={isMenuOpen}
-              aria-label={dictionary.actions.openMenu}
+              aria-label={`${menuLabel}: ${
+                isMenuOpen ? dictionary.actions.closeMenu : dictionary.actions.openMenu
+              }`}
             >
-              {isMenuOpen ? "Close" : "Menu"}
+              {menuLabel}
             </button>
           </div>
         </div>

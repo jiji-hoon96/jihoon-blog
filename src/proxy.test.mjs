@@ -131,3 +131,44 @@ test('leaves live post slugs alone', () => {
   })
   assert.deepEqual(classifyLocaleRequest('/en/260914'), { kind: 'next' })
 })
+
+// 프로덕션에서 /posts/%E0 가 404 가 아니라 500 을 냈다. Next 의 URL 정규화가
+// 디코딩 불가능한 escape 에서 URIError 를 던지는데, 그 예외는 not-found 경로를
+// 타지 않아 서버 오류로 집계된다. 스캐너가 흔히 만드는 입력이다.
+test('answers 404 for paths with undecodable percent escapes', () => {
+  for (const pathname of ['/%E0', '/posts/%E0', '/posts/%ED%95', '/en/%E0']) {
+    assert.deepEqual(
+      classifyLocaleRequest(pathname),
+      { kind: 'not-found' },
+      pathname,
+    )
+  }
+
+  const response = proxy(
+    new NextRequest(new URL('https://hooninedev.com/posts/%E0')),
+  )
+  assert.equal(response.status, 404)
+  assert.equal(response.headers.get('x-middleware-rewrite'), null)
+})
+
+test('leaves well-formed percent escapes alone', () => {
+  assert.deepEqual(classifyLocaleRequest('/posts/%ED%95%9C%EA%B8%80'), {
+    kind: 'rewrite',
+    pathname: '/ko/posts/%ED%95%9C%EA%B8%80',
+  })
+})
+
+// OG 이미지는 파일 컨벤션이 만들고 Next 가 그 내부 경로를 메타태그에 그대로 쓴다.
+// 한국어만 접두사가 없어서 `/ko/opengraph-image` 가 광고되는데, 정규화 리다이렉트가
+// 그것을 307 로 돌리면 리다이렉트를 따르지 않는 소셜 unfurler 가 카드를 비운다.
+test('serves the ko OG image path directly instead of canonicalizing it', () => {
+  assert.deepEqual(classifyLocaleRequest('/ko/opengraph-image'), { kind: 'next' })
+  assert.deepEqual(classifyLocaleRequest('/ko/260913/opengraph-image'), {
+    kind: 'next',
+  })
+  // 다른 /ko 경로는 그대로 정규화한다
+  assert.deepEqual(classifyLocaleRequest('/ko/posts'), {
+    kind: 'redirect',
+    pathname: '/posts',
+  })
+})

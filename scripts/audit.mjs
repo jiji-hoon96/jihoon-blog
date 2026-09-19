@@ -248,10 +248,32 @@ if (flags.has("--live")) {
 		return { code, ttfb, headers: r.out.toLowerCase() };
 	};
 
+	// 1회 측정은 edge 캐시 적중 여부에 따라 3.6배까지 흔들린다. 2026-09-19 감사에서
+	// 홈이 4.27초로 WARN 이 떴는데, 같은 시각 기준선은 edge hit 0.27초 /
+	// 함수 경로 1.00초였다. 사이트가 느렸던 것이 아니라 측정이 그 순간의 캐시
+	// 상태를 잰 것이다. 중앙값을 쓰고 캐시 상태를 같이 남긴다.
+	const SAMPLES = 5;
+	const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
+
 	for (const path of ["/", "/posts", "/sitemap.xml", "/robots.txt"]) {
-		const { code, ttfb } = probe(path);
+		const samples = [];
+		let code;
+		let cacheStatus = "";
+		for (let i = 0; i < SAMPLES; i += 1) {
+			const probed = probe(path);
+			code = probed.code;
+			samples.push(probed.ttfb);
+			cacheStatus = /cache-status: ([^\r\n]+)/.exec(probed.headers)?.[1] ?? cacheStatus;
+		}
+		const ttfb = median(samples);
 		const status = code !== "200" ? "fail" : ttfb > BUDGET.ttfbSeconds ? "warn" : "pass";
-		record("live", `GET ${path}`, status, `${code} ttfb=${ttfb.toFixed(2)}s`);
+		const spread = `${Math.min(...samples).toFixed(2)}~${Math.max(...samples).toFixed(2)}`;
+		record(
+			"live",
+			`GET ${path}`,
+			status,
+			`${code} ttfb=${ttfb.toFixed(2)}s (중앙값 ${SAMPLES}회, ${spread}) ${cacheStatus}`.trim(),
+		);
 	}
 
 	const home = probe("/");

@@ -3,7 +3,7 @@ emoji: 📅
 title: 'Kalyx'
 seoTitle: 'Kalyx: evitar a data um dia errada no DatePicker React'
 date: '2026-06-17'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: bibliotecas React DatePicker código-aberto
 description: 'Por que criei o Kalyx, DatePicker headless para React, e como difere de Ark UI, React Aria e react-day-picker: valores ISO UTC, DST com Intl e testes IANA.'
 keywords: 'Kalyx, DatePicker React, DatePicker headless React, DatePicker React fuso horário, ISO 8601 UTC, data com um dia a menos, bug de horário de verão JavaScript, teste de propriedades fast-check, alternativa ao react-day-picker'

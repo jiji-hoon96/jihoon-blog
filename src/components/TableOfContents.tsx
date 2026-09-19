@@ -16,6 +16,15 @@ interface TableOfContentsProps {
   };
 }
 
+// OS 의 모션 감소 설정을 스크립트 스크롤에도 반영한다. CSS 의 감소 모션 블록은
+// scrollIntoView 호출에 닿지 않는다.
+function scrollBehavior(): ScrollBehavior {
+  if (typeof window === "undefined") return "smooth";
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ? "auto"
+    : "smooth";
+}
+
 export default function TableOfContents({ toc, labels }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
@@ -59,7 +68,7 @@ export default function TableOfContents({ toc, labels }: TableOfContentsProps) {
     if (!isOpen || !activeId) return;
     const el = itemRefs.current.get(activeId);
     if (el) {
-      el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      el.scrollIntoView({ block: "nearest", behavior: scrollBehavior() });
     }
   }, [activeId, isOpen]);
 
@@ -96,7 +105,7 @@ export default function TableOfContents({ toc, labels }: TableOfContentsProps) {
     e.preventDefault();
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      element.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
       window.history.pushState({}, "", `#${id}`);
       setIsOpen(false);
     }
@@ -112,8 +121,12 @@ export default function TableOfContents({ toc, labels }: TableOfContentsProps) {
         ref={buttonRef}
         type="button"
         onClick={() => setIsOpen((v) => !v)}
+        onFocus={() => setProximity(1)}
+        onBlur={() => setProximity(0)}
         aria-label={isOpen ? labels.close : labels.open}
         aria-expanded={isOpen}
+        // 불투명도를 올리는 신호가 mousemove 하나뿐이면 키보드 사용자는 0.3 으로
+        // 흐려진 컨트롤 위에 그려진 포커스 링을 봐야 한다. (WCAG 2.4.7)
         style={{ opacity: isOpen ? 1 : 0.3 + 0.7 * proximity }}
         className="fixed right-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full shadow-lg bg-light-gray10 dark:bg-dark-gray10 border border-light-gray20 dark:border-dark-gray20 hover:bg-light-gray20 dark:hover:bg-dark-gray20 transition-[opacity,background-color] duration-200 cursor-pointer"
       >

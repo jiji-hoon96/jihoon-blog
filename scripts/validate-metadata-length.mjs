@@ -58,10 +58,17 @@ export async function validateMetadataLength({ rootDirectory = process.cwd(), po
       const title = frontmatterValue(markdown, 'seoTitle') ?? frontmatterValue(markdown, 'title')
       const description = frontmatterValue(markdown, 'description')
 
-      if (title && title.length > limits.seoTitle) {
+      // 상한만 보면 `description` 이 아예 없는 글이 조용히 지나간다. 이 필드가
+      // 비면 검색 노출은 되어도 클릭이 0 에 수렴한 사례가 운영에서 확인됐는데,
+      // 그것을 막는 검사가 없었다. falsy 를 통과시키는 것이 그 구멍이다.
+      if (!title) {
+        errors.push(`${relative}: title 과 seoTitle 이 모두 비어 있다`)
+      } else if (title.length > limits.seoTitle) {
         errors.push(`${relative}: seoTitle ${title.length}자, 한도 ${limits.seoTitle}자`)
       }
-      if (description && description.length > limits.description) {
+      if (!description) {
+        errors.push(`${relative}: description 이 비어 있다`)
+      } else if (description.length > limits.description) {
         errors.push(`${relative}: description ${description.length}자, 한도 ${limits.description}자`)
       }
     }

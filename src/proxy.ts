@@ -13,6 +13,15 @@ export function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // 잘못된 percent-escape 는 라우팅 자체가 불가능하다. 통과시키면 500 이 되므로
+  // 여기서 끊는다. 본문을 렌더하려면 다시 그 경로를 타야 해서 평문으로 답한다.
+  if (decision.kind === 'not-found') {
+    return new NextResponse('Not Found', {
+      status: 404,
+      headers: { 'content-type': 'text/plain; charset=utf-8' },
+    })
+  }
+
   const destination = request.nextUrl.clone()
   destination.pathname = decision.pathname
 

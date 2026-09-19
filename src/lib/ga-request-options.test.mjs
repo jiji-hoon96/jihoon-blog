@@ -27,7 +27,12 @@ const GA_CLIENT_METHODS = [
   "checkCompatibility",
 ];
 
-const SRC_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
+// 이 파일이 있는 `src/lib` 이 아니라 `src` 전체를 훑어야 한다. GA 호출이
+// `src/app/**` 이나 새 서버 컴포넌트에 생기면 여기까지 와야 잡힌다.
+const SRC_DIRECTORY = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 
 function collectSourceFiles(directory) {
   const files = [];
@@ -40,6 +45,31 @@ function collectSourceFiles(directory) {
     }
   }
   return files;
+}
+
+/** 인자 목록을 최상위 쉼표로 쪼갠다. 중첩 괄호와 문자열 안의 쉼표는 세지 않는다. */
+function splitArguments(args) {
+  const parts = [];
+  let depth = 0;
+  let quote = null;
+  let start = 0;
+  for (let i = 0; i < args.length; i += 1) {
+    const char = args[i];
+    if (quote) {
+      if (char === "\\") i += 1;
+      else if (char === quote) quote = null;
+      continue;
+    }
+    if (char === '"' || char === "'" || char === "`") quote = char;
+    else if (char === "(" || char === "{" || char === "[") depth += 1;
+    else if (char === ")" || char === "}" || char === "]") depth -= 1;
+    else if (char === "," && depth === 0) {
+      parts.push(args.slice(start, i));
+      start = i + 1;
+    }
+  }
+  parts.push(args.slice(start));
+  return parts.map(part => part.trim()).filter(part => part.length > 0);
 }
 
 /** `(` 부터 짝이 맞는 `)` 까지를 돌려준다. 문자열 안의 괄호는 세지 않는다. */
@@ -84,6 +114,8 @@ test("passes the timeout as gax CallOptions", () => {
  * runReport 개수와 gaCallOptions() 개수가 같기만 하면 되어서
  * 요청 객체 안에 스프레드로 섞어 넣어도 잡지 못했다.
  * 이제 src 전체를 훑고, 각 호출의 두 번째 인자가 gaCallOptions() 인지 본다.
+ * 인자 목록의 끝만 보던 버전은 runReport(request, x, gaCallOptions()) 를 통과시켰는데,
+ * gax 는 그때 x 를 CallOptions 로 읽으므로 타임아웃이 적용되지 않았다.
  */
 test("every GA Data API call in src passes gaCallOptions() as its own argument", () => {
   const offenders = [];
@@ -96,9 +128,10 @@ test("every GA Data API call in src passes gaCallOptions() as its own argument",
       for (const match of source.matchAll(pattern)) {
         callSites += 1;
         const openIndex = match.index + match[0].length - 1;
-        const args = argumentList(source, openIndex);
-        // gax 는 CallOptions 를 두 번째 인자로만 읽는다. 요청 객체에 섞으면 무시된다.
-        if (!/,\s*gaCallOptions\(\)\s*,?\s*$/.test(args.trimEnd())) {
+        const args = splitArguments(argumentList(source, openIndex));
+        // gax 는 CallOptions 를 두 번째 인자로만 읽는다. 요청 객체에 섞어도,
+        // 세 번째 자리에 둬도 적용되지 않는다. 그래서 자리까지 확인한다.
+        if (args[1] !== "gaCallOptions()") {
           const line = source.slice(0, match.index).split("\n").length;
           offenders.push(`${path.relative(SRC_DIRECTORY, file)}:${line} .${method}`);
         }

@@ -3,7 +3,7 @@ emoji: 📅
 title: 'Kalyx'
 seoTitle: 'Kalyx: Stopping the Off-by-One-Day Timezone Bug in React'
 date: '2026-06-17'
-updatedAt: '2026-09-16'
+updatedAt: '2026-09-19'
 categories: Library React DatePicker Open-Source
 description: 'Why I built Kalyx, a headless React DatePicker, and how it differs from Ark UI, React Aria and react-day-picker: UTC ISO values, Intl DST, timezone tests.'
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React date picker timezone, ISO 8601 UTC date string, date off by one day bug, DST bug JavaScript, fast-check property testing, react-day-picker alternative'

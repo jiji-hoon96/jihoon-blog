@@ -2,7 +2,12 @@
 
 import { useEffect } from "react";
 
-export default function CodeCopyButton() {
+import { getDictionary } from "@/i18n/dictionaries";
+import type { Locale } from "@/i18n/locales";
+
+export default function CodeCopyButton({ locale }: { locale: Locale }) {
+  const dictionary = getDictionary(locale);
+
   useEffect(() => {
     const codeBlocks = document.querySelectorAll(".prose pre");
 
@@ -47,7 +52,11 @@ export default function CodeCopyButton() {
       const button = document.createElement("button");
       button.className = "copy-button";
       button.textContent = "COPY";
-      button.title = "코드 복사";
+      button.title = dictionary.actions.copyCode;
+      button.setAttribute("aria-label", dictionary.actions.copyCode);
+      // 글자가 COPY 에서 DONE 으로 바뀌는 것만으로는 스크린리더가 읽어 줄지가
+      // 구현마다 갈린다. 라이브 영역으로 선언해 두면 확실해진다.
+      button.setAttribute("aria-live", "polite");
 
       button.addEventListener("click", async () => {
         if (code) {
