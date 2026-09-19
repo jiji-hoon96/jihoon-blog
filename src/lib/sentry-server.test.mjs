@@ -35,9 +35,9 @@ test('omits an absent locale instead of inventing request context', () => {
     return 'event-id'
   })
 
-  capture('failure', { routeKind: 'analytics', operation: 'stats' })
+  capture('failure', { routeKind: 'visits', operation: 'bump' })
 
   assert.deepEqual(capturedHint, {
-    tags: { routeKind: 'analytics', operation: 'stats' },
+    tags: { routeKind: 'visits', operation: 'bump' },
   })
 })

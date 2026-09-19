@@ -14,7 +14,7 @@ export default function ScrollToTop({ locale }: { locale: Locale }) {
       setIsVisible(window.scrollY > 300);
     };
 
-    window.addEventListener("scroll", toggleVisibility);
+    window.addEventListener("scroll", toggleVisibility, { passive: true });
     return () => window.removeEventListener("scroll", toggleVisibility);
   }, []);
 
@@ -33,7 +33,7 @@ export default function ScrollToTop({ locale }: { locale: Locale }) {
   return (
     <button
       onClick={scrollToTop}
-      className="fixed bottom-6 right-6 z-40 p-3 bg-light-black100 dark:bg-dark-black100 text-light-white100 dark:text-dark-white100 rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform motion-reduce:transition-none motion-reduce:hover:scale-100"
+      className="qa-pop-in group fixed bottom-6 right-6 z-40 rounded-full bg-light-black100 p-3 text-light-white100 shadow-lg transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-xl active:translate-y-0 active:scale-95 motion-reduce:transition-none motion-reduce:hover:translate-y-0 dark:bg-dark-black100 dark:text-dark-white100"
       aria-label={dictionary.actions.backToTop}
     >
       <svg
@@ -45,6 +45,7 @@ export default function ScrollToTop({ locale }: { locale: Locale }) {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        className="transition-transform duration-200 group-hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0"
       >
         <path d="m18 15-6-6-6 6" />
       </svg>

@@ -27,6 +27,7 @@
     "fonts:build": "node scripts/build-font-css.mjs"
   },
   "dependencies": {
+    "@netlify/blobs": "^11.1.0",
     "@sentry/nextjs": "^10.69.0",
     "@tailwindcss/typography": "^0.5.19",
     "contentlayer": "^0.3.4",

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 
 import { getDictionary } from '@/i18n/dictionaries'
 import { getLanguageAlternates, isLocale, toPublicPath } from '@/i18n/locales'
-import { getAuthorPersonNode, getSiteEntityId } from '@/lib/author-identity'
+import { getAuthorPersonNode } from '@/lib/author-identity'
 import {
   getLocalizedOpenGraphImageUrl,
   getOpenGraphLocale,
@@ -137,32 +137,6 @@ export default async function ResumePage({
               </a>
             </li>
           ))}
-        </ul>
-
-        <h2 className="home-meta mt-12 font-bold text-stone">
-          {dictionary.resume.contact}
-        </h2>
-        <ul className="mt-3 flex flex-wrap gap-5">
-          <li>
-            <a
-              href={siteMetadata.author.social.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transition-colors hover:text-accent"
-            >
-              GitHub
-            </a>
-          </li>
-          <li>
-            <a
-              href={siteMetadata.author.social.linkedIn}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transition-colors hover:text-accent"
-            >
-              LinkedIn
-            </a>
-          </li>
         </ul>
       </div>
     </>

@@ -2,12 +2,12 @@ import * as Sentry from '@sentry/nextjs'
 import type { Locale } from '../i18n/locales.ts'
 
 export type RouteKind =
-  | 'analytics'
   | 'search'
   | 'metadata'
   | 'sitemap'
   | 'rss'
   | 'llms'
+  | 'visits'
 
 export type ServerExceptionContext = {
   locale?: Locale

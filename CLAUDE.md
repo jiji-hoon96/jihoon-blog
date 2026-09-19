@@ -421,6 +421,46 @@ curl -o /dev/null -w '%{http_code}\n' http://localhost:3111/260913/opengraph-ima
 **쿼터를 태우지 않으려면 DSN 없이 돌린다.** 위 절차는 코드 경로가 도는 것까지만 확인하면
 충분하다. 실제 전송까지 보고 싶을 때만 DSN 을 주고, 끝나면 만들어진 이슈를 resolve 한다.
 
+## 방문자 수 (Netlify Blobs)
+
+홈 하단에 `오늘 N · 전체 N` 을 둔다. 조각은 셋이다.
+
+| 조각 | 위치 |
+|---|---|
+| CAS 로직 | `src/lib/visit-counter.ts` (+ `visit-counter.test.mjs` 9개) |
+| 라우트 | `src/app/api/visits/route.ts` (`GET` 읽기 / `POST` 증가) |
+| 표시 | `src/components/VisitCounter.tsx` |
+
+**GA Data API 로 읽지 않는다.** 그 경로는 `c36577a` 에서 지웠고, 지우기 전에 서버리스에서
+응답 없이 매달리는 실패를 두 번 냈다(JIHOON-BLOG-2, -8). -8 은 미해결이고 원인 가설이
+함수 freeze 라서 in-process 타이머로 경계 지을 수 없다. 같은 모양을 다시 들이지 않는다.
+
+**서버 컴포넌트로 세지 않는다.** 홈 HTML 은 Netlify 의 durable 캐시에 실려서 렌더가
+방문마다 돌지 않는다. 서버에서 세면 캐시가 사는 동안 숫자가 멈춘 채로 모두에게 같은 값이
+나간다. 그래서 브라우저가 부른다. 부수 효과로 JS 를 안 돌리는 크롤러는 세어지지 않는다.
+
+**증가는 `POST` 다.** `GET` 에 두면 링크 프리페치나 프리뷰 봇의 조회 한 번이 그대로
+방문 한 번이 된다. 한 세션에 한 번만 올리는 것은 `sessionStorage` 가 판단한다.
+
+**Blobs 에는 원자적 증가가 없다.** 조건부 쓰기(`onlyIfMatch` / `onlyIfNew`)로
+compare-and-swap 을 만들고 세 번까지 재시도한다. 세 번 다 지면 조용히 성공하지 않고 던진다.
+오늘과 전체를 키 두 개로 나누지 않고 레코드 하나(`{ total, today, day }`)에 담는다.
+나누면 둘 중 하나만 쓰인 상태가 생긴다. 날짜는 Asia/Seoul 기준이고, 자정 초기화 크론은
+없다. 읽는 쪽이 `day` 를 비교해 어제 레코드의 `today` 를 0 으로 본다.
+
+**실패는 200 이 아니라 503 이다.** 0 을 실어 보내면 「고장」과 「아직 아무도 안 왔다」가
+화면에서 같아진다. 컴포넌트는 응답이 없으면 아무것도 그리지 않는다. 보고는 컨테이너당
+한 번만 한다. Blobs 가 죽으면 방문 수만큼 이벤트가 생겨 무료 티어 쿼터를 태운다.
+
+**로컬에서 화면을 보려면 `VISITS_MEMORY_STORE=1` 을 준다.** Blobs 환경변수가 없으면
+`getStore` 가 던지는데, `next start` 는 `NODE_ENV` 가 production 이라 개발 폴백에 걸리지
+않는다. `og-font.ts` 의 `OG_FONT_CSS_URL` 과 같은 자리에 있는 검증용 스위치다.
+
+```bash
+pnpm build && PORT=3211 VISITS_MEMORY_STORE=1 pnpm start
+curl -X POST http://localhost:3211/api/visits   # {"total":1,"today":1}
+```
+
 ## 검색엔진 통보 (IndexNow)
 
 바뀐 글 URL 을 IndexNow 로 직접 알린다. **Google 은 이 프로토콜을 쓰지 않는다.** 받는 쪽은 Bing, Yandex, 그리고 Ahrefs Site Audit 이 AI Discoverability 로 묶는 크롤러들이다. 그래서 GSC 지표가 이것 때문에 움직이지는 않는다.

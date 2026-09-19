@@ -8,6 +8,7 @@ import { getSortedPublishedPosts } from "@/lib/filter-posts";
 import { formatHomepageDate, getHomepagePosts } from "@/lib/homepage-index";
 import { getPostsForLocale } from "@/lib/localized-posts";
 import { siteMetadata } from "@/lib/site-metadata";
+import VisitCounter from "@/components/VisitCounter";
 
 export default async function HomePage({
   params,
@@ -93,6 +94,8 @@ export default async function HomePage({
           >
             {dictionary.home.viewAll} <span aria-hidden="true">→</span>
           </Link>
+
+          <VisitCounter locale={lang} />
         </section>
       </div>
     </>

@@ -159,7 +159,7 @@ export default function SearchModal({
       {/* Modal */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] bg-black/50"
+          className="qa-fade-in fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[15vh] backdrop-blur-[2px]"
           onClick={handleBackdropClick}
         >
           <div
@@ -167,7 +167,7 @@ export default function SearchModal({
             role="dialog"
             aria-modal="true"
             aria-label={dictionary.actions.search}
-            className="w-full max-w-xl mx-4 bg-light-white100 dark:bg-dark-white100 border border-light-gray20 dark:border-dark-gray20 overflow-hidden"
+            className="qa-rise-in mx-4 w-full max-w-xl overflow-hidden border border-light-gray20 bg-light-white100 shadow-2xl dark:border-dark-gray20 dark:bg-dark-white100"
           >
             {/* Search Input */}
             <div className="flex items-center gap-3 px-4 border-b border-light-gray20 dark:border-dark-gray20">
@@ -221,17 +221,17 @@ export default function SearchModal({
             {/* Results */}
             <div className="max-h-[60vh] overflow-y-auto">
               {loading && (
-                <div className="px-4 py-8 text-center text-light-gray60 dark:text-dark-gray60">
+                <div className="qa-fade-in px-4 py-8 text-center text-light-gray60 dark:text-dark-gray60">
                   {dictionary.search.loading}
                 </div>
               )}
               {!loading && query && results.length === 0 && (
-                <div className="px-4 py-8 text-center text-light-gray60 dark:text-dark-gray60">
+                <div className="qa-fade-in px-4 py-8 text-center text-light-gray60 dark:text-dark-gray60">
                   &apos;{query}&apos;: {dictionary.search.empty}
                 </div>
               )}
               {results.length > 0 && (
-                <ul className="py-2">
+                <ul key={query} className="qa-list-in py-2">
                   {results.map((post) => (
                     <li key={post.slug}>
                       <Link

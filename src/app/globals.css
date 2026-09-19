@@ -112,3 +112,50 @@ body {
 .utterances-wrapper .utterances {
   max-width: var(--width-content) !important;
 }
+
+/* Tailwind v4 의 preflight 는 `button { cursor: pointer }` 를 더 이상 넣지 않는다.
+   그래서 유틸리티를 적지 않은 버튼은 전부 화살표 커서로 남는다. 컴포넌트마다
+   `cursor-pointer` 를 붙이는 대신 여기서 한 번 되살린다. */
+@layer base {
+  button:not(:disabled),
+  summary,
+  [role="button"] {
+    cursor: pointer;
+  }
+}
+
+/* ── 등장 애니메이션 ──────────────────────────────────────
+   이 리포의 오버레이는 전부 `{isOpen && ...}` 로 즉시 마운트된다. 퇴장까지
+   붙이려면 언마운트를 지연시켜야 하므로 등장만 다룬다. 보는 사람이 불평한
+   지점이 「갑자기 튀어나온다」이고 그건 등장으로 해결된다. */
+@keyframes qa-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes qa-rise-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes qa-pop-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.85); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.qa-fade-in { animation: qa-fade-in 160ms ease-out both; }
+.qa-rise-in { animation: qa-rise-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.qa-pop-in { animation: qa-pop-in 240ms cubic-bezier(0.34, 1.4, 0.64, 1) both; }
+
+/* 검색 결과는 목록이 통째로 바뀌므로 항목마다 지연을 주지 않는다.
+   한 번에 같이 올라온다. */
+.qa-list-in { animation: qa-rise-in 140ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .qa-fade-in,
+  .qa-rise-in,
+  .qa-pop-in,
+  .qa-list-in {
+    animation: none;
+  }
+}
