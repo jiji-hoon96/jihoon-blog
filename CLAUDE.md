@@ -277,11 +277,11 @@ Sentry 프로젝트: `hooninedev/jihoon-blog` (`@sentry/nextjs`)
 
 ### 서버 전용 구성이다
 
-**브라우저 계측은 의도적으로 넣지 않았다.** `src/instrumentation-client.ts` 가 없다. 아래 번들 실측대로 클라이언트 SDK 가 client JS 를 79KB(gzip) 늘리는데, 이 블로그의 도입 목적은 서버에서 조용히 실패하는 GA 호출을 잡는 것이고 그 부분은 사실상 공짜다.
+**브라우저 계측은 의도적으로 넣지 않았다.** `src/instrumentation-client.ts` 가 없다. 아래 번들 실측대로 클라이언트 SDK 가 client JS 를 79KB(gzip) 늘리는데, 이 블로그의 도입 목적은 서버에서 조용히 실패하는 경로를 잡는 것이고 그 부분은 사실상 공짜다.
 
 따라서 잡히는 것과 안 잡히는 것이 갈린다.
 
-- 잡힌다: 라우트 핸들러와 서버 컴포넌트에서 발생한 에러, `src/lib/google-analytics.ts` 의 GA 실패
+- 잡힌다: 라우트 핸들러와 서버 컴포넌트에서 발생한 에러, `src/lib/og-font.ts` 의 폰트 해석 실패
 - 안 잡힌다: 브라우저에서만 발생하는 에러 (클라이언트 컴포넌트 이벤트 핸들러, 하이드레이션 불일치 등)
 
 클라이언트 계측을 켜려면 `src/instrumentation-client.ts` 를 만들어 `Sentry.init` 과 `export const onRouterTransitionStart = Sentry.captureRouterTransitionStart` 를 넣고, `src/app/global-error.tsx` 에 `captureException` 을 되살린다. 이때 브라우저 확장·서드파티 스크립트·`utteranc.es` 를 걸러내는 `ignoreErrors`/`denyUrls` 를 반드시 함께 넣는다. 무료 티어 쿼터를 태우는 건 실제 버그가 아니라 그런 노이즈다.
@@ -320,11 +320,36 @@ Turbopack 빌드도 업로드를 지원한다. `useRunAfterProductionCompileHook
 
 **클라이언트 맵은 대상이 아니다.** 서버 전용 구성이라 브라우저 SDK 가 없다.
 
+### 지난 GA 장애 (코드는 2026-09-19 에 삭제됐다)
+
+이 블로그의 Sentry 도입 계기는 GA Data API 호출이 조용히 매달리는 것이었다.
+`/api/analytics` 와 `src/lib/google-analytics.ts` 를 소비자가 없어 지웠으므로
+아래는 더 이상 이 리포에 없는 코드의 기록이다. 판단의 근거로는 여전히 쓸모가 있다.
+
+- `runReport` 의 라이브러리 기본 RPC 타임아웃이 60초다. CallOptions 를 넘기지 않으면
+  GA 가 응답하지 않을 때 요청이 60초 넘게 매달리는데, fallback 때문에 응답은 200 이라
+  조용히 통계만 빈다. 프로덕션에서 `Deadline exceeded after 65.877s` 로 관측됐다(JIHOON-BLOG-2).
+  블랙홀 서버로 재현해 타임아웃 미지정 60.04초 / 5초 지정 5.00초를 실측했다.
+- **5초 타임아웃이 그 실패를 다 막지는 못했다.** fix 가 배포된 릴리스에서 13일 뒤
+  `Deadline exceeded after 338.655s` 가 다시 잡혔다(JIHOON-BLOG-8). CallOptions 는 정상적으로
+  넘어가고 있었다. 338초가 Lambda 컨테이너 수명(344초)과 거의 겹치고 전 구간이 gRPC
+  subchannel pick 이었다. **서버리스에서 함수가 freeze 된 동안 wall-clock 타이머가 발화하지
+  못하고 thaw 후에야 만료된 것으로 보인다.** in-process 타이머로는 이 실패를 경계 지을 수 없다.
+  다음에 서버리스에서 외부 RPC 를 붙일 때 같은 함정이 있다.
+- **`unstable_cache` 가 실패 이벤트 수를 눌렀다.** 실패 결과도 한 시간 캐시되므로 트래픽이
+  아무리 많아도 이벤트는 시간당 최대 1건이었다. 이벤트 건수를 영향 범위의 대리 지표로 쓰면
+  체계적으로 과소평가한다. 알림 임계치를 건수로 잡지 않는 이유다.
+- **fallback 을 돌려주는 경로는 라우트 핸들러의 catch 로 잡히지 않았다.** 조용히 실패하고
+  응답이 200 인 함수는 그 함수 안에서 보고해야 한다. 검증 과정에서 드러난 사실이다.
+
+JIHOON-BLOG-2 와 -8 은 90일 보존에서 밀려나 Sentry 로는 더 이상 조회되지 않는다.
+이 문서가 유일한 기록이다.
+
 ### 검증 완료 상태 (2026-08-04)
 
 Netlify 함수 런타임에서 실제 이벤트로 확인한 것들이다. Deploy Preview 에 임시 라우트를 올려 검증하고 머지하지 않고 닫는 방식을 썼다. 프로덕션 크레덴셜을 건드리지 않아도 된다.
 
-- 서버 캡처: `captureException` 이 `flush()` 없이도 전송된다. 서버리스에서 응답 후 함수가 얼어 전송이 끊길까 걱정했지만 문제 없었다. `google-analytics.ts` 가 쓰는 경로가 이것이다.
+- 서버 캡처: `captureException` 이 `flush()` 없이도 전송된다. 서버리스에서 응답 후 함수가 얼어 전송이 끊길까 걱정했지만 문제 없었다. `og-font.ts` 가 쓰는 경로가 이것이다.
 - `onRequestError` 자동 훅: 핸들링하지 않은 라우트 에러도 잡힌다 (`mechanism: auto.function.nextjs.on_request_error`).
 - 소스맵: 스택이 `src/...` 경로 + 줄번호 + 주변 소스 코드까지 해석된다. 적용 전에는 `y([root-of-the-server]__468aa3ae._)` 였다.
 - 이벤트 지연: throw 경로 이벤트가 약 2분 늦게 도착한 적이 있다. 즉시 조회해서 없다고 누락으로 판단하면 안 된다.
@@ -334,12 +359,8 @@ Netlify 함수 런타임에서 실제 이벤트로 확인한 것들이다. Deplo
 - DSN 이 있고 `NODE_ENV === 'production'` 일 때만 전송한다. 개발 중 발생하는 에러는 무료 티어 쿼터만 태우므로 보내지 않는다.
 - `tracesSampleRate` 는 0.1. Core Web Vitals 는 기존대로 `WebVitalsReporter` 가 GA4 로 보내고, Sentry 는 에러와 낮은 샘플링 트레이싱만 담당한다.
 - **Session Replay 는 쓰지 않는다.** 블로그는 로딩 성능이 곧 SEO 라서 비용이 이득보다 크다. `next.config.ts` 의 `bundleSizeOptimizations` 로 관련 코드를 번들에서 제거한다.
-- **`unstable_cache` 가 실패 이벤트 수를 누른다.** `fetchAnalyticsStats` 는 `revalidate: 3600` 이라 실패 결과(0/0)도 한 시간 캐시된다. 트래픽이 아무리 많아도 Sentry 이벤트는 시간당 최대 1건이다. 뒤집으면 **이벤트 1건이 "한 시간 동안 통계가 0" 을 뜻한다.** 이벤트 건수를 영향 범위의 대리 지표로 쓰면 체계적으로 과소평가하게 되므로, 알림 임계치를 건수로 잡지 않는다.
-- **GA 호출에는 반드시 `gaCallOptions()` 를 넘긴다.** `src/lib/ga-request-options.ts` 에 있다. `runReport` 의 라이브러리 기본 RPC 타임아웃이 60초여서, 넘기지 않으면 GA 가 응답하지 않을 때 요청이 60초 넘게 매달린다. fallback 때문에 응답은 200 이라 조용히 통계만 빈다. 프로덕션에서 `Deadline exceeded after 65.877s` 로 실제 관측됐다(JIHOON-BLOG-2). 블랙홀 서버로 재현해 타임아웃 미지정 60.04초 / 5초 지정 5.00초를 실측했다. `src/lib/ga-request-options.test.mjs` 가 호출 지점 누락을 막는다. (이 테스트는 `src` 전체를 훑고 각 호출의 **두 번째 인자**가 `gaCallOptions()` 인지 본다. gax 는 CallOptions 를 두 번째 인자로만 읽으므로 요청 객체에 스프레드로 섞으면 타임아웃이 적용되지 않는다)
+- **명시적 보고 지점은 `src/lib/og-font.ts` 하나다.** OG 이미지의 폰트 CSS 를 파싱해 굵기를 하나도 얻지 못하면 satori 가 `No fonts are loaded` 로 던지고, 스트림이 이미 시작된 뒤라 응답이 상태 코드도 없이 끊긴다(실측: curl 이 `000`). 소셜 unfurler 는 카드 이미지를 못 받는다. 모듈 수준 캐시라 한 번 빈 값이 잡히면 그 컨테이너가 사는 동안 유지되므로, 빈 결과는 캐시하지 않고 보고한다. 나머지는 `onRequestError` 자동 훅이 받는다.
 
-  **다만 5초 타임아웃이 이 실패를 다 막지는 못한다.** fix 커밋 `927c85b` 이 배포된 릴리스에서 13일 뒤 `Deadline exceeded after 338.655s` 가 다시 잡혔다(JIHOON-BLOG-8). 그때도 `gaCallOptions()` 는 정상적으로 넘어가고 있었고 스택에도 `google-gax` 의 타임아웃 래퍼가 있었다. 보고된 338초가 Lambda 컨테이너 수명(344초)과 거의 겹치고 전 구간이 gRPC subchannel pick 이다. **서버리스에서 함수가 freeze 된 동안 wall-clock 타이머가 발화하지 못하고 thaw 후에야 만료된 것으로 보인다.** 그렇다면 in-process 타이머로는 이 실패를 경계 지을 수 없고, 338초라는 숫자도 부분적으로 측정 아티팩트다. 로컬 블랙홀 서버 실측(5.00초)은 여전히 맞지만 그 경로에만 해당한다. 2026-08-18 이후 재발은 없다.
-- `src/lib/google-analytics.ts` 의 catch 블록 3곳에서 `captureException` 을 호출한다. (`5752e09` 이 `fetchPopularPages` 를 지우기 전에는 4곳이었다) 이 함수들은 GA 호출이 실패해도 fallback 값을 반환하고 응답은 200 이라, 계측하지 않으면 통계가 0 으로 보이는 장애를 알 방법이 없다. **라우트 핸들러의 catch 만으로는 잡히지 않는다.** 실제로 검증 과정에서 이 사실이 드러났다.
-- **`getClient()` 의 자격증명 누락 경로도 보고한다.** 이 경로는 catch 를 거치지 않는다. 호출부가 곧장 fallback 을 반환하기 때문이다. 게다가 `daily-visitor-baseline.ts` 가 0 위에 10~40 을 얹으므로 화면에는 "오늘 방문자 23명" 이 그럴듯하게 뜬다. Netlify 환경변수가 통째로 빠져도 사람 눈으로도 Sentry 로도 안 보이는 유일한 구멍이었다. 쿼터를 태우지 않도록 프로세스당 한 번만 보낸다.
 - **Deploy Preview 도 `NODE_ENV === 'production'` 이라 게이트를 통과한다.** 그래서 `sentry-options.ts` 가 `SENTRY_ENVIRONMENT` 가 없으면 Netlify 의 `CONTEXT`(`production` / `deploy-preview` / `branch-deploy`)를 환경 이름으로 쓴다. 이게 없으면 프리뷰 트래픽이 프로덕션 이슈에 섞여서 알림을 걸 때 걸러낼 방법이 없다.
 
 ### 번들 비용 실측 (2026-08-04)
@@ -375,20 +396,30 @@ Sentry 구성은 그대로 서버 전용이고 `src/instrumentation-client.ts` �
 
 ### 로컬 검증 방법
 
-개발 모드에서는 전송이 꺼져 있으므로 프로덕션 모드로 확인한다. 잘못된 키를 주입해 GA 호출을 실패시키면 된다.
+개발 모드에서는 전송이 꺼져 있으므로 프로덕션 모드로 확인한다. 실패를 주입할 지점은
+`src/lib/og-font.ts` 다. `OG_FONT_CSS_URL` 로 폰트 CSS 출처를 바꿀 수 있고, `@font-face` 가
+없는 200 응답을 가리키면 「굵기를 하나도 얻지 못하는」 경로가 그대로 재현된다.
+이 환경변수는 이 검증만을 위해 있다.
 
 ```bash
 pnpm build
-PORT=3111 SENTRY_ENVIRONMENT=local GA_PROPERTY_ID=123456789 \
-  GOOGLE_SERVICE_ACCOUNT_EMAIL=verify@example.iam.gserviceaccount.com \
-  GOOGLE_PRIVATE_KEY='-----BEGIN PRIVATE KEY-----\nINVALID\n-----END PRIVATE KEY-----\n' \
+PORT=3111 SENTRY_ENVIRONMENT=local \
+  OG_FONT_CSS_URL=http://localhost:3111/robots.txt \
   pnpm start
-curl "http://localhost:3111/api/analytics?type=page&slug=/verify"
+curl -o /dev/null -w '%{http_code}\n' http://localhost:3111/260913/opengraph-image
 ```
 
-`SENTRY_ENVIRONMENT=local` 을 빼면 이벤트가 `production` 으로 찍힌다. 로컬에는 Netlify 의 `CONTEXT` 도 없어서 `sentry-options.ts` 가 환경 값을 넘기지 않기 때문이다. 2026-09-16 에 이 절차로 만든 JIHOON-BLOG-B 가 그렇게 프로덕션 이슈에 섞였다.
+응답 코드가 `000` 으로 나오면 재현된 것이다. 폰트가 0개면 satori 가
+`No fonts are loaded` 로 던지는데, 스트림이 이미 시작된 뒤라 상태 코드조차 실리지 않는다.
+서버 로그에도 `failed to pipe response` 와 그 cause 가 찍힌다. 같은 서버에서 `/` 는 200 이므로
+이 경로만 깨진 것을 구분할 수 있다.
 
-`type=page` 를 쓰는 이유는 `getPageViews` 가 `unstable_cache` 를 거치지 않아서다. `type=stats` 는 캐시된 fallback 이 돌아와 에러가 재현되지 않을 수 있다. (`type=popular` 는 `5752e09` 이후 라우트에 없다. 지금은 400 이 돌아오고 GA 호출 자체가 일어나지 않는다)
+`SENTRY_ENVIRONMENT=local` 을 빼면 이벤트가 `production` 으로 찍힌다. 로컬에는 Netlify 의
+`CONTEXT` 도 없어서 `sentry-options.ts` 가 환경 값을 넘기지 않기 때문이다. 2026-09-16 에
+옛 절차로 만든 JIHOON-BLOG-B 가 그렇게 프로덕션 이슈에 섞였다.
+
+**쿼터를 태우지 않으려면 DSN 없이 돌린다.** 위 절차는 코드 경로가 도는 것까지만 확인하면
+충분하다. 실제 전송까지 보고 싶을 때만 DSN 을 주고, 끝나면 만들어진 이슈를 resolve 한다.
 
 ## 검색엔진 통보 (IndexNow)
 

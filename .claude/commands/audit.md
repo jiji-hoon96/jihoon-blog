@@ -29,9 +29,9 @@ pnpm audit:repo --build --live
 
 | 레인 | 무엇을 본다 |
 |---|---|
-| 기능/동작 | `src/app/**` 라우트 목록과 `[lang]` 미러의 비대칭, `isHiddenPost` 를 적용하지 않는 소비자, `/api/search` 와 `/api/analytics` 의 입력 검증과 에러 경로, `post-navigation.ts` 와 `localized-posts.ts` 의 경계 조건 |
+| 기능/동작 | `src/app/**` 라우트 목록과 `[lang]` 미러의 비대칭, `isHiddenPost` 를 적용하지 않는 소비자, `/api/search` 의 입력 검증과 에러 경로, `post-navigation.ts` 와 `localized-posts.ts` 의 경계 조건 |
 | SEO | 프로덕션 HTML 을 `curl` 로 직접 본다. sitemap, robots, hreflang 상호성과 `x-default`, 카테고리 `noindex` 판정, JSON-LD 파싱, 전 글 × 6 로케일의 `description`(120~160자) `keywords`(5~8개) 충족, 끊긴 내부 링크. `docs/hreflang-baseline-*.md` 와 대조해 회귀를 찾는다 |
-| 관측 | Sentry MCP 로 `hooninedev/jihoon-blog` 미해결 이슈를 조회한다(도구가 deferred 이므로 `ToolSearch` 로 먼저 로드). GA 호출 지점마다 `gaCallOptions()` 가 붙는지, Sentry 로 보고하지 않고 fallback 만 돌려주는 catch 블록이 어디인지 |
+| 관측 | Sentry MCP 로 `hooninedev/jihoon-blog` 미해결 이슈를 조회한다(도구가 deferred 이므로 `ToolSearch` 로 먼저 로드). Sentry 로 보고하지 않고 fallback 만 돌려주는 경로가 어디인지. 명시적 보고 지점은 `src/lib/og-font.ts` 하나이고 나머지는 `onRequestError` 자동 훅이 받는다 |
 | 성능 | 0단계 빌드 로그를 읽는다. client JS gzip 합계와 예산, 소스맵 잔존, 라우트 수와 빌드 시간, `curl -I` 로 프로덕션 TTFB 와 캐시 헤더 |
 | 콘텐츠 | 번역 검증기가 **무엇을 안 보는지**. 로케일 파일의 한글 비율로 미번역 스텁을 찾고, 로케일별 `description`/`keywords` 누락, 인용 블록 개수 상한(3~5), 같은 URL 중복 링크, 본문 인라인 링크와 `:::ref` 중복 |
 

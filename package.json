@@ -27,7 +27,6 @@
     "fonts:build": "node scripts/build-font-css.mjs"
   },
   "dependencies": {
-    "@google-analytics/data": "^7.1.0",
     "@sentry/nextjs": "^10.69.0",
     "@tailwindcss/typography": "^0.5.19",
     "contentlayer": "^0.3.4",
