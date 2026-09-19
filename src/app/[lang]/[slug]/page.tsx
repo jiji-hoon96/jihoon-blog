@@ -53,7 +53,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : undefined
 
   if (!post) {
-    return {}
+    // `{}` 를 돌려주면 metadataBase 가 없어서, 파일 컨벤션이 만드는
+    // opengraph-image 가 Next 기본값인 http://localhost:3000 에 대해 해석된다.
+    // 프로덕션 404 응답에 그 URL 이 그대로 실렸다. (실측)
+    return {
+      metadataBase: new URL(siteMetadata.siteUrl),
+      robots: { index: false, follow: false },
+    }
   }
 
   // 비공개(draft/ignore) 글은 색인 차단

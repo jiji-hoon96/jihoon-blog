@@ -1,5 +1,5 @@
 import { getDictionary } from '@/i18n/dictionaries'
-import { toPublicPath } from '@/i18n/locales'
+import { toPublicPath, type Locale } from '@/i18n/locales'
 import { siteMetadata } from '@/lib/site-metadata'
 
 /**
@@ -12,22 +12,36 @@ import { siteMetadata } from '@/lib/site-metadata'
  * 로케일은 한국어로 고정한다. 프록시가 접두사 없는 경로를 전부 `/ko` 로
  * rewrite 하므로 기본값이 그쪽이다.
  */
-export const FALLBACK_LOCALE = 'ko'
+export const FALLBACK_LOCALE: Locale = 'ko'
 
 const linkClassName =
   'border border-[var(--qa-mineral)] px-4 py-2 text-sm text-[var(--qa-ink)] no-underline'
 
-export default function NotFoundScreen() {
-  const dictionary = getDictionary(FALLBACK_LOCALE)
+type Props = {
+  /** 로케일 레이아웃 안에서 쓸 때는 그 레이아웃이 이미 `<main>` 을 갖는다. */
+  wrapper?: 'main' | 'div'
+  locale?: Locale
+}
+
+export default function NotFoundScreen({
+  wrapper = 'main',
+  locale = FALLBACK_LOCALE,
+}: Props = {}) {
+  const dictionary = getDictionary(locale)
+  const Wrapper = wrapper
 
   return (
-    <main
+    <Wrapper
       className="mx-auto w-full max-w-[var(--width-content)] px-4 py-24 sm:py-32"
-      style={{
-        background: 'var(--qa-canvas)',
-        color: 'var(--qa-ink)',
-        minHeight: '100vh',
-      }}
+      style={
+        wrapper === 'main'
+          ? {
+              background: 'var(--qa-canvas)',
+              color: 'var(--qa-ink)',
+              minHeight: '100vh',
+            }
+          : undefined
+      }
     >
       <p className="text-sm text-[var(--qa-stone)]">404</p>
       <h1 className="mt-3 text-[2rem] font-bold leading-[1.18] tracking-[-0.03em] sm:text-[2.5rem]">
@@ -47,7 +61,7 @@ export default function NotFoundScreen() {
       </div>
 
       <p className="mt-12 text-sm text-[var(--qa-stone)]">{siteMetadata.title}</p>
-    </main>
+    </Wrapper>
   )
 }
 
