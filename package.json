@@ -26,13 +26,13 @@
     "content:meta": "node scripts/validate-metadata-length.mjs"
   },
   "dependencies": {
-    "@google-analytics/data": "^5.2.1",
+    "@google-analytics/data": "^7.1.0",
     "@sentry/nextjs": "^10.69.0",
     "@tailwindcss/typography": "^0.5.19",
     "contentlayer": "^0.3.4",
     "date-fns": "^4.1.0",
     "feed": "^5.2.0",
-    "image-size": "^2.0.2",
+    "image-size": "^2.0.4",
     "mdast-util-to-string": "^4.0.0",
     "next": "16.3.4",
     "next-contentlayer": "^0.3.4",
@@ -63,5 +63,11 @@
     "google-auth-library": "^10.7.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "overrides": {
+      "protobufjs": "^7.6.6",
+      "@grpc/grpc-js": "^1.14.5"
+    }
   }
 }
