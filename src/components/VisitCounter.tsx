@@ -22,6 +22,10 @@ const SESSION_KEY = 'counted-visit'
  *
  * 실패하면 아무것도 그리지 않는다. 0 을 보여주면 「고장」과 「아직 아무도」가
  * 화면에서 같아진다.
+ *
+ * **자리는 응답 전에 잡아 둔다.** 이 줄이 문서 맨 위에 있어서, 숫자가 늦게 도착해
+ * 그때 높이가 생기면 아래 본문 전체가 한 번 밀린다. 그게 CLS 로 잡힌다. 그래서
+ * 껍데기는 항상 그리고 내용만 채운다.
  */
 export default function VisitCounter({ locale }: { locale: Locale }) {
   const [counts, setCounts] = useState<VisitCounts | null>(null)
@@ -45,17 +49,19 @@ export default function VisitCounter({ locale }: { locale: Locale }) {
     }
   }, [])
 
-  if (!counts) return null
-
   const format = new Intl.NumberFormat(locale).format
 
   return (
-    <p className="qa-fade-in home-meta mt-14 text-stone sm:mt-16">
-      {dictionary.home.visitsToday} {format(counts.today)}
-      <span aria-hidden="true" className="px-2 text-mineral">
-        ·
-      </span>
-      {dictionary.home.visitsTotal} {format(counts.total)}
+    <p className="home-meta min-h-[1.5rem] pt-8 text-stone sm:pt-10">
+      {counts && (
+        <span className="qa-fade-in inline-block">
+          {dictionary.home.visitsToday} {format(counts.today)}
+          <span aria-hidden="true" className="px-2 text-mineral">
+            ·
+          </span>
+          {dictionary.home.visitsTotal} {format(counts.total)}
+        </span>
+      )}
     </p>
   )
 }

@@ -49,9 +49,11 @@ export default async function HomePage({
       />
 
       <div className="pb-20 sm:pb-28">
+        <VisitCounter locale={lang} />
+
         <section
           aria-label={siteMetadata.brand}
-          className="pb-14 pt-16 sm:pb-20 sm:pt-24"
+          className="pb-14 pt-10 sm:pb-20 sm:pt-14"
         >
           <h1 className={valueParagraphClassName}>
             {dictionary.home.values[0]}
@@ -94,8 +96,6 @@ export default async function HomePage({
           >
             {dictionary.home.viewAll} <span aria-hidden="true">→</span>
           </Link>
-
-          <VisitCounter locale={lang} />
         </section>
       </div>
     </>
