@@ -83,6 +83,10 @@
 - **데이터 도표는 수치의 분포나 대비 자체가 논지일 때만 만든다.** 숫자를 카드에 담아 늘어놓는 것은 도표가 아니다. 값 세 개를 보여주려고 대시보드 모양을 만들고 있다면 그 자리는 문장이나 표가 낫다. 만들기로 했다면 HTML 을 헤드리스 Chrome 으로 스크린샷 하고, 다크 테마 토큰과 렌더 명령은 `.claude/commands/write-post.md` 의 시각 자료 가이드에 있다.
 - **다크 테마 카드 레이아웃을 개념 설명에 쓰지 않는다.** 그 형식은 수치용이고, 구조를 담으면 대시보드 스크린샷처럼 보여 관계가 드러나지 않는다.
 - 저장 위치는 `content/YYMMDD/N.png`, 본문 참조는 `![설명](N.png?w=720)`. 빌드가 `public/content/` 로 복사한다.
+- **`public/content/` 는 `content/` 의 파생물이다.** 거기에만 있는 파일을 만들지 않는다.
+  `pruneOrphans` 가 폴더 단위로만 지우던 시절에 글 두 편의 이미지 16개가 `public/content/` 에만
+  남아 git 에 추적됐다. 본문이 그것을 참조하므로 화면은 멀쩡했고 참조에서 존재를 확인하는 게이트도
+  통과했다. 파일 단위로 지우는 순간 6개 로케일에서 깨진다. 지금은 파일 단위로 지운다.
 
 ### 글의 깊이
 
@@ -188,6 +192,30 @@
 **린트는 빌드 게이트가 아니다.** `pnpm build` 는 `eslint` 를 돌리지 않으므로 린트가 깨져도 배포는 통과한다.
 그래서 `audit:repo` 는 린트 실패를 FAIL 이 아니라 WARN 으로 둔다.
 
+**TTFB 는 중앙값 5회다.** 1회 측정은 edge 캐시 적중 여부에 따라 3.6배까지 흔들린다.
+2026-09-19 감사에서 홈이 4.27초로 WARN 이 떴는데, 같은 시각 기준선은 edge hit 0.27초 /
+함수 경로 1.00초였다. 사이트가 느렸던 것이 아니라 그 순간의 캐시 상태를 잰 것이다.
+그래서 `--live` 는 경로마다 5회를 재 중앙값을 쓰고 `cache-status` 를 같이 남긴다.
+이 숫자를 읽을 때는 함수 경로인지 edge hit 인지를 먼저 본다.
+
+## 라우팅에서 조심할 것
+
+**잘못된 percent-escape 는 프록시에서 끊는다.** 디코딩할 수 없는 escape(`/posts/%E0`)가
+들어오면 Next 의 URL 정규화가 URIError 를 던지고, 그 예외는 not-found 경로를 타지 않아
+500 으로 나간다. Sentry 에도 안 남는다. `classifyLocaleRequest` 가 맨 앞에서 404 로 끊는다.
+`src/proxy.test.mjs` 가 지킨다.
+
+**매칭되지 않은 URL 의 404 는 `src/app/global-not-found.tsx` 다.** 루트 레이아웃이
+`[lang]` 이라는 최상위 동적 세그먼트라 `<html lang>` 과 `<title>` 을 낼 자리가 여기뿐이다.
+`next.config.ts` 의 `experimental.globalNotFound` 로 켠다. `src/app/not-found.tsx` 는
+세그먼트 안에서 `notFound()` 가 던져졌을 때만 쓰인다. 본문은 `NotFoundScreen` 하나를 공유한다.
+
+**OG 이미지 경로는 정규화하지 않는다.** OG 이미지는 파일 컨벤션이 만들고 Next 가 그 내부
+경로를 메타태그에 그대로 쓴다. `openGraph.images` 로 덮이지 않는다(시도해서 확인했다).
+한국어만 접두사가 없어 `/ko/opengraph-image` 가 광고되는데, 그 URL 이 307 로 돌면
+리다이렉트를 따르지 않는 소셜 unfurler 가 카드를 비운다. 그래서 `/ko/**/opengraph-image`
+만 정규화에서 뺀다.
+
 ## 에러 모니터링 (Sentry)
 
 Sentry 프로젝트: `hooninedev/jihoon-blog` (`@sentry/nextjs`)
@@ -270,11 +298,21 @@ Netlify 함수 런타임에서 실제 이벤트로 확인한 것들이다. Deplo
 | 서버 전용 + global-error 에서 `captureException` 호출 | 186.0 KB | +4.4 KB |
 | 클라이언트 + 서버 | 260.4 KB | +78.8 KB |
 
-위 표는 Next 16.1.4 기준이다. **2026-09-16 재측정에서 같은 방법으로 206.1 KB 가 나왔다.** 기준선보다 23.8 KB 크다.
-그 사이에 Next 가 16.1.4 에서 16.3.4 로 올라갔고(`49ea2e0`) GA4 소프트 내비게이션 리포터가 들어왔다(`cc21a0d`).
-둘 중 어느 쪽이 얼마를 차지하는지는 각 커밋에서 다시 빌드해 보기 전에는 모른다. 확인하지 않았다.
+위 표는 Next 16.1.4 기준이다. **2026-09-19 재측정은 207.6 KB 다.** 기준선보다 26.0 KB 크다.
 Sentry 구성은 그대로 서버 전용이고 `src/instrumentation-client.ts` 는 여전히 없으므로, 이 증가분은 Sentry 때문이 아니다.
 현재 예산은 `scripts/audit.mjs` 의 `BUDGET.clientJsGzipKb` 에 215 KB 로 박혀 있다. `pnpm audit:repo` 가 매번 확인한다.
+
+**증가분의 원인 후보 중 하나는 측정으로 배제됐다.** GA4 소프트 내비게이션 리포터(`cc21a0d`)의
+`pnpm-lock.yaml` diff 는 web-vitals 5.2.0 → 6.2.1 한 줄이고, 두 dist 의 gzip 차이는 935B 다.
+게다가 web-vitals 는 `import('web-vitals')` 로 지연 로드돼 first load 에 들어가지도 않는다.
+남은 것은 Next 16.1.4 → 16.3.4 업그레이드(`49ea2e0`)와, 기준선 이후 새로 생긴 클라이언트 컴포넌트
+셋(`GlossaryTerms` 08-27, `LanguageSelector` 08-17, `AiReferralReporter` 08-18)이 나눠 가진다.
+그 안의 비율은 각 커밋에서 다시 빌드하기 전에는 모른다.
+
+**예산이 세는 숫자에는 모던 브라우저가 받지 않는 것이 섞여 있다.** 15개 청크 합계 중
+`noModule` 폴리필이 38.6 KiB 다. 홈 HTML 이 `<script ... noModule="">` 로 싣는다.
+모던 브라우저 기준 실제 first load 는 홈 152.2 KiB, 글 페이지 159.4 KiB(Utterances 7.1 KiB 추가)다.
+예산은 상한을 보는 용도라 전부 세는 지금 방식을 그대로 두지만, 이 숫자를 사용자 체감으로 읽지는 않는다.
 
 `bundleSizeOptimizations.excludeTracing: true` 도 시도했지만 260.4 KB 로 변화가 없었다. 클라이언트 비용을 줄이는 유일한 방법은 `src/instrumentation-client.ts` 를 두지 않는 것이다.
 
@@ -315,7 +353,7 @@ curl "http://localhost:3111/api/analytics?type=page&slug=/verify"
 
 `draft` 와 `ignore` 글은 보내지 않는다. noindex URL 을 알리는 것이 이 기능이 해를 끼칠 수 있는 유일한 경로다.
 
-**배포보다 먼저 보내면 크롤러가 옛 문서를 본다.** 워크플로가 배포를 기다리는 신호는 `x-nextjs-date` 응답 헤더다. (실제 운영에서 이 값은 빌드 시각이 아니라 배포 후 첫 요청의 온디맨드 렌더 시각으로 나왔다. 신호로는 동작하지만 뜻은 그쪽이다) Netlify 의 durable 캐시는 쿼리스트링으로도 `Cache-Control: no-cache` 로도 뚫리지 않지만(실측: `age` 가 그대로 유지됨), 배포가 캐시를 비우므로 헤더 값이 바뀌는 것으로 감지할 수 있다. 15분 안에 신호를 못 보면 그냥 보낸다. 몇 분 이르게 알려도 크롤러는 나중에 다시 오므로 고정 대기보다 나쁠 것이 없다.
+**배포보다 먼저 보내면 크롤러가 옛 문서를 본다.** 워크플로가 배포를 기다리는 신호는 `x-nextjs-date` 응답 헤더다. (2026-09-19 실측에서 이 값은 durable 캐시 적중 응답에서도 요청 시각으로 다시 찍혔다. 렌더 시각이 아니라 응답 시각에 가깝다. 배포가 캐시를 비우므로 신호로는 여전히 동작한다) Netlify 의 durable 캐시는 쿼리스트링으로도 `Cache-Control: no-cache` 로도 뚫리지 않지만(실측: `age` 가 그대로 유지됨), 배포가 캐시를 비우므로 헤더 값이 바뀌는 것으로 감지할 수 있다. 15분 안에 신호를 못 보면 그냥 보낸다. 몇 분 이르게 알려도 크롤러는 나중에 다시 오므로 고정 대기보다 나쁠 것이 없다.
 
 드라이런이 기본값이다. `--submit` 을 붙여야 실제로 전송한다.
 

@@ -18,7 +18,7 @@ const log = (...a) => { if (!asJson) console.log(...a); };
 
 // 예산. 실측으로 갱신한다. 넘으면 실패가 아니라 경고다.
 const BUDGET = {
-	clientJsGzipKb: 215,     // 2026-09-16 실측 205.7 KB
+	clientJsGzipKb: 215,     // 2026-09-19 실측 207.6 KB (noModule 폴리필 38.6 KiB 포함)
 	buildSeconds: 90,        // 2026-09-16 실측 30.6 s
 	ttfbSeconds: 2.0,
 };
