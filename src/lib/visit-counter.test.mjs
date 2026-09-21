@@ -3,6 +3,7 @@ import test from 'node:test'
 
 import {
   bumpVisits,
+  LEGACY_PAGE_VIEWS,
   nextCounts,
   readVisits,
   seoulDay,
@@ -86,7 +87,7 @@ test('bumpVisits는 CAS가 성공할 때까지 다시 읽는다', async () => {
   }
 
   assert.deepEqual(await bumpVisits(store, '2026-09-19'), {
-    total: 7,
+    total: LEGACY_PAGE_VIEWS + 7,
     today: 7,
   })
 })
@@ -114,12 +115,37 @@ test('깨진 레코드는 0에서 다시 센다', async () => {
       return { modified: true }
     },
   }
-  assert.deepEqual(await bumpVisits(store, '2026-09-19'), { total: 1, today: 1 })
+  assert.deepEqual(await bumpVisits(store, '2026-09-19'), {
+    total: LEGACY_PAGE_VIEWS + 1,
+    today: 1,
+  })
 })
 
-test('readVisits는 아무것도 없을 때 0을 돌려준다', async () => {
+test('readVisits는 아무것도 없어도 과거 누적은 돌려준다', async () => {
+  // Blobs 가 비어 있다는 것은 이 카운터가 아직 한 번도 안 셌다는 뜻이지,
+  // 블로그에 아무도 안 왔다는 뜻이 아니다.
   assert.deepEqual(await readVisits(createStore(), '2026-09-19'), {
-    total: 0,
+    total: LEGACY_PAGE_VIEWS,
     today: 0,
+  })
+})
+
+test('과거 누적은 전체에만 얹고 오늘에는 얹지 않는다', async () => {
+  const store = createStore({ total: 40, today: 12, day: '2026-09-21' })
+  assert.deepEqual(await readVisits(store, '2026-09-21'), {
+    total: LEGACY_PAGE_VIEWS + 40,
+    today: 12,
+  })
+})
+
+test('저장된 레코드 자체에는 과거 누적이 섞이지 않는다', async () => {
+  // 더하기는 읽는 쪽에서만 한다. 저장된 값에 섞으면 상수를 고칠 때 이미 누적된
+  // 만큼이 두 번 얹힌다.
+  const store = createStore({ total: 40, today: 12, day: '2026-09-21' })
+  await bumpVisits(store, '2026-09-21')
+  assert.deepEqual(store.state.record, {
+    total: 41,
+    today: 13,
+    day: '2026-09-21',
   })
 })

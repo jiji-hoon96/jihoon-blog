@@ -23,6 +23,31 @@ export const VISITS_KEY = 'counts'
 
 const MAX_ATTEMPTS = 5
 
+/**
+ * Blobs 카운터가 생기기 전의 누적 조회수다. 화면의 「전체」는 블로그를 연 뒤의
+ * 총합이어야 하는데, 이 카운터는 2026-09-19 23:21 에 0 에서 시작했다. 그 앞의
+ * 기록은 GA4 에만 있으므로 상수로 들여와 읽을 때 더한다.
+ *
+ * 출처는 GA4 속성 `jihoon-blog`(427941084), 데이터 스트림 「지훈블로그」
+ * (`https://hooninedev.com/`, 측정 ID `G-GSVYLL0LV0`)다. 보고서 「페이지 및 화면:
+ * 페이지 경로 및 화면 클래스」의 합계 행 조회수를 읽었다. 2026-09-21 에 조회했고,
+ * 기간을 2020-01-01 부터 잡아도 2024-01-01 부터 잡아도 같은 값이라 이 속성이 가진
+ * 전체 기간이다.
+ *
+ * **단위가 같아야 이어 붙일 수 있다.** GA4 의 조회수는 `page_view` 이벤트 수이고
+ * 이 카운터도 페이지 접근마다 올린다. 세션이나 사용자 수를 가져오면 두 구간이
+ * 다른 것을 세게 된다.
+ *
+ * 9월 19일 23:21 이후 그날 자정까지의 조회는 양쪽에 다 들어간다. 한 시간이 채 안
+ * 되는 구간이라 그대로 둔다.
+ */
+export const LEGACY_PAGE_VIEWS = 10_741
+
+/** 과거 누적은 `total` 에만 얹는다. `today` 는 오늘 것이라 그대로 둔다. */
+function withLegacy(counts: VisitCounts): VisitCounts {
+  return { total: counts.total + LEGACY_PAGE_VIEWS, today: counts.today }
+}
+
 export type VisitCounts = {
   total: number
   today: number
@@ -99,7 +124,7 @@ export async function readVisits(
   day: string,
 ): Promise<VisitCounts> {
   const entry = await store.getWithMetadata(VISITS_KEY, { type: 'json' })
-  return toCounts(asRecord(entry?.data), day)
+  return withLegacy(toCounts(asRecord(entry?.data), day))
 }
 
 export async function bumpVisits(
@@ -119,7 +144,7 @@ export async function bumpVisits(
       ? await store.setJSON(VISITS_KEY, next, { onlyIfMatch: entry.etag })
       : await store.setJSON(VISITS_KEY, next, { onlyIfNew: true })
 
-    if (result.modified) return { total: next.total, today: next.today }
+    if (result.modified) return withLegacy({ total: next.total, today: next.today })
   }
 
   throw new Error(

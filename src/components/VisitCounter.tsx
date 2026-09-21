@@ -20,10 +20,11 @@ import { bumpVisit, type VisitCounts } from '@/lib/visits-client'
  *
  * **라벨은 응답을 기다리지 않는다.** 전에는 숫자가 도착할 때까지 「오늘」과
  * 「전체」까지 통째로 비어 있다가 한꺼번에 나타나서, 그 순간 줄 전체가 생겼다.
- * 지금은 라벨을 처음부터 그리고 숫자 자리만 비워 둔다. 자리는 `min-w-[3ch]` 와
- * `tabular-nums` 로 미리 잡는다. 세 자리까지는 값이 들어와도 좌우로 밀리지 않고,
- * 넘어가면 같은 줄의 뒤 텍스트만 밀린다. 왼쪽 정렬(`text-align: start`)이라 아래
- * 본문은 움직이지 않는다. 네 자리 실측이 0.0008 이다.
+ * 지금은 라벨을 처음부터 그리고 숫자 자리만 비워 둔다. 자리는 `tabular-nums` 와
+ * `min-w` 로 미리 잡는데, 두 숫자의 자릿수가 다르다. 「오늘」은 두세 자리에
+ * 머물고 「전체」는 과거 누적 10,741 을 얹어 시작하므로 쉼표까지 여섯 칸이다.
+ * 자리가 모자라면 같은 줄의 뒤 텍스트가 밀린다. 왼쪽 정렬(`text-align: start`)
+ * 이라 아래 본문은 움직이지 않지만, 자리를 맞춰 두면 그마저 0 이 된다.
  *
  * 실패하면 줄을 통째로 숨긴다. 「오늘 · 전체」만 남으면 고장이 정상처럼 보인다.
  */
@@ -55,20 +56,27 @@ export default function VisitCounter({ locale }: { locale: Locale }) {
           그만큼 아래 본문이 위로 올라와 시프트가 난다(실측 0.019). */}
       <span className={state === 'failed' ? 'invisible' : undefined}>
         {dictionary.home.visitsToday}{' '}
-        <Value>{counts && format(counts.today)}</Value>
+        <Value width="min-w-[3ch]">{counts && format(counts.today)}</Value>
         <span aria-hidden="true" className="px-2 text-mineral">
           ·
         </span>
         {dictionary.home.visitsTotal}{' '}
-        <Value>{counts && format(counts.total)}</Value>
+        <Value width="min-w-[6ch]">{counts && format(counts.total)}</Value>
       </span>
     </p>
   )
 }
 
-function Value({ children }: { children: React.ReactNode }) {
+/** `width` 는 Tailwind 가 빌드 때 훑을 수 있도록 완성된 클래스명으로 받는다. */
+function Value({
+  children,
+  width,
+}: {
+  children: React.ReactNode
+  width: string
+}) {
   return (
-    <span className="inline-block min-w-[3ch] tabular-nums">
+    <span className={`inline-block tabular-nums ${width}`}>
       {children && <span className="qa-fade-in inline-block">{children}</span>}
     </span>
   )
