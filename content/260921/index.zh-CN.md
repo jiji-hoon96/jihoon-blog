@@ -3,12 +3,12 @@ emoji: 🪟
 title: 'overlay-kit'
 seoTitle: 'overlay-kit：以声明式接口打开 React 模态框与 openAsync 核心结构'
 date: '2026-09-21'
-categories: ignore 前端 React 库
+categories: 前端 React 库
 description: '把用全局状态保存模态框开关的代码换成一行 await，我得到了什么又失去了什么。顺着源码追踪 overlay-kit 的事件、reducer 与 openAsync 核心逻辑，并亲手测试重新打开的行为，直到发现它与文档不符之处。'
 keywords: 'overlay-kit, React 模态框状态管理, 声明式接口, openAsync, useOverlay, Promise 模态框, React overlay, nice-modal-react'
 locale: zh-CN
 translationOf: '260921'
-sourceHash: aee64a559fb8a6b52010dd747b1aae985c694053425332601b135523a67ada12
+sourceHash: ed400c5a8b46a704145041ba4b471e7c32392681c613d53c9e09aa6f0b9e12a6
 ---
 
 这篇文章想聊聊以声明式方式处理 overlay 的接口。

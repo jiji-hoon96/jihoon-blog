@@ -3,7 +3,7 @@ emoji: 🪟
 title: 'overlay-kit'
 seoTitle: 'overlay-kit, React 모달을 선언적으로 여는 인터페이스와 openAsync 코어 구조'
 date: '2026-09-21'
-categories: ignore 프론트엔드 React 라이브러리
+categories: 프론트엔드 React 라이브러리
 description: '모달 열림 여부를 전역 상태로 들고 있던 코드를 await 한 줄로 바꾸며 얻은 것과 잃은 것. overlay-kit의 이벤트와 리듀서, openAsync 코어 로직을 소스로 따라가고, 재열기 동작을 직접 테스트해 문서와 어긋나는 지점까지 확인한다.'
 keywords: 'overlay-kit, React 모달 상태 관리, 선언적 인터페이스, openAsync, useOverlay, Promise 모달, React 오버레이, nice-modal-react'
 ---

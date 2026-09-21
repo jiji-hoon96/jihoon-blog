@@ -3,12 +3,12 @@ emoji: 🪟
 title: 'overlay-kit'
 seoTitle: 'overlay-kit: Declarative React Modals and openAsync'
 date: '2026-09-21'
-categories: ignore frontend React library
+categories: frontend React Library
 description: "Swapping a global isOpen flag for one await: what I gained, what I lost, and how overlay-kit's events, reducer, and openAsync core really work."
 keywords: 'overlay-kit, React modal state management, declarative interface, openAsync, useOverlay, promise based modal, React overlay, nice-modal-react'
 locale: en
 translationOf: '260921'
-sourceHash: aee64a559fb8a6b52010dd747b1aae985c694053425332601b135523a67ada12
+sourceHash: ed400c5a8b46a704145041ba4b471e7c32392681c613d53c9e09aa6f0b9e12a6
 ---
 
 In this post, I want to talk about interfaces that treat overlays declaratively.

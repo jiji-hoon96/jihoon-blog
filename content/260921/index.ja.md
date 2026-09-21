@@ -3,12 +3,12 @@ emoji: 🪟
 title: 'overlay-kit'
 seoTitle: 'overlay-kit、Reactモーダルを宣言的に開くインターフェースとopenAsyncのコア構造'
 date: '2026-09-21'
-categories: ignore フロントエンド React ライブラリ
+categories: フロントエンド React ライブラリ
 description: 'モーダルの開閉をグローバル状態で持っていたコードをawait一行に置き換えて得たものと失ったもの。overlay-kitのイベントとreducer、openAsyncのコアロジックをソースで追い、再オープンの挙動をテストしてドキュメントとのズレまで確認する。'
 keywords: 'overlay-kit, Reactモーダル 状態管理, 宣言的インターフェース, openAsync, useOverlay, Promise モーダル, Reactオーバーレイ, nice-modal-react'
 locale: ja
 translationOf: '260921'
-sourceHash: aee64a559fb8a6b52010dd747b1aae985c694053425332601b135523a67ada12
+sourceHash: ed400c5a8b46a704145041ba4b471e7c32392681c613d53c9e09aa6f0b9e12a6
 ---
 
 今回の記事では、オーバーレイを宣言的に扱うインターフェースについて話してみたい。
