@@ -95,41 +95,12 @@ test('marks internal locale rewrites so they are not canonicalized again', () =>
   )
 })
 
-test('redirects retired post slugs to the article that replaced them', () => {
-  assert.deepEqual(classifyLocaleRequest('/260703'), {
-    kind: 'redirect',
-    pathname: '/260913',
-    permanent: true,
-  })
-  assert.deepEqual(classifyLocaleRequest('/en/260703'), {
-    kind: 'redirect',
-    pathname: '/en/260913',
-    permanent: true,
-  })
-  assert.deepEqual(classifyLocaleRequest('/pt-BR/260703'), {
-    kind: 'redirect',
-    pathname: '/pt-BR/260913',
-    permanent: true,
-  })
-  // /ko 는 정규 경로가 아니므로 두 번 튀지 않고 한 번에 간다.
-  assert.deepEqual(classifyLocaleRequest('/ko/260703'), {
-    kind: 'redirect',
-    pathname: '/260913',
-    permanent: true,
-  })
-  assert.deepEqual(classifyLocaleRequest('/260703/'), {
-    kind: 'redirect',
-    pathname: '/260913',
-    permanent: true,
-  })
-})
-
 test('leaves live post slugs alone', () => {
-  assert.deepEqual(classifyLocaleRequest('/260914'), {
+  assert.deepEqual(classifyLocaleRequest('/260723'), {
     kind: 'rewrite',
-    pathname: '/ko/260914',
+    pathname: '/ko/260723',
   })
-  assert.deepEqual(classifyLocaleRequest('/en/260914'), { kind: 'next' })
+  assert.deepEqual(classifyLocaleRequest('/en/260723'), { kind: 'next' })
 })
 
 // 프로덕션에서 /posts/%E0 가 404 가 아니라 500 을 냈다. Next 의 URL 정규화가
@@ -163,7 +134,7 @@ test('leaves well-formed percent escapes alone', () => {
 // 그것을 307 로 돌리면 리다이렉트를 따르지 않는 소셜 unfurler 가 카드를 비운다.
 test('serves the ko OG image path directly instead of canonicalizing it', () => {
   assert.deepEqual(classifyLocaleRequest('/ko/opengraph-image'), { kind: 'next' })
-  assert.deepEqual(classifyLocaleRequest('/ko/260913/opengraph-image'), {
+  assert.deepEqual(classifyLocaleRequest('/ko/260723/opengraph-image'), {
     kind: 'next',
   })
   // 다른 /ko 경로는 그대로 정규화한다

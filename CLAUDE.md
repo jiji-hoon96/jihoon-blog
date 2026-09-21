@@ -78,7 +78,7 @@
 
 - **참조를 쓰기 전에 이미지 파일을 먼저 만든다.** `![설명](그림이나자료필요(...))` 플레이스홀더 문법은 마크다운으로 파싱되지 않아 프롬프트가 본문에 노출된다. 사용 금지.
 - **우선순위를 정하는 기준은 독자가 그 그림 없이 이해할 수 있는가다.** 데이터가 예뻐 보이는지가 아니다. 순서는 `이해가 막히는 지점을 푸는 개념 다이어그램 > 라이선스가 허락하는 출처 원본 그림 > 실제 데이터로 만든 도표` 다.
-- **먼저 개념 다이어그램을 검토한다.** 텍스트로 설명하면 두 문단이 걸리는 구조, 시간 순서, 포함 관계, 경계선을 한 장으로 보여준다. 숫자는 문장으로도 전달되지만 구조는 잘 안 된다. 손그림 스타일을 쓰고 흰 배경으로 둔다. `rough.js` 를 인라인한 HTML 을 헤드리스 Chrome 으로 굽는 절차가 `write-post.md` 에 있다. 시각적 기준으로 삼을 것은 `content/260914/2.png` 인데, 그 파일 자체는 직접 그린 것이 아니라 web.dev 원본이다.
+- **먼저 개념 다이어그램을 검토한다.** 텍스트로 설명하면 두 문단이 걸리는 구조, 시간 순서, 포함 관계, 경계선을 한 장으로 보여준다. 숫자는 문장으로도 전달되지만 구조는 잘 안 된다. 손그림 스타일을 쓰고 흰 배경으로 둔다. `rough.js` 를 인라인한 HTML 을 헤드리스 Chrome 으로 굽는 절차가 `write-post.md` 에 있다. 시각적 기준은 web.dev 의 INP 다이어그램(input delay, processing duration, presentation delay 를 시간축에 놓은 손그림)이다. 그 그림을 실었던 글은 2026-09-21 에 내려서 리포에는 더 이상 없다.
 - **출처에 이미 있는 그림이 있으면 직접 그리지 않는다.** 인용한 공식 문서나 명세의 그림을 내려받아 쓴다. 조건은 재사용을 허락하는 라이선스(web.dev·developer.chrome.com·OpenTelemetry 문서의 CC BY 4.0 등)이고, 그림 바로 아래 독립된 줄에 출처와 라이선스를 밝힌다. 라이선스가 불명확하면 내려받지 않고 링크로만 건다.
 - **데이터 도표는 수치의 분포나 대비 자체가 논지일 때만 만든다.** 숫자를 카드에 담아 늘어놓는 것은 도표가 아니다. 값 세 개를 보여주려고 대시보드 모양을 만들고 있다면 그 자리는 문장이나 표가 낫다. 만들기로 했다면 HTML 을 헤드리스 Chrome 으로 스크린샷 하고, 다크 테마 토큰과 렌더 명령은 `.claude/commands/write-post.md` 의 시각 자료 가이드에 있다.
 - **다크 테마 카드 레이아웃을 개념 설명에 쓰지 않는다.** 그 형식은 수치용이고, 구조를 담으면 대시보드 스크린샷처럼 보여 관계가 드러나지 않는다.
@@ -406,7 +406,7 @@ pnpm build
 PORT=3111 SENTRY_ENVIRONMENT=local \
   OG_FONT_CSS_URL=http://localhost:3111/robots.txt \
   pnpm start
-curl -o /dev/null -w '%{http_code}\n' http://localhost:3111/260913/opengraph-image
+curl -o /dev/null -w '%{http_code}\n' http://localhost:3111/260723/opengraph-image
 ```
 
 응답 코드가 `000` 으로 나오면 재현된 것이다. 폰트가 0개면 satori 가
@@ -510,7 +510,7 @@ curl -X POST http://localhost:3211/api/visits   # {"total":1,"today":1}
 드라이런이 기본값이다. `--submit` 을 붙여야 실제로 전송한다.
 
 ```bash
-pnpm indexnow content/260916/index.md content/260916/index.ja.md   # 미리보기
+pnpm indexnow content/260723/index.md content/260723/index.ja.md   # 미리보기
 pnpm indexnow --all                                                 # 공개 글 전체 미리보기
 ```
 
