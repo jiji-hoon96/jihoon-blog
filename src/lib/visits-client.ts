@@ -1,40 +1,26 @@
 /**
  * 브라우저에서 방문을 한 번 올리고 그 결과를 돌려준다.
  *
- * **왜 모듈에 promise 를 캐시하는가.** 증가는 모든 페이지에서 일어나야 하고
- * (`VisitPing` 이 루트 레이아웃에 있다) 표시는 홈에서만 한다(`VisitCounter`).
- * 홈에서는 둘이 같이 마운트되는데, 각자 `sessionStorage` 를 읽고 각자 `POST`
- * 하면 한 방문이 둘로 세어진다. 먼저 만들어진 promise 를 함께 기다리게 해서
- * 요청 자체를 하나로 만든다.
+ * **세션당 한 번이 아니라 페이지 접근마다 센다.** 처음에는 `sessionStorage` 로
+ * 한 세션에 한 번만 올렸다. 그러면 같은 사람이 글 다섯 개를 봐도 1 이라 세션
+ * 수가 되는데, 화면에 두려던 숫자는 페이지 접근의 총합이다. GA4 의 `page_view`
+ * 와 같은 단위라 과거 수치를 이어 붙일 수도 있다.
  *
- * 한 세션에 한 번만 올린다. 같은 사람이 글 사이를 오가며 다시 와도 더하면
- * 방문 수가 아니라 조회 수가 된다. SPA 내비게이션에서는 이 모듈이 살아 있어
- * 요청이 다시 나가지 않고, 홈으로 돌아올 때 캐시된 값이 바로 그려진다.
+ * 이 블로그는 글 사이 이동이 전체 재적재가 아니라 client-side navigation 이다.
+ * 그래서 부르는 쪽이 `usePathname()` 변화마다 호출한다. 문서 로드만 세면
+ * 링크를 타고 읽어 나가는 방문이 한 번으로 줄어든다.
  */
 
 export type VisitCounts = { total: number; today: number }
 
-const SESSION_KEY = 'counted-visit'
-
-let pending: Promise<VisitCounts | null> | null = null
-
-async function request(): Promise<VisitCounts | null> {
-  const counted = sessionStorage.getItem(SESSION_KEY) === '1'
+export async function bumpVisit(): Promise<VisitCounts | null> {
   try {
-    const response = await fetch('/api/visits', {
-      method: counted ? 'GET' : 'POST',
-    })
+    const response = await fetch('/api/visits', { method: 'POST' })
     // 실패는 503 으로 온다. `null` 을 돌려주고 부르는 쪽이 숨긴다. 0 을 그리면
     // 「고장」과 「아직 아무도 안 왔다」가 화면에서 같아진다.
     if (!response.ok) return null
-    sessionStorage.setItem(SESSION_KEY, '1')
     return (await response.json()) as VisitCounts
   } catch {
     return null
   }
-}
-
-export function reportVisit(): Promise<VisitCounts | null> {
-  pending ??= request()
-  return pending
 }

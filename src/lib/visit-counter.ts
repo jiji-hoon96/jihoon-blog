@@ -9,9 +9,10 @@
  *
  * **Blobs 에는 원자적 증가 연산이 없다.** 대신 조건부 쓰기(`onlyIfMatch` /
  * `onlyIfNew`)가 있어서 compare-and-swap 을 만들 수 있다. 읽은 etag 가 그대로일
- * 때만 쓰고, 경쟁에서 지면 다시 읽는다. 하루 방문이 두 자릿수인 사이트라
- * 경쟁은 사실상 일어나지 않지만, 지면 조용히 숫자가 하나 사라지는 종류의
- * 버그라 재시도를 둔다.
+ * 때만 쓰고, 경쟁에서 지면 다시 읽는다. 세션이 아니라 페이지 접근마다 쓰므로
+ * 쓰기 빈도가 전보다 높다. 그래도 하루 세 자릿수 규모에서 두 요청이 같은
+ * 밀리초에 겹칠 일은 드물다. 지면 조용히 숫자가 하나 사라지는 종류의 버그라
+ * 재시도를 두고, 여유를 보아 다섯 번까지 본다.
  *
  * 오늘/전체를 키 두 개로 나누지 않고 레코드 하나에 담는다. 그래야 두 숫자가
  * 한 번의 CAS 로 같이 움직인다. 나눠 두면 둘 중 하나만 성공하는 상태가 생긴다.
@@ -20,7 +21,7 @@
 export const VISITS_STORE = 'visits'
 export const VISITS_KEY = 'counts'
 
-const MAX_ATTEMPTS = 3
+const MAX_ATTEMPTS = 5
 
 export type VisitCounts = {
   total: number

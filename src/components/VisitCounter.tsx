@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 
 import { getDictionary } from '@/i18n/dictionaries'
 import type { Locale } from '@/i18n/locales'
-import { reportVisit, type VisitCounts } from '@/lib/visits-client'
+import { bumpVisit, type VisitCounts } from '@/lib/visits-client'
 
 /**
  * 홈 상단의 방문 수.
@@ -14,9 +14,9 @@ import { reportVisit, type VisitCounts } from '@/lib/visits-client'
  * 멈춘 채로 모두에게 같은 값이 나간다. 그래서 브라우저에서 부른다. 부수 효과로
  * JS 를 돌리지 않는 크롤러는 세어지지 않는다. 이 숫자에는 그게 맞다.
  *
- * **증가는 이 컴포넌트가 하지 않는다.** 루트 레이아웃의 `VisitPing` 이 모든
- * 페이지에서 올리고, 여기는 그 결과를 그린다. 요청은 `reportVisit` 이 하나로
- * 묶는다.
+ * **홈의 증가는 이 컴포넌트가 한다.** 루트 레이아웃의 `VisitPing` 은 홈에서
+ * 비켜서고 나머지 경로만 올린다. 그래야 한 접근이 둘로 세어지지 않고, 화면에
+ * 그리는 값이 이 접근을 이미 포함한 숫자가 된다.
  *
  * **라벨은 응답을 기다리지 않는다.** 전에는 숫자가 도착할 때까지 「오늘」과
  * 「전체」까지 통째로 비어 있다가 한꺼번에 나타나서, 그 순간 줄 전체가 생겼다.
@@ -36,7 +36,7 @@ export default function VisitCounter({ locale }: { locale: Locale }) {
   useEffect(() => {
     let alive = true
 
-    void reportVisit().then(counts => {
+    void bumpVisit().then(counts => {
       if (!alive) return
       setState(counts ?? 'failed')
     })

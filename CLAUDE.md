@@ -455,23 +455,27 @@ base 레이어와 컴포넌트의 `cursor-pointer` 양쪽에 둔다.
 |---|---|
 | CAS 로직 | `src/lib/visit-counter.ts` (+ `visit-counter.test.mjs` 9개) |
 | 라우트 | `src/app/api/visits/route.ts` (`GET` 읽기 / `POST` 증가) |
-| 요청 묶기 | `src/lib/visits-client.ts` |
-| 증가 (모든 페이지) | `src/components/VisitPing.tsx`, 루트 레이아웃에 있다 |
-| 표시 (홈만) | `src/components/VisitCounter.tsx` |
+| 요청 | `src/lib/visits-client.ts` |
+| 증가 (홈 외 모든 경로) | `src/components/VisitPing.tsx`, 루트 레이아웃에 있다 |
+| 증가 + 표시 (홈) | `src/components/VisitCounter.tsx` |
 
 **세는 범위는 사이트 전체다.** 처음에는 `VisitCounter` 가 홈에만 있어서 홈을 거친
 방문만 세었다. 검색 유입은 대부분 글 URL 로 바로 들어오므로 그 숫자는 실제의 일부였다.
 지금은 렌더가 없는 `VisitPing` 이 루트 레이아웃(`src/app/[lang]/layout.tsx`)에 있어
 글, 목록, 소개 어디로 들어와도 센다.
 
-**홈에서는 두 컴포넌트가 같이 마운트된다.** 각자 `sessionStorage` 를 읽고 각자 `POST`
-하면 한 방문이 둘로 세어진다. `visits-client.ts` 가 먼저 만들어진 promise 를 모듈에
-캐시해 요청을 하나로 묶는다. SPA 내비게이션에서도 그 모듈이 살아 있어 요청이 다시
-나가지 않고, 홈으로 돌아올 때 캐시된 값이 바로 그려진다.
+**단위는 페이지 접근이다.** 처음에는 `sessionStorage` 로 한 세션에 한 번만 올렸다.
+그러면 같은 사람이 글 다섯 개를 봐도 1 이라 세션 수가 된다. 화면에 두려던 숫자는
+접근의 총합이므로 게이트를 걷어냈다. GA4 의 `page_view` 와 같은 단위라 과거 수치를
+이어 붙일 수도 있다.
 
-**이것은 세션 수이지 사람 수가 아니다.** 한 세션에 한 번만 올리므로 같은 사람이 글
-다섯 개를 봐도 1 이다. 고유 방문자는 Blobs 로 셀 수 없고, 페이지뷰로 바꾸면 숫자가
-부풀어 다른 지표가 된다.
+**`usePathname()` 변화마다 센다.** 글 사이 이동이 client-side navigation 이라
+문서 로드만 세면 링크를 타고 읽어 나가는 방문이 한 번으로 줄어든다.
+
+**홈에서는 `VisitPing` 이 비켜선다.** 홈에는 두 컴포넌트가 같이 마운트되므로 둘 다
+올리면 한 접근이 둘로 세어진다. 한쪽을 `GET` 으로 돌리면 증가가 반영되기 전 값을
+읽는 경쟁이 생기므로, 홈의 증가는 `VisitCounter` 가 맡고 `VisitPing` 은 경로가 홈이면
+아무것도 하지 않는다.
 
 **GA Data API 로 읽지 않는다.** 그 경로는 `c36577a` 에서 지웠고, 지우기 전에 서버리스에서
 응답 없이 매달리는 실패를 두 번 냈다(JIHOON-BLOG-2, -8). -8 은 미해결이고 원인 가설이
