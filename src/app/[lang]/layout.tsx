@@ -7,6 +7,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { FALLBACK_LOCALE } from "@/components/NotFoundScreen";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
 import AiReferralReporter from "@/components/AiReferralReporter";
+import VisitPing from "@/components/VisitPing";
 import { siteMetadata } from "@/lib/site-metadata";
 import {
 	getLanguageAlternates,
@@ -187,6 +188,9 @@ export default async function RootLayout({
 				</Script>
 				<WebVitalsReporter />
 				<AiReferralReporter />
+				{/* 홈뿐 아니라 글로 바로 들어온 방문까지 센다. 숫자는 홈의
+				    `VisitCounter` 만 그린다. */}
+				<VisitPing />
 			</body>
 		</html>
 	);
