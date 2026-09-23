@@ -222,6 +222,18 @@
         "pt-BR",
         "zh-CN"
       ]
+    },
+    {
+      "key": "260922",
+      "source": "content/260922/index.md",
+      "sourceHash": "fbd7343a24e4c35620bd3f0a31fa9aa220c794bb5c8d64fadd830c6f2a2a43c4",
+      "reviewed": [
+        "en",
+        "ja",
+        "es",
+        "pt-BR",
+        "zh-CN"
+      ]
     }
   ]
 }
