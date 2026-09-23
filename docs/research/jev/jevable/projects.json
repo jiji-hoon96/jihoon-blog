@@ -1,0 +1,3679 @@
+[
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101388186916454439",
+  "url": "https://jevable.com/project/2101388186916454439",
+  "name": "Drape real-time virtual try-on",
+  "description": "jev is insane 🫣\n\nit makes realtime virtual try-on hauls possible.\nbuilt this experiment for Drape with @typesafeai \n\n> i talk\n> jev reads transcript + what i'm wearing\n> picks from my closet\n> changes my outfit in realtime\n\ncost: $0.0011 per decision\ntime: ~620ms per decision",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "virtual-try-on, fashion, voice",
+  "dateCreated": "2026-09-19",
+  "creator": {
+   "@type": "Person",
+   "name": "Nailthy Tang",
+   "url": "https://x.com/nailthy62"
+  },
+  "isBasedOn": "https://x.com/nailthy62/status/2101388186916454439",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101384523124740096/img/1Q6moTMdLcZ-mJ3r.jpg",
+  "views": "419.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101118529936519453",
+  "url": "https://jevable.com/project/2101118529936519453",
+  "name": "Proq construction-plan classification",
+  "description": "Built a construction plan-set classifier with Jev.\n\nProq turns civil and building plan sets into bills of materials using an LLM pipeline we built on GPT-4.1. Jev classified an entire 26-sheet plan set in 2.9 seconds for $0.0052.\n\nIt matched GPT-4.1 and GPT-6 Astra on 100% of",
+  "inLanguage": "en",
+  "genre": "Data & research",
+  "keywords": "construction, document-classification, plan-sets",
+  "dateCreated": "2026-09-19",
+  "creator": {
+   "@type": "Person",
+   "name": "Trinay Hari",
+   "url": "https://x.com/hari_trinay"
+  },
+  "isBasedOn": "https://x.com/hari_trinay/status/2101118529936519453",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101118259076734976/img/JId8Xua4ypyd342R.jpg",
+  "views": "1.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101095181382721998",
+  "url": "https://jevable.com/project/2101095181382721998",
+  "name": "Mario Never Dies",
+  "description": "okay Jev is an INSANE unlock, I just gave Mario a multiverse.\n\nbuilt \"Mario Never Dies\" with @typesafeai's Jev + microsandbox\n\nJev picks every move and every time Mario dies, we fork the entire VM into 4 timelines and try again.\n\nwhichever Mario survives becomes canon. it is like",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "mario, microsandbox, branching-timelines",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "appcypher",
+   "url": "https://x.com/theappcypher"
+  },
+  "isBasedOn": "https://x.com/theappcypher/status/2101095181382721998",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101094095808847872/img/3gUUWv-2l7gtBJLH.jpg",
+  "views": "6.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100681083176226921",
+  "url": "https://jevable.com/project/2100681083176226921",
+  "name": "Jev board",
+  "description": "Introducing jev board, short for jevin keyboard.\n\nFast, reliable models unlock much subtler experiences for building ambient intelligence into interfaces.\n\nA small exploration at the edges of GenUI.\n\nWith done @typesafeai and @CompleteSkeptic",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "keyboard, generative-ui, ambient-interfaces",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Zahle Khan",
+   "url": "https://x.com/zahlekhan"
+  },
+  "isBasedOn": "https://x.com/zahlekhan/status/2100681083176226921",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100679218455789568/img/zy8kM6C3lA-2EyJa.jpg",
+  "views": "32.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100713197502173373",
+  "url": "https://jevable.com/project/2100713197502173373",
+  "name": "An audience of 100 personalities",
+  "description": "I used Jev to make an audience of 100 personalities to yap to.\n\nEach blob has its own personality and makes its own Jev call every time you talk to decide if it’s bored of you yet.\n\nEach round costs <$0.01 in credits. Really cool model from @typesafeai !",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "voice, audience-simulation, multi-agent",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "amit",
+   "url": "https://x.com/legitamit"
+  },
+  "isBasedOn": "https://x.com/legitamit/status/2100713197502173373",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100711545218924544/img/R3UxL8HSq04FnC4R.jpg",
+  "views": "1.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101084662793666618",
+  "url": "https://jevable.com/project/2101084662793666618",
+  "name": "Doom with branching futures",
+  "description": "i got jev + an llm playing doom, with a twist: try several futures, then keep playing from the best outcome.\n\njev picks the moves. a custom harness uses @microsandbox to run attempts in parallel from the same checkpoint. the llm reviews what happened and guides what to try next.",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "doom, microsandbox, parallel-rollouts",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "toks",
+   "url": "https://x.com/toksdotdev"
+  },
+  "isBasedOn": "https://x.com/toksdotdev/status/2101084662793666618",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101073621049298944/img/cynsgROvqMkHdnxZ.jpg",
+  "views": "5.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100536228827496721",
+  "url": "https://jevable.com/project/2100536228827496721",
+  "name": "Upweight for Hacker News",
+  "description": "I recently got access to jev from and built this, because I hated the hacker news front page.\n\neveryone gets the same stories in the same order. someone else already decided what matters, and it is never quite what matters to me\n\nso: six sliders. technical depth, drama, practical",
+  "inLanguage": "en",
+  "genre": "Data & research",
+  "keywords": "hacker-news, ranking, personalization",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Vishesh Baghel",
+   "url": "https://x.com/VisheshBaghell"
+  },
+  "isBasedOn": "https://x.com/VisheshBaghell/status/2100536228827496721",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100535993141239808/img/Q_giQHiIdU-aAvI6.jpg",
+  "views": "32.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100970832948580377",
+  "url": "https://jevable.com/project/2100970832948580377",
+  "name": "Quiet marketing notifications on Android",
+  "description": "The JEV model is so fast and its instruction execution is so powerful that I can accurately identify whether there are advertising or marketing messages in Android by listening to app notifications and SMS messages. Also, it doesn't delete any content; it just stops reminding you",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "android, notifications, classification",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Ethan",
+   "url": "https://x.com/twitte_ethan"
+  },
+  "isBasedOn": "https://x.com/twitte_ethan/status/2100970832948580377",
+  "image": "https://pbs.twimg.com/media/HSgl0DYbAAATbny.jpg",
+  "views": "7.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101683325320454189",
+  "url": "https://jevable.com/project/2101683325320454189",
+  "name": "Codenames with Jev",
+  "description": "I tried out Jev.\n\nIt's very very fast, and very very cheap. So cheap that you can embed it deeply into all kinds of consumer products where traditionally it wouldn't make sense!!\n\nE.g. games! Here's me playing codenames w/ Jev:",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "codenames, word-games",
+  "dateCreated": "2026-09-20",
+  "creator": {
+   "@type": "Person",
+   "name": "Hugo Montenegro",
+   "url": "https://x.com/uwwgo"
+  },
+  "isBasedOn": "https://x.com/uwwgo/status/2101683325320454189",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101682942334398464/img/TIjR8ALsT1iz-Nc2.jpg",
+  "views": "1.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101064273187274838",
+  "url": "https://jevable.com/project/2101064273187274838",
+  "name": "Jev plays Catan",
+  "description": "wanted to see what happens when a few Jevs play Catan so I forked...after a while the Jevs just refuse to negotiate with each other and end up doing nothing on their turns 😭\n\nreally fun model to play around with!! @typesafeai \n\nawesome idea to try jev with games @Vtrivedy10",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "catan, multi-agent, negotiation",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Sachin",
+   "url": "https://x.com/sachpatro97"
+  },
+  "isBasedOn": "https://x.com/sachpatro97/status/2101064273187274838",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101062907593416704/img/gvJG-NjM4HY5yN6V.jpg",
+  "views": "2.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100487878992388279",
+  "url": "https://jevable.com/project/2100487878992388279",
+  "name": "Ask Jev",
+  "description": "Ask Jev anything.  Give it a try at  \n\nIt won't answer. It will judge.\n\nLet's see if we can get to 1 million questions. \n\n@typesafeai 🤝 @convex work great together. \n\n@hmartenjoyer @CompleteSkeptic @justKDeng @mikeysee",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "judgment, questions, convex",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Wayne Sutton",
+   "url": "https://x.com/waynesutton"
+  },
+  "isBasedOn": "https://x.com/waynesutton/status/2100487878992388279",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100486117325955072/img/_QailXRTsMGQ_atc.jpg",
+  "views": "95.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101079101997982037",
+  "url": "https://jevable.com/project/2101079101997982037",
+  "name": "JevForm",
+  "description": "introducing JevForm, a form that dynamically branches and chooses what to ask next usinng @typesafeai’s Jev\n\nin my life i’ve made hundreds of forms with crazy if/then logic. Jev solves it.\n\nbuilt with @vercel json-render (by @ctatedev), so theoretically it can support any",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "forms, adaptive-ui, json-render",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Tamir",
+   "url": "https://x.com/tamirspiritt"
+  },
+  "isBasedOn": "https://x.com/tamirspiritt/status/2101079101997982037",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101079056540139521/img/IYIVL8ehM6E2HcyL.jpg",
+  "views": "5.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100653998378516518",
+  "url": "https://jevable.com/project/2100653998378516518",
+  "name": "Jev Search",
+  "description": "Built Jev Search -- free and open source, powered by @typesafeai Jev and @search1api_dev search API.\n\nAsk in plain language. Jev picks where to search and ranks what comes back. \n\nTry it now:",
+  "inLanguage": "en",
+  "genre": "Data & research",
+  "keywords": "search, ranking, open-source",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "fatwang2",
+   "url": "https://x.com/fatwang2ai"
+  },
+  "isBasedOn": "https://x.com/fatwang2ai/status/2100653998378516518",
+  "views": "208.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101047036863037753",
+  "url": "https://jevable.com/project/2101047036863037753",
+  "name": "On-demand UI flow capture",
+  "description": "I've wanted this for ages and it's finally possible now with Jev by @typesafeai\n\nImagine Mobbin, but it grabs fresh flows for whatever you’re looking for\n\nBrowser use has always been to slow to pull this off properly. Jev + browser use are insanely quick now 🫪\n\nI had a lot of",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "design-research, ui-flows, browser-agents",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "omar ✌️",
+   "url": "https://x.com/omarjpeg"
+  },
+  "isBasedOn": "https://x.com/omarjpeg/status/2101047036863037753",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101046478685007872/img/gR52RkPOJb99hnPD.jpg",
+  "views": "48K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100601420395282695",
+  "url": "https://jevable.com/project/2100601420395282695",
+  "name": "Semantic spreadsheet formatting",
+  "description": "jev semantically formatting spreadsheet instantly\n\nshould we put it in @tryshortcutai ?",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "spreadsheets, formatting, semantic-classification",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Robert Yang",
+   "url": "https://x.com/GuangyuRobert"
+  },
+  "isBasedOn": "https://x.com/GuangyuRobert/status/2100601420395282695",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100477859018272768/img/XiwQwp3fqCnc1ZYz.jpg",
+  "views": "40K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100411066966749359",
+  "url": "https://jevable.com/project/2100411066966749359",
+  "name": "A faster browser agent",
+  "description": "Breaking: Browser Use + Jev = Ultrafast ⚡\n\nFindings flights took 7s and cost only $0.0039 🤯\n\n> new action space every step\n> DOM state space\n> small LLM fallback to type\n\n(this video is at 1x speed btw)\n\nBuilt a tiny open source browser agent. try it below ↓",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "agents",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Gregor Zunic",
+   "url": "https://x.com/gregpr07"
+  },
+  "isBasedOn": "https://x.com/gregpr07/status/2100411066966749359",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100410607807918080/img/lNfcykqoOvLoZHWa.jpg",
+  "views": "271.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100780008193020049",
+  "url": "https://jevable.com/project/2100780008193020049",
+  "name": "Spreadsheets that read intent",
+  "description": "Another crazy @typesafeai Jev example:\n\nPredictive spreadsheets\n\nSpreadsheets recalculate numbers, not meaning. Jev reads intent.\n\nType \"Urgency\" at the top of a column and, as you type, it figures out you want each row rated from \"no follow-up needed\" to \"urgent\" in ~100 ms.",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "productivity",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "nader dabit",
+   "url": "https://x.com/dabit3"
+  },
+  "isBasedOn": "https://x.com/dabit3/status/2100780008193020049",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100779722447667200/img/gvsEg2-3oD6FRZhc.jpg"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100694549362553153",
+  "url": "https://jevable.com/project/2100694549362553153",
+  "name": "Instant context compaction",
+  "description": "found the perfect use case for @typesafeai Jev: \n\ninstant compaction\n\nin 2026, why is compaction still a summarization prompt?\n\nJev can make it instant by scoring every tool call and dropping what’s irrelevant",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "developer-tools",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "tamara",
+   "url": "https://x.com/tamarajtran"
+  },
+  "isBasedOn": "https://x.com/tamarajtran/status/2100694549362553153",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100694537672998912/img/OF8vottg6-45ZgNl.jpg",
+  "views": "90.9K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101006585481073093",
+  "url": "https://jevable.com/project/2101006585481073093",
+  "name": "Scoring 3,000 kids’ snacks",
+  "description": "Jev scoring 3000 kid snacks with multiple criteria on  in 28 seconds for $0.11 🤯",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "real-world-apps",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Nikunj Kothari",
+   "url": "https://x.com/nikunj"
+  },
+  "isBasedOn": "https://x.com/nikunj/status/2101006585481073093",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101005796603809792/img/19SyyiWW5wotfFfW.jpg"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100529273186472318",
+  "url": "https://jevable.com/project/2100529273186472318",
+  "name": "An ad blocker with judgment",
+  "description": "I build an undetectable realtime adblocker extension with typesafe\n\nIt checks every dom element and classifies as ad/non-ad and removes it if true\n\nExtremely fun to work with, expecting an incredible shift in how AI is being used in the future",
+  "inLanguage": "en",
+  "genre": "Browser extensions",
+  "keywords": "browser-extensions",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Zachi",
+   "url": "https://x.com/iam_zachi"
+  },
+  "isBasedOn": "https://x.com/iam_zachi/status/2100529273186472318",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100529029761642496/img/OY0Ltm7v7lXv5-y6.jpg",
+  "views": "203.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100960281769738433",
+  "url": "https://jevable.com/project/2100960281769738433",
+  "name": "Search your inbox by intent",
+  "description": "Jev is really good at intent-based search!\n\nHow it looks in Gmail:\n\n(for a huge inbox you'd prob let semantic search / embeddings pull first but still much better experience)",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "productivity",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "nader dabit",
+   "url": "https://x.com/dabit3"
+  },
+  "isBasedOn": "https://x.com/dabit3/status/2100960281769738433",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100959260616151040/img/nb1GFqB_cwNesugB.jpg",
+  "views": "132.9K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100584917092409479",
+  "url": "https://jevable.com/project/2100584917092409479",
+  "name": "Decisions from the command line",
+  "description": "Every agent harness can now use Jev\n\nnpm install -g ai-cli\n\n→ ask yes/no questions\n→ choose between options\n→ score against your criteria",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "developer-tools",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Chris Tate",
+   "url": "https://x.com/ctatedev"
+  },
+  "isBasedOn": "https://x.com/ctatedev/status/2100584917092409479",
+  "image": "https://pbs.twimg.com/media/HSbG2YLWkAAPqmU.jpg",
+  "views": "116.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100545295201288678",
+  "url": "https://jevable.com/project/2100545295201288678",
+  "name": "Computer use, sped up",
+  "description": "If you blink you might miss it \n\nJev + Computer use = 100x faster than any LLM \n\n@typesafeai",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "agents",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "sav",
+   "url": "https://x.com/savboj"
+  },
+  "isBasedOn": "https://x.com/savboj/status/2100545295201288678",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100545038677655552/img/PSyeykC06q5OLVVu.jpg",
+  "views": "121.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100246929611411501",
+  "url": "https://jevable.com/project/2100246929611411501",
+  "name": "Drawing, one decision at a time",
+  "description": "Jev can draw pictures by predicting every pixel in parallel",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "experiments",
+  "dateCreated": "2026-09-16",
+  "creator": {
+   "@type": "Person",
+   "name": "Anshu",
+   "url": "https://x.com/anshuc"
+  },
+  "isBasedOn": "https://x.com/anshuc/status/2100246929611411501",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100245288183066624/img/ARkl8CTLZxp1KXSa.jpg",
+  "views": "389.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100523868913807410",
+  "url": "https://jevable.com/project/2100523868913807410",
+  "name": "An autonomous trading experiment",
+  "description": "I gave Jev $10,000 and let it trade",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "experiments",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Abol",
+   "url": "https://x.com/abolbuild"
+  },
+  "isBasedOn": "https://x.com/abolbuild/status/2100523868913807410",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100523731923722240/img/b6b47us-K3FIDHDC.jpg",
+  "views": "786K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100481938016669917",
+  "url": "https://jevable.com/project/2100481938016669917",
+  "name": "Turning signals into decisions",
+  "description": "For those who still didn't understand what Jev from @typesafeai  can do, here is the example.\n\nJev can read dozens of structured trading signals and then show intelligent decisions.\n\nIt's time to make your system actually alive.\n\nWhat a time!",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "experiments",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "trou",
+   "url": "https://x.com/_trou3"
+  },
+  "isBasedOn": "https://x.com/_trou3/status/2100481938016669917",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100479030940340224/img/kSmJhdWmRJjmtO97.jpg",
+  "views": "120.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101022590722810271",
+  "url": "https://jevable.com/project/2101022590722810271",
+  "name": "A city on a whale",
+  "description": "Jev x GPT-6 Astra x H3 Max \n\nI created a complex decision making game with Astra. It is about keeping the city on a whale alive with decisions.\n\n- GPT 6 Astra designed the world\n- Jev chose the actions\n- H3 Max Turbo on fal turned one decision from each round into video\n\nAll of",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "simulation, decision-making, video",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "gokaygokay",
+   "url": "https://x.com/gokayfem"
+  },
+  "isBasedOn": "https://x.com/gokayfem/status/2101022590722810271",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101020230071803904/img/FWi7MqiT0DI2iQJ9.jpg",
+  "views": "21.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101022133753430365",
+  "url": "https://jevable.com/project/2101022133753430365",
+  "name": "Higgsfield model routing",
+  "description": "Jev + Higgsfield = solved auto-routing for genAI models.\n\nIn this demo, @typesafeai’s Jev evaluates prompt and picks the most fit models for video and image generations on Higgsfield.",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "model-routing, image, video",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Higgsfield AI 🧩",
+   "url": "https://x.com/higgsfield_ai"
+  },
+  "isBasedOn": "https://x.com/higgsfield_ai/status/2101022133753430365",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101022052279058432/img/9UB9da_sc74S_NtV.jpg",
+  "views": "5.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101016673109016622",
+  "url": "https://jevable.com/project/2101016673109016622",
+  "name": "Instant variable generation",
+  "description": "another demo for jev for ~instant variable generation",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "structured-output, real-time",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "khaled",
+   "url": "https://x.com/eltokh7"
+  },
+  "isBasedOn": "https://x.com/eltokh7/status/2101016673109016622",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101016301875400704/img/TsyOgOGhiMifnGCi.jpg",
+  "views": "1.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101022101750571357",
+  "url": "https://jevable.com/project/2101022101750571357",
+  "name": "Instant generative UI",
+  "description": "New experiment: json-render + jev\n\nThe future Generative UI is instant\n\nYour components, your actions, your design system\n\nRendered in milliseconds",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "generative-ui, json-render, real-time",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Chris Tate",
+   "url": "https://x.com/ctatedev"
+  },
+  "isBasedOn": "https://x.com/ctatedev/status/2101022101750571357",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101022081810911232/img/3tKdQ3Y2_ZGSg3Q7.jpg",
+  "views": "25.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101021471644733867",
+  "url": "https://jevable.com/project/2101021471644733867",
+  "name": "MOSS litter-picking simulation",
+  "description": "Jev picks the target. MOSS picks up the litter.\n“Pick up the cans.” Now change the instruction: “Pick up the bottles.”\nReal Jev decisions, replayed in simulation. Toward cleaner streets, one maker at a time.",
+  "inLanguage": "en",
+  "genre": "Robotics",
+  "keywords": "simulation, robotics",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "metr0x",
+   "url": "https://x.com/metrox_eth"
+  },
+  "isBasedOn": "https://x.com/metrox_eth/status/2101021471644733867",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101021391575457792/img/x227ubbFebYxck1p.jpg"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101021361351131464",
+  "url": "https://jevable.com/project/2101021361351131464",
+  "name": "A prompt difficulty classifier",
+  "description": "prompt classifier before user hits send\n\njev is very fast and cheap so we can check the difficulty of the prompt every time user finish typing\n\nif its a simple prompt, we show fast mode and let the user decide if they want it or no",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "model-routing, prompt-classification",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Kevin Grajeda",
+   "url": "https://x.com/k_grajeda"
+  },
+  "isBasedOn": "https://x.com/k_grajeda/status/2101021361351131464",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101018655794331648/img/xm_XTf33FJqqEmIb.jpg",
+  "views": "5.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101021237417787819",
+  "url": "https://jevable.com/project/2101021237417787819",
+  "name": "Jevmaxxing with Notte",
+  "description": "Jevmaxxing on Notte browser sessions ⚡️\n\n> \n\nType a task, hit start, and watch Jev @typesafeai pick every actions super fast from the page's action space.\n\n> new action space every step\n> Notte cloud browser over CDP \n> step-by-step replay of every",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "browser-agents, automation",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Notte",
+   "url": "https://x.com/nottecore"
+  },
+  "isBasedOn": "https://x.com/nottecore/status/2101021237417787819",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101020534754422784/img/j_5WSNZVx35w--DS.jpg",
+  "views": "1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101020398477365629",
+  "url": "https://jevable.com/project/2101020398477365629",
+  "name": "A dogfighting experiment",
+  "description": "first attempt at getting jev to dogfight, it kinda sucks, will keep experimenting",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "simulation, game-ai",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "hanz",
+   "url": "https://x.com/hanznathanpo"
+  },
+  "isBasedOn": "https://x.com/hanznathanpo/status/2101020398477365629",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101020269586292736/img/EQfj-8D623rJOWzX.jpg",
+  "views": "1.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101019948684279862",
+  "url": "https://jevable.com/project/2101019948684279862",
+  "name": "News-driven stock research",
+  "description": "I gave Jev the news and let it find the stocks worth buying\n\nHere’s how it works 🧵",
+  "inLanguage": "en",
+  "genre": "Finance",
+  "keywords": "news, stock-research",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Abol",
+   "url": "https://x.com/abolbuild"
+  },
+  "isBasedOn": "https://x.com/abolbuild/status/2101019948684279862",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101017829076074496/img/GcuK_TLSbF56oODu.jpg",
+  "views": "18K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101019513676345555",
+  "url": "https://jevable.com/project/2101019513676345555",
+  "name": "Live 3D character expressions",
+  "description": "I'm using @typesafeai's Jev to orchestrate a 3D character's entire performance.\n\nMouth, brows, eyes, cheeks, gaze and body: ten decisions per message, composed live into one coherent reaction. No preset expressions.\n\nBuilding @mutuals_inc",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "3d, characters, animation",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Joao Bortotti",
+   "url": "https://x.com/john_bortotti"
+  },
+  "isBasedOn": "https://x.com/john_bortotti/status/2101019513676345555",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101017687044366336/img/i9QnHKeZumFnNMCB.jpg",
+  "views": "106.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101018783976722479",
+  "url": "https://jevable.com/project/2101018783976722479",
+  "name": "An internal-link SEO audit",
+  "description": "Jev is WILD for SEO audit 🤯\n\nin 45.1 seconds it read all 586 pages on my site and rebuilt the internal link map. 584 links placed, 139 pages it refused to link because nothing honestly fit. total cost $0.21.\n\nClaude Opus 5, same 586 pages, same clock, got through 21 of them and",
+  "inLanguage": "en",
+  "genre": "Marketing",
+  "keywords": "seo, classification",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "borja",
+   "url": "https://x.com/borjafat"
+  },
+  "isBasedOn": "https://x.com/borjafat/status/2101018783976722479",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101018477087592448/img/9YlAHKLLo_h6rgtK.jpg",
+  "views": "736K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101018760371171420",
+  "url": "https://jevable.com/project/2101018760371171420",
+  "name": "MuJoCo robot-arm control",
+  "description": "tested Jev as a real-time robotics policy in MuJoCo\n\nit struggled at first, so i split each update into two calls: decide what to do next, then decide how to move the arm and gripper\n\nJev doesn’t accept images, it gets simplified geometry and contacts as text here",
+  "inLanguage": "en",
+  "genre": "Robotics",
+  "keywords": "simulation, robot-arm",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Dmytro Hrybov",
+   "url": "https://x.com/dimentary"
+  },
+  "isBasedOn": "https://x.com/dimentary/status/2101018760371171420",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101017646154366976/img/02bH3Hxy9l0qEffS.jpg",
+  "views": "39.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101017732913529326",
+  "url": "https://jevable.com/project/2101017732913529326",
+  "name": "A predictive app launcher",
+  "description": "Also been playing with @typesafeai Jev. Insane.\n\nA pile of apps suddenly become possible. What a time to be a builder.\n\nSharing experiments here. First one:\n\nKeystroke oracle / predictive launcher\nA normal launcher ranks by aliases, fuzzy match, and habit.\n\nJev reads intent.",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "intent, launcher",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "hityyhz",
+   "url": "https://x.com/hityyhz"
+  },
+  "isBasedOn": "https://x.com/hityyhz/status/2101017732913529326",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101017668916510720/img/q9Ih0gZz7B8YohVb.jpg",
+  "views": "6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101015355133227348",
+  "url": "https://jevable.com/project/2101015355133227348",
+  "name": "A draft quality gate",
+  "description": "it's f*cking insane\n\nJev sat between GPT and me, killing every draft that broke my rules before i saw it. good setup.\n\nthen Jev did not answer. the agent decided silence was safer and stopped sending me anything at all. took a second agent to unstick it.\n\nyour checker needs a",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "guardrails, writing",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Mnimiy",
+   "url": "https://x.com/Mnilax"
+  },
+  "isBasedOn": "https://x.com/Mnilax/status/2101015355133227348",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101015248626941952/img/WYQmpPqMX02URsF1.jpg",
+  "views": "17.9K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101014788575035689",
+  "url": "https://jevable.com/project/2101014788575035689",
+  "name": "Manhattan pathfinding",
+  "description": "Can Jev defeat Dijkstra's or even the Mighty A*?\nLet's check it out on Manhattan!",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "pathfinding, benchmark",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Shivam Chauhan",
+   "url": "https://x.com/BuilderShivam"
+  },
+  "isBasedOn": "https://x.com/BuilderShivam/status/2101014788575035689",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101012936676483072/img/uOa464dc-IxxsOJZ.jpg",
+  "views": "3.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101012033340571952",
+  "url": "https://jevable.com/project/2101012033340571952",
+  "name": "Session replay to bug fixes",
+  "description": "JEV is INSANE.\n\nWe gave it 3 million replay events\n\nIn 40 seconds, it watched 3,247 sessions, caught 132 rage clicks, 116 dead clicks and 95 JavaScript errors, and opened 213 draft PRs to fix them.\n\nAll for just $2.17.\n\nJEV can also flag abandoned forms, rank every issue by",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "session-replay, debugging",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Taras",
+   "url": "https://x.com/tarasshyn"
+  },
+  "isBasedOn": "https://x.com/tarasshyn/status/2101012033340571952",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101011544515526656/img/iSFydnTHWxsRx9hy.jpg",
+  "views": "98.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101010773157761481",
+  "url": "https://jevable.com/project/2101010773157761481",
+  "name": "Jev vs. GLM at chess",
+  "description": "Jev vs GLM 5.3 at chess!\n\nResults:\n◾ GLM 5.3 won by checkmate in 29 moves\n◾ Jev: ~0.3s and <$0.0001 per move\n◾ GLM 5.3: ~5.8s and ~$0.008 per move\n◾ The whole game cost 24 cents\n\nMy main takeaway is that it's often useful to use each one to their strengths:\n\n◾ Fast,",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "chess, benchmark",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Hassan",
+   "url": "https://x.com/nutlope"
+  },
+  "isBasedOn": "https://x.com/nutlope/status/2101010773157761481",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101007875644506112/img/2KoYEIDaUkXehsRC.jpg",
+  "views": "38K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101006617223508022",
+  "url": "https://jevable.com/project/2101006617223508022",
+  "name": "Coaching and writing checks",
+  "description": "Alright playing with Jev through Vercel. \n\n1. quick coaching support during a session rather than running through my gateway. \n\n2. Anti-slop detector and fixer.",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "coaching, writing",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Kris Puckett",
+   "url": "https://x.com/krispuckett"
+  },
+  "isBasedOn": "https://x.com/krispuckett/status/2101006617223508022",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101006446913888256/img/iX43by5-9fpjefMu.jpg",
+  "views": "1.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101001041903009987",
+  "url": "https://jevable.com/project/2101001041903009987",
+  "name": "A Jev query planner",
+  "description": "I used Jev to build a query planner! With some tuning, I sped up Postgres queries on the join order benchmark by 12%. Here's what I did",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "postgres, query-optimization",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Michael Malis",
+   "url": "https://x.com/mmalisper"
+  },
+  "isBasedOn": "https://x.com/mmalisper/status/2101001041903009987",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100995303935791105/img/eK9B54C5duJ9b-Od.jpg",
+  "views": "14.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100999987572203809",
+  "url": "https://jevable.com/project/2100999987572203809",
+  "name": "A logical-fallacy detector",
+  "description": "LOGICAL FALLACIES: Next jev tool I'm working on is a @brave extension that gives a probabilistic fallacy score to every post on X timeline in realtime. It also flagged well reasoned, internally consistent + logical posts in green.\n\nWas curious to see how Jev would do with this.",
+  "inLanguage": "en",
+  "genre": "Browser extensions",
+  "keywords": "reasoning, classification",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "SmalltownRobot",
+   "url": "https://x.com/smalltownrobot"
+  },
+  "isBasedOn": "https://x.com/smalltownrobot/status/2100999987572203809",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100998447796977664/img/OpiHLLphp0WBDsi2.jpg",
+  "views": "3.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100999124099195377",
+  "url": "https://jevable.com/project/2100999124099195377",
+  "name": "Instant Clay workflows",
+  "description": "Jev does in fact work for building @clay workflows instantly",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "workflows, clay",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Eric Nowoslawski",
+   "url": "https://x.com/ENowoslawski"
+  },
+  "isBasedOn": "https://x.com/ENowoslawski/status/2100999124099195377",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100998985074835456/img/3FY78J6we-v6cyXz.jpg"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100994779291259187",
+  "url": "https://jevable.com/project/2100994779291259187",
+  "name": "Automatic agent and model selection",
+  "description": "thanks to @typesafeai  jev I no longer have fill out all of those fields on prompt boxes.  It picks the agent / model  / computer / folder for me.\n- For a major rewrite it uses Fable + Claude Code.\n- Changes to an ios app run on one of my macs",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "model-routing, tool-selection",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Sawyer Hood",
+   "url": "https://x.com/sawyerhood"
+  },
+  "isBasedOn": "https://x.com/sawyerhood/status/2100994779291259187",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100990656252661760/img/ceUStNdfX7n8-khU.jpg",
+  "views": "10.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100993278955188320",
+  "url": "https://jevable.com/project/2100993278955188320",
+  "name": "Incident triage in Box",
+  "description": "🆕@typesafeai dropped Jev this week, a new frontier model optimized for decisions. We put it to work on an incident triage workflow in Box.\n\nJev doesn't generate text. You send it state plus typed questions and it returns booleans with probabilities, enums, and scores in a single",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "incident-triage, documents",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Box",
+   "url": "https://x.com/Box"
+  },
+  "isBasedOn": "https://x.com/Box/status/2100993278955188320",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100986163511357440/img/o0Yzl7VqISwchxkk.jpg",
+  "views": "80.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100990085340496185",
+  "url": "https://jevable.com/project/2100990085340496185",
+  "name": "MakerMap",
+  "description": "now finds the makers you should meet, near you 🤯\n\nit's crazy accurate and built with Jev by @typesafeai \n\nmy #1 match was @martbln_dev\n\nfunnily enough we were DMing about meeting up yesterday 😂\n\nfind yours 👉",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "matching, community",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Martijn Verbove",
+   "url": "https://x.com/verbove"
+  },
+  "isBasedOn": "https://x.com/verbove/status/2100990085340496185",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100989867370979328/img/d9ymhOh4c1pNvx4X.jpg",
+  "views": "1.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100989012966031417",
+  "url": "https://jevable.com/project/2100989012966031417",
+  "name": "Jev plays Balatro",
+  "description": "Jev from @typesafeai plays @BalatroGame. Every hand it sees the cards, jokers, and blind, then picks play or discard in ~200–500ms. After the ante, it shops too. A full run costs less than a cent.",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "balatro, card-games",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Juris",
+   "url": "https://x.com/Juris_Savos"
+  },
+  "isBasedOn": "https://x.com/Juris_Savos/status/2100989012966031417",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100987840268034048/img/Hmumsuz83I0DXXIE.jpg",
+  "views": "31.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100987661926252737",
+  "url": "https://jevable.com/project/2100987661926252737",
+  "name": "A faster Slack agent",
+  "description": "Jev made our Slack agent 2x faster ⚡️ \n\nOur agent can be quite slow because it needs to read skills and figure out which tools to call. \n\nWe used @typesafeai's new model to speed this up by first passing it the prompt and classifying the best skill, tool and params to use before",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "slack, tool-selection",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "John Yeo",
+   "url": "https://x.com/johnyeo_"
+  },
+  "isBasedOn": "https://x.com/johnyeo_/status/2100987661926252737",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100986453845028864/img/YknQ8SR5kudv19m-.jpg",
+  "views": "34.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100987079488409741",
+  "url": "https://jevable.com/project/2100987079488409741",
+  "name": "Jev compaction for OMP",
+  "description": "If you use omp, you're missing out on jev based compaction\n\nIt helps your agent optimize token usage with 30 to 55% less context. $0.0005 a pass \n\nWhat it does:\n- Scores every old tool output with Jev\n- Keeps what's needed\n- Parks the rest on disk\n- Remembers its decisions so",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "context-compaction, agents",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Jerry the Martian",
+   "url": "https://x.com/jerry543"
+  },
+  "isBasedOn": "https://x.com/jerry543/status/2100987079488409741",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100987052003135488/img/T-qZi4EHQaNbY_Sx.jpg",
+  "views": "1.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100986774742765991",
+  "url": "https://jevable.com/project/2100986774742765991",
+  "name": "Voice intent to tool calls",
+  "description": "Played around with @typesafeai Jev today, mostly to understand what it does for tool calling. \n\nInstead of an LLM deciding what to do, I substituted that part with Jev. \n\nMy learning is that we will be able to make the agent act before the user finishes the sentence. So far,",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "voice, tool-selection",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Pratim Bhosale",
+   "url": "https://x.com/BhosalePratim"
+  },
+  "isBasedOn": "https://x.com/BhosalePratim/status/2100986774742765991",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100986186219081728/img/LmAGU-0Pd5ZABGeb.jpg",
+  "views": "110.9K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100985031703269425",
+  "url": "https://jevable.com/project/2100985031703269425",
+  "name": "Jev Reviewer",
+  "description": "Introducing Jev Reviewer, a tool designed for systematic reviewers to quickly find and extract the information from research articles.\n\nApp: \nGitHub:",
+  "inLanguage": "en",
+  "genre": "Data & research",
+  "keywords": "research-papers, open-source",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Ahmad Sofi-Mahmudi",
+   "url": "https://x.com/ASofiMahmudi"
+  },
+  "isBasedOn": "https://x.com/ASofiMahmudi/status/2100985031703269425",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100984949104836608/img/grrFxuawHqVXDVSV.jpg",
+  "views": "22.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100985027093749764",
+  "url": "https://jevable.com/project/2100985027093749764",
+  "name": "A plain-English logic interpreter",
+  "description": "Jev can't reason. So I built an interpreter that reasons for it. It runs a logic language where the facts and rules are plain English.",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "logic, programming-languages",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Shawn Simister",
+   "url": "https://x.com/narphorium"
+  },
+  "isBasedOn": "https://x.com/narphorium/status/2100985027093749764",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100984200820121600/img/dXya52zCSiVBJVaF.jpg",
+  "views": "38.9K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100984628811084144",
+  "url": "https://jevable.com/project/2100984628811084144",
+  "name": "A Tetris placement picker",
+  "description": "TypeSafe's Jev plays Tetris better than me!!\n\nWe hooked it up to a Tetris game. Every piece, it looks at the board and all the spots the piece could land, and picks one in about half a second.\n\nA whole game cost us less than half a cent. Their price is $0.042 per million tokens",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "tetris, game-ai",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Ziwen",
+   "url": "https://x.com/ziwenxu_"
+  },
+  "isBasedOn": "https://x.com/ziwenxu_/status/2100984628811084144",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100984324447203329/img/R3W7PNHwrMyOm7cK.jpg",
+  "views": "1.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100984559215247814",
+  "url": "https://jevable.com/project/2100984559215247814",
+  "name": "YouWare résumé screener",
+  "description": "JEV is Awsome!!! 😎\n\n360 resumes Screened in 24.2s — $0.0212.\nTyped scores. Shortlist signals. Speed + cost your boss will quietly love.\n\nI Open-sourced the resume screener on YouWare.\nReply “JEV” to try it.\n\nWe’re bringing JEV to YouWare soon — smoother builds, more",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "recruiting, classification",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "YouWare",
+   "url": "https://x.com/YouWareAI"
+  },
+  "isBasedOn": "https://x.com/YouWareAI/status/2100984559215247814",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100982412926992385/img/h9LjWj9F1kv3ESCd.jpg",
+  "views": "4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100981707105284255",
+  "url": "https://jevable.com/project/2100981707105284255",
+  "name": "Supabase RLS linter",
+  "description": "@typesafeai Jev is FREAKING SICK!!\n\nPlaying around with it to create an experimental RLS Linter for @supabase. \n\nYou can check it out here:  or view the demo 📺",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "supabase, security, linting",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Ali Waseem",
+   "url": "https://x.com/softwarecuddler"
+  },
+  "isBasedOn": "https://x.com/softwarecuddler/status/2100981707105284255",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100981261007507456/img/FLs24JzKRsdrrFER.jpg",
+  "views": "20.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100980770206879849",
+  "url": "https://jevable.com/project/2100980770206879849",
+  "name": "Job and candidate matching",
+  "description": "JEV is INSANE.  \n\nWe gave it 400 companies and one candidate profile.  \n\nIn 12 seconds, it predicted which jobs the candidate had the highest chance of getting, assigned a confidence score and detected job-candidate mismatches.  \n\nAll for just $0.0005  It can also score",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "recruiting, scoring",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Sarvagya Kulshreshtha",
+   "url": "https://x.com/sarvagya_kul"
+  },
+  "isBasedOn": "https://x.com/sarvagya_kul/status/2100980770206879849",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100980671640645632/img/19dyomYRhfAONg7S.jpg",
+  "views": "146.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100979972194369925",
+  "url": "https://jevable.com/project/2100979972194369925",
+  "name": "A page-by-page OCR router",
+  "description": "Doc-OCR router using Jev @typesafeai \n\nA Jev-powered router that looks at a PDF page by page, decides which pages actually need OCR, extracts the rest locally.\n\nResult: save cost on # OCR pages + speed",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "pdf, ocr, routing",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Misbah Syed",
+   "url": "https://x.com/MisbahSy"
+  },
+  "isBasedOn": "https://x.com/MisbahSy/status/2100979972194369925",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100978985480167424/img/Qcx8F-7plQRcpzqg.jpg",
+  "views": "26.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100976648552169805",
+  "url": "https://jevable.com/project/2100976648552169805",
+  "name": "A real-time feed quality filter",
+  "description": "Made a real-time slop detector with jev as you scroll",
+  "inLanguage": "en",
+  "genre": "Browser extensions",
+  "keywords": "feed-curation, classification",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Robin Bilgil",
+   "url": "https://x.com/RBilgil"
+  },
+  "isBasedOn": "https://x.com/RBilgil/status/2100976648552169805",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100976173836533760/img/APDonY80SB2iSYhj.jpg",
+  "views": "693.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100975114753892550",
+  "url": "https://jevable.com/project/2100975114753892550",
+  "name": "Search a physical library",
+  "description": "Jev lets me search my physical library by looking at the entire book index in parallel in 300ms.\n\nHere, the answer to “Who invented photography?” is probably on page 98 under \"Niépce, Joseph Nicéphore\"",
+  "inLanguage": "en",
+  "genre": "Data & research",
+  "keywords": "books, semantic-search",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Seth Thompson",
+   "url": "https://x.com/s3ththompson"
+  },
+  "isBasedOn": "https://x.com/s3ththompson/status/2100975114753892550",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100974992653500416/img/7rTO_q-ntbWDGTuR.jpg",
+  "views": "11.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100973868324417852",
+  "url": "https://jevable.com/project/2100973868324417852",
+  "name": "Tax document classification",
+  "description": "Built a tax document classifier with Jev.\n\nWe ingest thousands of tax documents using an LLM pipeline I built last tax season.\n\nI read multiple articles as late as April this year claiming AI fails at tax document classification. Wasn't the case back then, and it's proved wrong",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "documents, classification",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Nakshatra Saxena",
+   "url": "https://x.com/nedwize"
+  },
+  "isBasedOn": "https://x.com/nedwize/status/2100973868324417852",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100973360989773825/img/yMtL6CxrKMVXQEHV.jpg",
+  "views": "234.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100971356691247377",
+  "url": "https://jevable.com/project/2100971356691247377",
+  "name": "Jev controls a simulated fly",
+  "description": "I made Jev control The Fly",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "simulation, control",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "khaled",
+   "url": "https://x.com/eltokh7"
+  },
+  "isBasedOn": "https://x.com/eltokh7/status/2100971356691247377",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100835422456737792/img/qB9WJb7Mdvq7HVkb.jpg",
+  "views": "1.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100971168912048153",
+  "url": "https://jevable.com/project/2100971168912048153",
+  "name": "A typed trading-rule experiment",
+  "description": "So here’s what I built.\n\nA simple TSLA / 50-day MA rule, with @typesafeai’s Jev sitting in the judgement layer.\n\nReal API calls. Typed answers. My code decides the action.\n\nFacts + Judgement = Action.\n\nJust an experiment. Public code below.",
+  "inLanguage": "en",
+  "genre": "Finance",
+  "keywords": "trading, open-source",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Matt",
+   "url": "https://x.com/mttcnnng"
+  },
+  "isBasedOn": "https://x.com/mttcnnng/status/2100971168912048153",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100970000194441216/img/FonZBBj2sA85iAlF.jpg",
+  "views": "50.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100971155297603662",
+  "url": "https://jevable.com/project/2100971155297603662",
+  "name": "An offline research decision gate",
+  "description": "got early access to @TypeSafeAI (Jev).\n\nin my last post on autoresearch vs dream-rsi, the quiet bottleneck was:\nhow do you score 28+ dreamt tree branches offline without waiting minutes on chat LLMs?\n\ntested Jev as the sub-100ms offline decision gate:\n\nleft: linear",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "research, branch-selection",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Otto🐾",
+   "url": "https://x.com/otto_explorer"
+  },
+  "isBasedOn": "https://x.com/otto_explorer/status/2100971155297603662",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100868769862348800/img/AWiKTHrnZpuMeDJc.jpg",
+  "views": "2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100970810483823086",
+  "url": "https://jevable.com/project/2100970810483823086",
+  "name": "Switch between manual and AI play",
+  "description": "Had some fun taking Jev from @typesafeai for a spin, switching seamlessly between manual and AI-driven gameplay.\n\nIt’s clocking 2–3 calls/sec at 60 FPS, with ~150ms avg latency.\n\nThe most interesting part wasn’t the speed, though. It was distilling the game into the variables,",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "game-ai, real-time",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Adrián Mato 🐙",
+   "url": "https://x.com/adrianmg"
+  },
+  "isBasedOn": "https://x.com/adrianmg/status/2100970810483823086",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100970516081508352/img/1l_l07Sh5OsLeJGm.jpg"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100970015977804008",
+  "url": "https://jevable.com/project/2100970015977804008",
+  "name": "Ego Lite shopping decisions",
+  "description": "ego lite + Jev + DeepSeek Flash = stupid fast. ⚡\n\n3.71s for 20 Amazon product decisions.\n\nGPT-5.6 Sol: 54.45s\n\nSame task. Same result.\n10/10 on both.\n\nLess reasoning. Faster decisions.\n1× speed.",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "shopping, browser-agents",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "ego",
+   "url": "https://x.com/ego_agent"
+  },
+  "isBasedOn": "https://x.com/ego_agent/status/2100970015977804008",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100969567715790848/img/IXAgXZrtsLGyeYRA.jpg",
+  "views": "60.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100969755318370699",
+  "url": "https://jevable.com/project/2100969755318370699",
+  "name": "A Tetris agent",
+  "description": "ok, I got Jev to play Tetris and this is cool asf",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "tetris, game-ai",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Marcelo Mendes",
+   "url": "https://x.com/MarcelooMendes"
+  },
+  "isBasedOn": "https://x.com/MarcelooMendes/status/2100969755318370699",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100969618235969537/img/9azLB1IGbF6hoY1a.jpg",
+  "views": "2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100968892591968320",
+  "url": "https://jevable.com/project/2100968892591968320",
+  "name": "Jevals",
+  "description": "I wanted an easier way to test my jev requests and see if my results are improving, so I built jevals!\n\nIt's a local workbench for testng the Noul, Choice, and Score primitives. You can mix requests as well.\n\nYou can run a seed command to see and play with some of the examples in",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "evaluation, testing, open-source",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Nick DeJesus 🛒🎉 - Former Unpaid CTO @BTPipeline",
+   "url": "https://x.com/Dayhaysoos"
+  },
+  "isBasedOn": "https://x.com/Dayhaysoos/status/2100968892591968320",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100965288850145280/img/Ik0MohKW-MEyT6p4.jpg",
+  "views": "1.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100968037117780130",
+  "url": "https://jevable.com/project/2100968037117780130",
+  "name": "A Jev Magic 8 Ball",
+  "description": "Everyone’s talking about Jev, so I made a slightly silly way to try it. A Magic 8 Ball that returns 1 of 20 answers. My $4 in API credits should cover ~300,000 questions. Please help yourselves!",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "playful, choices",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "William Prout",
+   "url": "https://x.com/will_caskets"
+  },
+  "isBasedOn": "https://x.com/will_caskets/status/2100968037117780130",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100819832660975616/img/j8xtj7J4zxqZ3kdx.jpg",
+  "views": "4.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100967959879471519",
+  "url": "https://jevable.com/project/2100967959879471519",
+  "name": "An assistant without a wake word",
+  "description": "Ai is evolving. \n\nJev can be armed at all times. \n\nI can speak freely and it knows ( from probabilities ) if im asking my computer to do something or blaberring away at something else.\n\nno wake word. \n\nspeed + affordability + intelligence is getting to the point where an always",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "voice, intent",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Max Blade",
+   "url": "https://x.com/_MaxBlade"
+  },
+  "isBasedOn": "https://x.com/_MaxBlade/status/2100967959879471519",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100966551826444288/img/i2s52ZeMNTOO-IRD.jpg",
+  "views": "66.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100966999602102520",
+  "url": "https://jevable.com/project/2100966999602102520",
+  "name": "Connect Four on Omarchy",
+  "description": "We put Jev inside OmarchyLinux @dhh  to play Connect Four. It reads the board, chooses a move, watches the opponent respond, then Hermes reviews the result and tries again.  \n\n6,499 model tokens. Cost: $0.00022113.  \n\nThis is what structured state + real-time decision loops look",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "connect-four, linux",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Aria",
+   "url": "https://x.com/Entelic_Aria"
+  },
+  "isBasedOn": "https://x.com/Entelic_Aria/status/2100966999602102520",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100966615659732992/img/TweCJbUhQ94mbk2d.jpg",
+  "views": "1.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100966838905585687",
+  "url": "https://jevable.com/project/2100966838905585687",
+  "name": "Tester Army E2E",
+  "description": "e2e + jev from @typesafeai ⚡\n\nI'm building an open-source framework for running e2e tests with agents. supports web, mobile (and more!)\n\navailable soon:",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "testing, mobile, web",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Oskar",
+   "url": "https://x.com/o_kwasniewski"
+  },
+  "isBasedOn": "https://x.com/o_kwasniewski/status/2100966838905585687",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100966360192868352/img/8GCSVzX1AYF4caav.jpg",
+  "views": "66.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100966334179770675",
+  "url": "https://jevable.com/project/2100966334179770675",
+  "name": "Jev on Sol",
+  "description": "GM\nJev V1 is live on \n\nHere's what's new:\n\nTRADE\n• Paste any Solana CA and get a live chart with Jev watching it with you\n• Jev re-reads the token every 5 seconds: the call, where price is in 15 minutes, buyers in control, dump risk, alive in a week, heat",
+  "inLanguage": "en",
+  "genre": "Finance",
+  "keywords": "crypto, analysis",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Cryptonaire //",
+   "url": "https://x.com/Cryptonaire19"
+  },
+  "isBasedOn": "https://x.com/Cryptonaire19/status/2100966334179770675",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100963321985826816/img/ISeBbnk7R7gR4B3-.jpg",
+  "views": "10.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100965880242770423",
+  "url": "https://jevable.com/project/2100965880242770423",
+  "name": "Corent model routing",
+  "description": "Corent’s brain uses @typesafeai Jev now.\n\nNot to generate the output, to make the decision before the output gets generated.\n\nWhen a request comes into Corent, you don’t need to tell us which model to use. You send the prompt, the workload and the quality level.\n\nThen Jev helps",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "model-routing, inference",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "corent",
+   "url": "https://x.com/corentAI"
+  },
+  "isBasedOn": "https://x.com/corentAI/status/2100965880242770423",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100964784581525504/img/S0fJrRk_X0OFZhdh.jpg",
+  "views": "109.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100965547454374316",
+  "url": "https://jevable.com/project/2100965547454374316",
+  "name": "A driving decision simulator",
+  "description": "I built an autonomous driving system with Jev\n\nIt receives real time data from its environment & decides what to do next\n\nChange lanes,Brake,Accelerate,Slow down\n\nWith sudden obstacles,pedestrians, traffic & red lights\n\nA small experiment in what decision native AI can look like",
+  "inLanguage": "en",
+  "genre": "Robotics",
+  "keywords": "simulation, driving",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Cipher",
+   "url": "https://x.com/cipherwrk"
+  },
+  "isBasedOn": "https://x.com/cipherwrk/status/2100965547454374316",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100965500314615808/img/19kMbu9jghFUkaBs.jpg",
+  "views": "5.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100965455506628834",
+  "url": "https://jevable.com/project/2100965455506628834",
+  "name": "Jevinik",
+  "description": "JEVINIK - Evaluating stocks insanely fast with @typesafeai's Jev\n\nIt pulls market data, signals, risk & filings around any stock, then calls the next 30 days:\n\n🐂 BULLISH\n🐻 BEARISH\n\nNo LLMs. No vibes. Just Jev & @ValyuOfficial rich financial data 📈\n\n🔗",
+  "inLanguage": "en",
+  "genre": "Finance",
+  "keywords": "stock-research, data",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Odogwu Machalla",
+   "url": "https://x.com/unicodeveloper"
+  },
+  "isBasedOn": "https://x.com/unicodeveloper/status/2100965455506628834",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100965204112588800/img/BajZANqLhDSvmBB0.jpg",
+  "views": "8.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100963628484624670",
+  "url": "https://jevable.com/project/2100963628484624670",
+  "name": "Jev plays piano",
+  "description": "Jev playing the piano.\n\nI gave it the key, all 88 notes to choose from and the sequence so far.\n\nDid chords in a second pass once we had the melody by giving it the bar's notes & 7 chords to choose from.\n\nPlays it safe & loves alternating between G and A but with some lessons, it",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "music, composition",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Probably Nick",
+   "url": "https://x.com/nickfromlater"
+  },
+  "isBasedOn": "https://x.com/nickfromlater/status/2100963628484624670",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100961148635844609/img/_gFn5XISSQRDaI7p.jpg",
+  "views": "1.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100963424163307712",
+  "url": "https://jevable.com/project/2100963424163307712",
+  "name": "League of Legends win probabilities",
+  "description": "got @typesafeai's jev to build a League of Legends win-probability overlay in real-time\n\nevery second, the model receives the full game state in and answers three questions: will blue win, who has the biggest impact and is the leading team about to throw.\n\nworks retroactively or",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "league-of-legends, scoring",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "filipe",
+   "url": "https://x.com/filicroval"
+  },
+  "isBasedOn": "https://x.com/filicroval/status/2100963424163307712",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100963025201037312/img/FgYho35_OiQ_zr3w.jpg",
+  "views": "2.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100963005764919517",
+  "url": "https://jevable.com/project/2100963005764919517",
+  "name": "A real-time orchestra conductor",
+  "description": "Jev is so cool!\n\nI just made Jev conduct a musical orchestra in REAL time\n\nMy entire TL was filled with Jev demos so decided to give it a spin and needless to say, \n\nI was not dissapointed.",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "music, real-time",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Yajat Gulati",
+   "url": "https://x.com/GulatiYajat"
+  },
+  "isBasedOn": "https://x.com/GulatiYajat/status/2100963005764919517",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100962127179833344/img/jE9CXLYpLwR5Rc9j.jpg",
+  "views": "2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100962091498684848",
+  "url": "https://jevable.com/project/2100962091498684848",
+  "name": "A 6502 emulator experiment",
+  "description": "Yes yes, Jev can drive, Jev can be a programming language... but lets just skip the middle man ... Jev be the \"computer\" !!! Motorola 6502 emulation directly on Jev 🤣😅 @typesafeai @dotpem \n\nTook a bit \"hill-climbing to figure out how to instruct and the data shape, but now it",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "emulation, computing",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "GrumpyBalkanSoftwareEngineer",
+   "url": "https://x.com/TheBalkanHacker"
+  },
+  "isBasedOn": "https://x.com/TheBalkanHacker/status/2100962091498684848",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100960184327688192/img/7zn9b3VwndkLLzWa.jpg",
+  "views": "26.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100961111319429403",
+  "url": "https://jevable.com/project/2100961111319429403",
+  "name": "Youform voice builder",
+  "description": "Used Jev to build voice builder in Youform. It is so fast!",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "voice, forms",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Abhishek from Youform",
+   "url": "https://x.com/themkmaker"
+  },
+  "isBasedOn": "https://x.com/themkmaker/status/2100961111319429403",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100960961515704321/img/hmtKtXEbiikmLDlZ.jpg",
+  "views": "5.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100959848623899005",
+  "url": "https://jevable.com/project/2100959848623899005",
+  "name": "AI Hedge Fund with Jev",
+  "description": "I added Jev to the AI Hedge Fund.\n\nWe now get frontier-level trading decisions, 100x faster and cheaper than an LLM.\n\nHow it works:\n1 • set strategy\n2 • pick tickers\n3 • backtest with Jev\n\nSystem now runs in seconds, not minutes.",
+  "inLanguage": "en",
+  "genre": "Finance",
+  "keywords": "backtesting, trading",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Virat Singh",
+   "url": "https://x.com/virattt"
+  },
+  "isBasedOn": "https://x.com/virattt/status/2100959848623899005",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100959729350561792/img/wc-JtyIBGa_9qgNL.jpg",
+  "views": "86.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100959576682012988",
+  "url": "https://jevable.com/project/2100959576682012988",
+  "name": "Vibecheck",
+  "description": "Jev is now in charge of this account's humor",
+  "inLanguage": "en",
+  "genre": "Browser extensions",
+  "keywords": "writing, x, open-source",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Rafal Wilinski",
+   "url": "https://x.com/rafalwilinski"
+  },
+  "isBasedOn": "https://x.com/rafalwilinski/status/2100959576682012988",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100958763528183808/img/nk6jusNPY3iy2CVq.jpg",
+  "views": "49.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100955913913774437",
+  "url": "https://jevable.com/project/2100955913913774437",
+  "name": "Pokémon shiny hunting",
+  "description": "Jev is shiny hunting now.\n\nYesterday it beat Brock in under 5 minutes.\n\nNow I’ve put it in a loop hunting for a shiny starter completely autonomously.\n\nIt resets, checks the Pokémon, and keeps going until it finds one.\n\nLet’s see how long this takes.",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "pokemon, automation",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Luckey Faraday",
+   "url": "https://x.com/luckeyfaraday"
+  },
+  "isBasedOn": "https://x.com/luckeyfaraday/status/2100955913913774437",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100955835597811712/img/SWhMkCyUZC_SrjmK.jpg",
+  "views": "1.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100955502075388250",
+  "url": "https://jevable.com/project/2100955502075388250",
+  "name": "Sentence-by-sentence AI text detection",
+  "description": "Jev is crazy 🤯\n\nI made an AI text detector powered by Jev. Scans a complete article and gives a sentence by sentence breakdown in almost realtime.",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "writing, classification",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Ahmed Gagan",
+   "url": "https://x.com/ahmedgagan11"
+  },
+  "isBasedOn": "https://x.com/ahmedgagan11/status/2100955502075388250",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100850340363182080/img/rHnwL-1zhzgLUMU8.jpg",
+  "views": "2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100955039455985933",
+  "url": "https://jevable.com/project/2100955039455985933",
+  "name": "A fancy-prose experiment",
+  "description": "let Jev automatically transmogrify your simpleton English into unnecessarily fancy prose as you're writing it 😅",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "writing, real-time",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "fabian",
+   "url": "https://x.com/fabianstelzer"
+  },
+  "isBasedOn": "https://x.com/fabianstelzer/status/2100955039455985933",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100954266256953344/img/X5-bL85-y8IYgniw.jpg",
+  "views": "8.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100953838891192789",
+  "url": "https://jevable.com/project/2100953838891192789",
+  "name": "OCR-powered image classification",
+  "description": "Made myself a little image classifier with OCR + Jev\n\nIt was able to categorise ~900 images in 40 seconds\n\nPretty cool",
+  "inLanguage": "en",
+  "genre": "Data & research",
+  "keywords": "ocr, image, classification",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Fayaz Ahmed",
+   "url": "https://x.com/fayazara"
+  },
+  "isBasedOn": "https://x.com/fayazara/status/2100953838891192789",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100953271238320128/img/vzUjAo15Bg8tVa_q.jpg",
+  "views": "33.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100953791260397747",
+  "url": "https://jevable.com/project/2100953791260397747",
+  "name": "Jev plays Geometry Dash",
+  "description": "Jev plays geometry dash",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "geometry-dash, game-ai",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Neel Patel",
+   "url": "https://x.com/Neel490"
+  },
+  "isBasedOn": "https://x.com/Neel490/status/2100953791260397747",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100953694594379776/img/swbWBiQbbZtvxLH_.jpg",
+  "views": "2.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100953089003921543",
+  "url": "https://jevable.com/project/2100953089003921543",
+  "name": "Real-time platformer levels",
+  "description": "Jev can generate game levels in real time.\n\nFaster and cheaper structured output could be a big deal for game dev!",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "level-generation, real-time",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Hugo Duprez",
+   "url": "https://x.com/HugoDuprez"
+  },
+  "isBasedOn": "https://x.com/HugoDuprez/status/2100953089003921543",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100952449661992960/img/GEVdw9BvAW7Dv2Gx.jpg",
+  "views": "532.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100952069461127257",
+  "url": "https://jevable.com/project/2100952069461127257",
+  "name": "Combos FPS",
+  "description": "jev is insane 🤯\nSame Combos FPS. Astra left. @typesafeai Jev right.\nReasoning model vs decision model — not even close.\nJev does not replace astra, it opens a different game.",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "fps, game-ai",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Combos Fun by Converge.AI",
+   "url": "https://x.com/CombosFun_AI"
+  },
+  "isBasedOn": "https://x.com/CombosFun_AI/status/2100952069461127257",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100950508919984128/img/n0KDfl8VSy9C-q3V.jpg",
+  "views": "4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100951738606035176",
+  "url": "https://jevable.com/project/2100951738606035176",
+  "name": "Jev Arena",
+  "description": "I've had access to Jev by @typesafeai for about 30 hours now and I can't stop thinking of the million places it can be used 🤯\n\nMeanwhile, checkout this fun snake game I built where 2 Jev's compete with each other to take the trophy 🏆\n\nTry it out here 🔗",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "snake, multiplayer",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Raihan Khan",
+   "url": "https://x.com/raihankhan_rk"
+  },
+  "isBasedOn": "https://x.com/raihankhan_rk/status/2100951738606035176",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100951665260240896/img/b0cvD-p11tUYb0DC.jpg",
+  "views": "8.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100951347080421409",
+  "url": "https://jevable.com/project/2100951347080421409",
+  "name": "News matching for brands",
+  "description": "Jev is INSANE. 🤯\n\nin 24.9 seconds it read 384 news from this morning and told 15 brands which stories to hop onto today, for $0.19.\n\nClaude Opus 5, running on the same feed at the same time, got through 4/384 and cost $0.77.\n\nper headline that is ~390x cheaper, and the answer",
+  "inLanguage": "en",
+  "genre": "Marketing",
+  "keywords": "news, matching",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Elvis",
+   "url": "https://x.com/elvissun"
+  },
+  "isBasedOn": "https://x.com/elvissun/status/2100951347080421409",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100951319108567040/img/AZ1jFv9ySdRV-JYE.jpg",
+  "views": "614.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100950317852455039",
+  "url": "https://jevable.com/project/2100950317852455039",
+  "name": "A drone in an asteroid field",
+  "description": "Jev flying a drone through an asteroid field.\n\n300ms decisions. Left / right / slow / accelerate. You can watch the decisions happening live on the right.\n\nGreen = Jev’s own confidence. Purple = “I’m not sure, ask the big model.”\n\n99% of the time, Jev steered the drone on its",
+  "inLanguage": "en",
+  "genre": "Robotics",
+  "keywords": "simulation, navigation",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Mahmoud",
+   "url": "https://x.com/MKhordoo"
+  },
+  "isBasedOn": "https://x.com/MKhordoo/status/2100950317852455039",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100950290618867712/img/FY-SPST7ifK3ls5W.jpg",
+  "views": "1.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101039024118829261",
+  "url": "https://jevable.com/project/2101039024118829261",
+  "name": "An AI-writing slop detector",
+  "description": "You can use Jev to flag all the slop that Opus likes to write",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "writing, quality checks",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Chase Lean",
+   "url": "https://x.com/chaseleantj"
+  },
+  "isBasedOn": "https://x.com/chaseleantj/status/2101039024118829261",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101038857013604353/img/ekzglMn1krlhkKQq.jpg",
+  "views": "3.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101035975694483914",
+  "url": "https://jevable.com/project/2101035975694483914",
+  "name": "Sorting 63,000 emails",
+  "description": "WOW 🤯\n\ni just used Jev + @agnt_gg to categorize 63,045 emails in less than 3 minutes for < $1\n\ntotal runtime: 2 minutes 54 seconds\ninput tokens: 23,430,692\noutput tokens: 4,528,206\ntotal tokens: 27,958,898\nestimated cost: $0.9841\n\nthis would have been hundreds $$$ in LLM costs",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "email, batch processing",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Nathan Wilbanks",
+   "url": "https://x.com/NathanWilbanks_"
+  },
+  "isBasedOn": "https://x.com/NathanWilbanks_/status/2101035975694483914",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101033330556735488/img/RFhgnwDzVvm00XP9.jpg",
+  "views": "1.9K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101035136867569838",
+  "url": "https://jevable.com/project/2101035136867569838",
+  "name": "Hipershopping with Agentcard",
+  "description": "breaking: Agentcard + Jev + Kernel = Hipershopping ⚡  \n\nasking an agent to go buy stuff for you online is usually: \n- expensive (bc of tokens going back and forth)\n- slow (bc of tokens going back and forth)\n- unsafe (bc there's no safe/compliant way to share card info w/agents)",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "shopping, browser automation",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "IT guy",
+   "url": "https://x.com/PipeAbellos"
+  },
+  "isBasedOn": "https://x.com/PipeAbellos/status/2101035136867569838",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101031659164643328/img/knYNnC9HXaG_v8IW.jpg",
+  "views": "2.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101035079149449398",
+  "url": "https://jevable.com/project/2101035079149449398",
+  "name": "Focus Rail train routing",
+  "description": "This made me try a different experiment:\n\nCan Jev play a game in real time?\n\nIn my new game, Focus Rail, Jev has to track multiple moving trains and route each one to it's correct station.\n\nThere is no route solver or fallback autoplayer. Jev chooses the switch settings itself.",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "simulation, strategy",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "benkigera",
+   "url": "https://x.com/benkigera"
+  },
+  "isBasedOn": "https://x.com/benkigera/status/2101035079149449398",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101034877193740288/img/BZfW41He6nNwOkLN.jpg",
+  "views": "110.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101034822760288452",
+  "url": "https://jevable.com/project/2101034822760288452",
+  "name": "Abide coding-agent rules",
+  "description": "best coding agent use case for Jev:\n\nenforcing rules a linter can't\n\ncoding agents tend to break rules and some rules can't be codified\n\nJev can now score every turn against such rules and tell the agent what to fix asap\n\nopen-source:",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "code review, open source",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Ohans Emmanuel",
+   "url": "https://x.com/OhansEmmanuel"
+  },
+  "isBasedOn": "https://x.com/OhansEmmanuel/status/2101034822760288452",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101034808826851328/img/I9qffLGFLpK0-4Tn.jpg"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101033282414768456",
+  "url": "https://jevable.com/project/2101033282414768456",
+  "name": "AgentRun reusable workflows",
+  "description": "Today I’m excited to show you our new harness called AgentRun, built with @pidotdev and @typesafeai's Jev. \n\nIt’s built for an agent to learn how to do a job, code itself a general solution, and then get out of the way.",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "automation, workflows",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Miguel Ríos Berríos",
+   "url": "https://x.com/MiguelriosEN"
+  },
+  "isBasedOn": "https://x.com/MiguelriosEN/status/2101033282414768456",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101032781270917120/img/8tGv1qWQd8M9mEec.jpg",
+  "views": "58K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101032931456168098",
+  "url": "https://jevable.com/project/2101032931456168098",
+  "name": "Android end-to-end testing",
+  "description": "Was curious how jev performs for e2e testing on a real android device.\n\nBoth started with the same prompt and 15 test steps.\n\nWell, jev was ~14.8x faster than deepseek + vision navigating through wikipedia.",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "testing, mobile",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Kevin Kern",
+   "url": "https://x.com/kevinkern"
+  },
+  "isBasedOn": "https://x.com/kevinkern/status/2101032931456168098",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101032303396790272/img/RbVCCv2UgU7Jox4h.jpg",
+  "views": "1.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101032677503603169",
+  "url": "https://jevable.com/project/2101032677503603169",
+  "name": "Jev as a language generator",
+  "description": "Who said that @CompleteSkeptic System One model  Jev cannot be a LLM 😜?",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "text generation, open source",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Alejandro Fanjul 🛸",
+   "url": "https://x.com/alejandrofanjul"
+  },
+  "isBasedOn": "https://x.com/alejandrofanjul/status/2101032677503603169",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101027237243879424/img/v6lpE9yFPtE4bkoP.jpg",
+  "views": "16.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101032641470386481",
+  "url": "https://jevable.com/project/2101032641470386481",
+  "name": "Jev-thoven music composition",
+  "description": "Jev-thoven composed this entire 2 minute song from first principles.",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "music, composition",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "cocktail peanut",
+   "url": "https://x.com/cocktailpeanut"
+  },
+  "isBasedOn": "https://x.com/cocktailpeanut/status/2101032641470386481",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101032040090992640/img/_QwdIVdKKks7pvLc.jpg"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101029816975663312",
+  "url": "https://jevable.com/project/2101029816975663312",
+  "name": "Pixel art with a sketch-and-refine loop",
+  "description": "I gave Jev the ability to draw pixel art!\n\nIt uses deepseek to plan a sketch with some primitives, then renders it, refines it, all based on pixel positions and colors.\n\nLong way to go but it's pretty neat.",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "pixel art, drawing",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Astropulse",
+   "url": "https://x.com/RealAstropulse"
+  },
+  "isBasedOn": "https://x.com/RealAstropulse/status/2101029816975663312",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101028177355120640/img/fb-YUbHbdqWFSQUV.jpg",
+  "views": "7.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101029238883164288",
+  "url": "https://jevable.com/project/2101029238883164288",
+  "name": "Scoring a frontier-AI essay",
+  "description": "what does jev from @typesafeai think of the pacing the frontier article by @DarioAmodei?",
+  "inLanguage": "en",
+  "genre": "Data & research",
+  "keywords": "reading, analysis",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Nicholas Dunzelman",
+   "url": "https://x.com/nicdunz"
+  },
+  "isBasedOn": "https://x.com/nicdunz/status/2101029238883164288",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101029060621086720/img/g2YuZK7OsJwJnzpo.jpg",
+  "views": "2.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101028527978020920",
+  "url": "https://jevable.com/project/2101028527978020920",
+  "name": "Jev vs OpenJev in an FPS",
+  "description": "Made Jev fight OpenJev in a first person shooter.",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "benchmarks, combat",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Neel Patel",
+   "url": "https://x.com/Neel490"
+  },
+  "isBasedOn": "https://x.com/Neel490/status/2101028527978020920",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101028423032287232/img/CPjw3sVj_6rRvJ__.jpg",
+  "views": "8.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101026520185622589",
+  "url": "https://jevable.com/project/2101026520185622589",
+  "name": "Byte predicts rock-paper-scissors",
+  "description": "Can Jev read a human? \n\nPlay rock paper scissors against Byte. Every round he predicts your next throw before you make it, then plays against that read. His move is committed before you pick, so he can't change it after. \n\nStakes settle over Ark. Try it 👇",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "prediction, strategy",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Carlos Marques",
+   "url": "https://x.com/2ndpsy"
+  },
+  "isBasedOn": "https://x.com/2ndpsy/status/2101026520185622589",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101025189622349824/img/7xMDppgS62icqbO1.jpg",
+  "views": "3.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101026313871970721",
+  "url": "https://jevable.com/project/2101026313871970721",
+  "name": "A browser-agent stress test",
+  "description": "People keep thinking Jev is useful for browser use! It is not. It completed about 5 actions before collapsing in a non-cheated test.\nIt's a cool model but not for this.",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "benchmarks, browser automation",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "SSH",
+   "url": "https://x.com/SSHCodes"
+  },
+  "isBasedOn": "https://x.com/SSHCodes/status/2101026313871970721",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101026173631217664/img/icEy9hbMZ8lMNbQV.jpg",
+  "views": "10.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101025059909353718",
+  "url": "https://jevable.com/project/2101025059909353718",
+  "name": "Jev beats Super Mario Bros.",
+  "description": "Jev beat Super Mario Bros.\n\nEvery moment, the simulator returns structured data of the game's current state, such as Mario's position, nearby enemies, and terrain, and simulates possible actions like jumping and running.\n\nJev returns a probability distribution for the next chosen",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "platformer, planning",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Ishu Agrawal",
+   "url": "https://x.com/ishuagra02"
+  },
+  "isBasedOn": "https://x.com/ishuagra02/status/2101025059909353718",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101023867636449280/img/XK5TcIcdTm6_R4xw.jpg",
+  "views": "1.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2101023899265692100",
+  "url": "https://jevable.com/project/2101023899265692100",
+  "name": "Making beats by talking",
+  "description": "Jev is insane. SOUND ON!!!\n\nI made music just by talking to it.\n\n\"Add a snare on the backbeat.\" \"Make it darker.\" \"Way faster.\" \"Add scratch on the offbeats and make it trippier.\"\n\nEvery sentence becomes a new beat in ~200ms. No menus, no clicking steps, no chatbot. \n\nYou just",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "music, voice",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Mahir",
+   "url": "https://x.com/mahirb22"
+  },
+  "isBasedOn": "https://x.com/mahirb22/status/2101023899265692100",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2101023732634427392/img/Lw8PZXdVXHBvuawd.jpg",
+  "views": "1.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100946286136406421",
+  "url": "https://jevable.com/project/2100946286136406421",
+  "name": "Whose Jev Is It Anyway?",
+  "description": "I'm laughing out loud.\nI turned Jev into an improv judge.\n\nIntroducing: 'Whose Jev is it Anyway?'",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "improv, comedy",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Charlie Molthrop",
+   "url": "https://x.com/CharlieMolthrop"
+  },
+  "isBasedOn": "https://x.com/CharlieMolthrop/status/2100946286136406421",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100945687059869696/img/yQvtfBF64zQfczMI.jpg",
+  "views": "12.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100946207530955145",
+  "url": "https://jevable.com/project/2100946207530955145",
+  "name": "Voice commands for Autumn billing",
+  "description": "🚨Do not record Jev demos while @ogme01 flies a drone over your desk 🚁\n\nYou can now dictate attaches, updates, schedules & more in the @autumnpricing dashboard, no more manual edits\n\nSafe to say my tenzing tower didn't survive this one tho 😭",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "voice, billing",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Charlie Lamb",
+   "url": "https://x.com/charlielamb"
+  },
+  "isBasedOn": "https://x.com/charlielamb/status/2100946207530955145",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100944674567467008/img/w1tdGJtRZyRQ6TDt.jpg",
+  "views": "3.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100946109308748079",
+  "url": "https://jevable.com/project/2100946109308748079",
+  "name": "Jido agents play tic-tac-toe",
+  "description": "Jido Jev + ReqLLM playing Tic Tac Toe\n\nEach agent makes Jev calls to determine their next move, pretty fun!\n\nNow time to scale up ...",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "strategy, multi-agent",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Mike Hostetler // Actors & Agents on the BEAM",
+   "url": "https://x.com/mikehostetler"
+  },
+  "isBasedOn": "https://x.com/mikehostetler/status/2100946109308748079",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100945952395722754/img/cnSU71pFTDxt2C2f.jpg",
+  "views": "1.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100945960671326482",
+  "url": "https://jevable.com/project/2100945960671326482",
+  "name": "Emotions expressed in beeps",
+  "description": "gave jev a way to express some emotion and chat with beeps (sound on 🔊)",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "sound, characters",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Yohei",
+   "url": "https://x.com/yoheinakajima"
+  },
+  "isBasedOn": "https://x.com/yoheinakajima/status/2100945960671326482",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100945516154834946/img/cz768Iq_4P_AsFdQ.jpg",
+  "views": "44.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100939646653903063",
+  "url": "https://jevable.com/project/2100939646653903063",
+  "name": "Danish stock-market backtest",
+  "description": "Jev trading the danish stock market for all of 2025(239 trading days).\n\nSentiment-based on market data, news articles, wikipedia & google trends. 8.1 million tokens for $0.32 🤯",
+  "inLanguage": "en",
+  "genre": "Finance",
+  "keywords": "backtesting, sentiment",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Tommy Jepsen",
+   "url": "https://x.com/tommy_jepsen"
+  },
+  "isBasedOn": "https://x.com/tommy_jepsen/status/2100939646653903063",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100938100272746496/img/8yisuerchTVTcFTn.jpg",
+  "views": "122.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100939189869002819",
+  "url": "https://jevable.com/project/2100939189869002819",
+  "name": "Maxfusion competitor-ad research",
+  "description": "JEV is insane for competitor research!\n\nWe gave it Resilia's ad library\n\nIt classified 1,891 ads in 19 seconds for $0.12\n\ncostumer journey step + Ad style\n\nAnd a complete deep analysis of the account\n\nComing soon to maxfusion MCP",
+  "inLanguage": "en",
+  "genre": "Marketing",
+  "keywords": "advertising, classification",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Stav Zilbershtein",
+   "url": "https://x.com/mightyking"
+  },
+  "isBasedOn": "https://x.com/mightyking/status/2100939189869002819",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100939073330249728/img/FJpGgq0rD53tUWiv.jpg",
+  "views": "168.9K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100939102455751049",
+  "url": "https://jevable.com/project/2100939102455751049",
+  "name": "Jev tries drawing on a pixel canvas",
+  "description": "gave jev a pixel canvas to see if it could draw...\n\nnope",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "pixel art, drawing",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Yohei",
+   "url": "https://x.com/yoheinakajima"
+  },
+  "isBasedOn": "https://x.com/yoheinakajima/status/2100939102455751049",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100938916773986304/img/Si8JuuQvkP6UzTSD.jpg",
+  "views": "10.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100937772030927216",
+  "url": "https://jevable.com/project/2100937772030927216",
+  "name": "Jev's Dojo fighting coach",
+  "description": "Let Jev roast your fighting habits 👇",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "fighting, feedback",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Vansitha",
+   "url": "https://x.com/vansitha12"
+  },
+  "isBasedOn": "https://x.com/vansitha12/status/2100937772030927216",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100933946947272704/img/AKeg-wfMbeMHzL-d.jpg",
+  "views": "92.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100936455401214327",
+  "url": "https://jevable.com/project/2100936455401214327",
+  "name": "Starchild prompt routing",
+  "description": "Starchild just became the first professional-grade app to integrate Jev from @typesafeai \n\nWe use Jev to help route to LLMs which gave a 20x decrease in cost and 6x increase in speed for prompt classification\n\nHere it is classifying prompts in real-time (avg time was 140ms)",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "model routing, classification",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Starchild",
+   "url": "https://x.com/StarchildOnX"
+  },
+  "isBasedOn": "https://x.com/StarchildOnX/status/2100936455401214327",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100926778047148032/img/RUW0O6LMX9L7TRzk.jpg",
+  "views": "5.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100934588205851015",
+  "url": "https://jevable.com/project/2100934588205851015",
+  "name": "Flappy Apex plays itself",
+  "description": "That’s Jev playing Floppy Apex, passing the previous best score and not thinking of stopping anytime soon 🏆\n\nIt was wired up by Apex via Appduct, with some adjustments made in Fable.\n\n@AgentConf",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "arcade, automation",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Szymon Chmal",
+   "url": "https://x.com/ChmalSzymon"
+  },
+  "isBasedOn": "https://x.com/ChmalSzymon/status/2100934588205851015",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100934447822471168/img/wHM0ZeHHQRZKFTLk.jpg",
+  "views": "1.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100934084503519325",
+  "url": "https://jevable.com/project/2100934084503519325",
+  "name": "Filtering AI slop from YouTube",
+  "description": "Used Jev to build a chrome extension that filters out AI slop on YouTube. \n\nIt's BYOK, works on scroll and caches results.",
+  "inLanguage": "en",
+  "genre": "Browser extensions",
+  "keywords": "YouTube, feed filtering",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Mario Jankovic",
+   "url": "https://x.com/mariojankovic"
+  },
+  "isBasedOn": "https://x.com/mariojankovic/status/2100934084503519325",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100933806148456448/img/5CfeEOTK0oYGPEqo.jpg",
+  "views": "1.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100933183931900346",
+  "url": "https://jevable.com/project/2100933183931900346",
+  "name": "A job crawler that matches your profile",
+  "description": "I rebuilt my job crawler with Jev.\n\nThe task: start at a company's official homepage, find Careers, and identify jobs that match my profile.\n\nBefore, with an LLM: ~5 minutes.\nAfter, with Jev: just over 20 seconds in my test.\n\nEvery company organizes its website differently. Jev",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "job search, browser automation",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Kai",
+   "url": "https://x.com/hqmank"
+  },
+  "isBasedOn": "https://x.com/hqmank/status/2100933183931900346",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100932969602990080/img/VTABbHThpYgbpCjy.jpg",
+  "views": "24.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100933101966758250",
+  "url": "https://jevable.com/project/2100933101966758250",
+  "name": "Choice versus Noul trolley dilemmas",
+  "description": "i was curious if @typesafeai 's jev would make different judgements if you push a problem through a Choice vs. a Noul, so i ran it through a short series of trolley problems\n\nthe only time they disagreed on judgement? deciding whether or not its worth killing more people to score",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "ethics, comparisons",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "alaska",
+   "url": "https://x.com/145k4"
+  },
+  "isBasedOn": "https://x.com/145k4/status/2100933101966758250",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100932546401812480/img/fPV392wDj1Xr1DHo.jpg",
+  "views": "1.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100932130196852896",
+  "url": "https://jevable.com/project/2100932130196852896",
+  "name": "Just-in-time model selection in Goose",
+  "description": "Experimentation with Jev from @typesafeai and our harness @goose_oss\n\nUse Jev to take a prompt and JIT select a model just before the turn runs.\n\nJev and models like it will be useful in many areas and this is just early prototype code on a first idea",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "model routing, workflows",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Alex Hancock",
+   "url": "https://x.com/alexjhancock"
+  },
+  "isBasedOn": "https://x.com/alexjhancock/status/2100932130196852896",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100932017512763392/img/Xe2wlgj78FcAayZ2.jpg",
+  "views": "1.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100928490367230201",
+  "url": "https://jevable.com/project/2100928490367230201",
+  "name": "Measuring progress in agent traces",
+  "description": "Got early access to @typesafeai Jev and spent a few hours building on it.\n\nThe problem I keep hitting: agent traces tell you which tool ran, how long it took, what it returned but never whether the agent is actually getting anywhere. An agent editing, testing and reverting the",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "observability, agent evaluation",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Kaushik",
+   "url": "https://x.com/0xkaushik_k"
+  },
+  "isBasedOn": "https://x.com/0xkaushik_k/status/2100928490367230201",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100928298834374656/img/LvjSbqapVvdNdvrK.jpg",
+  "views": "1.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100928133608472817",
+  "url": "https://jevable.com/project/2100928133608472817",
+  "name": "Intelligent autofill buttons",
+  "description": "I love that Jev can fit into basically any app.\n\nYou don't need to build everything around a chat, you can just integrate intelligent features into the background, like these auto-fill buttons. Much better UX than with slow LLMs.\n\nFeels like the missing piece!",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "forms, interfaces",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Chris Nicholas",
+   "url": "https://x.com/ctnicholasdev"
+  },
+  "isBasedOn": "https://x.com/ctnicholasdev/status/2100928133608472817",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100928115648405506/img/1ddfEiaKJLPA4Xuh.jpg",
+  "views": "41.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100927660029247538",
+  "url": "https://jevable.com/project/2100927660029247538",
+  "name": "Inline Manual contextual help",
+  "description": "Adaptive real-time in-app support with Jev + .\n\nIt detects where you're struggling and quietly adds help directly into the UI - explanations, suggestions, even actions.\n\nJev figures out if and where you're struggling, then triggers the right functions when",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "support, interfaces",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Marek Sotak",
+   "url": "https://x.com/sotak"
+  },
+  "isBasedOn": "https://x.com/sotak/status/2100927660029247538",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100925956978294784/img/grFanN32FuhiSULl.jpg",
+  "views": "2.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100915304062710263",
+  "url": "https://jevable.com/project/2100915304062710263",
+  "name": "An X feed tuned to your bookmarks",
+  "description": "in 2026, why do you still get irrelevant posts on your X feed?\n\nbuilt a feed optimizer with @typesafeai Jev.\n it's tuned on my own bookmarks, then every post goes through ONE call to  Jev → 9 typed answers as probabilities: ragebait, ad, low effort, hostile, useful… and \"would",
+  "inLanguage": "en",
+  "genre": "Browser extensions",
+  "keywords": "feed filtering, personalization",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Paolo Rosson",
+   "url": "https://x.com/redp314"
+  },
+  "isBasedOn": "https://x.com/redp314/status/2100915304062710263",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100912374089711616/img/oz8fqgc_h1skgbWA.jpg",
+  "views": "2.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100913118528393596",
+  "url": "https://jevable.com/project/2100913118528393596",
+  "name": "Claude Code context compaction",
+  "description": "I got access to Jev and immediately plugged it into Claude Code to see if it actually FIXES the biggest pain of agent workflows: context compaction\n\n> result: pretty wild\n\nQuick context for those who missed it:\n\nEvery Claude Code session has a context window that fills up fast",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "coding agents, context",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "kaize",
+   "url": "https://x.com/0x_kaize"
+  },
+  "isBasedOn": "https://x.com/0x_kaize/status/2100913118528393596",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100906498570227712/img/KmUGlsAEaz8xmdc6.jpg",
+  "views": "3.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100910232255992032",
+  "url": "https://jevable.com/project/2100910232255992032",
+  "name": "Cascade Search typed query filters",
+  "description": "A search bar that knows when it doesn't know.\n\ncascade-search is a 27K-parameter model that parses queries like \"open bugs from sam since last week\" into typed filters, in your browser, in 0.25 ms. When it isn't sure about a word, it asks Jev. Only that word.",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "search, query parsing",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Zaid",
+   "url": "https://x.com/zaidmukaddam"
+  },
+  "isBasedOn": "https://x.com/zaidmukaddam/status/2100910232255992032",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100910214530953216/img/pZDYHLcrOl_f0pWI.jpg",
+  "views": "5.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100907261593829675",
+  "url": "https://jevable.com/project/2100907261593829675",
+  "name": "Contextual clipboard quick actions",
+  "description": "Jev also constantly monitors my macOS clipboard.\n\nIs the content of the clipboard a terminal command? The app offers a quick action to run it in my terminal.",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "macOS, clipboard",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Marcel Pociot 🧪",
+   "url": "https://x.com/marcelpociot"
+  },
+  "isBasedOn": "https://x.com/marcelpociot/status/2100907261593829675",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100907154752282625/img/ymaN0AxIqCG4H4yU.jpg",
+  "views": "14.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100906882365788167",
+  "url": "https://jevable.com/project/2100906882365788167",
+  "name": "Automatically organize downloaded files",
+  "description": "Jev unlocks SO many awesome new ideas.\n\nI built a macOS app that monitors my Downloads folder along with a customisable set of rules.\n\nIs the downloaded file an invoice? Move it to a special folder with the correct filename.\n\nNo other LLM calls involved - just Jev!",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "macOS, file organization",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Marcel Pociot 🧪",
+   "url": "https://x.com/marcelpociot"
+  },
+  "isBasedOn": "https://x.com/marcelpociot/status/2100906882365788167",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100906588626173952/img/1KnNI3B3aUJEwFvI.jpg",
+  "views": "136.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100906203396337686",
+  "url": "https://jevable.com/project/2100906203396337686",
+  "name": "Fight Jev with live decision probabilities",
+  "description": "Fight Jev and see who's actually better.\n\nIntegrated @typesafe_ai 's Jev model to control the enemy in real-time.  \nYou can see the live probability of every decision it makes right on screen before it strikes.",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "fighting, real time",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Taufique",
+   "url": "https://x.com/Taufiq_ansari01"
+  },
+  "isBasedOn": "https://x.com/Taufiq_ansari01/status/2100906203396337686",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100905164261748736/img/Jf-ySNfaAdZ95K-O.jpg",
+  "views": "4.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100904864519770170",
+  "url": "https://jevable.com/project/2100904864519770170",
+  "name": "A run at the Pokémon League",
+  "description": "Trying to get JEV (@typesafeai) to beat the Pokémon League in Pokémon Gold (HGSS). Let’s see if it can become a Pokémon Champion 🏆\nUP\nDOWN\nLEFT\nRIGHT\nA\nB",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "Pokémon, automation",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "joey",
+   "url": "https://x.com/joey_build"
+  },
+  "isBasedOn": "https://x.com/joey_build/status/2100904864519770170",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100904739332399105/img/x3EZzH6sWlihnjqr.jpg",
+  "views": "10.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100903520425677027",
+  "url": "https://jevable.com/project/2100903520425677027",
+  "name": "Three Jev bots in an FPS",
+  "description": "I put 3 JEV bots inside a FPS game.",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "combat, multi-agent",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Tommy J. Vedvik",
+   "url": "https://x.com/tommyvedvik"
+  },
+  "isBasedOn": "https://x.com/tommyvedvik/status/2100903520425677027",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100903386992291840/img/EJIJPWYpP8F6iDiF.jpg",
+  "views": "1.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100902559313502602",
+  "url": "https://jevable.com/project/2100902559313502602",
+  "name": "Instant team scheduling with Cal.com",
+  "description": "Jev +  API = find best overlap among team members in an instant\n\nthe longest waiting time is our API call round trips 🤯 \n\nwill come up with ideas how we can bake Jev into our products",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "scheduling, calendars",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Peer Richelsen",
+   "url": "https://x.com/peer_rich"
+  },
+  "isBasedOn": "https://x.com/peer_rich/status/2100902559313502602",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100902393894342656/img/22LO2K2E8E9JAhMB.jpg",
+  "views": "8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100899669802963060",
+  "url": "https://jevable.com/project/2100899669802963060",
+  "name": "Does Jev understand color?",
+  "description": "does Jev understand colour?\n\nincredible model, very cheap and fast. definitely feels like a leap forward for creating new UX/UI paradigms on top of modern language models.",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "color, interfaces",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Matt DesLauriers",
+   "url": "https://x.com/mattdesl"
+  },
+  "isBasedOn": "https://x.com/mattdesl/status/2100899669802963060",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100898643117068288/img/p9Jp61lJyiq-UoWK.jpg",
+  "views": "498.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100894473085489510",
+  "url": "https://jevable.com/project/2100894473085489510",
+  "name": "Worth Replying finds relevant X discussions",
+  "description": "We built \"Worth Replying\" with Jev + AIsa.\n\nDrop in a company’s domain and it finds people on X already talking about the problems your product solves.\n\nWe tested it on :\n\n> 150 tweets found\n> 750 Jev decisions in 18.8s\n> 79 worth replying to\n> 71 archived",
+  "inLanguage": "en",
+  "genre": "Marketing",
+  "keywords": "social media, discovery",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Alsa",
+   "url": "https://x.com/AIsaOneHQ"
+  },
+  "isBasedOn": "https://x.com/AIsaOneHQ/status/2100894473085489510",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100886600880111616/img/Y6PwJ2mf_8-BWChg.jpg",
+  "views": "1.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100888635943883244",
+  "url": "https://jevable.com/project/2100888635943883244",
+  "name": "Filtering unwanted X replies",
+  "description": "Pro tip: You can use Jev to remove annoying reply guy comments that X seems to always miss. Takes 5 minutes in Astra with the docs and an API key.",
+  "inLanguage": "en",
+  "genre": "Browser extensions",
+  "keywords": "social media, feed filtering",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Ian Nuttall",
+   "url": "https://x.com/iannuttall"
+  },
+  "isBasedOn": "https://x.com/iannuttall/status/2100888635943883244",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100888448118759424/img/MafhEAfm3BlPst1X.jpg",
+  "views": "17.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100882320945520778",
+  "url": "https://jevable.com/project/2100882320945520778",
+  "name": "Jev plays Clash Royale",
+  "description": "Made Jev play Clash Royale and actually won a match.",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "strategy, mobile",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Amrit Nigam",
+   "url": "https://x.com/AmritNigam2"
+  },
+  "isBasedOn": "https://x.com/AmritNigam2/status/2100882320945520778",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100881913317879808/img/cnr8YJJs3WfuHdnI.jpg",
+  "views": "2.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100882207879434359",
+  "url": "https://jevable.com/project/2100882207879434359",
+  "name": "Parallel adversarial browser testing",
+  "description": "thanks to @typesafeai's Jev we now have massively parallel browser-based adversarial testing suite that tries to break each release.\n\nand it costs pennies.",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "testing, browser automation",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Rafal Wilinski",
+   "url": "https://x.com/rafalwilinski"
+  },
+  "isBasedOn": "https://x.com/rafalwilinski/status/2100882207879434359",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100881920343105536/img/c1y4THiGwA2GfXGa.jpg",
+  "views": "386.9K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100881974780993668",
+  "url": "https://jevable.com/project/2100881974780993668",
+  "name": "Paper Breakdown research recommendations",
+  "description": "Organically integrated JEV in a real project\n\nThe Paper Breakdown Recommendation Engine\n\nWe already had a working system that combines content-based and collaborative filtering. Pro users may now get additional curation with Jev.\n\n0.0019$/user for ~70 recs 🤯\n~50 users in 5 secs",
+  "inLanguage": "en",
+  "genre": "Data & research",
+  "keywords": "papers, recommendations",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "AVB",
+   "url": "https://x.com/neural_avb"
+  },
+  "isBasedOn": "https://x.com/neural_avb/status/2100881974780993668",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100879106078568449/img/nCefxS323PhF_n7f.jpg",
+  "views": "2.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100878555047514390",
+  "url": "https://jevable.com/project/2100878555047514390",
+  "name": "Jevton: a town of 120 people",
+  "description": "WTF !!! I pushed @typesafeai to a break neck decision making frenzy and it held up its own. Insane\n\nI built a town where Jev makes EVERY decision and never writes a single word 🤯\n\nJevton 🏘️ 120 people, 7 roads, 20 businesses, a council, a newspaper\n\nEvery hour Jev decides for",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "simulation, characters",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Chizi",
+   "url": "https://x.com/chiziaruhoma"
+  },
+  "isBasedOn": "https://x.com/chiziaruhoma/status/2100878555047514390",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100876059709149184/img/jYoCG-SwxUKhp2pf.jpg",
+  "views": "6.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100873520951808403",
+  "url": "https://jevable.com/project/2100873520951808403",
+  "name": "A smart calculator notebook",
+  "description": "i made a smart calculator notebook using jev\n\nit can calculate ANYTHING!! 😅",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "calculations, notebooks",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "kitze 🛠️ tinkerer.club",
+   "url": "https://x.com/thekitze"
+  },
+  "isBasedOn": "https://x.com/thekitze/status/2100873520951808403",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100873465339498497/img/HtZVCu9bxlNK1G4n.jpg",
+  "views": "39.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100870244004683886",
+  "url": "https://jevable.com/project/2100870244004683886",
+  "name": "Scoring every shot in a video ad",
+  "description": "Jev is insane for ad research.\n\nI built a tool that scores every shot of any video ad on meta in 1.5 seconds.\n\nIt runs on Maxfusion + @typesafeai \n\nI pushed 450+ ads through it in less than 3 minutes.\n\nIt pulls any advertisers live video ads from Research Lab on Maxfusion.",
+  "inLanguage": "en",
+  "genre": "Marketing",
+  "keywords": "advertising, video",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Vlad Dubchak",
+   "url": "https://x.com/vladdubchak_x"
+  },
+  "isBasedOn": "https://x.com/vladdubchak_x/status/2100870244004683886",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100856866427256833/img/C3ods4J011QCJLCP.jpg",
+  "views": "13.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100859259915227358",
+  "url": "https://jevable.com/project/2100859259915227358",
+  "name": "Orus trade-strategy review",
+  "description": "As promised, Jev is now integrated into Orus agents.\nWhat is Jev, and how can it help our agents?\n\nJev is a model from TypeSafe AI, built to answer precise questions with structured answers. \n\nIn Orus, it reviews the trades your strategy proposes, before they happen.\n\nIt approves",
+  "inLanguage": "en",
+  "genre": "Finance",
+  "keywords": "decision review, agents",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Orus Agent",
+   "url": "https://x.com/Orus_agent"
+  },
+  "isBasedOn": "https://x.com/Orus_agent/status/2100859259915227358",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100852121105006592/img/NlvQ4G9nQNYzq8zZ.jpg",
+  "views": "3.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100858434904109099",
+  "url": "https://jevable.com/project/2100858434904109099",
+  "name": "Predicting the next shell command",
+  "description": "Jev picking the next command from shell history",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "terminal, prediction",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Thorsten Ball",
+   "url": "https://x.com/thorstenball"
+  },
+  "isBasedOn": "https://x.com/thorstenball/status/2100858434904109099",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100858390683475969/img/PRKkLSCaQKsfoXRI.jpg",
+  "views": "118.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100857642566758849",
+  "url": "https://jevable.com/project/2100857642566758849",
+  "name": "Instant calorie tracking",
+  "description": "i made a calorie tracking app with jev. it's INSTANT 🤯",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "food, tracking",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "kitze 🛠️ tinkerer.club",
+   "url": "https://x.com/thekitze"
+  },
+  "isBasedOn": "https://x.com/thekitze/status/2100857642566758849",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100857416984477696/img/RAMEV-YddA05BR1X.jpg",
+  "views": "71.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100851116498186415",
+  "url": "https://jevable.com/project/2100851116498186415",
+  "name": "A robot arm picks up a ball",
+  "description": "I gave Jev a robot arm.\n\nTwo USB cameras, an SO-101, and @typesafeai's Jev choosing the next move at ~2 decisions a second.\n\nAfter a slip and some debugging, it went back for the ball and got it into the bowl.",
+  "inLanguage": "en",
+  "genre": "Robotics",
+  "keywords": "robot arm, physical control",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Daniiar Abdiev",
+   "url": "https://x.com/DaniiarAbdiev"
+  },
+  "isBasedOn": "https://x.com/DaniiarAbdiev/status/2100851116498186415",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100849500084666368/img/PdH3lz3bR3uvw0kY.jpg",
+  "views": "18.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100850610962919551",
+  "url": "https://jevable.com/project/2100850610962919551",
+  "name": "Jevcal confidence-threshold calibration",
+  "description": "Everyone picks Jev confidence thresholds by vibes. 0.95? 0.5?\n\nI built jevcal. Give it your data and say \"I need 99% accuracy\". You get the exact threshold, how much Jev can handle, and how much still needs an LLM.\n\nOpen source, one command.\n\n\n@typesafeai",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "calibration, open source",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Abhishek kothari",
+   "url": "https://x.com/thenightshipper"
+  },
+  "isBasedOn": "https://x.com/thenightshipper/status/2100850610962919551",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100850405668491264/img/f4I89LjtDpd8cdBF.jpg",
+  "views": "3.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100846091281506370",
+  "url": "https://jevable.com/project/2100846091281506370",
+  "name": "Jev attempts Resident Evil",
+  "description": "So @typesafeai Jev knows how to shoot and dodge, but can Jev survives against zombies in 3D space???\n\nI had Jev played the original Resident Evil to see how far Jev could go.\n\nThis was an extreme case. 3D space, understanding objectives, fight off enemies, doing puzzles, etc.",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "survival, 3D",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Jack Vinijtrongjit",
+   "url": "https://x.com/juminoz"
+  },
+  "isBasedOn": "https://x.com/juminoz/status/2100846091281506370",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100845309748490240/img/ahnwqqlyOJSdGRQL.jpg",
+  "views": "2.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100845388655960112",
+  "url": "https://jevable.com/project/2100845388655960112",
+  "name": "Voice-controlled Figma",
+  "description": "Controlling Figma with voice using Jev from @typesafeai\n\nTotal cost from first line of code to recording this video: $0.01\n\n🤯",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "Figma, voice",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "mikegee",
+   "url": "https://x.com/mikegee"
+  },
+  "isBasedOn": "https://x.com/mikegee/status/2100845388655960112",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100844622213959680/img/yPzf2Js8iJLezbtu.jpg",
+  "views": "14.9K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100844705588347238",
+  "url": "https://jevable.com/project/2100844705588347238",
+  "name": "Every Pac-Man move chosen by Jev",
+  "description": "Built a Pacman where every single move is decided by @typesafeai jev 👾\n\nEvery tile, Jev gets what is around Pacman and returns a direction, strategy, danger score, flags for trapped, committed, regret. That decision moves the tile.\n\nFinally an innovative model after a long time.",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "arcade, decision making",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Nesan Selvan",
+   "url": "https://x.com/NesanSelvan04"
+  },
+  "isBasedOn": "https://x.com/NesanSelvan04/status/2100844705588347238",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100844526281879552/img/GUoeEcUZPpay61x8.jpg",
+  "views": "1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100842364248178833",
+  "url": "https://jevable.com/project/2100842364248178833",
+  "name": "Pokémon FireRed Elite Four run",
+  "description": "Jev by @typesafeai  is amazing! \n\ni let it play pokemon firered, and it was able to beat elite 4 with a party of level 40 pokemons. \n\nall under 0.03$",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "Pokémon, automation",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Anas Khan",
+   "url": "https://x.com/AnxKhn"
+  },
+  "isBasedOn": "https://x.com/AnxKhn/status/2100842364248178833",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100841614633791488/img/RISOlkeSzSqcD59y.jpg",
+  "views": "5.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100834561995493476",
+  "url": "https://jevable.com/project/2100834561995493476",
+  "name": "Painting the Golden Gate Bridge",
+  "description": "i wanted to paint with Jev 🎨\n\nwatch this beautiful painting of the Golden Gate Bridge, powered by Codex(Astra) + Jev + @Stagehanddev + @browserbase \n\n(video at 1x speed)",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "painting, browser automation",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Shubhankar",
+   "url": "https://x.com/_shubhankar"
+  },
+  "isBasedOn": "https://x.com/_shubhankar/status/2100834561995493476",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100833848661790720/img/juGCJGK-gYuCJHS7.jpg",
+  "views": "2.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100833655518367871",
+  "url": "https://jevable.com/project/2100833655518367871",
+  "name": "Skill Router for Claude Code",
+  "description": "Just hacked a fun little project - Skill Router (Open source) using  Claude and Jev @typesafeai \n\nWhy? I have ~ 90 Claude Code skills installed and use maybe five. The rest are fine, I just forgot they existed, and Claude won't reach for a skill on its own unless you call it.\n\nSo",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "skills, routing",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Lomesh Dutta",
+   "url": "https://x.com/lomeshdutta"
+  },
+  "isBasedOn": "https://x.com/lomeshdutta/status/2100833655518367871",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100829690625986560/img/wb4qnROl6fZfpHUS.jpg",
+  "views": "2.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100833538224668699",
+  "url": "https://jevable.com/project/2100833538224668699",
+  "name": "MakerMods robot arm in MuJoCo",
+  "description": "Got  @typesafeai Jev driving our @makermodsai Metal arm in MuJoCo. \n\nImages are of the sim camera is not passed in, sim hands Jev the state of the environment in JSON and it picks the next bounded action (hover, descend, grasp, lift, place) as a typed choice with a confidence",
+  "inLanguage": "en",
+  "genre": "Robotics",
+  "keywords": "simulation, robot arm",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Isaac Sin",
+   "url": "https://x.com/IsaacSin12"
+  },
+  "isBasedOn": "https://x.com/IsaacSin12/status/2100833538224668699",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100829039040802816/img/74S2rGSiTL_J7C5V.jpg",
+  "views": "8.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100832108855857325",
+  "url": "https://jevable.com/project/2100832108855857325",
+  "name": "Jev plays Time Crisis",
+  "description": "Alright. So we know that @typesafeai  Jev can fight, but can Jev shoot and avoid getting shot?\n\nI had Jev playing one of my favorite arcade shooter, Time Crisis, to test it out.\n\nI would say it did pretty well, but it's also because I also gave it a pretty good harness. With one",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "arcade, aiming",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Jack Vinijtrongjit",
+   "url": "https://x.com/juminoz"
+  },
+  "isBasedOn": "https://x.com/juminoz/status/2100832108855857325",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100831608366575616/img/lDHAtdzHqYd-f0eU.jpg",
+  "views": "2.9K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100827289349132657",
+  "url": "https://jevable.com/project/2100827289349132657",
+  "name": "Nanocode with selective memory compaction",
+  "description": "i added Jev compaction to a small agent with searchable memory.\n\nthis is a fork of nanocode with some extra tools to grep a memory.md file + use Jev compaction to remove unnecessary memories.",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "memory, context",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Kyle Jeong",
+   "url": "https://x.com/kylejeong"
+  },
+  "isBasedOn": "https://x.com/kylejeong/status/2100827289349132657",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100827022121713664/img/Bw1G6-A6AyFgOiAD.jpg",
+  "views": "2.9K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100820581444980736",
+  "url": "https://jevable.com/project/2100820581444980736",
+  "name": "A Bluesky feed with emotion detection",
+  "description": "Jev demo: A live Bluesky feed with real-time emotion detection and avatars matched to each user’s profile.\n#jev",
+  "inLanguage": "en",
+  "genre": "Creative tools",
+  "keywords": "social media, sentiment",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "𝘼𝙈𝘼𝙂𝙄",
+   "url": "https://x.com/amagitakayosi"
+  },
+  "isBasedOn": "https://x.com/amagitakayosi/status/2100820581444980736",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100820470438481921/img/ZI7uuy-zv2Gm2Q3A.jpg",
+  "views": "1.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100817199686619348",
+  "url": "https://jevable.com/project/2100817199686619348",
+  "name": "Chrome Dino with live decision scores",
+  "description": "@typesafeai jev playing chrome dino!\n\nthe model is incredibly fast!\n- avg response time: ~280ms\n- spent 116M tokens\n- cost? just $4.65.\n\n- the input here is a snapshot of the chrome runner\n- jev decides whether to jump, run or duck with a confidence score\n\nrepo link if you want",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "arcade, open source",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Parth",
+   "url": "https://x.com/mittalparth_"
+  },
+  "isBasedOn": "https://x.com/mittalparth_/status/2100817199686619348",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100816454564339712/img/WTv-oigoy6fOY6Qc.jpg",
+  "views": "1.3K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100814590300889426",
+  "url": "https://jevable.com/project/2100814590300889426",
+  "name": "Voice-controlled Mac computer use",
+  "description": "I built a voice controlled computer-use for my mac using @typesafeai's Jev and it's INSANE how fast it is! \n\nI can dictate \"open the notes app and create...\" and the app opens before I even finish my sentence.",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "macOS, voice",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Andy Gao",
+   "url": "https://x.com/instantricecook"
+  },
+  "isBasedOn": "https://x.com/instantricecook/status/2100814590300889426",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100809295809974272/img/_1rbvz04k6wjpcGW.jpg",
+  "views": "607.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100813615410634997",
+  "url": "https://jevable.com/project/2100813615410634997",
+  "name": "Touchpress mobile end-to-end testing",
+  "description": "my mobile e2e testing library powered by @agent_device and AI sdk now supports Jev from @typesafeai \n\nSame test, same loop:\nJev: 29s, $0.003\nHaiku 4.5: 37s, $0.07",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "testing, mobile",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Robert Soriano",
+   "url": "https://x.com/wobsoriano"
+  },
+  "isBasedOn": "https://x.com/wobsoriano/status/2100813615410634997",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100812811287031808/img/4TPBFtSzCOnjlkbR.jpg",
+  "views": "14.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100807905859739779",
+  "url": "https://jevable.com/project/2100807905859739779",
+  "name": "Quality checks for physical-AI action labels",
+  "description": "Jev is insane.\n\nWe are building egocentric training data for physical AI. Jev QA'd 58,643 action labels in under 3 minutes. 90 cents.\n\nA friction cost of the Claude & GPT models.",
+  "inLanguage": "en",
+  "genre": "Data & research",
+  "keywords": "data quality, robotics",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Peter Wang",
+   "url": "https://x.com/the_cyw"
+  },
+  "isBasedOn": "https://x.com/the_cyw/status/2100807905859739779",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100807113576693760/img/8lI0CmDrKghq79Z5.jpg",
+  "views": "1.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100807838566383819",
+  "url": "https://jevable.com/project/2100807838566383819",
+  "name": "What toxicity sounds like to Jev",
+  "description": "Okay soooo what if @typesafeai's Jev could 'hear'?\n\nhere's what Toxicity sounds like according to Jev :",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "audio, sentiment",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "it’s rivian",
+   "url": "https://x.com/rrriviannn"
+  },
+  "isBasedOn": "https://x.com/rrriviannn/status/2100807838566383819",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100802203971997696/img/MKJ0b7d6hk5og9fw.jpg",
+  "views": "1.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100807349363741132",
+  "url": "https://jevable.com/project/2100807349363741132",
+  "name": "Intent-aware search in Replicas",
+  "description": "small experiment where I used jev to power the global search in replicas. the possibilities of improving UX with models like jev are endless.\n\nwe can now have things like:\n\n- search that understands what users mean\n- actions that change based on what you're trying to do\n- routing",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "search, interfaces",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Saai Arora",
+   "url": "https://x.com/SaaiArora"
+  },
+  "isBasedOn": "https://x.com/SaaiArora/status/2100807349363741132",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100806240406487040/img/CMyCF6BobyP4feED.jpg",
+  "views": "9.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100801037192024478",
+  "url": "https://jevable.com/project/2100801037192024478",
+  "name": "Bannerbear instant field mapping",
+  "description": "First Jev use case published live on Bannerbear!\n\nInstant field mapping between template and source, when names are slightly different eg\n\ntemplate\n- photo\n- name\n- company_name\n\ndata source (eg Airtable)\n- avatar\n- full_name\n- business\n\nJev figures it out in one click.",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "automation, data mapping",
+  "dateCreated": "2026-09-18",
+  "creator": {
+   "@type": "Person",
+   "name": "Jon Yongfook",
+   "url": "https://x.com/yongfook"
+  },
+  "isBasedOn": "https://x.com/yongfook/status/2100801037192024478",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100800207256756224/img/qfKKxj1Oh8pHHnD7.jpg",
+  "views": "14.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100356151468585346",
+  "url": "https://jevable.com/project/2100356151468585346",
+  "name": "Jev Trader on Monad and Kuru",
+  "description": "I built a trading bot with Jev!\n\nJev decides if it should \"buy\" or \"sell\", given the price feed of an asset pair, and executes real trades.\n\nIt uses Monad to place the orders on Kuru's on-chain order book in every 300ms block.\n\nDemo link →",
+  "inLanguage": "en",
+  "genre": "Finance",
+  "keywords": "trading, open source",
+  "dateCreated": "2026-09-16",
+  "creator": {
+   "@type": "Person",
+   "name": "Jarrod Watts",
+   "url": "https://x.com/jarrodwatts"
+  },
+  "isBasedOn": "https://x.com/jarrodwatts/status/2100356151468585346",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100355999064379392/img/BiAbeDjN57avf2VK.jpg",
+  "views": "683.9K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100347770867458384",
+  "url": "https://jevable.com/project/2100347770867458384",
+  "name": "A driving simulator controlled by Jev",
+  "description": "I rebuilt Tesla Full Self Driving with Jev in less than an hour.\n\nThis model is a total unlock.",
+  "inLanguage": "en",
+  "genre": "Robotics",
+  "keywords": "driving, simulation",
+  "dateCreated": "2026-09-16",
+  "creator": {
+   "@type": "Person",
+   "name": "Justin Schroeder",
+   "url": "https://x.com/jpschroeder"
+  },
+  "isBasedOn": "https://x.com/jpschroeder/status/2100347770867458384",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100347372844756992/img/CaExDBw3MTf0ia58.jpg"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100577979021832365",
+  "url": "https://jevable.com/project/2100577979021832365",
+  "name": "Real-time voice control for a browser",
+  "description": "whoa this actually worked! Jev lets me control my browser in real time with my voice now\n\n> i talk\n> transcript sent to Jev\n> jev returns probabilities in ~300ms\n> browser clicks\n\ncosts: $0.0002 per decision\n\ni'm stunned how fast this is. when i asked it to \"go back\", it even",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "voice, browser automation",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Moritz Kremb",
+   "url": "https://x.com/moritzkremb"
+  },
+  "isBasedOn": "https://x.com/moritzkremb/status/2100577979021832365",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100577954338373633/img/tbH43kHpUotE3hzK.jpg",
+  "views": "338.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100585126652481915",
+  "url": "https://jevable.com/project/2100585126652481915",
+  "name": "Fourteen checks for every pull request",
+  "description": "got Jev to review my PRs. ~200x cheaper than Claude and it answers in half a second\n\n6 real PRs in the video. $0.00007 each. 1,000 PRs = 7 cents vs ~$14.50 on Opus 5\n\npaste a diff → ONE call to @typesafeai → 14 typed checks come back as probabilities:\nhardcoded secret, sql",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "code review, quality checks",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Paolo Rosson",
+   "url": "https://x.com/redp314"
+  },
+  "isBasedOn": "https://x.com/redp314/status/2100585126652481915",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100585029533372416/img/ZcrsntW2yWgtB_HD.jpg",
+  "views": "352.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100404532119269426",
+  "url": "https://jevable.com/project/2100404532119269426",
+  "name": "Classifying 500 emails in seconds",
+  "description": "Yeah Jev by @typesafeai is very cool. It classified 500 emails in seconds. And it costed 3.5 cents.",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "email, classification",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Riley Brown",
+   "url": "https://x.com/rileybrown"
+  },
+  "isBasedOn": "https://x.com/rileybrown/status/2100404532119269426",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100403183533125632/img/54ZFO-CHvDeC-rw-.jpg",
+  "views": "280.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100679300756435135",
+  "url": "https://jevable.com/project/2100679300756435135",
+  "name": "Natural-language queries inside PostgreSQL",
+  "description": "I think I just cooked something 🔥\n\njev(): a PostgreSQL extension that searches your whole database in natural language. No index, no embeddings, just one function.\n\nWHERE jev(people, 'could work from home')\nor \nWHERE jev(people, 'name sounds european')\n\n129 rows judged in ~1s",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "PostgreSQL, search",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Zachi",
+   "url": "https://x.com/iam_zachi"
+  },
+  "isBasedOn": "https://x.com/iam_zachi/status/2100679300756435135",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100674729216524288/img/ZqaCccSfzuzlrdro.jpg",
+  "views": "432.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100042788851101842",
+  "url": "https://jevable.com/project/2100042788851101842",
+  "name": "An inbox classifier for 1,500 emails",
+  "description": "this model is actually insane at email classification\n\ni tested it on 1500 of my own emails to see how well it works and I am blown away",
+  "inLanguage": "en",
+  "genre": "Productivity",
+  "keywords": "email, classification",
+  "dateCreated": "2026-09-16",
+  "creator": {
+   "@type": "Person",
+   "name": "vogel",
+   "url": "https://x.com/ryanvogel"
+  },
+  "isBasedOn": "https://x.com/ryanvogel/status/2100042788851101842",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100042377339588608/img/2O56_xRC0r54ugfr.jpg",
+  "views": "446.6K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100030221189874015",
+  "url": "https://jevable.com/project/2100030221189874015",
+  "name": "Generating text with Jev",
+  "description": "“Jev can’t generate text”\n\nOfc it can @CompleteSkeptic",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "text generation, language",
+  "dateCreated": "2026-09-16",
+  "creator": {
+   "@type": "Person",
+   "name": "Suman",
+   "url": "https://x.com/0xSuman"
+  },
+  "isBasedOn": "https://x.com/0xSuman/status/2100030221189874015",
+  "image": "https://pbs.twimg.com/media/HSTOW1GagAA0xlK.jpg",
+  "views": "779.9K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100262612428894676",
+  "url": "https://jevable.com/project/2100262612428894676",
+  "name": "Computer use across operating systems",
+  "description": "i built computer use using @typesafeai ! it is 155x cheaper than opus 5, ~20x faster, and generalizes across OS's\n\nmore on how it works in the vid & thread below:",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "computer use, automation",
+  "dateCreated": "2026-09-16",
+  "creator": {
+   "@type": "Person",
+   "name": "aaron",
+   "url": "https://x.com/awlevin"
+  },
+  "isBasedOn": "https://x.com/awlevin/status/2100262612428894676",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100262350100246528/img/hRw0xfLBJpNNi3L9.jpg",
+  "views": "273.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100722975645598191",
+  "url": "https://jevable.com/project/2100722975645598191",
+  "name": "SuperX post scoring",
+  "description": "Jev + SuperX = virality solved ✅\n\nEvery post gets 61 questions in ~1s for $0.0004 🤯\n\n> fitted on 9,481 real posts from 207 creators\n> picks the viral post 2 in 3 times\n> never rewards reply bait\n\nSo: write, score, rewrite, stop when it peaks.\n\nFree, no signup. try it below ↓",
+  "inLanguage": "en",
+  "genre": "Marketing",
+  "keywords": "social media, writing",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Rob Hallam",
+   "url": "https://x.com/robj3d3"
+  },
+  "isBasedOn": "https://x.com/robj3d3/status/2100722975645598191",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100722766362406912/img/pH0lahpfd-qTj_nE.jpg",
+  "views": "234.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100631847155994852",
+  "url": "https://jevable.com/project/2100631847155994852",
+  "name": "Mac computer use with local perception",
+  "description": "Okay so Jev can actually do computer use really well\n\nWithout any screenshots, or LLMs and no Pixels leave my mac \n\nI dont even read the Dom elements\n\nA local CoreML model segments every button and UI element on screen. \n\nOn-device OCR reads the labels. That text is all Jev gets.",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "macOS, computer use",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Milind S",
+   "url": "https://x.com/milindlabs"
+  },
+  "isBasedOn": "https://x.com/milindlabs/status/2100631847155994852",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100629037790183424/img/NR6wQpZiC-xjCEsC.jpg",
+  "views": "226.9K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100372930282573876",
+  "url": "https://jevable.com/project/2100372930282573876",
+  "name": "Blitz chess against frontier models",
+  "description": "Jev VS Fable 5.1 VS GPT-6 Astra: chess\n\ntypesafe's new Jev V13 isn't an LLM. it doesn't chat, doesn't explain, doesn't write code — it only makes decisions. so we made it play blitz against frontier LLMs.\n\nthe test: 5+0 blitz. every move is one API call. \n\nJev V13 vs Fable 5.1:",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "chess, benchmarks",
+  "dateCreated": "2026-09-16",
+  "creator": {
+   "@type": "Person",
+   "name": "AI/ML API",
+   "url": "https://x.com/aimlapi"
+  },
+  "isBasedOn": "https://x.com/aimlapi/status/2100372930282573876",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100371773275406336/img/NmHPy0pAprSsC6Gi.jpg",
+  "views": "545.1K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100068006592123055",
+  "url": "https://jevable.com/project/2100068006592123055",
+  "name": "A codebase complexity classifier",
+  "description": "i built a codebase classifier with Jev and this might be the solution to overengineered code that agents create\n\nwhat should I test Jev on next?",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "code review, classification",
+  "dateCreated": "2026-09-16",
+  "creator": {
+   "@type": "Person",
+   "name": "vogel",
+   "url": "https://x.com/ryanvogel"
+  },
+  "isBasedOn": "https://x.com/ryanvogel/status/2100068006592123055",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100067392223076352/img/BqXd-11SCr3_ff8q.jpg",
+  "views": "97.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100614659690713543",
+  "url": "https://jevable.com/project/2100614659690713543",
+  "name": "Email fraud detection with Jev and Kimi",
+  "description": "Jev + Kimi K3 for fraud detection!\n\nTLDR: Jev classified 100 emails in 1.42 seconds, then I routed the uncertain cases to Kimi K3. The full pipeline got 96/100 correct for only ~$0.07.\n\nVideo is not sped up, check out the live run!\n\nHere was my process:\n\nI gave Jev 100 emails to",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "security, email",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Hassan",
+   "url": "https://x.com/nutlope"
+  },
+  "isBasedOn": "https://x.com/nutlope/status/2100614659690713543",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100608348219478016/img/23vFEVMegwLrMa8g.jpg",
+  "views": "58.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100622054945095934",
+  "url": "https://jevable.com/project/2100622054945095934",
+  "name": "Stagehand browser control with Jev",
+  "description": "we built blazing fast computer/browser use with Jev + @Stagehanddev.\n\nthis task cost $0.001 and executed at near instant speed (in a remote browser btw)\n\nthe loop: observe the page, send a11y tree as state + actions as questions, Jev decides the next action, then Stagehand",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "browser automation, open source",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Kyle Jeong",
+   "url": "https://x.com/kylejeong"
+  },
+  "isBasedOn": "https://x.com/kylejeong/status/2100622054945095934",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100495119065722880/img/7A1mijkU3Z_Zj7PM.jpg",
+  "views": "66K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100430918762832180",
+  "url": "https://jevable.com/project/2100430918762832180",
+  "name": "Criteria-based model routing in Eve",
+  "description": "Ultra-fast, criteria-based model routing using Jev from @typesafeai.",
+  "inLanguage": "en",
+  "genre": "Agents",
+  "keywords": "model routing, classification",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "eve",
+   "url": "https://x.com/eve"
+  },
+  "isBasedOn": "https://x.com/eve/status/2100430918762832180",
+  "image": "https://pbs.twimg.com/media/HSY6yf5a8AA8NJi.jpg",
+  "views": "115K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100513641556549700",
+  "url": "https://jevable.com/project/2100513641556549700",
+  "name": "Jev as a QA tester",
+  "description": "You can hire Jev from @typesafeai as your QA tester",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "testing, automation",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Krzysztof",
+   "url": "https://x.com/krzysztof_moch"
+  },
+  "isBasedOn": "https://x.com/krzysztof_moch/status/2100513641556549700",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100512526303657985/img/-OQ-s3555Nrqr1M9.jpg",
+  "views": "90.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100315518930661861",
+  "url": "https://jevable.com/project/2100315518930661861",
+  "name": "Tetris with real-time Jev decisions",
+  "description": "I got early access to @typesafeai's new Jev model and built a demo of it playing tetris\n\nThe generation speed is so fast that it's pushing blocks down\n\nThis feels like another \"this changes everything\" moment",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "Tetris, arcade",
+  "dateCreated": "2026-09-16",
+  "creator": {
+   "@type": "Person",
+   "name": "Marcus Lowe",
+   "url": "https://x.com/marcus_lowe"
+  },
+  "isBasedOn": "https://x.com/marcus_lowe/status/2100315518930661861",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100315393860730880/img/u0iH2SHQny2hkd4Q.jpg",
+  "views": "78.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100218045549412499",
+  "url": "https://jevable.com/project/2100218045549412499",
+  "name": "Writing one character at a time",
+  "description": "i made an llm from first principles with Jev\n\n29 yes/no questions per character: should the next key be a–z, space, comma, or period?\n\nhighest probability gets append to it, then fed the updated text back in & repeat\n\nan autoregressive loop made out of a classifier",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "text generation, language",
+  "dateCreated": "2026-09-16",
+  "creator": {
+   "@type": "Person",
+   "name": "vogel",
+   "url": "https://x.com/ryanvogel"
+  },
+  "isBasedOn": "https://x.com/ryanvogel/status/2100218045549412499",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100217973000617984/img/AFareJummI08B_QB.jpg",
+  "views": "166.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100437998571860087",
+  "url": "https://jevable.com/project/2100437998571860087",
+  "name": "Jev inside a security pipeline",
+  "description": "these are results of using jev on one of our security pipelines. we already have to use smaller (and dumber) models to make it economic and this model does it over 5x cheaper, faster and while maintaining much higher accuracy.\n\ni don't normally hype over new model releases but",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "security, classification",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Greg Pstrucha",
+   "url": "https://x.com/grichadev"
+  },
+  "isBasedOn": "https://x.com/grichadev/status/2100437998571860087",
+  "image": "https://pbs.twimg.com/media/HSY_7aXbIAAxJoj.png",
+  "views": "82.4K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100465662867218857",
+  "url": "https://jevable.com/project/2100465662867218857",
+  "name": "Jev-review feedback for coding agents",
+  "description": "built `jev-review` @typesafeai \n\nit's an experimental, local-first MCP plugin that gives coding agents a score quality feedback loop across different metrics. \n\nagents call jev while they work, get scored, make improvements, and repeat the loop\n\ntry below 👇",
+  "inLanguage": "en",
+  "genre": "Developer tools",
+  "keywords": "MCP, code review",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Niaz Morshed",
+   "url": "https://x.com/niazmorshed_"
+  },
+  "isBasedOn": "https://x.com/niazmorshed_/status/2100465662867218857",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100465308519759872/img/2uIG43VFGvWzku0s.jpg",
+  "views": "45.8K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100457614073327754",
+  "url": "https://jevable.com/project/2100457614073327754",
+  "name": "Five hundred agents in a 3D environment",
+  "description": "Jev is actually insane.\n\nWe benchmarked it, and the results completely change the game for us:\n\n> 500 real-time agents\n> running in parallel\n> in a 3D environment\n\nThe preliminary results are crazy:\n\n> 500ms average latency\n> 35 API calls/s\n> all with a naive implementation\n\nWe",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "simulation, multi-agent",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Cris Lenta",
+   "url": "https://x.com/crislenta"
+  },
+  "isBasedOn": "https://x.com/crislenta/status/2100457614073327754",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100457262372560897/img/zSIVGvaQhEZLMd9-.jpg",
+  "views": "58.7K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100489858951073858",
+  "url": "https://jevable.com/project/2100489858951073858",
+  "name": "A Rubik's Cube that solves itself",
+  "description": "I got a rubik's cube to solve itself with @typesafeai 's Jev and it solves it like a person does, 94 moves, not the 22 move optimal solution.\n\nJev isn't an LLM, it just answers one question in ~250ms with a probability. so I put the beginner method in code (the one you'd learn on",
+  "inLanguage": "en",
+  "genre": "Games",
+  "keywords": "puzzles, planning",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Paolo Rosson",
+   "url": "https://x.com/redp314"
+  },
+  "isBasedOn": "https://x.com/redp314/status/2100489858951073858",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100479486382809088/img/r6daGpDnvsCr3LyL.jpg",
+  "views": "205.5K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100287368221659289",
+  "url": "https://jevable.com/project/2100287368221659289",
+  "name": "An interactive Jev playground on Val Town",
+  "description": "typesafe's jev is fun! live demo you can play with:",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "playground, decision making",
+  "dateCreated": "2026-09-16",
+  "creator": {
+   "@type": "Person",
+   "name": "Steve Krouse",
+   "url": "https://x.com/stevekrouse"
+  },
+  "isBasedOn": "https://x.com/stevekrouse/status/2100287368221659289",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100287272918593538/img/Wfej3okCPXU3wgN5.jpg",
+  "views": "115.2K"
+ },
+ {
+  "@type": "CreativeWork",
+  "@id": "https://jevable.com/project/2100454043361722798",
+  "url": "https://jevable.com/project/2100454043361722798",
+  "name": "Live clinical-transcript classification prototype",
+  "description": "During a live clinical consultation (with an ambient scribe), the transcript is periodically supplied to Jev, which traverses a medical ontology to classify symptoms, update the differential diagnosis, suggest treatments and identify red flags in real time.",
+  "inLanguage": "en",
+  "genre": "Experiments",
+  "keywords": "transcripts, classification",
+  "dateCreated": "2026-09-17",
+  "creator": {
+   "@type": "Person",
+   "name": "Chris McMaster",
+   "url": "https://x.com/rheum_ai"
+  },
+  "isBasedOn": "https://x.com/rheum_ai/status/2100454043361722798",
+  "image": "https://pbs.twimg.com/amplify_video_thumb/2100452479016321024/img/nAyq81QFzA6UzPqM.jpg",
+  "views": "56.4K"
+ }
+]

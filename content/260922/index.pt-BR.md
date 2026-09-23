@@ -5,10 +5,10 @@ seoTitle: 'Jev, System One e calibração: dá para traçar um limiar?'
 date: '2026-09-22'
 categories: IA Calibração
 description: 'O Jev devolve probabilidades em vez de texto. O confidence não é aprendido, é aritmética, e a calibração é propriedade da distribuição, não do modelo.'
-keywords: 'Jev, TypeSafe AI, modelos System One, RLCD, calibração de modelos, ECE, excesso de confiança do RLHF, limiar de confidence, modelo de decisão, Kev open source'
+keywords: 'Jev, TypeSafe AI, modelos System One, RLCD, calibração de modelos, ECE, excesso de confiança do RLHF, limiar de confidence, modelo de decisão, Kev open source, casos de uso do Jev'
 locale: pt-BR
 translationOf: '260922'
-sourceHash: ca9b2f86a83e0b59ba034efcd3ae9f364e0aefcad48a00323fcd031beba91545
+sourceHash: e93c1a63445192787eda7fb466b49e59f402006cbdf2b8071112895c2f49b703
 ---
 
 Neste post quero falar sobre um modelo que não gera texto. Na semana passada, a TypeSafe AI lançou o Jev.
@@ -247,6 +247,40 @@ Numa matéria do TechCrunch, Armin Ronacher, CTO da Earendil, que faz o harness 
 > At the end of the day, it delegates the hallucination problem a little bit to the user.
 
 Não é que a alucinação tenha sido eliminada: o julgamento foi passado para quem desenvolve. A documentação da TypeSafe também escreve que calibração é uma propriedade que vale para um conjunto de predições, e não uma garantia de que uma resposta individual está certa, e no item Nuance, abaixo da barra de 0% de alucinação do texto de anúncio, está escrito "Our number is not empirical". A forma é garantida; o conteúdo, não.
+
+## Os 194 projetos do jevable
+
+Como nos meus dados o Jev falhou, fui ver onde as outras pessoas o estão usando. O [jevable.com](https://jevable.com/) é uma curadoria independente montada por um desenvolvedor chamado Nikunj, que examina os projetos com Jev publicados no X e os reúne. Em 23 de setembro de 2026 eram 194, e as datas de registro se concentram entre 16 e 20 de setembro de 2026. 152 entraram num único dia, 18 de setembro. Três dias depois do lançamento.
+
+| Categoria | Quantidade |
+|---|---|
+| Games | 39 |
+| Developer tools | 34 |
+| Productivity | 31 |
+| Agents | 19 |
+| Experiments | 18 |
+| Creative tools | 16 |
+| Data & research, Finance, Browser extensions, Robotics, Marketing | 37 |
+
+Se, em vez de por categoria, reagrupamos por “o que se pergunta”, saem três formas. Os números abaixo são todos os que cada autor escreveu na própria publicação.
+
+**Primeira, classificação e roteamento.** Classificar 1,500 e-mails, classificar documentos fiscais, classificar 1,891 anúncios de concorrentes em 19 segundos por $0.12, 14 typed checks num único diff de PR, detectar propaganda em notificações do Android, classificar 26 plantas de construção em 2.9 segundos. É a mesma forma do gate de transliteração do início. Como a tabela da seção anterior mostrou, é um lugar onde rótulos se acumulam todo dia, então, com o tempo, um classificador pequeno treinado nos próprios rótulos vence ou empata. A vantagem do Jev está no primeiro dia, quando ainda não há rótulos.
+
+**Segunda, loops de escolha de ação.** Um browser agent acoplado ao Browser Use que terminou uma busca de passagens aéreas em 7 segundos por $0.0039, um computer use que controla o Mac por voz, um jogo que, cada vez que o Mario morre, faz fork da VM em quatro ramos e escolhe o que sobrevive, um motor de expressões faciais que decide dez coisas a cada mensagem, como boca, sobrancelhas e olhar de um personagem 3D. Como o action space muda a cada passo, não dá para juntar rótulos, e o julgamento precisa descer para abaixo de um segundo. É o mesmo lugar em que a diferença se abriu no spam fora da distribuição. Acho que é também por isso que Games, com 39, é a maior categoria. Jogo é um loop de escolha de ação em que errar pode ser desfeito.
+
+**Terceira, UIs que mostram a probabilidade ao usuário.** O Ask Jev, que devolve só o veredito em vez de uma resposta; o JevForm, formulário ramificado que escolhe a próxima pergunta por probabilidade; o Upweight, que reordena a primeira página do Hacker News com seis sliders como profundidade técnica e drama. Como o limiar não fica cravado no código e é uma pessoa que lê a probabilidade, é onde a exigência de calibração que este texto questionou é mais baixa.
+
+Uma coisa salta aos olhos. Das 194 descrições, 30 mencionam custo e 53 mencionam velocidade, mas só 7 mencionam acurácia ou uma linha de base. Como os resumos só trazem o começo de cada post, isso é um piso, mas a direção é clara. Que é rápido e barato dá para saber no primeiro dia; se está certo, só dá para saber medindo, e quem mede é raro. Um desses 7 é o `jevcal`. Partindo de que todo mundo escolhe o limiar no chute, é uma ferramenta que recebe os seus dados e a acurácia alvo e devolve o limiar e a fração de processamento automático. É exatamente o procedimento que a próxima seção recomenda, transformado em ferramenta.
+
+Então o que vale a pena tentar construir? Estes são os três que escolhi, tomando como critério as três formas acima e a tabela da seção anterior. Nos três, não dá para juntar rótulos de antemão, a decisão roda num lugar que ninguém observa, e há um caminho de volta quando erra.
+
+1. **Gate de execução de comandos num harness de agentes.** Julga cada chamada de ferramenta como `readonly`, `destructive`, `privileged` ou `exfiltration` e decide se pergunta a uma pessoa. Cada comando é uma distribuição nova, então rótulos não se acumulam, e um erro cai num prompt de confirmação, o que facilita definir o orçamento de erro. O benchmark do themsquared, nas referências ao final, chegou a 91.7% em 60 casos, mas o n é pequeno demais para falar de calibração. O primeiro passo é medir de novo nos logs das suas próprias sessões.
+2. **Escolha de action de um browser agent.** Dá o action space da página como alternativas e escolhe o próximo clique. Como no caso do Browser Use, a digitação fica com um LLM pequeno e o Jev só faz a escolha. A cada passo o DOM é novo, então é um lugar onde não dá para treinar um classificador.
+3. **UI ramificada que expõe a probabilidade como ela é.** Telas em que o usuário vê a probabilidade com os próprios olhos e toma a decisão final, como um formulário que escolhe a próxima pergunta ou um slider que reordena o feed. Sem limiar, escapa da armadilha deste texto.
+
+Por outro lado, em lugares onde rótulos se acumulam todo dia, como classificação de e-mails, documentos e anúncios, o Jev é cômodo na primeira semana, mas há boa chance de que, semanas depois, um classificador treinado nos próprios rótulos seja mais barato e mais preciso. E nenhum dos três acima escapa da falha que o gate do início sofreu. Depois de construir, antes de traçar a linha, é preciso medir nos próprios dados.
+
+## Como traçar a linha
 
 A conclusão deste texto é esta. **Não leia a probabilidade que o modelo devolveu como se fosse especificação: meça você mesmo nos seus dados e trace a linha ali.**
 

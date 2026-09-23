@@ -5,10 +5,10 @@ seoTitle: 'Jev y System One: ¿fiarse de la probabilidad del modelo?'
 date: '2026-09-22'
 categories: IA Calibración
 description: 'Jev devuelve probabilidades en vez de texto. Su confidence no se aprende: se calcula. Lo compruebo con 5,743 casos públicos y con Kev sobre mi compuerta.'
-keywords: 'Jev, TypeSafe AI, modelo System One, RLCD, calibración de modelos, ECE, exceso de confianza en RLHF, umbral de confidence, modelos de decisión, Kev open source'
+keywords: 'Jev, TypeSafe AI, modelo System One, RLCD, calibración de modelos, ECE, exceso de confianza en RLHF, umbral de confidence, modelos de decisión, Kev open source, casos de uso de Jev'
 locale: es
 translationOf: '260922'
-sourceHash: ca9b2f86a83e0b59ba034efcd3ae9f364e0aefcad48a00323fcd031beba91545
+sourceHash: e93c1a63445192787eda7fb466b49e59f402006cbdf2b8071112895c2f49b703
 ---
 
 En este artículo quiero hablar de un modelo que no genera texto. La semana pasada TypeSafe AI presentó Jev.
@@ -247,6 +247,40 @@ En un artículo de TechCrunch, Armin Ronacher, CTO de Earendil, la empresa que h
 > At the end of the day, it delegates the hallucination problem a little bit to the user.
 
 No ha eliminado la alucinación: ha pasado la decisión al desarrollador. La documentación de TypeSafe también escribe que la calibración es una propiedad que se cumple sobre un conjunto de predicciones y no una garantía de que una respuesta individual sea correcta, y bajo la barra del 0% de tasa de alucinación del artículo de presentación, en el apartado Nuance, se lee "Our number is not empirical". El formato está garantizado; el contenido no.
+
+## Los 194 proyectos de jevable
+
+Como en mis datos falló, fui a ver dónde lo usan los demás. [jevable.com](https://jevable.com/) es una curación independiente en la que un desarrollador llamado Nikunj revisa y reúne los proyectos con Jev que aparecen en X. A fecha de 23 de septiembre de 2026 son 194, y las fechas de alta se concentran entre el 16 y el 20 de septiembre de 2026. 152 entraron en un solo día, el 18 de septiembre. Tres días después del lanzamiento.
+
+| Categoría | Cantidad |
+|---|---|
+| Games | 39 |
+| Developer tools | 34 |
+| Productivity | 31 |
+| Agents | 19 |
+| Experiments | 18 |
+| Creative tools | 16 |
+| Data & research, Finance, Browser extensions, Robotics, Marketing | 37 |
+
+Si en vez de por categoría se reagrupan por «qué se le pregunta», salen tres formas. Las cifras de abajo son las que cada autor escribió en su propia publicación.
+
+**Primera, clasificación y enrutamiento.** Clasificar 1,500 correos, clasificar documentos fiscales, clasificar 1,891 anuncios de la competencia en 19 segundos por $0.12, 14 typed checks sobre un único diff de PR, detectar publicidad en las notificaciones de Android, clasificar 26 planos de construcción en 2.9 segundos. Es la misma forma que la compuerta de transcripciones del principio. Como decía la tabla de la sección anterior, son lugares donde las etiquetas se acumulan cada día, así que con el tiempo un clasificador pequeño entrenado con tus propias etiquetas gana o empata. La ventaja de Jev está en el primer día, cuando no hay etiquetas.
+
+**Segunda, bucles de selección de acciones.** Un browser agent enganchado a Browser Use que terminó una búsqueda de vuelos en 7 segundos por $0.0039, un computer use que maneja el Mac por voz, un juego que cada vez que Mario muere hace fork de la VM en cuatro ramas y elige la que sobrevive, un motor de expresiones faciales que decide en cada mensaje diez cosas de un personaje 3D, como la boca, las cejas y la mirada. El action space cambia en cada paso, así que no se pueden reunir etiquetas, y la decisión tiene que bajar por debajo del segundo. Es el mismo lugar en el que la diferencia se abrió con el spam fuera de la distribución. Creo que también por eso Games es la categoría más grande, con 39. Un juego es un bucle de selección de acciones en el que equivocarse tiene vuelta atrás.
+
+**Tercera, interfaces que muestran la probabilidad al usuario.** Ask Jev, que devuelve solo el veredicto en lugar de una respuesta; JevForm, un formulario ramificado que elige la siguiente pregunta por probabilidad; Upweight, que reordena la portada de Hacker News con seis deslizadores como profundidad técnica y drama. Como el umbral no está metido en el código y es una persona quien lee la probabilidad, es donde menos pesa la exigencia de calibración que este artículo ha puesto en cuestión.
+
+Una cosa llama la atención. De las 194 descripciones, 30 anotan el coste y 53 la velocidad, pero solo 7 anotan la exactitud o una línea de base. Los resúmenes solo recogen el inicio de cada post, así que es una cota inferior, pero la dirección está clara. Que es rápido y barato se sabe el primer día; si acierta, solo se sabe midiendo, y los que miden son pocos. Uno de esos 7 es `jevcal`. Su autor dice que todo el mundo elige el umbral a ojo, y la herramienta devuelve el umbral y la proporción de procesamiento automático a partir de tus datos y la exactitud objetivo. Es exactamente el procedimiento que recomienda la sección siguiente, convertido en herramienta.
+
+Entonces, ¿qué merece la pena construir? Con las tres formas de arriba y la tabla de la sección anterior como criterio, estas son las tres que yo elijo. Las tres comparten que no se pueden reunir etiquetas de antemano, corren en un lugar donde nadie mira y tienen vuelta atrás cuando se equivocan.
+
+1. **Una compuerta de ejecución de comandos en un harness de agentes.** Clasifica cada llamada a una herramienta como `readonly`, `destructive`, `privileged` o `exfiltration` y decide si hay que preguntar a la persona. Cada comando es una distribución nueva, así que las etiquetas no se acumulan, y si se equivoca cae en un prompt de confirmación, con lo que fijar el presupuesto de error es fácil. El benchmark de themsquared, en las referencias del final, dio 91.7% sobre 60 casos, pero n es demasiado pequeño para hablar de calibración. El primer paso es volver a medirlo con los logs de tus propias sesiones.
+2. **La selección de acciones de un browser agent.** Se le da como opciones el action space de la página y elige el siguiente clic. Como en el caso de Browser Use, la escritura se deja a un LLM pequeño y Jev solo hace la elección. Cada paso trae un DOM nuevo, así que es un lugar donde no se puede entrenar un clasificador.
+3. **Una interfaz ramificada que expone la probabilidad tal cual.** Pantallas en las que el usuario ve la probabilidad con sus ojos y toma la decisión final, como un formulario que elige la siguiente pregunta o un deslizador que reordena un feed. Como no hay umbral, esquiva la trampa de este artículo.
+
+Al contrario, en los lugares donde las etiquetas se acumulan cada día, como clasificar correos, documentos y anuncios, Jev es cómodo la primera semana, pero unas semanas después es muy probable que un clasificador entrenado con tus propias etiquetas sea más barato y más exacto. Y ninguna de las tres de arriba se libra del fallo que sufrió la compuerta del principio. Después de construirla, y antes de trazar la línea, hay que medir con tus propios datos.
+
+## Cómo trazar la línea
 
 La conclusión de este artículo es esta. **No leas como una especificación la probabilidad que devuelve el modelo: mídela tú mismo sobre tus propios datos y traza ahí la línea.**
 

@@ -5,10 +5,10 @@ seoTitle: 'Jev and System One Models: Can You Threshold on Confidence?'
 date: '2026-09-22'
 categories: AI Calibration
 description: "Jev returns probabilities instead of text. Its confidence is arithmetic, not learned, and calibration belongs to the distribution, not the model."
-keywords: 'Jev, TypeSafe AI, System One model, RLCD, model calibration, ECE, RLHF overconfidence, confidence threshold, decision model, Kev open source'
+keywords: 'Jev, TypeSafe AI, System One model, RLCD, model calibration, ECE, RLHF overconfidence, confidence threshold, decision model, Kev open source, Jev use cases'
 locale: en
 translationOf: '260922'
-sourceHash: ca9b2f86a83e0b59ba034efcd3ae9f364e0aefcad48a00323fcd031beba91545
+sourceHash: e93c1a63445192787eda7fb466b49e59f402006cbdf2b8071112895c2f49b703
 ---
 
 In this post, I want to talk about a model that produces no text. Last week TypeSafe AI released Jev.
@@ -247,6 +247,40 @@ In a TechCrunch article, Armin Ronacher, the CTO of Earendil, which builds the P
 > At the end of the day, it delegates the hallucination problem a little bit to the user.
 
 It has not removed hallucination; it has handed the judgment to the developer. The TypeSafe documentation also writes that calibration is a property that holds over a batch of predictions, not a guarantee that an individual answer is right, and under the 0% hallucination bar in the launch post, the Nuance entry reads "Our number is not empirical." The form is guaranteed and the content is not.
+
+## The 194 projects on jevable
+
+Since it failed on my data, I looked at where other people are using it. [jevable.com](https://jevable.com/) is an independent curation by a developer named Nikunj, who reviews Jev projects posted on X and collects them. As of September 23, 2026 it lists 194, and the registration dates cluster between September 16 and 20. 152 of them arrived on September 18 alone, three days after the release.
+
+| Category | Count |
+|---|---|
+| Games | 39 |
+| Developer tools | 34 |
+| Productivity | 31 |
+| Agents | 19 |
+| Experiments | 18 |
+| Creative tools | 16 |
+| Data & research, Finance, Browser extensions, Robotics, Marketing | 37 |
+
+Regrouping by "what is being asked" rather than by category gives three shapes. Every figure below is what the posters wrote in their own posts.
+
+**First, classification and routing.** Sorting 1,500 emails, classifying tax documents, classifying 1,891 competitor ads in 19 seconds for $0.12, 14 typed checks on a single PR diff, spotting ads among Android notifications, classifying 26 construction drawings in 2.9 seconds. This is the same shape as the loanword gate at the start of this post. As the table in the previous section said, these are places where labels pile up every day, so given time a small classifier trained on your own labels wins or ties. Jev's advantage is on day one, when there are no labels.
+
+**Second, action selection loops.** A browser agent that hooked into Browser Use and finished a flight search in 7 seconds for $0.0039, computer use that drives a Mac by voice, a game that forks the VM four ways every time Mario dies and picks the branch that survives, an expression engine that decides ten things per message for a 3D character, including its mouth, eyebrows, and gaze. The action space changes at every step, so you cannot collect labels, and the judgment has to come in under a second. This is the same place where the gap opened up on out-of-distribution spam. I think it is also why Games, at 39, is the largest category. A game is an action selection loop where being wrong can be undone.
+
+**Third, UI that shows the probability to the user.** Ask Jev, which returns only a verdict instead of an answer; JevForm, a branching form that picks the next question by probability; Upweight, which re-sorts the Hacker News front page with six sliders such as technical depth and drama. Since no threshold is hard-coded and a person reads the probability, these have the lowest calibration requirement of anything this post has taken issue with.
+
+One thing stands out. Of the 194 blurbs, 30 mention cost and 53 mention speed, but only 7 mention accuracy or a baseline. This is a lower bound because the blurbs only carry the start of each post, but the direction is clear. Fast and cheap you can know on day one; whether it is right you can only know by measuring, and the measuring side is rare. One of those 7 is `jevcal`. It says everyone picks thresholds by feel, and given your data and a target accuracy it returns a threshold and an automation rate. It is the procedure the next section recommends, turned into a tool.
+
+So what is worth building? Judging by the three shapes above and the table in the previous section, here are the three I would pick. None of the three lets you collect labels in advance, all of them run where nobody is watching, and all of them have a way back when they are wrong.
+
+1. **A command execution gate for an agent harness.** Judge each tool call as `readonly`, `destructive`, `privileged`, or `exfiltration` to decide whether to ask a human. Every command is a fresh distribution, so labels never pile up, and a wrong call falls through to a confirmation prompt, which makes the error budget easy to set. The themsquared benchmark in the references below got 91.7% on 60 items, but n is too small to say anything about calibration. Measuring again on your own session logs is the first step.
+2. **Action selection for a browser agent.** Give the page's action space as the options and pick the next click. As in the Browser Use case, leave the typing to a small LLM and let Jev do only the choosing. Every step is a new DOM, so this is a place where you cannot train a classifier.
+3. **A branching UI that exposes the probability as is.** A form that picks the next question, a slider that re-sorts a feed: screens where the user sees the probability and makes the final call. There is no threshold, so it avoids the trap in this post.
+
+Conversely, places where labels pile up every day, such as sorting emails, documents, and ads, are convenient with Jev in the first week, but a few weeks later a classifier trained on your own labels is likely cheaper and more accurate. And none of the three above escapes the failure the gate at the start of this post went through. After building it, you have to measure on your own data before drawing the line.
+
+## How to draw the line
 
 This post's conclusion is this. **Do not read the probabilities a model returns as a spec; measure on your own data and draw the line yourself.**
 
