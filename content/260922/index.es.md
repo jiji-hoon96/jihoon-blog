@@ -1,29 +1,31 @@
 ---
 emoji: 🎲
-title: 'Jev'
-seoTitle: 'Jev y System One: ¿fiarse de la probabilidad del modelo?'
+title: 'Modelos de decisión, Jev y Kev'
+seoTitle: 'Jev y Kev: umbral de confidence y calibración a prueba'
 date: '2026-09-22'
 categories: IA Calibración
 description: 'Jev devuelve probabilidades en vez de texto. Su confidence no se aprende: se calcula. Lo compruebo con 5,743 casos públicos y con Kev sobre mi compuerta.'
 keywords: 'Jev, TypeSafe AI, modelo System One, RLCD, calibración de modelos, ECE, exceso de confianza en RLHF, umbral de confidence, modelos de decisión, Kev open source, casos de uso de Jev'
 locale: es
 translationOf: '260922'
-sourceHash: e93c1a63445192787eda7fb466b49e59f402006cbdf2b8071112895c2f49b703
+sourceHash: fbd7343a24e4c35620bd3f0a31fa9aa220c794bb5c8d64fadd830c6f2a2a43c4
 ---
 
 En este artículo quiero hablar de un modelo que no genera texto. La semana pasada TypeSafe AI presentó Jev.
 
-Este blog tiene una compuerta que bloquea los extranjerismos transcritos al hangul. La regla dice que `피커` debe escribirse `picker`, y la lista de quince prohibiciones de `content/terminology.yml` la revisa `scripts/validate-terminology.mjs`. De esas entradas, nueve son las que devuelven una transcripción coreana a su forma inglesa.
+El primer uso que me llamó la atención fue la automatización del navegador. Browserbase abrió un [PR](https://github.com/browserbase/stagehand/pull/2953) que conecta Jev al `act()` de Stagehand. La estructura era enviar el :term[árbol de accesibilidad]{key="accessibility-tree"} de la página como `state` y preguntar, con opciones cerradas, «cuál es el siguiente elemento que hay que pulsar». En 40 tareas, la mediana de `act()` bajó de 1,97 segundos a 0,46, y de 147 acciones solo 4 volvieron a un LLM. El punto donde un script de Playwright se rompe en cuanto cambia un selector quedó cubierto por una llamada que devuelve una sola probabilidad. Mientras escribo esto, el PR todavía no se ha fusionado.
 
-Pero la lista no consigue crecer. Si sustituyes mecánicamente una palabra que vive dentro de un compuesto, como `멀티스레드`, sale `멀티thread`; y si devuelves a su forma inglesa términos ya asentados en la documentación técnica coreana, como `콜 스택` o `릴리스`, quien lee se frena todavía más. **La mitad que la máquina puede hacer con certeza la hace una expresión regular; la otra mitad la decido yo a mano cada vez.**
+![Cómo act() de Stagehand usa Jev. Se construye una lista de candidatos a partir de la instrucción y el árbol de accesibilidad, se pregunta a Jev cuál es y si ninguno aplica, se pulsa el elemento cuando la probabilidad de «ninguno» es baja y se pasa a un LLM cuando es alta. 143 de 147 acciones terminaron con Jev](1.png?w=720)
 
-Esa otra mitad es un trabajo con esta forma: solo hay dos respuestas, quien sabe decide en un segundo, y tiene que ejecutarse en un sitio que nadie mira. Al saber que Jev apunta a decisiones de este tipo, me acordé de esta compuerta.
+La línea que trazó ese PR es la pregunta de este artículo. Acepta la respuesta de Jev a partir de una [probabilidad de 0,7](https://www.browserbase.com/blog/what-is-jev) y, si no la alcanza, se la pasa a un LLM. **¿Puedo fiarme de la probabilidad que devuelve ese modelo y trazar con ella una línea en el código?**
 
-Por eso este artículo no es una presentación, sino una verificación. **¿Puedo fiarme de la probabilidad que devuelve ese modelo y trazar con ella una línea en el código?** Adelanto la conclusión: tal cual, no. Abajo desgrano por orden por qué no.
+Con el benchmark de otros no basta para decidirlo, así que quiero verificarlo con mis propios datos. Este blog tiene una compuerta que bloquea los extranjerismos transcritos al hangul. La regla dice que `피커` debe escribirse `picker`, pero la expresión regular solo atrapa la mitad segura, y las palabras que viven dentro de un compuesto o ya están asentadas en coreano, como `멀티스레드` o `콜 스택`, las decido yo a mano cada vez. Solo hay dos respuestas, revertir o dejar, quien sabe decide en un segundo, y el aprobado o el rechazo tiene que decidirse dentro de un script de build sin que nadie lo revise. Tiene la misma forma que la decisión de selector de Stagehand.
+
+Así que el orden es este: qué devuelve Jev, de qué entrenamiento sale esa probabilidad, qué números aparecen cuando le paso mi compuerta y dónde se pueden usar esos números.
 
 ## Un modelo que no genera texto
 
-La fecha de publicación es el 15 de septiembre de 2026. La empresa no lo llama LLM; lo sitúa en una categoría nueva: System One Model. Su fundador, Diogo Almeida, participó en OpenAI como cuarto autor del [artículo de InstructGPT](https://arxiv.org/abs/2203.02155). Estuvo en el equipo que creó el método del que ChatGPT desciende en línea directa, y ahora está en el lado que señala los límites de ese método.
+La fecha de publicación es el 15 de septiembre de 2026. La empresa no lo llama LLM; lo sitúa en una categoría nueva: System One Model. En este artículo los llamo modelos de decisión. Su fundador, Diogo Almeida, participó en OpenAI como cuarto autor del [artículo de InstructGPT](https://arxiv.org/abs/2203.02155). Estuvo en el equipo que creó el método del que ChatGPT desciende en línea directa, y ahora está en el lado que señala los límites de ese método.
 
 Jev no genera frases. Le das de antemano la forma de la respuesta, elige dentro de ella y devuelve además una probabilidad. Solo hay tres tipos de pregunta.
 
@@ -35,7 +37,7 @@ Jev no genera frases. Le das de antemano la forma de la respuesta, elige dentro 
 
 El endpoint también es uno solo. Envías a `POST /v1/systemone` un `state` (el contenido que se evalúa), un `model` y unas `questions` (el mapa de preguntas), y llega la respuesta. Puedes meter varias preguntas sobre el mismo `state` en una sola petición, y añadir preguntas apenas alarga el tiempo de respuesta.
 
-Por qué es rápido se explica con la asimetría entre prefill y decode que recogí en [cómo funcionan los tokens](/260610). Un LLM es lento porque exprime la salida token a token, de forma secuencial, y Jev no tiene esa etapa de decode. Lee la entrada una vez en paralelo y lee la probabilidad directamente. Por eso no hay tarifa alguna de tokens de salida y solo se cobra la entrada, a $0.042 por millón de tokens.
+Por qué es rápido se explica con la asimetría entre :term[prefill]{key="prefill"} y decode que recogí en [cómo funcionan los tokens](/260610). Un LLM es lento porque exprime la salida token a token, de forma secuencial, y Jev no tiene esa etapa de decode. Lee la entrada una vez en paralelo y lee la probabilidad directamente. Por eso no hay tarifa alguna de tokens de salida y solo se cobra la entrada, a $0.042 por millón de tokens.
 
 Hay un [análisis](https://archerhume.com/posts/jevs-architecture-unmasked/) de un desarrollador llamado Archer Hume que llamó unas 10,000 veces a la API y reconstruyó el comportamiento desde fuera. Con 360 tokens de entrada la mediana fue 57.5ms; con 29,835 tokens, 218ms; y con 1,500 preguntas metidas, 610ms. De todo ello, la evidencia más directa es la observación de que una respuesta con 200 opciones volvía a la misma velocidad que una de 2. Significa que escribir la respuesta no cuesta tiempo.
 
@@ -51,15 +53,19 @@ Ya hice una distinción parecida al ordenar [el diseño de harness](/260622). De
 
 Pero ¿por qué hacía falta un método de entrenamiento nuevo? ¿No basta con pedirle solo sí/no a un modelo de los de siempre?
 
-La respuesta está en la genealogía de RLHF (reinforcement learning from human feedback). El esqueleto de levantar un modelo de recompensa a partir de comparaciones de preferencia humana salió del [artículo de Christiano et al. de 2017](https://arxiv.org/abs/1706.03741); [Stiennon et al. lo aplicaron en 2020](https://arxiv.org/abs/2009.01325) a los modelos de lenguaje, e InstructGPT lo extendió al seguimiento de instrucciones. Los tres artículos comparten una única función objetivo: **producir la salida que el evaluador humano prefiere más.**
+La respuesta está en la genealogía de :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback). El esqueleto de levantar un modelo de recompensa a partir de comparaciones de preferencia humana salió del [artículo de Christiano et al. de 2017](https://arxiv.org/abs/1706.03741); [Stiennon et al. lo aplicaron en 2020](https://arxiv.org/abs/2009.01325) a los modelos de lenguaje, e InstructGPT lo extendió al seguimiento de instrucciones. Los tres artículos comparten una única función objetivo: **producir la salida que el evaluador humano prefiere más.**
 
-Aquí hay que separar exactitud y calibración. La exactitud es qué porcentaje aciertas; la calibración es si sabes qué porcentaje vas a acertar. Si reúnes solo los días en los que se anunció un 70% de probabilidad de lluvia y resulta que de cada diez llovió siete veces, esa previsión está bien calibrada. No significa que su exactitud sea alta. Significa que conoce sus propios límites. **Un modelo que solo acierta el 60% saca la nota máxima en calibración si dice de sí mismo que acierta el 60%.**
+Aquí hay que separar exactitud y :term[calibración]{key="calibration"}. La exactitud es qué porcentaje aciertas; la calibración es si sabes qué porcentaje vas a acertar. Si reúnes solo los días en los que se anunció un 70% de probabilidad de lluvia y resulta que de cada diez llovió siete veces, esa previsión está bien calibrada. No significa que su exactitud sea alta. Significa que conoce sus propios límites. **Un modelo que solo acierta el 60% saca la nota máxima en calibración si dice de sí mismo que acierta el 60%.**
 
-La métrica que mide ese desajuste es el ECE (expected calibration error). Es la media, ponderada por la proporción de muestras de cada tramo, de la diferencia entre «la probabilidad declarada» y «la tasa real de acierto» en cada tramo de probabilidad, y 0 es la perfección.
+La métrica que mide ese desajuste es el :term[ECE]{key="ece"} (expected calibration error). Es la media, ponderada por la proporción de muestras de cada tramo, de la diferencia entre «la probabilidad declarada» y «la tasa real de acierto» en cada tramo de probabilidad, y 0 es la perfección.
 
 Para un chatbot, la preferencia humana es el objetivo correcto. El problema es que las personas prefieren una respuesta segura antes que una que titubea. Así el modelo adquiere la costumbre de hablar de forma tajante incluso cuando la cosa es ambigua. La documentación de TypeSafe llama a esto [mode dropping](https://docs.typesafe.ai/introduction/machine-learning-primer): optimizar la preferencia empuja al modelo a favorecer un estilo concreto y aplasta la probabilidad de las demás salidas posibles.
 
 OpenAI también dejó escrito lo mismo en su propio informe. La Figure 8 del [informe técnico de GPT-4](https://arxiv.org/abs/2303.08774) pone una al lado de otra las curvas de calibración del modelo preentrenado y del modelo tras el post-training, y su pie dice así.
+
+![Figura 8 del informe técnico de GPT-4. El modelo preentrenado de la izquierda sigue la diagonal con ECE 0,007; el modelo tras PPO de la derecha cae muy por debajo con ECE 0,074](2.png?w=720)
+
+Fuente: OpenAI, GPT-4 Technical Report (arXiv:2303.08774), Figure 8.
 
 > Right: Calibration plot of the post-trained GPT-4 model on the same subset of MMLU. The post-training hurts calibration significantly.
 
@@ -77,7 +83,7 @@ Ahora bien, de RLCD lo único publicado son tres líneas de contrato de salida. 
 
 Entonces, ¿es honesto el número que devuelve Jev? Antes de responder hay que ver una cosa. **El número que devuelve no es uno solo.**
 
-![En la respuesta de Jev, probabilities se produce mediante el entrenamiento y confidence es esa distribución plegada por aritmética; la afirmación de calibración recae solo sobre probabilities](1.png?w=720)
+![En la respuesta de Jev, probabilities se produce mediante el entrenamiento y confidence es esa distribución plegada por aritmética; la afirmación de calibración recae solo sobre probabilities](3.png?w=720)
 
 Las respuestas de `Choice` y `Score` traen juntos `probabilities` y `confidence`. Lo primero es una distribución de probabilidad sobre todas las opciones; lo segundo, un único número entre 0 y 1. Cuando pones un umbral en el código, la mano va primero hacia `confidence`.
 
@@ -99,6 +105,8 @@ No hay llamada al modelo ni parámetros aprendidos. Entra un vector de `probabil
 Este repositorio no es el servidor Jev de producción, sino una implementación alternativa que imita la misma API con un LLM. Así que esto por sí solo no permite afirmarlo con rotundidad. Pero hay dos pruebas más que apuntan a la misma fórmula. La [página sobre confidence](https://docs.typesafe.ai/confidence) de la documentación oficial de TypeSafe describe este valor como "a statistic computed from the probability distribution" y en su código de demostración incluye `(3 × largest probability − 1) / 2` como fórmula aproximada para tres opciones. Con K igual a 3 coincide con la fórmula de arriba. Y un [registro de auditoría de afirmaciones](https://github.com/SamuelSacco/jev-exploration) dejó anotado que, en la API real, con una respuesta a la que se dieron solo dos opciones, ambas incorrectas, y cuya ganadora valía 0.52, el `confidence` llegó como 0.04. Con K igual a 2, `(0.52 − 0.5) / (1 − 0.5) = 0.04`. Coincide con la fórmula.
 
 En el mismo repositorio, `Score` usa directamente otra fórmula: divide la distancia absoluta media respecto al nivel más frecuente entre la que daría una distribución uniforme y luego **lo resta de 1**. La documentación no publica la fórmula de `Score`. Es decir, bajo un mismo nombre, `confidence`, hay dos fórmulas, y si cambia el tipo el mismo número significa otra cosa. Que `Noul` no tenga `confidence` obedece a la misma razón: no hay distribución que plegar.
+
+![Diagrama de la escala de p_max estirada hasta la escala de confidence, llevando 1/K a 0 y 1 a 1. Con tres opciones 0,80 pasa a 0,7, todo lo que queda bajo 1/3 se descarta y el orden no cambia](4.png?w=720)
 
 La documentación tampoco lo esconde. Incluso indica que, si quieres usar otro cálculo, te dará el `probabilities` completo para que lo hagas a tu manera. **Está escrito; el problema está en usarlo sin leerlo.**
 
@@ -138,20 +146,24 @@ Segunda: **el ECE medido se explica casi por completo con el exceso de confianza
 
 Por qué ocurre se ve leyendo la tabla en vertical. Si quitamos `semif`, seis valores de confianza media se apelotonan entre 0.851 y 0.906. En ese mismo rango, la exactitud se mueve entre 0.753 y 0.857, el doble de ancho. **La confianza apenas se mueve aunque cambie la distribución; solo se mueve la exactitud. La diferencia que queda es directamente el ECE.**
 
+![Gráfico de siete conjuntos de evaluación con llamadas reales a Jev: la confianza media se agrupa entre 0,851 y 0,906 mientras solo la exactitud se mueve de 0,753 a 0,965, y esa brecha casi coincide con el ECE](5.png?w=720)
+
 Otro benchmark muestra cómo se manifiesta esta propiedad en la práctica. En una [medición](https://github.com/anisselbd/jev-phishing-bench) sobre 2,000 correos de phishing con Claude Haiku 4.5 como grupo de control, la exactitud de Jev fue del 62.6% y la de Haiku del 81.3%. Pero lo que más llama la atención es el ECE. El ECE que reporta el repositorio es 0.154 para Jev y 0.097 para Haiku, y si el registro de auditoría de afirmaciones vuelve a medir el valor `P(phishing)` de Jev en 10 tramos de 0 a 1, sale 0.170. Se lea como se lea, **el modelo que presenta la calibración como objetivo de entrenamiento perdió en calibración frente a un LLM hecho con RLHF.** El mismo autor sacó un 91.6% solo con una regla de lista de hosts de enlaces.
 
-Si se mira la misma métrica en varios conjuntos, la amplitud queda más clara. La proporción que se puede automatizar con un presupuesto de error del 5% es 0.486 en el conjunto `scienthoon`, 0.695 en `transfer-v9` y 1.000 en `semif`. El corrector de Kev anota que este valor es el máximo obtenido eligiendo el umbral dentro de la muestra, y no una garantía de error tras el despliegue. **Ninguna de ellas debe citarse como si fuera una especificación del modelo.**
+Si se mira la misma métrica en varios conjuntos, la amplitud queda más clara. La proporción que se puede automatizar con un :term[presupuesto de error]{key="error-budget"} del 5% es 0.486 en el conjunto `scienthoon`, 0.695 en `transfer-v9` y 1.000 en `semif`. El corrector de Kev anota que este valor es el máximo obtenido eligiendo el umbral dentro de la muestra, y no una garantía de error tras el despliegue. **Ninguna de ellas debe citarse como si fuera una especificación del modelo.**
 
 ## La compuerta de transcripciones
 
 Leer el benchmark de otro y medir sobre mis propios datos son cosas distintas. Así que hice pasar de verdad por el modelo la compuerta del principio.
 
-Todavía no tengo una clave de API de Jev. En su lugar **ejecuté en local el Kev-9B** que mencioné antes. Es una implementación de reproducción que monta un LoRA de rank 16 y una pointer head sobre Qwen3.5-9B-Base, con licencia Apache-2.0. Las cifras de abajo no son las de Jev. Los datos de entrenamiento de Kev son tareas de decisión en inglés, y en la medición de su propio autor Kev-9B queda por detrás de Jev incluso en tareas en inglés: su proporción de automatización con un presupuesto de error del 5% va de 0.45 a 0.57, mientras que la de Jev es 0.70, y en MMLU-Pro es 0.52 frente a 0.84. Además, la propia documentación de TypeSafe declara sobre Jev que [el inglés es su lengua principal de entrenamiento y el CJK no está al mismo nivel](https://docs.typesafe.ai/models).
+Todavía no tengo una clave de API de Jev. En su lugar **ejecuté en local el Kev-9B** que mencioné antes. Es una implementación de reproducción que monta un :term[LoRA]{key="lora"} de rank 16 y una pointer head sobre Qwen3.5-9B-Base, con licencia Apache-2.0. Las cifras de abajo no son las de Jev. Los datos de entrenamiento de Kev son tareas de decisión en inglés, y en la medición de su propio autor Kev-9B queda por detrás de Jev incluso en tareas en inglés: su proporción de automatización con un presupuesto de error del 5% va de 0.45 a 0.57, mientras que la de Jev es 0.70, y en MMLU-Pro es 0.52 frente a 0.84. Además, la propia documentación de TypeSafe declara sobre Jev que [el inglés es su lengua principal de entrenamiento y el CJK no está al mismo nivel](https://docs.typesafe.ai/models).
 
 El conjunto de evaluación lo saqué de 18 artículos en coreano de este repositorio. El criterio de verdad de las etiquetas es **con qué grafía escribe este repositorio esa palabra de forma consistente**. Es decir, no es el consenso de la comunidad de documentación técnica coreana, sino la costumbre de este blog; en las palabras donde ambas cosas divergen, el modelo puede acertar según el criterio de la comunidad y fallar según este.
 
 - **Conjunto de la compuerta, 102 frases.** Son palabras que la compuerta ya conoce. Los positivos son 23 **frases contrafácticas** en las que palabras que el texto escribe en inglés, como `calendar`, `picker` o `adapter`, se han devuelto a su transcripción en hangul; los negativos son 79 frases en las que aparecen de verdad palabras que `write-post.md` declara como excepción, como `리렌더링` o `콜 스택`. Aquí la compuerta de expresiones regulares actual acierta el 100% por definición.
-- **Conjunto en reserva, 60 frases.** **Son palabras que la compuerta no ha visto nunca.** Los positivos son 30 casos en los que `loader`, `mutation` y `prefill`, que el texto escribe solo en inglés, se han devuelto a su transcripción; los negativos son 30 casos con `리듀서`, `스냅샷` y `런타임`, que el texto escribe solo en hangul. Aquí la expresión regular no atrapa ni un solo positivo.
+- **Conjunto en reserva, 60 frases.** **Son palabras que la compuerta no ha visto nunca.** Es lo que en machine learning se llama conjunto :term[held-out]{key="held-out-set"}. Los positivos son 30 casos en los que `loader`, `mutation` y `prefill`, que el texto escribe solo en inglés, se han devuelto a su transcripción; los negativos son 30 casos con `리듀서`, `스냅샷` y `런타임`, que el texto escribe solo en hangul. Aquí la expresión regular no atrapa ni un solo positivo.
+
+![Diagrama del conjunto compuerta de 102 frases y el conjunto reservado de 60 frases, su composición de positivos y negativos, y cómo la compuerta regex cubre todo el primero pero no atrapa ningún positivo del segundo](6.png?w=720)
 
 Dejo dicho de entrada el desequilibrio de que los positivos son frases contrafácticas escritas por mí y los negativos son frases reales. Y **la muestra efectiva no es el número de frases, sino el número de palabras.** Como la etiqueta se decide por palabra, las frases en las que aparece la misma palabra no son observaciones independientes. El conjunto de la compuerta tiene 24 palabras distintas y el conjunto en reserva, 13.
 
@@ -200,7 +212,7 @@ Si fuera un modelo que dice que sí a cualquier cosa que le preguntes, este resu
 
 Entonces, ¿cambia algo si le doy directamente el conocimiento que hace falta para decidir? El método de adaptación a un dominio que recomienda la documentación de TypeSafe es este: sin tocar los pesos, envías el material de referencia dentro del `state`.
 
-Cogí los párrafos de reglas que ya están escritos en `write-post.md`, los metí también en el `state` y volví a ejecutarlo. La entrada pasó de 100 tokens por frase a 450. **El conjunto de la compuerta es una filtración**, porque ese material de referencia enumera por su nombre tanto las palabras de la compuerta como las excepciones. Por eso ese lado es el grupo de control que sirve para ver «si al menos lee el material de referencia», y la prueba de verdad es el conjunto en reserva.
+Cogí los párrafos de reglas que ya están escritos en `write-post.md`, los metí también en el `state` y volví a ejecutarlo. La entrada pasó de 100 tokens por frase a 450. **El conjunto de la compuerta es una :term[filtración]{key="data-leakage"}**, porque ese material de referencia enumera por su nombre tanto las palabras de la compuerta como las excepciones. Por eso ese lado es el grupo de control que sirve para ver «si al menos lee el material de referencia», y la prueba de verdad es el conjunto en reserva.
 
 | | Compuerta (filtración) | Compuerta + reglas | Reserva | Reserva + reglas |
 |---|---|---|---|---|
@@ -214,6 +226,8 @@ Cogí los párrafos de reglas que ya están escritos en `write-post.md`, los met
 La latencia corresponde a inferencia local en un M2 Max, así que no está en el mismo eje que la latencia de la API de Jev que vimos antes. Lo que hay que mirar aquí no es el valor absoluto, sino el factor de 2.4 que aparece al meter el material de referencia.
 
 **En el conjunto en reserva, que está equilibrado, la exactitud por frase pasó de 0.500 a 0.500: no se movió en absoluto.** Por palabra incluso bajó, de 7/13 a 5/13.
+
+![Antes y después de añadir el párrafo de reglas al state, en las 60 frases fuera de la compuerta. Antes acertó las 30 frases a revertir y falló las 30 a conservar; después acertó 8 y 22. El total de aciertos es 30 en ambos casos](7.png?w=720)
 
 El salto de 0.225 a 0.676 en el conjunto de la compuerta no es una mejora de habilidad. Antes respondía «se devuelve» en las 102 frases, y al darle el material de referencia solo respondió así en 12. Los negativos subieron de 0/79 a 68/79, pero los positivos se hundieron de 23/23 a 1/23. En ese conjunto los negativos ganan por 79 a 23, así que una constante del tipo «déjalo casi siempre» recibe automáticamente una puntuación más alta. **No aprendió a distinguir: cambió la inclinación.**
 
@@ -238,7 +252,7 @@ Solo la fila de rerank es una métrica de calidad de ranking de búsqueda, así 
 
 **Dentro de la distribución, una expresión regular o un clasificador ya ajustado gana o empata.** Es el mismo lugar en el que, en mi conjunto de la compuerta, la expresión regular ganó por 1.000 a 0.225. Si puedes reunir etiquetas, entrenar un modelo pequeño sale más barato, más rápido y más exacto. Eso es algo que se hace desde hace mucho.
 
-**La brecha se abre cuando la distribución es nueva y no hay etiquetas.** En el spam fuera de la distribución, 98.6% frente a 73.0%. El clasificador ajustado se viene abajo ante una forma que no ha visto nunca, y este aguanta. El lugar de los modelos de decisión son **las decisiones para las que no se pueden reunir datos, etiquetarlos y entrenar**. Es el sitio donde cada situación es nueva, no se logran reunir etiquetas y aun así hay que decidir en cuestión de segundos.
+**La brecha se abre cuando la distribución es nueva y no hay etiquetas.** En el spam :term[fuera de la distribución]{key="out-of-distribution"}, 98.6% frente a 73.0%. El clasificador ajustado se viene abajo ante una forma que no ha visto nunca, y este aguanta. El lugar de los modelos de decisión son **las decisiones para las que no se pueden reunir datos, etiquetarlos y entrenar**. Es el sitio donde cada situación es nueva, no se logran reunir etiquetas y aun así hay que decidir en cuestión de segundos.
 
 Este marco explica también por qué falló mi discriminación de transcripciones. Lo que esa decisión necesita no es razonamiento general, sino **el conocimiento de dominio concreto de qué palabras se han asentado en la documentación técnica coreana**, y para una implementación de reproducción de 9B entrenada con tareas de decisión en inglés eso no está fuera de la distribución: sencillamente no existe en ella. Ahí está la razón de que tampoco funcionara darle las reglas por escrito.
 
@@ -271,14 +285,6 @@ Si en vez de por categoría se reagrupan por «qué se le pregunta», salen tres
 **Tercera, interfaces que muestran la probabilidad al usuario.** Ask Jev, que devuelve solo el veredicto en lugar de una respuesta; JevForm, un formulario ramificado que elige la siguiente pregunta por probabilidad; Upweight, que reordena la portada de Hacker News con seis deslizadores como profundidad técnica y drama. Como el umbral no está metido en el código y es una persona quien lee la probabilidad, es donde menos pesa la exigencia de calibración que este artículo ha puesto en cuestión.
 
 Una cosa llama la atención. De las 194 descripciones, 30 anotan el coste y 53 la velocidad, pero solo 7 anotan la exactitud o una línea de base. Los resúmenes solo recogen el inicio de cada post, así que es una cota inferior, pero la dirección está clara. Que es rápido y barato se sabe el primer día; si acierta, solo se sabe midiendo, y los que miden son pocos. Uno de esos 7 es `jevcal`. Su autor dice que todo el mundo elige el umbral a ojo, y la herramienta devuelve el umbral y la proporción de procesamiento automático a partir de tus datos y la exactitud objetivo. Es exactamente el procedimiento que recomienda la sección siguiente, convertido en herramienta.
-
-Entonces, ¿qué merece la pena construir? Con las tres formas de arriba y la tabla de la sección anterior como criterio, estas son las tres que yo elijo. Las tres comparten que no se pueden reunir etiquetas de antemano, corren en un lugar donde nadie mira y tienen vuelta atrás cuando se equivocan.
-
-1. **Una compuerta de ejecución de comandos en un harness de agentes.** Clasifica cada llamada a una herramienta como `readonly`, `destructive`, `privileged` o `exfiltration` y decide si hay que preguntar a la persona. Cada comando es una distribución nueva, así que las etiquetas no se acumulan, y si se equivoca cae en un prompt de confirmación, con lo que fijar el presupuesto de error es fácil. El benchmark de themsquared, en las referencias del final, dio 91.7% sobre 60 casos, pero n es demasiado pequeño para hablar de calibración. El primer paso es volver a medirlo con los logs de tus propias sesiones.
-2. **La selección de acciones de un browser agent.** Se le da como opciones el action space de la página y elige el siguiente clic. Como en el caso de Browser Use, la escritura se deja a un LLM pequeño y Jev solo hace la elección. Cada paso trae un DOM nuevo, así que es un lugar donde no se puede entrenar un clasificador.
-3. **Una interfaz ramificada que expone la probabilidad tal cual.** Pantallas en las que el usuario ve la probabilidad con sus ojos y toma la decisión final, como un formulario que elige la siguiente pregunta o un deslizador que reordena un feed. Como no hay umbral, esquiva la trampa de este artículo.
-
-Al contrario, en los lugares donde las etiquetas se acumulan cada día, como clasificar correos, documentos y anuncios, Jev es cómodo la primera semana, pero unas semanas después es muy probable que un clasificador entrenado con tus propias etiquetas sea más barato y más exacto. Y ninguna de las tres de arriba se libra del fallo que sufrió la compuerta del principio. Después de construirla, y antes de trazar la línea, hay que medir con tus propios datos.
 
 ## Cómo trazar la línea
 

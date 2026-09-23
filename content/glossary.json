@@ -466,5 +466,265 @@
       "name": "Feedback loop",
       "definition": "通过变更、观测、解读与下一次判断不断循环来改进产品的过程"
     }
+  },
+  "calibration": {
+    "ko": {
+      "name": "캘리브레이션",
+      "definition": "모델이 말한 확률과 실제 적중률이 맞는 정도. 70%라고 한 것들이 실제로 열 번 중 일곱 번 맞으면 캘리브레이션이 잘 된 것이다"
+    },
+    "en": {
+      "name": "calibration",
+      "definition": "How well stated probabilities match observed hit rates. If the cases called 70% come true seven times in ten, the model is well calibrated"
+    },
+    "ja": {
+      "name": "キャリブレーション",
+      "definition": "モデルが述べた確率と実際の的中率の一致度。70% と言ったものが十回中七回当たれば較正が取れている"
+    },
+    "es": {
+      "name": "calibración",
+      "definition": "Grado en que las probabilidades declaradas coinciden con la tasa real de aciertos. Si lo que se dijo al 70% se cumple siete de cada diez veces, el modelo está bien calibrado"
+    },
+    "pt-BR": {
+      "name": "calibração",
+      "definition": "Quanto as probabilidades declaradas batem com a taxa real de acerto. Se o que foi dito com 70% se confirma sete vezes em dez, o modelo está bem calibrado"
+    },
+    "zh-CN": {
+      "name": "校准",
+      "definition": "模型给出的概率与实际命中率的吻合程度。说是 70% 的事情十次里真有七次发生，就是校准良好"
+    }
+  },
+  "ece": {
+    "ko": {
+      "name": "ECE",
+      "definition": "expected calibration error. 확률 구간마다 「말한 확률」과 「실제 적중률」의 차이를 표본 비율로 가중해 평균한 값. 0이 완벽이다"
+    },
+    "en": {
+      "name": "ECE",
+      "definition": "Expected calibration error. The average gap between stated probability and observed accuracy across probability bins, weighted by how many samples fall in each. Zero is perfect"
+    },
+    "ja": {
+      "name": "ECE",
+      "definition": "expected calibration error。確率区間ごとの「述べた確率」と「実際の的中率」の差を標本比率で重み付けして平均した値。0 が完璧"
+    },
+    "es": {
+      "name": "ECE",
+      "definition": "Expected calibration error. Promedio, ponderado por muestras, de la diferencia entre la probabilidad declarada y la exactitud real en cada tramo de probabilidad. Cero es perfecto"
+    },
+    "pt-BR": {
+      "name": "ECE",
+      "definition": "Expected calibration error. Média, ponderada pelas amostras, da diferença entre a probabilidade declarada e a acurácia real em cada faixa de probabilidade. Zero é perfeito"
+    },
+    "zh-CN": {
+      "name": "ECE",
+      "definition": "expected calibration error。按样本比例加权，把每个概率区间里「说的概率」与「实际命中率」之差求平均。0 为完美"
+    }
+  },
+  "rlhf": {
+    "ko": {
+      "name": "RLHF",
+      "definition": "reinforcement learning from human feedback. 사람이 두 출력 중 더 좋은 쪽을 고른 비교 데이터로 보상 모델을 만들고, 그 보상을 최대화하도록 언어 모델을 강화학습으로 조정하는 방법"
+    },
+    "en": {
+      "name": "RLHF",
+      "definition": "Reinforcement learning from human feedback. A reward model is trained on human comparisons of outputs, then the language model is tuned by reinforcement learning to maximize that reward"
+    },
+    "ja": {
+      "name": "RLHF",
+      "definition": "reinforcement learning from human feedback。人が二つの出力からよい方を選んだ比較データで報酬モデルを作り、その報酬を最大化するよう言語モデルを強化学習で調整する手法"
+    },
+    "es": {
+      "name": "RLHF",
+      "definition": "Reinforcement learning from human feedback. Se entrena un modelo de recompensa con comparaciones humanas entre salidas y luego se ajusta el modelo de lenguaje por refuerzo para maximizar esa recompensa"
+    },
+    "pt-BR": {
+      "name": "RLHF",
+      "definition": "Reinforcement learning from human feedback. Treina-se um modelo de recompensa com comparações humanas entre saídas e ajusta-se o modelo de linguagem por reforço para maximizar essa recompensa"
+    },
+    "zh-CN": {
+      "name": "RLHF",
+      "definition": "reinforcement learning from human feedback。用人类在两个输出中选更好者的比较数据训练奖励模型，再用强化学习调整语言模型以最大化该奖励"
+    }
+  },
+  "prefill": {
+    "ko": {
+      "name": "prefill",
+      "definition": "LLM 이 입력 전체를 한 번에 병렬로 읽어 내부 상태를 만드는 단계. 그 뒤 출력 토큰을 하나씩 만드는 decode 단계와 구분된다"
+    },
+    "en": {
+      "name": "prefill",
+      "definition": "The stage where an LLM reads the whole input in one parallel pass to build its internal state, as opposed to decode, which produces output tokens one at a time"
+    },
+    "ja": {
+      "name": "prefill",
+      "definition": "LLM が入力全体を一度に並列で読んで内部状態を作る段階。その後に出力トークンを一つずつ生成する decode 段階と区別される"
+    },
+    "es": {
+      "name": "prefill",
+      "definition": "Fase en la que un LLM lee toda la entrada en una sola pasada paralela para construir su estado interno, a diferencia del decode, que produce los tokens de salida uno a uno"
+    },
+    "pt-BR": {
+      "name": "prefill",
+      "definition": "Etapa em que um LLM lê toda a entrada de uma vez, em paralelo, para montar seu estado interno, distinta do decode, que produz os tokens de saída um por um"
+    },
+    "zh-CN": {
+      "name": "prefill",
+      "definition": "LLM 一次并行读完全部输入、建立内部状态的阶段。与随后逐个生成输出 token 的 decode 阶段相区分"
+    }
+  },
+  "lora": {
+    "ko": {
+      "name": "LoRA",
+      "definition": "low-rank adaptation. 원래 가중치는 그대로 두고 작은 저차원 행렬만 덧붙여 학습하는 미세조정 방법. 학습할 파라미터가 훨씬 적다"
+    },
+    "en": {
+      "name": "LoRA",
+      "definition": "Low-rank adaptation. A fine-tuning method that freezes the original weights and trains only small low-rank matrices added alongside them, so far fewer parameters are trained"
+    },
+    "ja": {
+      "name": "LoRA",
+      "definition": "low-rank adaptation。元の重みはそのままにして、小さな低ランク行列だけを付け足して学習するファインチューニング手法。学習するパラメータがはるかに少ない"
+    },
+    "es": {
+      "name": "LoRA",
+      "definition": "Low-rank adaptation. Método de ajuste fino que congela los pesos originales y entrena solo pequeñas matrices de bajo rango añadidas junto a ellos, con muchos menos parámetros"
+    },
+    "pt-BR": {
+      "name": "LoRA",
+      "definition": "Low-rank adaptation. Método de ajuste fino que congela os pesos originais e treina só pequenas matrizes de baixo posto adicionadas a eles, com muito menos parâmetros"
+    },
+    "zh-CN": {
+      "name": "LoRA",
+      "definition": "low-rank adaptation。冻结原有权重，只训练附加的小型低秩矩阵的微调方法，需要训练的参数少得多"
+    }
+  },
+  "error-budget": {
+    "ko": {
+      "name": "오차 예산",
+      "definition": "자동 처리한 결정 중 틀려도 감수하기로 미리 정한 비율. 5%면 자동 처리 100건 중 5건까지의 오답을 허용한다는 뜻이다"
+    },
+    "en": {
+      "name": "error budget",
+      "definition": "The share of automated decisions you decide in advance you can afford to get wrong. A 5% budget allows up to 5 wrong answers per 100 automated decisions"
+    },
+    "ja": {
+      "name": "誤差予算",
+      "definition": "自動処理した判断のうち、間違っても受け入れると事前に決めた割合。5% なら自動処理 100 件につき 5 件までの誤答を許す"
+    },
+    "es": {
+      "name": "presupuesto de error",
+      "definition": "Proporción de decisiones automatizadas que se acepta de antemano que salgan mal. Un 5% permite hasta 5 errores por cada 100 decisiones automatizadas"
+    },
+    "pt-BR": {
+      "name": "orçamento de erro",
+      "definition": "Proporção de decisões automatizadas que se aceita de antemão errar. Um orçamento de 5% permite até 5 erros a cada 100 decisões automatizadas"
+    },
+    "zh-CN": {
+      "name": "误差预算",
+      "definition": "事先定好的、自动处理的决定里可以容忍出错的比例。5% 表示每 100 件自动处理里最多允许 5 件答错"
+    }
+  },
+  "data-leakage": {
+    "ko": {
+      "name": "데이터 누출",
+      "definition": "정답을 맞히는 데 필요한 정보가 평가 입력에 섞여 들어가 점수가 실력보다 높게 나오는 것. 여기서는 참고 자료가 시험 단어를 그대로 나열한다"
+    },
+    "en": {
+      "name": "leakage",
+      "definition": "When information that reveals the answer slips into the evaluation input, inflating the score beyond real ability. Here the reference material lists the test words by name"
+    },
+    "ja": {
+      "name": "リーク",
+      "definition": "正解に必要な情報が評価入力に混ざり込み、点数が実力より高く出ること。ここでは参考資料が試験の単語をそのまま列挙している"
+    },
+    "es": {
+      "name": "filtración",
+      "definition": "Cuando información que revela la respuesta se cuela en la entrada de evaluación y la puntuación sale más alta que la capacidad real. Aquí el material de referencia enumera las palabras del examen"
+    },
+    "pt-BR": {
+      "name": "vazamento",
+      "definition": "Quando informação que revela a resposta entra na entrada de avaliação e a pontuação sai acima da capacidade real. Aqui o material de referência lista as palavras do teste pelo nome"
+    },
+    "zh-CN": {
+      "name": "泄漏",
+      "definition": "揭示答案的信息混进评估输入，使分数高于真实能力。这里的参考资料直接列出了考题里的词"
+    }
+  },
+  "out-of-distribution": {
+    "ko": {
+      "name": "분포 밖",
+      "definition": "모델이 학습이나 조율에서 본 데이터와 모양이 다른 입력. 분포 안에서 잘 맞던 분류기가 여기서 무너지는 일이 잦다"
+    },
+    "en": {
+      "name": "out-of-distribution",
+      "definition": "Inputs whose shape differs from the data the model saw during training or tuning. Classifiers that do well in-distribution often collapse here"
+    },
+    "ja": {
+      "name": "分布外",
+      "definition": "モデルが学習や調整で見たデータと形の異なる入力。分布内でよく当たっていた分類器がここで崩れることが多い"
+    },
+    "es": {
+      "name": "fuera de la distribución",
+      "definition": "Entradas cuya forma difiere de los datos que el modelo vio al entrenarse o ajustarse. Los clasificadores que van bien dentro de la distribución suelen derrumbarse aquí"
+    },
+    "pt-BR": {
+      "name": "fora da distribuição",
+      "definition": "Entradas cuja forma difere dos dados que o modelo viu no treino ou no ajuste. Classificadores que vão bem dentro da distribuição costumam desabar aqui"
+    },
+    "zh-CN": {
+      "name": "分布外",
+      "definition": "形态与模型在训练或调优时见过的数据不同的输入。分布内表现良好的分类器常在这里失效"
+    }
+  },
+  "accessibility-tree": {
+    "ko": {
+      "name": "접근성 트리",
+      "definition": "브라우저가 DOM 에서 스크린 리더용으로 추려 만든 요소 트리. 역할, 이름, 상태만 남아 있어 페이지 구조를 짧게 표현한다"
+    },
+    "en": {
+      "name": "accessibility tree",
+      "definition": "The tree of elements the browser derives from the DOM for screen readers. Only roles, names, and states remain, so it describes the page structure compactly"
+    },
+    "ja": {
+      "name": "アクセシビリティツリー",
+      "definition": "ブラウザが DOM からスクリーンリーダー向けに抽出した要素ツリー。役割、名前、状態だけが残り、ページ構造を短く表す"
+    },
+    "es": {
+      "name": "árbol de accesibilidad",
+      "definition": "Árbol de elementos que el navegador deriva del DOM para los lectores de pantalla. Solo quedan roles, nombres y estados, así que describe la estructura de la página de forma compacta"
+    },
+    "pt-BR": {
+      "name": "árvore de acessibilidade",
+      "definition": "Árvore de elementos que o navegador deriva do DOM para leitores de tela. Só ficam papéis, nomes e estados, então descreve a estrutura da página de forma compacta"
+    },
+    "zh-CN": {
+      "name": "无障碍树",
+      "definition": "浏览器从 DOM 中为屏幕阅读器提炼出的元素树。只保留角色、名称和状态，因此能简短地表达页面结构"
+    }
+  },
+  "held-out-set": {
+    "ko": {
+      "name": "held-out",
+      "definition": "학습이나 규칙 작성에 쓰지 않고 따로 떼어 둔 평가용 데이터. 여기서는 정규식 게이트가 한 번도 본 적 없는 단어다"
+    },
+    "en": {
+      "name": "held-out",
+      "definition": "Evaluation data kept apart from training or rule writing. Here, the words the regex gate has never seen"
+    },
+    "ja": {
+      "name": "held-out",
+      "definition": "学習や規則作成に使わず、別に取り分けておいた評価用データ。ここでは正規表現ゲートが一度も見ていない単語"
+    },
+    "es": {
+      "name": "held-out",
+      "definition": "Datos de evaluación apartados del entrenamiento o de la redacción de reglas. Aquí, las palabras que la compuerta regex nunca ha visto"
+    },
+    "pt-BR": {
+      "name": "held-out",
+      "definition": "Dados de avaliação separados do treino ou da escrita das regras. Aqui, as palavras que o gate de regex nunca viu"
+    },
+    "zh-CN": {
+      "name": "held-out",
+      "definition": "不用于训练或编写规则、单独留出来做评估的数据。这里指正则闸门从未见过的词"
+    }
   }
 }
