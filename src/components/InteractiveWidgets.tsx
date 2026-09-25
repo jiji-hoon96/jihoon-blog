@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
+import type { Locale } from "@/i18n/locales";
+
 /**
  * 본문(dangerouslySetInnerHTML)에 들어간 위젯 placeholder를 찾아
  * 해당 React 위젯 컴포넌트를 마운트한다.
@@ -22,14 +24,19 @@ import { createRoot, type Root } from "react-dom/client";
  * 플래그를 미리 세우면 두 번째 effect 가 그것을 보고 건너뛴 뒤 첫 번째 import 가
  * 취소되어 아무것도 마운트되지 않는다. 그래서 실제로 root 를 가진 노드만 건너뛴다.
  */
-const WIDGETS: Record<string, () => Promise<{ default: React.ComponentType }>> = {
+// 위젯 문구는 `dictionaries.ts` 가 아니라 위젯 옆 모듈에 둔다. 그 파일은 Header 와
+// Footer 가 import 해서 모든 페이지 번들에 실리는데, 위젯은 글 한 편씩만 쓰기 때문이다.
+// 그래서 문구를 쓰는 데 필요한 것은 `locale` 하나이고, 그것만 내려준다.
+type WidgetProps = { locale: Locale };
+
+const WIDGETS: Record<string, () => Promise<{ default: React.ComponentType<WidgetProps> }>> = {
   "token-pipeline": () => import("./TokenEmbeddingPipeline"),
   "error-propagation": () => import("./ErrorPropagationPlayground"),
 };
 
 const MOUNTED = new WeakMap<HTMLElement, Root>();
 
-export default function InteractiveWidgets() {
+export default function InteractiveWidgets({ locale }: WidgetProps) {
   useEffect(() => {
     let cancelled = false;
     const nodes = document.querySelectorAll<HTMLElement>(".interactive-widget[data-widget]");
@@ -44,14 +51,14 @@ export default function InteractiveWidgets() {
         if (cancelled || MOUNTED.has(node) || !node.isConnected) return;
         const root = createRoot(node);
         MOUNTED.set(node, root);
-        root.render(<Comp />);
+        root.render(<Comp locale={locale} />);
       });
     });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [locale]);
 
   return null;
 }

@@ -2,6 +2,10 @@
 
 import { Component, Suspense, lazy, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 
+import type { Locale } from "@/i18n/locales";
+
+import { getWidgetCopy, type WidgetCopy } from "./error-propagation-copy";
+
 /**
  * 같은 throw 를 자리만 바꿔 가며 던져 보고, 그것이 ErrorBoundary 에 닿는지
  * 아니면 경계를 지나쳐 전역 핸들러로 가는지를 눈으로 확인하는 위젯.
@@ -17,33 +21,31 @@ type SiteId = "render" | "effect" | "event" | "timeout" | "promise" | "transitio
 
 type Site = {
   id: SiteId;
-  label: string;
   code: string;
   expected: "boundary" | "window" | "rejection";
 };
 
 const SITES: Site[] = [
-  { id: "render", label: "렌더 중", code: "function Child() {\n  throw new Error('boom')\n}", expected: "boundary" },
-  { id: "effect", label: "useEffect 안", code: "useEffect(() => {\n  throw new Error('boom')\n}, [])", expected: "boundary" },
-  { id: "transition", label: "startTransition 안", code: "startTransition(() => {\n  throw new Error('boom')\n})", expected: "boundary" },
-  { id: "lazy", label: "lazy 의 import 거부", code: "lazy(() => Promise.reject(\n  new Error('boom')\n))", expected: "boundary" },
-  { id: "event", label: "onClick 핸들러 안", code: "<button onClick={() => {\n  throw new Error('boom')\n}}>", expected: "window" },
-  { id: "timeout", label: "setTimeout 콜백 안", code: "setTimeout(() => {\n  throw new Error('boom')\n}, 0)", expected: "window" },
-  { id: "promise", label: "처리하지 않은 거부", code: "Promise.reject(\n  new Error('boom')\n)", expected: "rejection" },
+  { id: "render", code: "function Child() {\n  throw new Error('boom')\n}", expected: "boundary" },
+  { id: "effect", code: "useEffect(() => {\n  throw new Error('boom')\n}, [])", expected: "boundary" },
+  { id: "transition", code: "startTransition(() => {\n  throw new Error('boom')\n})", expected: "boundary" },
+  { id: "lazy", code: "lazy(() => Promise.reject(\n  new Error('boom')\n))", expected: "boundary" },
+  { id: "event", code: "<button onClick={() => {\n  throw new Error('boom')\n}}>", expected: "window" },
+  { id: "timeout", code: "setTimeout(() => {\n  throw new Error('boom')\n}, 0)", expected: "window" },
+  { id: "promise", code: "Promise.reject(\n  new Error('boom')\n)", expected: "rejection" },
 ];
 
-const LANDING: Record<Site["expected"], string> = {
-  boundary: "ErrorBoundary",
-  window: "window 의 error",
-  rejection: "window 의 unhandledrejection",
-};
+function landingLabel(expected: Site["expected"], copy: WidgetCopy): string {
+  if (expected === "boundary") return "ErrorBoundary";
+  return expected === "window" ? copy.landing.window : copy.landing.rejection;
+}
 
 // lazy() 는 모듈 최상위에서 한 번만 부른다. 렌더마다 새로 만들면 매번 새 payload 가
 // 생겨서, 거부를 기억한다는 lazy 의 실제 동작이 위젯에서 드러나지 않는다.
 // 그래서 두 번째부터는 요청 없이 곧바로 같은 에러가 다시 던져진다.
 const Late = lazy(() => Promise.reject(new Error("boom")) as Promise<{ default: React.ComponentType }>);
 
-class Boundary extends Component<{ children: ReactNode; onCatch: () => void }, { failed: boolean }> {
+class Boundary extends Component<{ children: ReactNode; onCatch: () => void; label: string }, { failed: boolean }> {
   state = { failed: false };
 
   static getDerivedStateFromError() {
@@ -56,13 +58,13 @@ class Boundary extends Component<{ children: ReactNode; onCatch: () => void }, {
 
   render() {
     if (this.state.failed) {
-      return <p className="epp-fallback">경계가 받았다. fallback 을 그린다</p>;
+      return <p className="epp-fallback">{this.props.label}</p>;
     }
     return this.props.children;
   }
 }
 
-function Thrower({ site, onEvent }: { site: SiteId | null; onEvent: (id: SiteId) => void }) {
+function Thrower({ site, onEvent, copy }: { site: SiteId | null; onEvent: (id: SiteId) => void; copy: WidgetCopy }) {
   const [, startTransition] = useTransition();
   const [bump, setBump] = useState(0);
 
@@ -80,7 +82,7 @@ function Thrower({ site, onEvent }: { site: SiteId | null; onEvent: (id: SiteId)
 
   if (site === "lazy") {
     return (
-      <Suspense fallback={<p className="epp-idle">코드를 받는 중</p>}>
+      <Suspense fallback={<p className="epp-idle">{copy.loadingCode}</p>}>
         <Late />
       </Suspense>
     );
@@ -89,15 +91,16 @@ function Thrower({ site, onEvent }: { site: SiteId | null; onEvent: (id: SiteId)
   if (site === "event") {
     return (
       <button type="button" className="epp-inner-button" onClick={() => { onEvent("event"); throw new Error("boom"); }}>
-        이 버튼을 눌러 핸들러 안에서 던진다
+        {copy.eventButton}
       </button>
     );
   }
 
-  return <p className="epp-idle">경계 안의 화면이다. 아직 멀쩡하다{bump ? ` (${bump})` : ""}</p>;
+  return <p className="epp-idle">{copy.intact}{bump ? ` (${bump})` : ""}</p>;
 }
 
-export default function ErrorPropagationPlayground() {
+export default function ErrorPropagationPlayground({ locale }: { locale: Locale }) {
+  const copy = getWidgetCopy(locale);
   const [site, setSite] = useState<SiteId | null>(null);
   const [runId, setRunId] = useState(0);
   const [landed, setLanded] = useState<Site["expected"] | null>(null);
@@ -149,19 +152,19 @@ export default function ErrorPropagationPlayground() {
             className={`epp-site${s.id === site ? " is-active" : ""}`}
             onClick={() => run(s.id)}
           >
-            {s.label}
+            {copy.sites[s.id]}
           </button>
         ))}
         <button type="button" className="epp-site epp-reset" onClick={reset}>
-          처음으로
+          {copy.reset}
         </button>
       </div>
 
       <div className="epp-stage">
         <p className="epp-stage-label">ErrorBoundary</p>
         <div className="epp-box">
-          <Boundary key={runId} onCatch={() => setLanded("boundary")}>
-            <Thrower site={site} onEvent={() => { armed.current = true; }} />
+          <Boundary key={runId} label={copy.caught} onCatch={() => setLanded("boundary")}>
+            <Thrower site={site} copy={copy} onEvent={() => { armed.current = true; }} />
           </Boundary>
         </div>
       </div>
@@ -169,18 +172,20 @@ export default function ErrorPropagationPlayground() {
       <div className="epp-readout">
         {current === null && (
           <p className="epp-idle">
-            위에서 던질 자리를 고른다. 어디서 던지든 <code>new Error(&apos;boom&apos;)</code> 하나다.
+            {copy.pickBefore}
+            <code>new Error(&apos;boom&apos;)</code>
+            {copy.pickAfter}
           </p>
         )}
         {current !== null && (
           <>
             <pre className="epp-code">{current.code}</pre>
-            {waitingForClick && <p className="epp-idle">경계 안의 버튼을 눌러야 던져진다.</p>}
+            {waitingForClick && <p className="epp-idle">{copy.needClick}</p>}
             {landed !== null && (
               <p className={landed === "boundary" ? "epp-hit" : "epp-miss"}>
-                {landed === "boundary" ? "경계가 받았다" : "경계를 지나쳤다"}
-                {" · 도착지 "}
-                <code>{LANDING[landed]}</code>
+                {landed === "boundary" ? copy.hit : copy.miss}
+                {copy.landedPrefix}
+                <code>{landingLabel(landed, copy)}</code>
               </p>
             )}
           </>
