@@ -471,6 +471,17 @@
   @apply bg-light-gray10 dark:bg-dark-gray10;
 }
 
+/* 좁은 화면에서는 표를 가로로 넘긴다. 일본어와 중국어 번역본은 셀 안의
+   `resetErrorBoundary()` 같은 토막이 줄바꿈되지 않아 표의 min-content 가
+   본문 폭보다 커지고, 그러면 표가 아니라 문서 전체가 가로로 밀린다. */
+@media (max-width: 640px) {
+  .prose table {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+}
+
 /* Inline code in headings */
 .prose h1 code,
 .prose h2 code,

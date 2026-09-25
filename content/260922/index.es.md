@@ -8,7 +8,7 @@ description: 'Jev devuelve probabilidades en vez de texto. Su confidence no se a
 keywords: 'Jev, TypeSafe AI, modelo System One, RLCD, calibración de modelos, ECE, exceso de confianza en RLHF, umbral de confidence, modelos de decisión, Kev open source, casos de uso de Jev'
 locale: es
 translationOf: '260922'
-sourceHash: fbd7343a24e4c35620bd3f0a31fa9aa220c794bb5c8d64fadd830c6f2a2a43c4
+sourceHash: 6cee92c77bd8cd7cc8b115142f94b9880919a1c4d8ae265bd8a0e4738421703a
 ---
 
 En este artículo quiero hablar de un modelo que no genera texto. La semana pasada TypeSafe AI presentó Jev.

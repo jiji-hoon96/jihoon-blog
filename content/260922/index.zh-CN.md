@@ -8,7 +8,7 @@ description: '有个模型不返回文本，只返回概率。confidence 不是�
 keywords: 'Jev, TypeSafe AI, System One 模型, RLCD, 模型校准, ECE, RLHF 过度自信, confidence 阈值, 决策模型, Kev 开源, Jev 应用案例'
 locale: zh-CN
 translationOf: '260922'
-sourceHash: fbd7343a24e4c35620bd3f0a31fa9aa220c794bb5c8d64fadd830c6f2a2a43c4
+sourceHash: 6cee92c77bd8cd7cc8b115142f94b9880919a1c4d8ae265bd8a0e4738421703a
 ---
 
 这篇文章想聊聊一个不生成文本的模型。上周 TypeSafe AI 公开了 Jev。

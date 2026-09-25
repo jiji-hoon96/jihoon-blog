@@ -150,6 +150,26 @@ for (const dir of postDirs) {
 record("content", "em/en dash (ko·ja·zh 산문)", dashHits.length ? "warn" : "pass", dashHits.slice(0, 5).join(" "));
 record("content", "이탤릭 강조", italicHits.length ? "warn" : "pass", italicHits.slice(0, 5).join(" "));
 
+// 홑낫표(「」)는 한국어 조판에서 작품 제목에 쓰는 부호다. UI 문구나 버튼 이름에 붙으면
+// 제목처럼 읽히고, 한 글에 수십 번 나오면 본문이 인용문 덩어리로 보인다. 큰따옴표를 쓴다.
+// 겹낫표(『』)는 책 제목의 정상 표기이므로 보지 않는다.
+// 일본어와 중국어에서 「」는 그 언어의 표준 인용 부호이므로 index.md 만 본다.
+const cornerHits = [];
+for (const dir of postDirs) {
+	const path = join("content", dir, "index.md");
+	if (!existsSync(path)) continue;
+	let inFence = false;
+	let inOriginal = false;
+	readFileSync(path, "utf8").split("\n").forEach((line, i) => {
+		if (/^\s*```/.test(line)) { inFence = !inFence; return; }
+		if (/^:::original/.test(line)) inOriginal = true;
+		else if (/^:::\s*$/.test(line)) inOriginal = false;
+		if (inFence || inOriginal || line.startsWith(">")) return;
+		if (/[\u300c\u300d]/.test(line.replace(/`[^`]*`/g, ""))) cornerHits.push(`${path}:${i + 1}`);
+	});
+}
+record("content", "홑낫표 (ko 산문)", cornerHits.length ? "warn" : "pass", cornerHits.slice(0, 5).join(" "));
+
 // 이미지 참조가 디스크의 파일과 맞는지. contentlayer 캐시는 이것을 거짓 통과시킨다.
 // 오래된 글은 이미지를 public/content/ 에 직접 두므로 양쪽을 다 본다.
 const danglingImages = [];

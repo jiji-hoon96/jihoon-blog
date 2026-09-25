@@ -50,3 +50,113 @@
     animation: none;
   }
 }
+
+/* 에러 전이 위젯 (251117). 손으로 쓴 CSS 는 globals.css 꼬리가 아니라 이 파일에 둔다. */
+.epp {
+  display: grid;
+  gap: 0.75rem;
+}
+.epp-sites {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+.epp-site {
+  border: 1px solid var(--epp-line, #d4d4d8);
+  background: var(--epp-chip, #fff);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.epp-site.is-active {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #fff;
+}
+.epp-reset {
+  margin-left: auto;
+  opacity: 0.7;
+}
+.epp-stage-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+.epp-box {
+  border: 2px dashed var(--epp-line, #d4d4d8);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  min-height: 4.5rem;
+  display: grid;
+  align-content: center;
+}
+.epp-box p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+.epp-fallback {
+  color: #b91c1c;
+  font-weight: 700;
+}
+.epp-idle {
+  opacity: 0.65;
+}
+.epp-inner-button {
+  border: 1px solid #2563eb;
+  color: #2563eb;
+  background: transparent;
+  border-radius: 0.375rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  justify-self: start;
+}
+/* .prose pre 가 shiki 색을 span 에만 주므로, 하이라이트가 없는 이 블록은
+   색을 직접 정해 줘야 본문과 같은 대비가 나온다. */
+.prose .epp-code,
+.epp-code {
+  margin: 0 0 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--epp-line, #d4d4d8);
+  border-radius: 0.375rem;
+  background: var(--epp-code-bg, #f4f4f5);
+  color: var(--epp-fg, #27272a);
+  font-size: 0.78125rem;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+.epp-readout p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+.epp-hit {
+  color: #15803d;
+  font-weight: 700;
+}
+.epp-miss {
+  color: #b45309;
+  font-weight: 700;
+}
+.dark .epp {
+  --epp-line: #3f3f46;
+  --epp-chip: #18181b;
+  --epp-code-bg: #18181b;
+  --epp-fg: #e4e4e7;
+}
+.dark .epp-fallback {
+  color: #fca5a5;
+}
+.dark .epp-hit {
+  color: #86efac;
+}
+.dark .epp-miss {
+  color: #fcd34d;
+}
+.epp-readout code {
+  font-size: 0.8125rem;
+  padding: 0.05rem 0.3rem;
+  border-radius: 0.25rem;
+  background: var(--epp-code-bg, #f4f4f5);
+}

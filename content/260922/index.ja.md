@@ -8,7 +8,7 @@ description: 'テキストの代わりに確率を返すモデルJevが公開さ
 keywords: 'Jev, TypeSafe AI, System Oneモデル, RLCD, モデルキャリブレーション, ECE, RLHF 過信, confidence しきい値, 意思決定モデル, Kev オープンソース, Jev 活用事例'
 locale: ja
 translationOf: '260922'
-sourceHash: fbd7343a24e4c35620bd3f0a31fa9aa220c794bb5c8d64fadd830c6f2a2a43c4
+sourceHash: 6cee92c77bd8cd7cc8b115142f94b9880919a1c4d8ae265bd8a0e4738421703a
 ---
 
 今回の記事では、テキストを生成しないモデルについて話してみたい。先週 TypeSafe AI が Jev を公開した。
