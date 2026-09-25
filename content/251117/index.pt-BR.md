@@ -1,689 +1,338 @@
 ---
 emoji: 🛡️
-title: 'Tratamento de erros'
-seoTitle: "Erros no frontend: Error Boundary e throwOnError"
+title: 'Propagação de erros'
+seoTitle: "Propagação de erros: o que o ErrorBoundary recebe de fato"
 date: '2025-11-17'
+updatedAt: '2026-09-24'
 categories: frontend React TanStack-Query tratamento-de-erros
-description: "Como React Error Boundary, try/catch e o throwOnError do TanStack Query dividem responsabilidades, e como funciona o reset internamente."
-keywords: "tratamento de erros no frontend, React Error Boundary, react-error-boundary, TanStack Query throwOnError, tratamento de erros no React Query, reset de error boundary, erros com try catch, tratamento de erros assíncronos, tratamento de erros no React"
+description: 'Lance o mesmo erro de sete lugares e só quatro chegam ao ErrorBoundary. Este post segue para onde cada tipo realmente propaga.'
+keywords: "tratamento de erros frontend, propagação de erros, React ErrorBoundary, o que ErrorBoundary não captura, erro no startTransition, unhandledrejection, window onerror, React 19 onCaughtError, TanStack Query throwOnError, erro no useSuspenseQuery, react-router loader ErrorBoundary, React.lazy falha ao carregar chunk, fetch não rejeita com 404"
 locale: pt-BR
 translationOf: '251117'
-sourceHash: b655af392c19409893fbfd1fcdd57d230db81675921377f8dc5cf9251f33410a
+sourceHash: 3f6e8fa00d3cc487b5caedfdc24f91ad33196ab0eb9c55899c052ad83bdee38c
 ---
 
-Neste post, quero falar sobre **como capturar erros no frontend**.
+Neste post quero falar sobre **até onde um erro sobe no frontend**.
 
-Ao escrever código de tratamento de erros no trabalho, muitas vezes fiquei com uma incômoda sensação de que algo não estava certo. Alguns erros eram capturados com `try/catch`, outros por `ErrorBoundary`, e outros ainda pelo `onError` do TanStack Query. Além disso, os limites de atuação de cada recurso se sobrepunham ou deixavam pequenas lacunas. Em certos dias, um erro escapava; em outros, propagava-se até onde eu não queria.
+Desenhar um `ErrorBoundary` é fácil. Você põe um na rota, envolve cada tela em um `ErrorBoundary` e, no papel, não sobra nenhum buraco. O difícil é saber o que aquele `ErrorBoundary` **recebe de verdade**.
 
-O problema é que raramente paramos para organizar, de uma só vez, como todas essas ferramentas funcionam. Sabemos que “Error Boundary só captura erros durante a renderização”, mas, se alguém pedir para explicar exatamente o que isso significa na prática, o que acontece internamente ao chamar `reset` ou em que momento o TanStack Query relança um erro quando `throwOnError` está habilitado, a resposta já não vem com tanta facilidade.
+A palavra "propagação" do título quer dizer **até que ponto um erro lançado sobe e quem acaba recebendo**. O lugar onde ele é lançado e o lugar onde é recebido nem sempre são o mesmo, e por isso é preciso contar os dois separadamente.
 
-Com base no guia oficial do React, na biblioteca `react-error-boundary` e na documentação oficial do TanStack Query v5, este artigo organiza **até onde vai a responsabilidade** de cada ferramenta de tratamento de erros no frontend e **como combiná-las**.
+Então resolvi contar. Lancei o mesmo `new Error('boom')` sete vezes, mudando só o lugar, e observei se ele chegava ao `ErrorBoundary` ou se passava direto pelo `ErrorBoundary` e ia parar em outro lugar.
 
+O widget abaixo é esse experimento. Se você escolher à esquerda o lugar de onde lançar, o erro é lançado de verdade dentro da caixa tracejada. Essa caixa é o `ErrorBoundary`, e quando o `ErrorBoundary` recebe, o interior vira um fallback. O que não é recebido parece que não aconteceu nada, então o widget também escuta em `window` os eventos `error` e `unhandledrejection` e escreve embaixo para onde foi.
 
-## Erros que o React consegue e não consegue capturar
+:::widget-error-propagation
+:::
 
-Vamos começar pela pergunta mais básica: **quais erros o React captura?**
+Dos sete, só quatro chegam ao `ErrorBoundary`. Os outros três são lançados dentro do `ErrorBoundary` e mesmo assim atravessam esse mesmo `ErrorBoundary` e saem para o escopo global.
 
-A documentação oficial do React distingue com clareza os erros que uma Error Boundary consegue capturar daqueles que ficam fora de seu alcance.
+Neste post eu verifico por que essa divisão aparece, tipo de erro por tipo de erro: os que terminam em tempo de compilação, os que saem do render e do ciclo de vida, os que vêm dos dados do servidor, os que saem da navegação, os que as bibliotecas externas lançam e os que saem de eventos e código assíncrono. A ideia é descobrir para onde cada um propaga. **Em quantas camadas dividir o lado que recebe, e como desfazer a falha, não são tratados aqui.** Desenhar camadas sem conhecer as rotas de propagação deixa essas camadas vazias, e por isso a ordem é esta.
 
-**O que uma Error Boundary captura**
-
-- Erros ocorridos durante a **renderização** de componentes filhos
-- Erros ocorridos em **métodos do ciclo de vida**
-- Erros ocorridos no **construtor**
-
-**O que uma Error Boundary não captura**
-
-- Erros dentro de **manipuladores de eventos**
-- Erros em **código assíncrono**, como `setTimeout`, `requestAnimationFrame` e Promise
-- Erros durante a **renderização no servidor (SSR)**
-- Erros ocorridos na **própria Error Boundary**
-
-Por que essa distinção é importante? Porque a maioria dos erros com que lidamos no dia a dia pertence, na verdade, **à segunda categoria**. O servidor pode responder com 500 após um clique disparar uma mutação; uma busca de dados pode falhar dentro de `useEffect`; ou a lógica de validação pode lançar um erro durante o envio de um formulário. O React não captura esses erros automaticamente. Precisamos capturá-los e tratá-los de forma explícita.
-
-Por isso, o tratamento de erros no frontend se divide em dois caminhos: **erros de renderização ficam a cargo da Error Boundary**; **os demais, de try/catch ou das funções de retorno fornecidas pelas bibliotecas**. No ponto em que esses caminhos se cruzam, bibliotecas de gerenciamento de estado assíncrono, como o TanStack Query, funcionam como uma ponte.
+Verifiquei de duas formas. O comportamento das bibliotecas eu li abrindo as fontes instaladas em vez de confiar na memória, e tudo que dava para confirmar lançando eu rodei de verdade no widget acima.
 
 
-## O que é uma Error Boundary
+## ErrorBoundary
 
-No fim das contas, uma Error Boundary é um **componente de classe** com dois métodos de ciclo de vida. Segundo a documentação oficial do React, para que um componente seja uma Error Boundary, ele precisa implementar um dos dois métodos abaixo — normalmente, ambos.
+Primeiro convém deixar claro o que é um `ErrorBoundary`. Um `ErrorBoundary` são **dois métodos de ciclo de vida de um componente de classe**. Só que a gente chama por outro nome.
+
+Em `react-error-boundary` existem apenas duas implementações.
 
 ```js
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  // 에러 발생 시 state를 업데이트해 다음 렌더에서 fallback UI를 보여준다
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-
-  // 에러가 발생한 직후에 호출. 로깅 같은 사이드이펙트는 여기서 처리한다
-  componentDidCatch(error, info) {
-    logErrorToMyService(error, info.componentStack);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return this.props.fallback;
-    }
-    return this.props.children;
-  }
-}
+static getDerivedStateFromError(e) { ... }
+componentDidCatch(e, t) { ... }
 ```
 
-`getDerivedStateFromError` deve ser uma **função pura**. Sua única função é retornar o novo estado, sem efeitos colaterais. Já `componentDidCatch` é o lugar destinado aos efeitos colaterais. É ali que enviamos o erro ao Sentry ou registramos a pilha de componentes no console.
+A documentação oficial do React separa o momento em que cada método roda. `getDerivedStateFromError` roda na **fase de render** e produz o estado com que o fallback é desenhado, enquanto `componentDidCatch` roda na **fase de commit** e cuida de efeitos colaterais como o log. Em qualquer um dos casos, eles só recebem **o que o React capturou dentro da árvore e entregou**.
 
-Há um ponto importante: esses dois métodos **só existem em componentes de classe**. Ainda não há uma forma oficial de criar uma Error Boundary como componente funcional. A [documentação oficial do React](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary) deixa isso explícito.
+Então a definição do que um `ErrorBoundary` recebe é uma só. **Foi lançado de um lugar que o React consegue capturar?**
+
+A documentação do React também deixa escrito o lado que não é recebido. São estes quatro.
 
 ::::quote
 :::translation
-Atualmente, não há como escrever uma Error Boundary como componente funcional.
+Manipuladores de eventos, renderização no servidor, erros lançados pelo próprio `ErrorBoundary` em vez de pelos seus filhos, código assíncrono (por exemplo, callbacks de `setTimeout` ou de `requestAnimationFrame`); há uma exceção: o Hook `useTransition` e a função `startTransition` que ele devolve. Erros lançados dentro dessa função de transição são capturados pelos error boundaries.
 :::
 
 :::original
-There is currently no way to write an Error Boundary as a function component.
+Event handlers, Server side rendering, Errors thrown in the error boundary itself (rather than its children), Asynchronous code (e.g. `setTimeout` or `requestAnimationFrame` callbacks); an exception is the usage of the `startTransition` function returned by the `useTransition` Hook. Errors thrown inside the transition function are caught by error boundaries
 :::
 ::::
 
-Como é trabalhoso escrever um componente de classe do zero toda vez, normalmente recorremos à biblioteca `react-error-boundary`. Ela foi criada por Brian Vaughn, ex-membro da equipe principal do React, e é usada praticamente como um padrão.
+O resultado do widget bate exatamente com essa frase. Sete lugares se dividem em dois destinos.
+
+![À esquerda há sete lugares de lançamento na vertical e à direita dois destinos. Durante o render, dentro do useEffect, dentro do startTransition e a rejeição do import do lazy vão por setas azuis até ErrorBoundary, enquanto dentro de um manipulador onClick, dentro de um callback de setTimeout e a rejeição de uma Promise vão por setas cinzas até window](1.png?w=720)
+
+`startTransition` é a exceção porque o trabalho que está dentro dele passa pelo escalonador do React. O React envolve essa execução com as próprias mãos, então consegue capturá-la e devolvê-la para a árvore. Pelo mesmo motivo `setTimeout` não dá para capturar: quando aquele callback roda, o React já não está ali.
+
+Antes é preciso saber uma coisa. **Com um componente de função não dá para construir um `ErrorBoundary`.**
+
+Quando o React encontra um erro lançado, ele sobe daquele ponto na direção do pai procurando o limite que vai recebê-lo. `throwException`, que cuida desse percurso, olha a `tag` presa em cada fiber, e os únicos valores em que ele para são componente de classe e raiz. A `tag` de um componente de função não é nenhum dos dois, então a busca passa direto. **Ele não vira um limite não porque falte API, mas porque a busca nem sequer olha para ele.**
+
+![Quatro caixas na horizontal. Da esquerda, os componentes de função Child e FnBoundary têm tag 0, o componente de classe ErrorBoundary tem tag 1 e a raiz HostRoot tem tag 3. Uma seta que sai de Child passa por FnBoundary e para em ErrorBoundary, e a linha que continua até HostRoot é tracejada](2.png?w=720)
+
+Essa `tag` é decidida por herdar ou não de `React.Component`. Por isso não adianta pendurar `getDerivedStateFromError` em uma função como `static`. Pendurei e rodei: aquela função não foi chamada nenhuma vez, o erro não achou limite, subiu até a raiz e o React tirou a árvore da tela.
+
+Então instalar `react-error-boundary` não é acrescentar uma funcionalidade que não existe. O `ErrorBoundary` da 6.1.6 também é uma classe que herda de `Component` e carrega os mesmos dois métodos. O que a biblioteca faz é escrever essa classe uma vez só e escondê-la.
 
 
-## As três formas de definir a interface de contingência em react-error-boundary
+## O que termina em tempo de compilação
 
-Em `react-error-boundary`, o componente `ErrorBoundary` oferece **três formas** de definir a propriedade da interface de contingência. Vejamos rapidamente como cada uma é usada.
+Já que estamos contando tipos de erro, vamos começar pelo primeiro deles: os erros de tipo.
 
+Esse é o único que não chega ao usuário. Se você lê uma propriedade que não existe ou o tipo de um argumento não bate, o build trava, e código travado não é publicado. Por isso não há rota de propagação a seguir. **Os erros de tipo ficam de fora deste post não porque não importem, mas porque não existem em tempo de execução.**
 
-### fallback
+O problema vem depois. **Até onde** a checagem de tipos garante?
 
-É a forma mais simples: basta passar um JSX estático.
-
-```tsx
-<ErrorBoundary fallback={<div>문제가 발생했습니다.</div>}>
-  <Page />
-</ErrorBoundary>
-```
-
-É útil quando não precisamos acessar o objeto de erro nem a função de reinicialização. Como normalmente precisamos exibir uma mensagem ou oferecer uma ação de nova tentativa, ainda não tive ocasião de usar essa opção em produção.
-
-
-### FallbackComponent
-
-Separamos a interface de contingência em outro componente e passamos a **referência** desse componente.
-
-```tsx
-function ErrorFallback({ error, resetErrorBoundary }) {
-  return (
-    <div role="alert">
-      <p>오류가 발생했습니다.</p>
-      <pre>{error.message}</pre>
-      <button onClick={resetErrorBoundary}>다시 시도</button>
-    </div>
-  );
-}
-
-<ErrorBoundary FallbackComponent={ErrorFallback}>
-  <Page />
-</ErrorBoundary>
-```
-
-O objeto de erro e a função `resetErrorBoundary` são injetados automaticamente por meio de propriedades. Essa opção é adequada quando existe a possibilidade de reutilizar a interface de contingência em outros lugares.
-
-
-### fallbackRender
-
-É a opção usada quando queremos escrever a interface de contingência diretamente no local de uso.
-
-```tsx
-<ErrorBoundary
-  fallbackRender={({ error, resetErrorBoundary }) => (
-    <div role="alert">
-      <p>오류가 발생했습니다: {error.message}</p>
-      <button onClick={resetErrorBoundary}>다시 시도</button>
-    </div>
-  )}
->
-  <Page />
-</ErrorBoundary>
-```
-
-Na essência, faz o mesmo que `FallbackComponent`, mas permite tratar tudo **diretamente no local de uso, sem criar um componente separado**. É útil quando precisamos acessar o escopo léxico externo, como o estado ou um manipulador do componente pai.
-
-Não existe uma única resposta correta entre as três opções. O padrão que mais uso em produção é **criar um componente ErrorFallback comum e injetá-lo por meio de `FallbackComponent`**, porque o sistema de design e o tom da interface precisam ser consistentes. Só escrevo a interface de contingência diretamente no local de uso com `fallbackRender` quando uma página exige um tratamento diferente.
-
-
-## O que a reinicialização realmente faz?
-
-Ao usar `react-error-boundary`, inevitavelmente encontramos a função `resetErrorBoundary`: aquela chamada quando o usuário clica no botão “Tentar novamente” da interface de contingência. Vejamos o que ela realmente faz.
-
-Em resumo, `resetErrorBoundary` apenas sinaliza ao componente ErrorBoundary que ele deve **reinicializar o próprio estado e renderizar novamente os componentes filhos**. Ela não altera automaticamente nenhum estado externo, como o cache do TanStack Query.
-
-Internamente, a sequência é a seguinte.
-
-1. `resetErrorBoundary()` é chamada.
-2. O estado `hasError` interno da ErrorBoundary volta a `false`.
-3. Opcionalmente, a função de retorno `onReset` é executada. É aqui que ocorrem os efeitos colaterais definidos pela aplicação.
-4. Os componentes filhos são renderizados novamente. Se a causa do erro — estado, cache ou outra condição — continuar presente, **o mesmo erro será lançado outra vez**.
-
-O quarto item é o ponto central. **Reinicializar significa apenas “vamos esquecer o erro e tentar renderizar de novo”; não significa “vamos corrigir a causa do erro”**. Por isso, apenas reinicializar pode repetir o mesmo erro indefinidamente.
-
-Há mais duas ferramentas para resolver esse problema.
-
-
-### onReset
-
-Funciona como um hook chamado imediatamente antes da reinicialização. Nele, limpamos o estado externo que causou o erro.
-
-```tsx
-<ErrorBoundary
-  FallbackComponent={ErrorFallback}
-  onReset={() => {
-    queryClient.invalidateQueries({ queryKey: ['user'] });
-  }}
->
-  <Page />
-</ErrorBoundary>
-```
-
-
-### resetKeys
-
-A ErrorBoundary é reinicializada automaticamente quando os valores da lista mudam. Podemos passar parâmetros da URL, termos de busca, a aba selecionada ou qualquer outra chave cuja mudança indique que vale a pena tentar novamente.
-
-```tsx
-<ErrorBoundary
-  FallbackComponent={ErrorFallback}
-  resetKeys={[userId]}
->
-  <UserProfile userId={userId} />
-</ErrorBoundary>
-```
-
-Quando `userId` muda, a reinicialização ocorre automaticamente e os componentes filhos são renderizados de novo. Ao navegar para outro perfil, o erro anterior desaparece de forma natural.
-
-
-## Como capturar erros de manipuladores de eventos e de código assíncrono?
-
-Como vimos, uma Error Boundary não captura erros em manipuladores de eventos nem em código assíncrono. Mas é justamente aí que ocorre a maioria dos erros com que lidamos. O que fazer, então?
-
-Para esse caso, `react-error-boundary` oferece o **hook `useErrorBoundary`**. Ele retorna uma função chamada `showBoundary`; ao chamá-la, podemos encaminhar o erro à ErrorBoundary mais próxima.
-
-```tsx
-import { useErrorBoundary } from 'react-error-boundary';
-
-function MyComponent() {
-  const { showBoundary } = useErrorBoundary();
-
-  const handleClick = async () => {
-    try {
-      await someAsyncOperation();
-    } catch (error) {
-      showBoundary(error);
-    }
-  };
-
-  return <button onClick={handleClick}>실행</button>;
+```ts
+async function getComments(postId: string): Promise<Comment[]> {
+  const res = await fetch(`/api/posts/${postId}/comments`)
+  const data = await res.json()
+  return data.comments
 }
 ```
 
-O ponto central é que **o desenvolvedor precisa elevar o erro explicitamente**. O React não faz isso por conta própria. Para levar um erro assíncrono até o domínio de uma ErrorBoundary, é preciso capturá-lo com `try/catch` e passá-lo a `showBoundary`.
+O tipo de retorno diz `Promise<Comment[]>`, então todo código que chama essa função acredita que recebe um array. Mas `Response` declara seu `json()` assim no `lib.dom.d.ts` do TypeScript 5.9.3.
 
-Entender esse padrão esclarece por que uma ErrorBoundary captura alguns erros e não outros. A resposta é simples: **“o erro foi elevado até a fase de renderização ou não?”**
+```ts
+json(): Promise<any>;
+```
+
+`any`. É aqui que a checagem de tipos se interrompe. O compilador nunca viu o valor que o servidor devolveu, e o argumento de tipo ou a anotação de retorno que você põe depois são **uma declaração, não uma checagem**. Ninguém insere por você o código que confere essa declaração em tempo de execução.
+
+Então quando o servidor devolve `200` com `{ commits: null }`, a linha que lê `commits.length` lança um `TypeError` durante o render. O HTTP foi sucesso e os tipos passaram, e ainda assim a tela quebra.
+
+**Onde os tipos terminam é onde uma checagem em tempo de execução deve ficar.** Onde você coloca essa checagem decide por qual rota a mesma falha vai. Se estourar ao ler durante o render, vira um erro de render e vai para o `ErrorBoundary`; se você checar antes, no lugar onde os dados chegam, e lançar ali, vira a falha daquela requisição. A seção **Render e ciclo de vida** mais abaixo trata disso.
 
 
-## Como o TanStack Query trata erros?
+## Render e ciclo de vida
 
-Depois de organizar tudo até aqui, surge naturalmente outra pergunta. O `useQuery` que usamos todos os dias lida com requisições assíncronas; como são tratados os erros que ocorrem dentro dele?
+O que é lançado dentro da árvore do React propaga de forma simples. **O `ErrorBoundary` mais próximo recebe.**
 
-Por padrão, o TanStack Query **expõe o erro no campo `error`**.
+As exceções durante o render entram aqui. O `commits.length` de antes é uma, e chamar `map` em um valor que você achava ser um array é outra. Esse grupo não tem o que fazer além de lançar, então sempre chega a um `ErrorBoundary`.
+
+O que é lançado dentro de `useEffect` também é capturado. O React roda os effects por conta própria depois do commit, então consegue envolver essa execução. Mas um **callback assíncrono chamado dentro** de um effect é diferente.
 
 ```tsx
-const { data, error, isError } = useQuery({
-  queryKey: ['todos'],
-  queryFn: fetchTodos,
-});
+useEffect(() => {
+  throw new Error('boom')          // ErrorBoundary 가 받는다
+}, [])
 
-if (isError) {
-  return <div>에러: {error.message}</div>;
+useEffect(() => {
+  setTimeout(() => {
+    throw new Error('boom')        // ErrorBoundary 를 지나친다
+  }, 0)
+}, [])
+```
+
+Os dois trechos estão dentro do mesmo `useEffect` e ainda assim as rotas de propagação são diferentes. **O critério não é estar dentro de um `ErrorBoundary`, e sim se o React está segurando aquela execução.**
+
+Desse grupo basta lembrar de mais uma coisa. O console de desenvolvimento do React 19 põe o nome do componente no erro capturado. Ao rodar o widget, o render, o effect e a transition deram `The above error occurred in the <Thrower> component`, e só `lazy` deu `occurred in one of your React components`. `lazy` ainda não tem componente no momento em que é rejeitado, então não consegue escrever um nome. Essa diferença vira uma pista quando você só tem a pilha para achar o lugar.
+
+
+## Dados do servidor
+
+É aqui que começa a parte chata que a gente precisa tratar desenvolvendo frontend. O motivo é que uma falha do servidor **não vira erro automaticamente**.
+
+### fetch não rejeita sozinho diante de um erro do servidor
+
+A MDN deixa isso escrito com clareza.
+
+::::quote
+:::translation
+A promise de `fetch()` só é rejeitada quando a própria requisição falha, por exemplo porque a URL está malformada ou porque houve um erro de rede. Ela não é rejeitada quando o servidor responde com um código de status HTTP que indica erro (`404`, `504`, etc.).
+:::
+
+:::original
+A `fetch()` promise only rejects when the request fails, for example, because of a badly-formed request URL or a network error. A `fetch()` promise does not reject if the server responds with HTTP status codes that indicate errors (`404`, `504`, etc.).
+:::
+::::
+
+Ou seja, se você usa só `fetch`, uma resposta `500` é uma **Promise com sucesso**. Como nada foi lançado, o `ErrorBoundary` não fica sabendo e a biblioteca de dados também não. A documentação do TanStack Query aponta o mesmo: para uma query ser considerada falha, o `queryFn` precisa lançar ou devolver uma Promise rejeitada, e enquanto o `axios` lança por conta própria, o `fetch` não faz isso.
+
+Então transformar a falha do servidor em erro é **um trabalho que você precisa fazer**.
+
+```ts
+const response = await fetch('/todos/' + todoId)
+if (!response.ok) {
+  throw new Error('Network response was not ok')
 }
 ```
 
-Essa é a forma mais simples. Mesmo quando ocorre um erro, o componente continua renderizando normalmente; apenas o campo `error` recebe um valor. A ErrorBoundary não participa desse fluxo.
+Sem estas três linhas, o resto desta seção não significa nada. O que não é lançado não propaga para lugar nenhum.
 
-Vale destacar um fato importante: **o comportamento padrão do TanStack Query é “não lançar o erro”**. Não importa se a queryFn lança uma exceção ou rejeita uma Promise: o erro é armazenado no campo `error` sem interromper o fluxo de renderização do React. Portanto, sem nenhuma configuração adicional, a ErrorBoundary nunca será acionada.
+### Os cinco caminhos por onde uma falha se divide
 
-Além disso, por padrão, o TanStack Query **repete automaticamente uma consulta com erro três vezes**.
+Depois que a falha virou falha, começa a próxima divisão. Um mesmo `500` se espalha para cinco lugares dependendo de **como foi chamado**. O critério são os valores padrão, sem mexer em nenhuma opção.
 
-O `retryDelay` padrão usa intervalos exponenciais, chegando a no máximo 30 segundos. Isso significa que o erro não aparece para o usuário assim que ocorre a primeira falha. A consulta é repetida após intervalos de 1, 2 e 4 segundos; somente se todas as tentativas falharem o campo `error` é preenchido. Se você já se perguntou durante o desenvolvimento “por que o erro demora para aparecer?”, é quase certo que esse seja o motivo.
+**`useQuery` não lança o erro.** Se você abrir `useQuery.js`, a string `throwOnError` não aparece em lugar nenhum. Se lança ou não, quem decide é `query-core` com seu `shouldThrowError`.
 
-
-### Conectando à ErrorBoundary com throwOnError
-
-Como encaminhar, então, os erros do TanStack Query para uma ErrorBoundary? A resposta é a opção **`throwOnError`**. Até a v4, ela se chamava `useErrorBoundary`; na v5, passou a se chamar `throwOnError`.
-
-```tsx
-const { data } = useQuery({
-  queryKey: ['todos'],
-  queryFn: fetchTodos,
-  throwOnError: true,
-});
-```
-
-Quando essa opção está habilitada, o TanStack Query **relança o erro no próximo ciclo de renderização**. O lançamento passa, então, a ser um erro da fase de renderização, que finalmente pode ser capturado pela ErrorBoundary.
-
-`throwOnError` também pode receber uma função. Assim, podemos encaminhar alguns erros à ErrorBoundary e deixar que o próprio componente trate os demais.
-
-```tsx
-useQuery({
-  queryKey: ['todos'],
-  queryFn: fetchTodos,
-  // 5xx 서버 에러만 ErrorBoundary로 보낸다
-  throwOnError: (error) => error.response?.status >= 500,
-});
-```
-
-Esse padrão é prático porque **erros de cliente 4xx, como falha de validação ou falta de permissão**, normalmente devem ser exibidos no próprio contexto em que ocorreram, enquanto **erros de servidor 5xx** justificam cobrir a página inteira e mostrar uma mensagem como “Tente novamente em alguns instantes”.
-
-
-### useSuspenseQuery
-
-Se você usa `useSuspenseQuery`, não precisa se preocupar com `throwOnError`. No modo Suspense, **lançar o erro sempre é o comportamento padrão**.
-
-Em outras palavras, usar `useSuspenseQuery` significa delegar **o carregamento ao Suspense e os erros à ErrorBoundary**. Deixamos de precisar de ramificações como `if (isError)` ou `if (isLoading)` dentro do componente e passamos a envolvê-lo externamente com esses dois limites.
-
-
-## QueryErrorResetBoundary
-
-Neste ponto, surge mais uma pergunta: o que acontece quando o usuário clica em “Tentar novamente” na interface de contingência?
-
-Como vimos, `resetErrorBoundary` apenas reinicializa o estado `hasError` da ErrorBoundary. Porém, no cache do TanStack Query, continua existindo **uma consulta presa no estado de erro**. Quando os componentes filhos são renderizados novamente, o TanStack Query consulta o cache, conclui que a consulta já falhou e lança o mesmo erro imediatamente. É um ciclo infinito infernal.
-
-Para resolver esse problema, o TanStack Query oferece o hook **`useQueryErrorResetBoundary`** e o componente **`QueryErrorResetBoundary`**. Apesar dos nomes longos, a função é simples: emitir o comando **“reinicialize o estado de erro das consultas dentro deste escopo”**.
-
-```tsx
-import { useQueryErrorResetBoundary } from '@tanstack/react-query';
-import { ErrorBoundary } from 'react-error-boundary';
-
-function App() {
-  const { reset } = useQueryErrorResetBoundary();
-
-  return (
-    <ErrorBoundary
-      onReset={reset}
-      fallbackRender={({ resetErrorBoundary }) => (
-        <div>
-          <p>에러가 발생했습니다.</p>
-          <button onClick={resetErrorBoundary}>다시 시도</button>
-        </div>
-      )}
-    >
-      <Page />
-    </ErrorBoundary>
-  );
+```js
+function shouldThrowError(throwOnError, params) {
+	if (typeof throwOnError === "function") return throwOnError(...params);
+	return !!throwOnError;
 }
 ```
 
-Vejamos em ordem cronológica o que acontece aqui.
+Sem valor fica `!!undefined`, portanto `false`. Por isso a falha entra só em `query.error` e o componente renderiza normalmente. O `ErrorBoundary` de fora nunca fica sabendo que chegou a vez dele.
 
-1. O usuário clica em “Tentar novamente” → `resetErrorBoundary()` é chamada
-2. A ErrorBoundary executa a função de retorno `onReset` → `reset()` é chamada, reinicializando o estado de erro do TanStack Query
-3. A ErrorBoundary reinicializa o próprio estado e renderiza os componentes filhos novamente
-4. O `useQuery` dentro dos componentes filhos é executado → como o estado de erro foi removido, uma nova busca de dados é iniciada
+**`useSuspenseQuery` lança, mas nem sempre.** Esse hook espalha as opções e depois sobrescreve `throwOnError`.
 
-O ponto central é a conexão feita em `onReset` com `reset`. Graças a essa única linha, a ErrorBoundary e o TanStack Query sincronizam seus estados.
+```js
+return useBaseQuery({
+  ...options,
+  enabled: true,
+  suspense: true,
+  throwOnError: defaultThrowOnError,
+  placeholderData: void 0
+}, QueryObserver, queryClient);
+```
+
+A sobrescrita vem depois de `...options`, então **o `throwOnError` passado por quem chama é ignorado.** E a decisão padrão que ocupa esse lugar está em uma linha só de `suspense.js`.
+
+```js
+const defaultThrowOnError = (_error, query) => query.state.data === void 0;
+```
+
+**Se há cache para mostrar, não lança.** Na prática o lugar onde esse desvio se separa é uma revalidação em segundo plano. Quem entra pela primeira vez tem o cache vazio, então a falha vai para o `ErrorBoundary` e vê o fallback. Quem já estava na tela, vai para outra aba e volta, dispara uma nova requisição, e se ela falhar o cache ainda guarda os dados antigos, então nada é lançado. A tela continua mostrando o valor velho e não muda sozinha.
+
+A tela não quebrar costuma ser um bom comportamento. Só que junto vem **a tela também não avisar**, e escolher isso sabendo é diferente de levar sem saber.
+
+**Nenhuma das duas funções que uma mutation devolve vai para o `ErrorBoundary`.** Os motivos são diferentes. Se você abrir `useMutation.js`, um dos lados engole a rejeição diretamente.
+
+```js
+observer.mutate(args[0], args[1]).catch(noop);
+```
+
+Isto é o `mutate`. No mesmo arquivo, `mutateAsync` expõe `result.mutate` como está, e esse `result.mutate` é o que `mutationObserver.js` colocou ali com `mutate: this.mutate`, então acaba sendo a mesma função que a linha acima envolveu. **Só um dos lados passa por `.catch(noop)`.** Aquela rejeição estoura no lugar onde se faz `await`, não é lançada durante o render, então esse lado também não tem nada a ver com o `ErrorBoundary`.
+
+**Isso não quer dizer que uma mutation seja para sempre alheia ao `ErrorBoundary`.** No corpo do hook há mais um interruptor.
+
+```js
+if (result.error && shouldThrowError(observer.options.throwOnError, [result.error])) throw result.error;
+```
+
+Se você der `throwOnError`, esta linha lança **durante o render**, e aí sim vai para o `ErrorBoundary`. As duas funções devolvidas não chegarem ao `ErrorBoundary` e o hook não lançar são duas histórias diferentes.
+
+![De um único 500 do servidor à esquerda saem cinco setas para useQuery, useSuspenseQuery, um hook com throwOnError ligado, mutate e mutateAsync, e cada uma segue até query.error, ErrorBoundary, ErrorBoundary, mutation.error e o catch de quem chama. Só as duas caixas centrais de ErrorBoundary estão ligadas por uma linha tracejada, marcadas como as duas que ErrorBoundary recebe](3.png?w=720)
+
+Resumindo, o mesmo `500` tem cinco destinos: o campo `query.error`, o campo `mutation.error`, o `catch` de quem chama e os dois casos que vão para o `ErrorBoundary`. Os dois que vão para o `ErrorBoundary` são `useSuspenseQuery` falhando sem cache e `throwOnError` ligado. **Quem decide o destino é a forma de chamar, não o tipo de falha.**
 
 
-### Usando a forma de componente
+## Navegação
 
-É possível fazer a mesma coisa com um componente em vez do hook. Basta escolher uma das duas formas.
+As falhas que aparecem ao trocar de tela se dividem em duas. O critério é **estar dentro ou fora da árvore do React**.
 
-```tsx
-import { QueryErrorResetBoundary } from '@tanstack/react-query';
-import { ErrorBoundary } from 'react-error-boundary';
+### loader roda fora da árvore
 
-function App() {
-  return (
-    <QueryErrorResetBoundary>
-      {({ reset }) => (
-        <ErrorBoundary
-          onReset={reset}
-          fallbackRender={({ error, resetErrorBoundary }) => (
-            <div role="alert">
-              <p>에러가 발생했습니다: {error.message}</p>
-              <button onClick={resetErrorBoundary}>다시 시도</button>
-            </div>
-          )}
-        >
-          <Page />
-        </ErrorBoundary>
-      )}
-    </QueryErrorResetBoundary>
-  );
+O `loader` do router é uma função que roda antes de o render começar. Não é um componente React, então nem `getDerivedStateFromError` nem `componentDidCatch` chegam até ele. Por mais que você envolva tudo com `react-error-boundary`, aquele `ErrorBoundary` não consegue ver a falha de um loader.
+
+Em vez disso o router mantém o próprio sistema de `ErrorBoundary`. A documentação do React Router escreve assim.
+
+::::quote
+:::translation
+Os route modules capturam automaticamente os erros do seu código e renderizam o `ErrorBoundary` mais próximo.
+:::
+
+:::original
+route modules will automatically catch errors in your code and render the closest `ErrorBoundary`.
+:::
+::::
+
+Como o mais próximo é escolhido está na fonte. `findNearestBoundary` escolhe assim.
+
+```js
+function findNearestBoundary(matches, routeId) {
+  let eligibleMatches = routeId ? matches.slice(0, matches.findIndex((m) => m.route.id === routeId) + 1) : [...matches];
+  return eligibleMatches.reverse().find((m) => m.route.hasErrorBoundary === true) || matches[0];
 }
 ```
 
-A maior diferença em relação à versão em hook é que a função `reset` é passada aos filhos por meio do padrão de **propriedade de renderização**. `QueryErrorResetBoundary` recebe uma função como conteúdo filho, passa `{ reset }` como argumento e renderiza o valor retornado por essa função. Assim, podemos conectá-la imediatamente com `onReset={reset}` dentro do componente.
+Ele percorre as rotas casadas de trás para frente, escolhe a primeira que tem um `ErrorBoundary` e, se não houver nenhuma, manda para a rota da frente. **Por isso pôr mais um `ErrorBoundary` em uma rota inferior não é duplicar trabalho, e sim estreitar a área sobre a qual o fallback é desenhado.**
 
-Quando não há uma `QueryErrorResetBoundary` próxima, a versão em hook **reinicializa os erros do cache global**. A versão em componente restringe o escopo da reinicialização à própria subárvore. Para controlar esse alcance de forma mais granular, a versão em componente é mais segura.
+O lado que lê também é diferente. Um `ErrorBoundary` de rota não recebe o erro por props, ele tira direto com `useRouteError()`. Se veio ou não com um código de status se distingue com `isRouteErrorResponse(error)`. Essas duas ferramentas não existem no `ErrorBoundary` do React.
 
-Vale ressaltar um ponto: **a reinicialização não limpa o cache**. Em vez de apagar todos os dados, ela apenas libera o estado das consultas marcadas com erro. Para invalidar os dados de fato, é preciso chamar `queryClient.invalidateQueries()` separadamente.
+### A rejeição do lazy está dentro da árvore
 
+Dentro da mesma navegação, o lado que recebe o código mais tarde funciona ao contrário. Quando `lazy(() => import('./Tab'))` tem seu `import()` rejeitado, o React pega isso e lança para o **`ErrorBoundary` mais próximo**. O quarto botão do widget é essa rota.
 
-## Erros de mutações
+Quando sai um deploy, os arquivos de chunk antigos somem, mas uma tela aberta antes do deploy continua com os endereços antigos. Se nesse estado ela pedir aquele código, o `import()` é rejeitado e o Chrome lança `TypeError: Failed to fetch dynamically imported module`.
 
-Quase todos os padrões apresentados até aqui partiram de `useQuery`. Com **`useMutation`, porém, a situação é um pouco diferente.**
+Aqui entra mais uma coisa. **`lazy` lembra da rejeição.** O `lazyInitializer` do React anota o resultado no `payload`, e se for rejeitado ele muda o estado e guarda o motivo.
 
-A principal diferença é que uma mutação normalmente começa com uma **ação explícita do usuário, como um clique ou envio de formulário**. Por isso, é natural tratar o erro perto dessa ação. Em vez de cobrir a página inteira com uma interface de contingência, faz mais sentido mostrar uma notificação ou um texto de erro ao lado do formulário, como “Falha no pagamento: confira novamente os dados do cartão”.
-
-Em [Dominando mutações no React Query](https://tkdodo.eu/blog/mastering-mutations-in-react-query), TkDodo resume a essência dessa diferença em uma frase: **uma consulta é declarativa, enquanto uma mutação é imperativa**. Uma consulta é executada automaticamente quando o componente é montado, pode ser observada por outros componentes com a mesma chave e é armazenada em cache para reutilização. Já uma mutação só é executada quando o usuário aciona uma operação, não é armazenada em cache e fica vinculada individualmente à instância do componente que a chamou. Essa diferença fundamental separa também as estratégias de tratamento de erros.
-
-No `useQuery`, o `retry` padrão é `3`, mas no **`useMutation` o `retry` padrão é `0`**. O motivo é simples: uma mutação produz **efeitos colaterais**. Se uma requisição de pagamento falhar por esgotamento do tempo de espera da rede e a biblioteca repetir a chamada automaticamente mais duas vezes, o cartão do usuário poderá ser cobrado três vezes.
-
-Por isso, a regra é habilitar novas tentativas para mutações de forma explícita **apenas quando for possível garantir que a operação é idempotente**. Isso vale para leituras seguras semelhantes a GET, nas quais repetir a requisição produz comprovadamente o mesmo resultado, ou para casos em que o servidor impede duplicações por meio de uma chave de idempotência.
-
-Os erros de `useQuery` ficam **registrados no cache**. Assim, propagam-se imediatamente para outros componentes que observam a mesma `queryKey`, exigindo um mecanismo como `QueryErrorResetBoundary` para reinicializá-los em conjunto.
-
-Com mutações é diferente. Um erro em uma instância de mutação permanece **apenas no estado daquela instância**. Ele não afeta a mutação de outro componente que use a mesma `mutationFn`. Por isso, o TanStack Query não tem algo como `MutationErrorResetBoundary`: **não há necessidade**.
-
-Essa diferença tem uma consequência prática. Quando dois componentes chamam o mesmo `useMutation`, o erro ocorrido em um deles não aparece no outro. Para observar “os erros dessa mutação em toda a aplicação”, o `onError` no nível do componente não basta; é preciso elevá-los por meio de `MutationCache.onError`.
-
-
-### mutate vs mutateAsync
-
-`useMutation` retorna duas funções de execução. A diferença entre elas determina a forma de tratar erros.
-
-O tipo de retorno de mutate é `void`. Ela não retorna uma Promise. Portanto, não podemos aguardar o resultado com await, e ele só pode ser recebido por funções de retorno como `onSuccess/onError`.
-
-
-```tsx
-const mutation = useMutation({
-  mutationFn: createPost,
-  onError: (error) => {
-    toast.error(`등록 실패: ${error.message}`);
-  },
-});
-
-mutation.mutate(newPost);
+```js
+payload._status = 2;
+payload._result = error;
 ```
 
+Daí em diante, toda vez que esse componente renderiza, o último desvio roda.
 
-Já `mutateAsync` retorna uma Promise. Isso permite tratar o erro com `try/catch`.
-
-```tsx
-const mutation = useMutation({ mutationFn: createPost });
-
-const handleSubmit = async () => {
-  try {
-    const result = await mutation.mutateAsync(newPost);
-    router.push(`/posts/${result.id}`);
-  } catch (error) {
-    // 여기서 처리
-  }
-};
+```js
+throw payload._result;
 ```
 
-Quando usar cada uma? Adoto os seguintes critérios.
-
-- **Há uma ação subsequente após o fim da mutação**, como navegar em caso de sucesso ou usar o valor retornado → `mutateAsync`
-- **Basta disparar a chamada e delegar os efeitos colaterais às funções de retorno**, como alternar uma curtida ou apenas exibir uma notificação → `mutate` + `onError`
+Ele não faz `import()` de novo. A chamada de `lazy()` aconteceu uma vez só no topo do módulo e aquele `payload` fica ali enquanto a aplicação viver. **Mesmo desfazendo o `ErrorBoundary` e remontando, o mesmo erro volta.** É por isso que a única recuperação dessa falha é receber a página de novo.
 
-Há um erro comum nesse ponto: **usar `mutateAsync` sem `try/catch` causa uma rejeição de promessa não tratada**. A função `mutate`, baseada em funções de retorno, absorve o erro internamente; `mutateAsync`, por sua vez, lança o erro para o chamador por padrão. Misturar as duas abordagens sem conhecer essa diferença enche o console de alertas vermelhos.
-
-
-### onError
-
-Outro detalhe frequentemente ignorado é que, em `useMutation`, `onError` pode ser definido **em dois lugares**: no hook e em mutate.
-
-```tsx
-const mutation = useMutation({
-  mutationFn: createPost,
-  onError: (error) => {
-    Sentry.captureException(error);
-  },
-});
-```
+Na mesma navegação, a falha do loader é recebida pelo router e a falha do `lazy` pelo React. **Se você não separar esses dois antes de decidir onde pôr um `ErrorBoundary`, um deles fica sem lugar para ir.**
 
-No nível do hook, ele sempre é executado; no nível de mutate, é executado apenas no momento da chamada.
 
-```tsx
-mutation.mutate(newPost, {
-  onError: (error) => {
-    setFormError(error.message);
-  },
-});
-```
+## Manipuladores globais fora do ErrorBoundary
 
-A ordem de execução indicada pela documentação oficial é: **nível do hook → nível de mutate**. Quando as duas funções de retorno estão definidas, a do hook é executada primeiro e, depois, a de mutate.
+Para onde foram os três que o `ErrorBoundary` não capturou? Para **os manipuladores globais do navegador**.
 
+O que é lançado de um manipulador de eventos ou de um callback de `setTimeout` acaba em `window`, no evento `error` dele. A rejeição de uma Promise vai para outro evento. A definição da MDN é esta.
 
-## Tratamento global de erros
+::::quote
+:::translation
+O evento `unhandledrejection` é enviado ao escopo global de um script quando uma Promise de JavaScript sem manipulador de rejeição é rejeitada; normalmente esse escopo é o `window`, mas também pode ser um `Worker`.
+:::
 
-Até aqui, todos os padrões atuavam no nível do componente. Mas podemos ter requisitos como “registrar todos os erros de consultas em um único lugar” ou “sempre encerrar a sessão ao receber um erro 401”. Para interesses transversais como esses, podemos registrar funções de retorno em `QueryCache`/`MutationCache` ao criar o **QueryClient**.
+:::original
+The `unhandledrejection` event is sent to the global scope of a script when a JavaScript Promise that has no rejection handler is rejected; typically, this is the `window`, but may also be a `Worker`.
+:::
+::::
 
-```tsx
-import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
+Esses dois são o último lugar em que o navegador recebe algo. É também onde a maioria das ferramentas de monitoramento captura os erros do navegador.
 
-const queryClient = new QueryClient({
-  queryCache: new QueryCache({
-    onError: (error, query) => {
-      if (query.state.data !== undefined) {
-        toast.error(`데이터 갱신 실패: ${error.message}`);
-      }
-    },
-  }),
-  mutationCache: new MutationCache({
-    onError: (error) => {
-      if (error.status === 401) {
-        redirectToLogin();
-      }
-    },
-  }),
-});
-```
+O React 19 acrescentou mais um lugar de recepção do lado da árvore. É uma opção de `createRoot`. A documentação oficial separa os três assim.
 
-O ponto central é que `QueryCache.onError` é chamado **apenas uma vez por consulta**. Mesmo que vários componentes observem a mesma consulta, a função de retorno é executada uma única vez, evitando problemas como notificações duplicadas.
+| Opção | Quando é chamada |
+|---|---|
+| `onCaughtError` | Quando o React capturou um erro dentro de um Error Boundary |
+| `onUncaughtError` | Quando um erro foi lançado e nenhum Error Boundary capturou |
+| `onRecoverableError` | Quando o React se recuperou sozinho |
 
-Também podemos verificar `query.state.data !== undefined`, como no exemplo acima. Quando ocorre **uma falha ao buscar novamente enquanto já existem dados em cache**, o usuário ainda está vendo os dados na tela. Cobrir a página com uma ErrorBoundary seria excessivo; basta informar que a atualização falhou. Por outro lado, se o primeiro carregamento falhar sem que existam dados em cache, faz sentido a ErrorBoundary capturar o erro e exibir a interface de contingência.
+Receber e consertar são coisas diferentes. **Um manipulador global capturar não restaura a tela.** Mesmo que um erro lançado dentro de `onClick` seja recebido por `window` e enviado para a ferramenta de monitoramento, naquele momento o usuário só vê um botão que não respondeu. Reportar e recuperar são trabalhos diferentes.
 
-Ao combinar esses dois fluxos, podemos definir uma política clara: “falhas no carregamento inicial vão para a ErrorBoundary; falhas ao buscar novamente em segundo plano geram uma notificação”.
 
+## Para terminar
 
-## Componente compartilhado
+Decorar o tratamento de erros no frontend como uma lista de ferramentas deixa buraco atrás de buraco. Acontece mesmo sabendo `ErrorBoundary`, `throwOnError`, `useRouteError`, `lazy` e `unhandledrejection`. Não é por não conhecer as ferramentas, e sim porque **nunca se contou o que vai para onde**.
 
-Depois de chegar até aqui, é natural querer evitar envolver cada trecho, toda vez, em três camadas de `QueryErrorResetBoundary`, `ErrorBoundary` e `Suspense`. Que tal **reuni-las em um único componente reutilizável**?
+O que este post tratou se resume assim.
 
-É uma ideia natural. Eu mesmo já criei e usei um componente `AsyncBoundary` como o seguinte.
+- Um `ErrorBoundary` só recebe o que o React capturou e entregou. Manipuladores de eventos e callbacks assíncronos não estão naquele lugar.
+- A checagem de tipos termina na resposta. A partir do ponto em que `json()` devolve `any`, é declaração e não checagem.
+- Uma falha do servidor não vira erro sozinha. `fetch` não rejeita com `500`, então lançar é um trabalho que você faz.
+- Depois de lançado, a forma de chamar decide o destino. A mesma falha vai para um campo, para quem chama ou para um `ErrorBoundary`.
+- A navegação se divide em duas. O loader está fora da árvore e o router recebe; `lazy` está dentro da árvore e o React recebe.
+- Fora do `ErrorBoundary` existem os manipuladores globais. Eles capturam, mas a tela não se restaura.
 
-```tsx
-import { QueryErrorResetBoundary } from '@tanstack/react-query';
-import { Suspense, type ComponentType, type ReactNode } from 'react';
-import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { ErrorFallback } from './ErrorFallback';
-import { Spinner } from './Spinner';
+Então o que fazer antes de desenhar um `ErrorBoundary` não é escolher o componente a envolver. É **escrever todos os lugares em que esta tela pode falhar e marcar a qual dos seis acima cada um pertence**. O lugar sem marca é justamente o buraco.
 
-interface Props {
-  children: ReactNode;
-  pendingFallback?: ReactNode;
-  rejectedFallback?: ComponentType<FallbackProps>;
-}
+Seria bom você descobrir quantos lugares podem falhar na sua tela agora, quantos deles chegam ao `ErrorBoundary` e para onde estão indo os que não chegam.
 
-export function AsyncBoundary({
-  children,
-  pendingFallback = <Spinner />,
-  rejectedFallback = ErrorFallback,
-}: Props) {
-  return (
-    <QueryErrorResetBoundary>
-      {({ reset }) => (
-        <ErrorBoundary onReset={reset} FallbackComponent={rejectedFallback}>
-          <Suspense fallback={pendingFallback}>{children}</Suspense>
-        </ErrorBoundary>
-      )}
-    </QueryErrorResetBoundary>
-  );
-}
-```
+[O próximo post](/251203) trata com o que receber cada destino: em quantas camadas dividir, como tratar a área de tela que uma falha leva e o que mais precisa ser solto para o botão de tentar de novo do fallback realmente tentar de novo.
 
-Na página, tudo se resume a uma linha.
-
-```tsx
-<AsyncBoundary>
-  <Content />
-</AsyncBoundary>
-```
-
-Parece elegante. No entanto, recebi o seguinte feedback de um colega.
-
-> Como AsyncBoundary não é um nome usado de forma tão consagrada, acho que o conteúdo interno não causaria grande estranheza. Mesmo assim, **é um pouco difícil prever que ali também existe uma ResetBoundary do React Query**.
-
-> Também me incomoda um pouco que `pendingFallback` e `rejectedFallback` tenham valores padrão. Ao ver apenas uma linha com `<AsyncBoundary>`, não dá para saber qual interface de contingência será exibida; **talvez a pessoa nem perceba que esses valores vêm das propriedades padrão**.
-
-
-### O nome esconde a dependência
-
-O nome desse componente é `AsyncBoundary`. Ele comunica apenas a ideia de um limite assíncrono. Sua implementação, porém, é **fortemente acoplada ao TanStack Query**: contém `QueryErrorResetBoundary` e conecta `onReset` a `reset`. Na prática, trata-se de **“um limite para áreas assíncronas que usam React Query”**, mas o nome não revela nada disso.
-
-Por que isso é um problema? Porque **contraria as expectativas de quem lê**. Não lemos código interpretando cada linha isoladamente; lemos **antecipando** padrões que acumulamos com a experiência. Quando essa previsão falha, a carga cognitiva aumenta de forma abrupta.
-
-Ao encontrar `AsyncBoundary` pela primeira vez, um colega imagina “um limite genérico para processamento assíncrono”. Parece que ele poderia ser usado com SWR ou com uma busca direta de dados. Na realidade, porém, há uma `QueryErrorResetBoundary` embutida, criando **um acoplamento sem utilidade em contextos que não usam TanStack Query**. Existe uma fissura entre o nome e a implementação.
-
-Podemos interpretar isso como uma espécie de abstração com vazamento na direção oposta. Em geral, um vazamento ocorre quando “um detalhe que deveria estar escondido atrás da abstração escapa”; aqui, **uma dependência que deveria estar evidente ficou escondida demais atrás do nome**. Talvez seja ainda pior, porque usamos o componente sem sequer perceber.
-
-
-### Tornando a dependência explícita no nome
-
-A solução mais simples é mudar o nome. Em vez de `AsyncBoundary`, usar algo como **`QueryAsyncBoundary`**, deixando a dependência explícita. Ao analisar a biblioteca [Suspensive](https://suspensive.org/), criada pela Toss, vi que ela também explicita essa dependência. O pacote `@suspensive/react` contém apenas as versões genéricas de `ErrorBoundary` e `Suspense`; já o componente integrado ao TanStack Query fica separado no pacote `@suspensive/react-query`, como `QueryAsyncBoundary`.
-
-Uma única palavra faz muita diferença na quantidade de informação transmitida a quem lê o código. Assim que aparece o prefixo `Query`, fica imediatamente claro: **“este componente é exclusivo para um ambiente com TanStack Query”**. Isso evita, de antemão, seu uso em um contexto inadequado.
-
-
-### Decompondo em unidades combináveis
-
-Uma abordagem mais fundamental é **não agrupar**.
-
-ErrorBoundary e Suspense representam, em essência, **interesses diferentes**. Ao reuni-los em um só componente, podemos perder flexibilidade de composição. Algumas páginas precisam apenas de ErrorBoundary; outras, apenas de Suspense; e outras podem querer duas instâncias de Suspense dentro de uma única ErrorBoundary. Agrupar tudo em `AsyncBoundary` torna essas variações pouco naturais. Mantendo os componentes separados, podemos combiná-los livremente.
-
-Esse padrão deixa o código uma linha mais longo, mas tem a vantagem de permitir que **a responsabilidade de cada limite seja lida diretamente no código**. Além disso, ao usar `useSuspenseQuery`, a unidade que queremos carregar de uma só vez costuma ser diferente da unidade em que queremos capturar erros, por isso a separação tende a ser mais natural.
-
-Minha conclusão foi esta: **agrupe quando o padrão de composição repetido for realmente idêntico; se houver necessidade de variação, mantenha separado**. E, mesmo ao agrupar, torne a dependência visível no nome. Só esses dois princípios já reduzem a chance de receber em uma revisão o comentário “não sei o que existe dentro de AsyncBoundary”.
-
-
-### Propriedades padrão
-
-Corrigir apenas o nome não basta. Voltemos ao código anterior.
-
-```tsx
-pendingFallback = <Spinner />,
-rejectedFallback = ErrorFallback,
-```
-
-`<QueryAsyncBoundary>...</QueryAsyncBoundary>` funciona sozinho em uma única linha porque `Spinner` e `ErrorFallback` são inseridos automaticamente. **Essa informação não pode ser inferida pelo nome**.
-
-É outra versão do problema anterior, em que “o nome esconde a dependência”. O prefixo `Query` passou a revelar a dependência, mas as dependências de interface `Spinner` e `ErrorFallback` continuam ocultas atrás das propriedades padrão. **O esconderijo apenas mudou um nível para dentro**.
-
-A solução é simples: **tornar ambas as interfaces de contingência propriedades obrigatórias e injetá-las sempre no ponto de uso**.
-
-```tsx
-interface Props {
-  children: ReactNode;
-  pendingFallback: ReactNode;                    
-  rejectedFallback: ComponentType<FallbackProps>;
-}
-```
-
-```tsx
-<QueryAsyncBoundary
-  pendingFallback={<Spinner />}
-  rejectedFallback={ErrorFallback}
->
-  <Content />
-</QueryAsyncBoundary>
-```
-
-O código ganha duas linhas. O motivo para aceitar esse custo é claro: **aumentamos o trabalho de quem escreve para reduzir o custo de investigação de todos que leem**. A interface de contingência exibida fica visível no próprio ponto de uso. Não é preciso abrir outro arquivo para verificar “qual era mesmo o valor padrão deste componente?”. A conhecida máxima de que código é lido muito mais vezes do que é escrito também se aplica aqui.
-
-
-## ErrorFallback
-
-Há ainda outro aspecto a considerar. Normalmente, criamos um único componente `ErrorFallback` como este.
-
-```tsx
-const DEFAULT_ERROR_MESSAGE = '문제가 발생했어요. 잠시 후 다시 시도해주세요';
-
-export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
-  const message = getErrorMessage(error, DEFAULT_ERROR_MESSAGE);
-
-  return (
-    <Flex direction="column" alignItems="center" role="alert" aria-live="assertive">
-      <Text>{message}</Text>
-      <Spacing size={16} />
-      <Button onClick={resetErrorBoundary}>다시 시도</Button>
-    </Flex>
-  );
-}
-```
-
-É uma implementação bem cuidada, que inclui até `role="alert"` e `aria-live="assertive"`. Mas vale fazer uma pergunta: **“é adequado mostrar a mesma tela para 401, 404, 500 e falta de conexão?”**
-
-Na maioria dos casos, a resposta é **não**, porque a ação que o usuário precisa tomar varia conforme o tipo de erro.
-
-| Tipo de erro | Ação do usuário | “Tentar novamente” faz sentido? |
-| --- | --- | --- |
-| Sem conexão | Verificar a conexão e tentar novamente | O |
-| Erro 5xx do servidor | Tentar novamente após alguns instantes | O |
-| Falha de autenticação 401 | Ir para a tela de login | X |
-| Sem permissão 403 | Ir para outra tela | X |
-| Recurso não encontrado 404 | Voltar à lista | △ |
-| Falha de validação 422 | Corrigir os dados inseridos | X |
-
-Exibir o botão “Tentar novamente” em todos os casos equivale a **orientar o usuário de forma incorreta sobre “a ação capaz de resolver o erro”**. Clicar em “Tentar novamente” após um 401 só produz outro 401. O que o usuário realmente precisa fazer é entrar novamente.
-
-Por isso, a interface de contingência do erro deve **variar conforme o tipo de erro**. Não é necessário começar com um enorme `if/else`; podemos criar componentes pequenos e escolher entre eles.
-
-Cada componente de contingência deve expor apenas a mensagem e a ação adequadas ao erro correspondente. A tela deve mostrar somente ações que o usuário realmente pode realizar.
-
-
-### shouldCatch
-
-Indo um passo além, existe também o padrão de **distinguir, no nível do componente, “os erros que devem ser capturados” daqueles que devem “seguir adiante”**. A `ErrorBoundary` do Suspensive oferece a propriedade `shouldCatch`.
-
-```tsx
-<ErrorBoundary
-  shouldCatch={(error) => isHttpError(error) && error.status >= 500}
-  fallback={ServerErrorFallback}
->
-  <ErrorBoundary shouldCatch={NetworkError} fallback={NetworkErrorFallback}>
-    <Page />
-  </ErrorBoundary>
-</ErrorBoundary>
-```
-
-A ErrorBoundary interna captura apenas erros de rede, não erros 5xx. Os erros que ela não captura **sobem para a ErrorBoundary superior** de acordo com o comportamento padrão do React. Assim, a ErrorBoundary externa fica responsável pelos erros 5xx. Em comparação com implementar o mesmo tratamento em uma condicional if/else, é atraente poder **atribuir significado aos próprios limites**.
-
-`react-error-boundary` não oferece essa propriedade, mas podemos obter o mesmo efeito fazendo a ramificação dentro da interface de contingência. O padrão em si é mais importante do que a biblioteca.
-
-
-## Conclusão
-
-Em resumo, o tratamento de erros no frontend **não se resolve com uma única ferramenta**. Erros de renderização ficam a cargo da Error Boundary; erros em manipuladores de eventos, de `try/catch` ou `showBoundary`; erros na obtenção assíncrona de dados, de `throwOnError` e `useQueryErrorResetBoundary` do TanStack Query; erros de mutação, de `mutateAsync` ou `onError`; e interesses transversais, de `QueryCache`/`MutationCache`. Além disso, precisamos projetar em conjunto **o nome e a unidade de composição dos componentes compartilhados** e **a modelagem de domínio dos próprios tipos de erro** para chegar a uma política de erros consistente.
-
-Quando entendemos a responsabilidade de cada ferramenta, conseguimos decidir com clareza: **“este erro é capturado aqui; aquele segue adiante até lá”**. O acúmulo dessas decisões é o que torna a experiência do usuário mais estável. Evitar uma tela em branco, impedir que a mesma notificação apareça cinco vezes, não deixar uma falha temporária de rede derrubar a página inteira e mostrar a tela de login em vez de “Tentar novamente” após um erro 401: são esses detalhes que constroem a impressão de um serviço bem-feito.
-
-É claro que nem todo projeto precisa de todos esses padrões. Em uma ferramenta administrativa simples, uma ErrorBoundary e algumas notificações podem bastar. Em um domínio como pagamentos, onde um único erro custa dinheiro, cada mutação precisa de um tratamento minucioso. É o domínio que determina a resposta.
-
-Espero que este texto também motive você a examinar seu projeto e perguntar: “quais erros o nosso serviço captura hoje, onde e em componentes com quais nomes?”. Talvez haja uma quantidade surpreendente de erros que pareciam estar bem capturados, mas na verdade estão escapando ou chegando à interface de contingência errada. Comigo, isso aconteceu repetidas vezes.
-
-
-## Referências
 
 :::ref
-- [documentação] [TanStack Query, Suspense](https://tanstack.com/query/latest/docs/framework/react/guides/suspense)
-- [documentação] [TanStack Query, QueryErrorResetBoundary](https://tanstack.com/query/latest/docs/framework/react/reference/QueryErrorResetBoundary)
-- [documentação] [TanStack Query, padrões importantes](https://tanstack.com/query/v5/docs/framework/react/guides/important-defaults)
-- [artigo] [TkDodo, tratamento de erros no React Query](https://tkdodo.eu/blog/react-query-error-handling)
-- [artigo] [TkDodo, alterando a API do React Query de propósito](https://tkdodo.eu/blog/breaking-react-querys-api-on-purpose)
-- [repositório] [toss/suspensive, @suspensive/react-query](https://github.com/toss/suspensive)
-- [documentação] [React Router, Error Boundaries](https://reactrouter.com/how-to/error-boundary)
+- [docs] [React, o Error Boundary de Component](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
+- [docs] [React, os callbacks de erro de createRoot](https://react.dev/reference/react-dom/client/createRoot)
+- [docs] [React, lazy](https://react.dev/reference/react/lazy)
+- [docs] [React Router, Error Boundaries](https://reactrouter.com/how-to/error-boundary)
+- [docs] [TanStack Query, Query Functions](https://tanstack.com/query/latest/docs/framework/react/guides/query-functions)
+- [docs] [MDN, unhandledrejection](https://developer.mozilla.org/en-US/docs/Web/API/Window/unhandledrejection_event)
+- [docs] [MDN, fetch](https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch)
+- [docs] [axios, Error handling](https://axios.rest/pages/advanced/error-handling)
+- [repo] [bvaughn/react-error-boundary](https://github.com/bvaughn/react-error-boundary)
 :::

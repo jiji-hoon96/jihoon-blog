@@ -2,38 +2,54 @@
 
 import { useEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import TokenEmbeddingPipeline from "./TokenEmbeddingPipeline";
 
 /**
  * 본문(dangerouslySetInnerHTML)에 들어간 위젯 placeholder를 찾아
  * 해당 React 위젯 컴포넌트를 마운트한다.
  *
- * remark-widget 플러그인이 :::widget{name=xxx} 을
+ * remark-widget 플러그인이 :::widget-xxx 를
  * <div class="interactive-widget" data-widget="xxx"> placeholder로 변환해 둔다.
+ *
+ * 위젯은 각각 글 한 편씩만 쓰므로 동적 import 로 받는다. 정적 import 로 두면
+ * 위젯을 쓰지 않는 글의 번들에도 실린다.
+ *
+ * lazy() + Suspense 를 쓰지 않는다. 이 컴포넌트는 부모 트리의 effect 안에서 별도의
+ * root 를 만드는데, 그 root 가 suspend 한 채로 cleanup 이 돌면 React 가
+ * "Attempted to synchronously unmount a root while React was already rendering" 으로 막는다.
+ *
+ * 중복 마운트 방지를 DOM 플래그로 하지 않는 이유도 같은 자리에 있다. 개발 모드의
+ * effect 이중 호출에서 순서가 effect → cleanup → effect 인데, import 가 비동기라
+ * 플래그를 미리 세우면 두 번째 effect 가 그것을 보고 건너뛴 뒤 첫 번째 import 가
+ * 취소되어 아무것도 마운트되지 않는다. 그래서 실제로 root 를 가진 노드만 건너뛴다.
  */
-const WIDGETS: Record<string, React.ComponentType> = {
-  "token-pipeline": TokenEmbeddingPipeline,
+const WIDGETS: Record<string, () => Promise<{ default: React.ComponentType }>> = {
+  "token-pipeline": () => import("./TokenEmbeddingPipeline"),
+  "error-propagation": () => import("./ErrorPropagationPlayground"),
 };
+
+const MOUNTED = new WeakMap<HTMLElement, Root>();
 
 export default function InteractiveWidgets() {
   useEffect(() => {
-    const roots: Root[] = [];
+    let cancelled = false;
     const nodes = document.querySelectorAll<HTMLElement>(".interactive-widget[data-widget]");
 
     nodes.forEach((node) => {
-      if (node.dataset.mounted === "true") return;
+      if (MOUNTED.has(node)) return;
       const name = node.dataset.widget;
-      const Comp = name ? WIDGETS[name] : undefined;
-      if (!Comp) return;
+      const load = name ? WIDGETS[name] : undefined;
+      if (!load) return;
 
-      node.dataset.mounted = "true";
-      const root = createRoot(node);
-      root.render(<Comp />);
-      roots.push(root);
+      void load().then(({ default: Comp }) => {
+        if (cancelled || MOUNTED.has(node) || !node.isConnected) return;
+        const root = createRoot(node);
+        MOUNTED.set(node, root);
+        root.render(<Comp />);
+      });
     });
 
     return () => {
-      roots.forEach((r) => r.unmount());
+      cancelled = true;
     };
   }, []);
 

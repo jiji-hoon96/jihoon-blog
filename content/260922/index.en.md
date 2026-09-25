@@ -8,7 +8,7 @@ description: "Jev returns probabilities instead of text. Its confidence is arith
 keywords: 'Jev, TypeSafe AI, System One model, RLCD, model calibration, ECE, RLHF overconfidence, confidence threshold, decision model, Kev open source, Jev use cases'
 locale: en
 translationOf: '260922'
-sourceHash: fbd7343a24e4c35620bd3f0a31fa9aa220c794bb5c8d64fadd830c6f2a2a43c4
+sourceHash: 6cee92c77bd8cd7cc8b115142f94b9880919a1c4d8ae265bd8a0e4738421703a
 ---
 
 In this post, I want to talk about a model that produces no text. Last week TypeSafe AI released Jev.

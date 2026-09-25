@@ -80,9 +80,12 @@ export function rehypeImagePath() {
         }
         node.properties.src = resolvedSrc
 
+        // `min()` 으로 캡을 건다. `max-width:720px` 만 주면 인라인 스타일이
+        // `.prose img` 의 `max-w-full` 을 이겨서, 본문 폭이 358px 인 휴대폰에서도
+        // 그림이 720px 로 그려지고 레이아웃 뷰포트가 그만큼 늘어난다.
         if (widthCap !== null) {
           const existing = (node.properties.style as string | undefined) ?? ''
-          node.properties.style = `${existing}${existing && !existing.endsWith(';') ? ';' : ''}max-width:${widthCap}px;`
+          node.properties.style = `${existing}${existing && !existing.endsWith(';') ? ';' : ''}max-width:min(${widthCap}px, 100%);height:auto;`
         }
 
         // width/height 자동 주입 (CLS 방지)
