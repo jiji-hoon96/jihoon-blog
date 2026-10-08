@@ -9,7 +9,7 @@ description: "Como LZ77 e LZ78 diferem no uso do dicionário e na forma de esque
 keywords: "LZ77, LZ78, LZ77 vs LZ78, algoritmo LZ77, compressão com janela deslizante, LZW, como funciona o DEFLATE, compressão baseada em dicionário"
 locale: pt-BR
 translationOf: '240701'
-sourceHash: 3fe0bc5f9354bcd879485454d0b7f37acf77ad6e53d5a8ff9132076f428eb156
+sourceHash: 29216d8e93d6fdaf86db46ce5a539dbbda0ebcb2b851d59aa3a5e384e313908f
 ---
 
 Neste artigo, quero falar sobre **como LZ77 e LZ78 diferem**.
@@ -20,30 +20,30 @@ Ao comparar formatos para compactar artefatos de build, cedo ou tarde se acaba v
 
 <hr>
 
-## O que é compressão sem perdas?
+## Compressão baseada em dicionário
 
 Compressão sem perdas, ou lossless compression, é um método que permite reconstruir perfeitamente os dados originais. Ao contrário da compressão com perdas usada em imagens e áudio, o conteúdo descompactado não difere do original nem por um único bit. Código-fonte e artefatos de build precisam desse tipo de compressão porque a integridade dos dados é essencial.
 
 A ideia central é **aproveitar a redundância estatística presente nos dados**. Ao substituir padrões repetidos por representações mais curtas, reduzimos o tamanho total.
 
-Entre essas técnicas, os métodos **baseados em dicionário (Dictionary-Based)** formam uma família muito usada. Aqui, dicionário não é um livro de definições, mas uma tabela de consulta que associa trechos vistos anteriormente a códigos curtos. O **LZ77**, apresentado por Jacob Ziv e Abraham Lempel no artigo de 1977 [A Universal Algorithm for Sequential Data Compression](https://doi.org/10.1109/TIT.1977.1055714), publicado na IEEE Transactions on Information Theory, e o **LZ78**, publicado no ano seguinte como [Compression of Individual Sequences via Variable-Rate Coding](https://doi.org/10.1109/TIT.1978.1055934), são os ancestrais dessa família. As letras “LZ” vêm dos sobrenomes dos pesquisadores. Os algoritmos posteriores baseados em dicionário, como DEFLATE, LZMA, LZ4 e Zstd, têm suas raízes nesses dois.
+Entre essas técnicas, os métodos **baseados em dicionário (Dictionary-Based)** formam uma família muito usada. Aqui, dicionário é o mecanismo que permite apontar de novo para dados já vistos. Se esse mecanismo são os próprios dados já percorridos ou uma lista construída à parte é o que separa o LZ77 do LZ78. O **LZ77**, proposto por Jacob Ziv e Abraham Lempel em um [artigo](https://doi.org/10.1109/TIT.1977.1055714) de 1977 na IEEE Transactions on Information Theory, e o **LZ78**, do [artigo que os dois publicaram no ano seguinte](https://doi.org/10.1109/TIT.1978.1055934), são os ancestrais dessa família. As letras “LZ” vêm dos sobrenomes dos pesquisadores. Os algoritmos posteriores baseados em dicionário, como DEFLATE, LZMA, LZ4 e Zstd, têm suas raízes nesses dois.
 
-Um exemplo simples ajuda. Se a palavra “Linux” aparecer cem vezes em um texto, o compressor pode registrá-la no dicionário na primeira ocorrência e substituir as seguintes por uma referência curta que signifique “entrada número 1”. “Linux” ocupa cinco bytes, enquanto o ponteiro pode exigir menos, reduzindo o tamanho do conjunto.
+Um exemplo simples ajuda. Se a palavra “Linux” se repetir cem vezes, a partir da segunda ocorrência o compressor escreve, no lugar do texto original, uma referência curta que aponta para “aquele trecho visto antes”. Se a referência for mais curta que o original, o tamanho total diminui.
 
 Então, qual é exatamente a diferença entre LZ77 e LZ78?
 
 <hr>
 
-### LZ77: a abordagem da janela deslizante
+## LZ77: a abordagem da janela deslizante
 
-O LZ77 **não cria um dicionário explícito separado**. Em vez disso, usa uma região do próprio fluxo de entrada como dicionário. Essa região é chamada de **janela deslizante** porque avança enquanto os dados são processados. (É o mesmo conceito que aparece com frequência em exercícios de algoritmos.)
+O LZ77 **não cria um dicionário explícito separado**. Em vez disso, usa uma região do próprio fluxo de entrada como dicionário. Essa região é chamada de **janela deslizante** porque avança o tanto que já foi processado.
 
 A janela é dividida em duas áreas.
 
 - **Buffer de busca (Search Buffer)**: os dados já processados. Ele funciona como o dicionário.
 - **Buffer de antecipação (Look-ahead Buffer)**: os dados ainda não processados que serão comprimidos em seguida.
 
-O algoritmo procura saber se o início do buffer de antecipação já apareceu em algum ponto do buffer de busca. Quando encontra o mesmo padrão, codifica a correspondência em uma tupla **(distância, comprimento, próximo caractere)**. A distância indica quantos caracteres é preciso voltar para encontrar o começo do trecho, e o comprimento informa quantos caracteres coincidem.
+O algoritmo procura saber se o início do buffer de antecipação já apareceu em algum ponto do buffer de busca. Quando encontra o mesmo padrão, codifica a correspondência em uma tupla **(distância, comprimento, próximo caractere)**. A distância indica quantos caracteres é preciso voltar para encontrar o começo do trecho, e o comprimento informa quantos caracteres coincidem. O artigo original registrava o primeiro valor como uma posição dentro do buffer; as implementações atuais registram a mesma informação como uma distância.
 
 Por exemplo, ao compactar a string `"banana_banana"` com o codificador didático incluído mais adiante neste artigo, saem cinco tokens LZ77: `(0,0,b)` `(0,0,a)` `(0,0,n)` `(2,3,_)` `(7,5,a)`. Os três primeiros são caracteres vistos pela primeira vez, então carregam apenas o próximo caractere, sem correspondência. O segundo `"banana"` é resolvido por um único token, o último, `(7,5,a)`. Ele significa “volte sete caracteres, copie cinco e acrescente `a`”. Ele não copia os seis caracteres porque este codificador sempre deixa o último caractere da entrada na posição de próximo caractere.
 
@@ -59,13 +59,13 @@ Em `(2,3,_)`, o comprimento 3 é maior que a distância 2. Com `ban` já escrito
 
 A [RFC 1951](https://www.rfc-editor.org/rfc/rfc1951) especifica o mesmo comportamento: se os dois últimos bytes forem X e Y, `<length = 5, distance = 2>` acrescenta X,Y,X,Y,X. Isso funciona porque o dicionário é justamente o dado recém-restaurado.
 
-Nessa abordagem, **o dicionário não é armazenado nem transmitido separadamente.** O decodificador reconstrói sozinho o buffer de busca durante a descompressão, de modo que o dicionário fica implícito nos próprios dados. Como as referências apontam para dados anteriores, a descompressão, em princípio, avança em ordem desde o início. No entanto, as referências só alcançam até onde vai a janela. A RFC 1951 limita as referências do DEFLATE a no máximo 32K bytes para trás. Por isso o zlib oferece `Z_FULL_FLUSH`, que reinicia o estado de compressão, e o [zlib.h](https://github.com/madler/zlib/blob/v1.3.1/zlib.h) diz que a descompressão pode recomeçar a partir desse ponto, então ele serve quando se precisa de acesso aleatório. O mesmo texto avisa que usá-lo com muita frequência pode degradar seriamente a compressão.
+Nessa abordagem, **o dicionário não é armazenado nem transmitido separadamente.** O decodificador reconstrói sozinho o buffer de busca durante a descompressão, de modo que o dicionário fica implícito nos próprios dados. Como as referências apontam para dados anteriores, a descompressão, em princípio, avança em ordem desde o início. No entanto, as referências só alcançam até onde vai a janela. A RFC 1951 limita as referências do DEFLATE a no máximo 32K bytes para trás. O `Z_FULL_FLUSH` do zlib reinicia o estado de compressão para que a descompressão possa recomeçar a partir desse ponto se os dados comprimidos anteriores estiverem danificados ou se for preciso acesso aleatório. O [zlib.h](https://github.com/madler/zlib/blob/v1.3.1/zlib.h) avisa que usá-lo com muita frequência pode degradar seriamente a compressão.
 
-O tamanho da janela tem uma relação direta de compromisso com a taxa de compressão. Uma janela maior consegue referenciar padrões mais distantes e comprime melhor, mas aumenta o custo da busca e o uso de memória.
+O tamanho da janela tem uma relação direta de compromisso com a taxa de compressão. Uma janela maior consegue referenciar padrões mais distantes e comprime melhor, mas usa mais memória e, com mais candidatos a verificar, a busca de correspondências costuma ficar mais lenta.
 
 <hr>
 
-### LZ78: um dicionário explícito
+## LZ78: um dicionário explícito
 
 Ao contrário do LZ77, o LZ78 **constrói um dicionário explícito** durante a compressão. Não há janela deslizante. Padrões observados anteriormente são guardados como entradas indexadas e, quando se repetem, são substituídos pelos índices.
 
@@ -147,21 +147,21 @@ LZ78 (0,b) (0,a) (0,n) (2,n) (2,_) (1,a) (3,a) (7,) true
 사전 1:b 2:a 3:n 4:an 5:a_ 6:ba 7:na
 ```
 
-Os dois decodificadores do código recebem apenas tokens. Isso significa que **o LZ78 também não transmite o dicionário**. O decodificador lê os tokens e adiciona entradas na mesma ordem que o codificador, então o mesmo dicionário é reconstruído. Não transmitir o dicionário é algo que os dois algoritmos têm em comum; onde eles se separam é na **forma de esquecer o conteúdo antigo**. A janela do LZ77 avança e esquece os dados antigos por conta própria. O dicionário do LZ78 só cresce, então a implementação precisa definir um limite e, quando ele enche, congelá-lo ou esvaziá-lo.
+Os dois decodificadores do código recebem apenas tokens. Isso significa que **o LZ78 também não transmite o dicionário**. O decodificador lê os tokens e adiciona entradas na mesma ordem que o codificador, então o mesmo dicionário é reconstruído. Não transmitir o dicionário é algo que os dois algoritmos têm em comum; onde eles se separam é na **forma de esquecer o conteúdo antigo**. A janela do LZ77 avança e esquece os dados antigos por conta própria. O dicionário do LZ78 continua crescendo se for deixado como está. O artigo original o esvaziava por inteiro sempre que terminava um bloco de comprimento fixo, e as implementações reais limitam o tamanho do dicionário e, quando ele enche, o congelam, o esvaziam ou reutilizam parte das entradas.
 
 A variação mais conhecida do LZ78 é o **LZW** (Lempel-Ziv-Welch). Terry Welch publicou essa melhoria em 1984, e ela foi usada no formato GIF e no utilitário Unix `compress`, associado à extensão `.Z`. As duas implementações colocaram um limite no dicionário. A [especificação GIF89a](https://www.w3.org/Graphics/GIF/spec-gif89a.txt) limita os códigos a 12 bits (valor máximo 4095) e define à parte um Clear code que devolve o dicionário ao estado inicial. Segundo a [página de manual do ncompress](https://github.com/vapier/ncompress/blob/v5.0/compress.1), o `compress` acompanha a taxa de compressão depois que o comprimento do código atinge o limite de `-b` (16 bits por padrão) e, se a taxa cair, descarta o dicionário e o reconstrói do zero.
 
 <hr>
 
-### De qual família descendem os algoritmos modernos?
+## Descendentes do LZ77
 
-A maioria dos algoritmos de compressão predominantes hoje é **descendente do LZ77**.
+Então, de qual lado vêm os algoritmos de compressão modernos? A maioria dos algoritmos de compressão predominantes hoje é **descendente do LZ77**.
 
-O **LZSS**, publicado por Storer e Szymanski em 1982, é uma variante que aprimorou o LZ77. Quando uma correspondência é tão curta que o ponteiro ficaria até mais longo que os caracteres originais, ele emite o “literal” (o caractere original) no lugar do ponteiro.
+O **LZSS**, que surgiu do artigo de Storer e Szymanski de 1982, é uma variante do LZ77. Quando uma correspondência é tão curta que o ponteiro ficaria mais longo que o original, ele emite um literal (o caractere original) no lugar do ponteiro.
 
-O **DEFLATE** foi projetado por Phil Katz para o PKZIP 2, e sua especificação foi consolidada em 1996 como RFC 1951. A RFC 1951 descreve o DEFLATE como a combinação do LZ77 com a **codificação de Huffman**, que atribui sequências de bits mais curtas aos símbolos mais frequentes. Sua saída é uma sequência que mistura literais e pares (comprimento, distância), e junta literais e comprimentos de correspondência em um único alfabeto (0 a 285), distinguido por um único código de Huffman. O método de compressão padrão do ZIP, assim como GZIP e PNG, usam esse DEFLATE. Ou seja, a maioria dos arquivos `.zip`, `.gz` e `.png` que manipulamos todos os dias é descendente direta do LZ77.
+O **DEFLATE** foi projetado por Phil Katz para o PKZIP 2, e sua especificação foi consolidada em 1996 como RFC 1951. A RFC 1951 descreve o DEFLATE como a combinação do LZ77 com a **codificação de Huffman**, que atribui sequências de bits mais curtas aos símbolos mais frequentes. Sua saída é uma sequência que mistura literais e pares (comprimento, distância), e junta literais e comprimentos de correspondência em um único alfabeto (0 a 285), distinguido por um único código de Huffman. O método de compressão que a maioria dos programas ZIP usa por padrão, assim como GZIP e PNG, usam esse DEFLATE. Ou seja, a maioria dos arquivos `.zip`, `.gz` e `.png` que manipulamos todos os dias é descendente direta do LZ77.
 
-Algoritmos posteriores como **LZMA** (usado pelo 7-Zip e pelo XZ), **LZ4** e **Zstd** também partem da janela deslizante do LZ77 e evoluem as estruturas de busca de correspondências e as técnicas de codificação de entropia. A família LZ78 continua presente, na forma do LZW, dentro de formatos como o GIF.
+Algoritmos posteriores como **LZMA** (usado pelo 7-Zip e pelo XZ), **LZ4** e **Zstd** também partiram da ideia da janela deslizante do LZ77. LZMA e Zstd desenvolveram juntas a busca de correspondências e a codificação de entropia, enquanto o LZ4 abriu mão por completo da codificação de entropia e escolheu a velocidade com um formato orientado a bytes. A família LZ78 continua presente, na forma do LZW, dentro de formatos como o GIF.
 
 Cada artigo demonstrou otimalidade assintótica dentro do próprio modelo. O artigo de 1977 mostrou que a taxa de compressão do LZ77 “uniformly approaches the lower bounds” (aproxima-se uniformemente dos limites inferiores) atingíveis por códigos projetados conhecendo a fonte de antemão, e o artigo de 1978 mostrou, para sequências individuais, que o incremental parsing do LZ78 é assintoticamente ótimo. Como os modelos são diferentes, esses resultados sozinhos não permitem comparar os dois.
 
