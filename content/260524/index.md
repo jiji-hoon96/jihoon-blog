@@ -4,7 +4,7 @@ title: "MCP와 function calling"
 seoTitle: "MCP는 function calling과 무엇이 다른가: 프로토콜 구조와 호출 흐름"
 date: "2026-05-24"
 updatedAt: "2026-10-08"
-categories: AI 개발도구 Claude MCP CodeGraph
+categories: AI 개발도구 Claude MCP
 description: "MCP가 function calling과 무엇이 다른지 프로토콜 구조로 정리한다. 여섯 가지 primitive, stdio와 Streamable HTTP, tools/list에서 tool_use 루프까지의 흐름, Tool Poisoning 같은 보안 문제를 다룬다."
 keywords: "MCP, Model Context Protocol, MCP function calling 차이, MCP primitive, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP 보안"
 ---
@@ -20,21 +20,21 @@ Claude Code나 Cursor에 MCP 서버를 붙여 쓰고는 있지만, 그것이 LLM
 
 MCP(Model Context Protocol)는 "**에이전트에게 무엇을 할 수 있게 해줄까**"의 문제를 푼다.
 
-조금 풀어쓰면 이렇다. AI 에이전트가 Slack에 메시지를 보내려면 Slack API를 호출할 수 있어야 한다. GitHub 이슈를 만들려면 GitHub API를 호출할 수 있어야 한다. Postgres에 쿼리하려면 DB 연결을 다룰 수 있어야 한다. 이 모든 외부 시스템과의 통합을 **하나의 표준 프로토콜로 묶은 것**이 MCP다. (어떤 클라이언트든 어떤 서버든 같은 포트로 연결된다는 의미다)
+조금 풀어쓰면 이렇다. AI 에이전트가 Slack에 메시지를 보내려면 Slack API를 호출할 수 있어야 한다. GitHub 이슈를 만들려면 GitHub API를 호출할 수 있어야 한다. Postgres에 쿼리하려면 DB 연결을 다룰 수 있어야 한다. 이 모든 외부 시스템과의 통합을 **하나의 표준 프로토콜로 묶은 것**이 MCP다. (클라이언트와 서버가 같은 규격으로 연결된다는 뜻이다)
 
-MCP는 Anthropic이 **2024년 11월 25일**에 처음 공개한 개방형 표준이다. 그리고 **2025년 12월 9일**, Anthropic·Block·OpenAI 세 회사가 공동 창립자로 Linux Foundation 산하 **Agentic AI Foundation(AAIF)** 에 MCP 사양을 기증했다. Google·Microsoft·AWS·Cloudflare·Bloomberg가 플래티넘 멤버로 합류했다. (2025년 12월 기증 시점에 이미 월 9,700만 회 이상의 SDK 다운로드와 1만 개 이상의 활성 공개 MCP 서버가 있었다.)
+MCP는 Anthropic이 **2024년 11월 25일**에 처음 공개한 개방형 표준이다. 그리고 **2025년 12월 9일**, Anthropic은 MCP를 Linux Foundation 산하 [Agentic AI Foundation(AAIF)](https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation)에 기증했다. AAIF는 Anthropic·Block·OpenAI가 공동 창립했다.
 
-MCP는 JSON-RPC 위에 만들어진 프로토콜이다. [JSON-RPC 2.0](https://www.jsonrpc.org/specification)은 JSON을 와이어 포맷으로 쓰는 stateless·경량 RPC(Remote Procedure Call) 프로토콜이다. 전송 계층에 독립적이어서 HTTP·TCP·표준 입출력 무엇이든 위에서 동작한다. notification(응답이 없는 호출)과 batch 호출도 정의하지만, MCP는 batch를 [2025-06-18 개정판](https://modelcontextprotocol.io/specification/2025-06-18/changelog)에서 뺐다. 이 글은 2025-11-25 개정판을 기준으로 설명하고, 이 판에서 MCP는 연결마다 세션을 맺는 stateful 프로토콜이다. 그 뒤에 나온 개정판에서 무엇이 바뀌었는지는 호출 흐름을 본 다음에 다룬다.
+MCP는 JSON-RPC 위에 만들어진 프로토콜이다. [JSON-RPC 2.0](https://www.jsonrpc.org/specification)은 JSON을 와이어 포맷으로 쓰는 stateless·경량 RPC(Remote Procedure Call) 프로토콜이다. 전송 계층에 독립적이어서 HTTP·TCP·표준 입출력 무엇이든 위에서 동작한다. 이 글은 2025-11-25 개정판을 기준으로 설명하고, 이 판에서 MCP는 연결마다 세션을 맺는 stateful 프로토콜이다. 그 뒤에 나온 개정판에서 무엇이 바뀌었는지는 호출 흐름을 본 다음에 다룬다.
 
 
-### 프로토콜 내부
+### 여섯 가지 primitive
 
-2025-11-25 명세의 개요는 클라이언트와 서버가 주고받는 기능을 여섯 가지 primitive로 나눈다. 여기서 primitive는 JavaScript의 원시 타입(string, number 같은 것)과는 관계가 없고, 프로토콜이 정의해 둔 기본 상호작용 유형을 가리킨다. 서버측 세 가지와 클라이언트측 Sampling·Roots는 첫 개정판(2024-11-05)부터 있었고, Elicitation은 2025-06-18 개정판에서 들어왔다.
+2025-11-25 명세의 개요는 서버가 제공하는 기능 셋과 클라이언트가 제공하는 기능 셋을 든다. 이 글은 이 여섯을 primitive라고 부른다. 여기서 primitive는 JavaScript의 원시 타입(string, number 같은 것)과는 관계가 없고, 프로토콜이 정의해 둔 기본 상호작용 유형을 가리킨다.
 
 **서버측 primitive**
 
 - **Tool** (model-controlled): 모델이 호출 여부를 스스로 판단해 실행하는 동작이다. 이런 동작은 부작용(side effect)을 가질 수 있다
-- **Resource** (application-controlled): URI로 식별되는 데이터다. 스펙에는 내용을 읽어 오는 `resources/read` 만 있고 쓰는 메서드는 없다. 어떤 리소스를 노출할지는 호스트 애플리케이션이 결정한다.
+- **Resource** (application-controlled): URI로 식별되는 데이터다. 스펙에는 내용을 읽어 오는 `resources/read` 만 있고 쓰는 메서드는 없다. 그 리소스를 context에 어떻게 넣을지는 호스트 애플리케이션이 결정한다.
 - **Prompt** (user-controlled): 사용자가 슬래시 명령 등으로 명시적으로 트리거하는 재사용 가능한 템플릿이다.
 
 **클라이언트측 primitive**
@@ -45,9 +45,9 @@ MCP는 JSON-RPC 위에 만들어진 프로토콜이다. [JSON-RPC 2.0](https://w
 
 이 구분이 중요한 이유는 **누가 호출이나 제공을 결정하는가**가 다르기 때문이다. Tool은 모델이 판단해 실행하니 잘못된 호출의 리스크가 있고, Prompt는 사용자가 명시적으로 고른다. Resource는 앱이 고르는 것이 기본이지만, 스펙은 heuristic이나 모델의 선택으로 자동 포함하는 구현도 허용한다. 그래서 Resource가 늘 Tool보다 안전하다고 말할 수는 없다. 클라이언트측 세 가지는 방향이 반대다. 서버가 요청하고, 응할지는 클라이언트가 정한다.
 
-[표준 전송 방식](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)은 두 가지이고, 스펙은 그 밖의 커스텀 전송도 허용한다(MAY). 하나는 **stdio**로, MCP 서버를 로컬 서브프로세스로 실행하고 표준 입출력으로 통신하는 방식이다. 파일시스템이나 깃처럼 로컬에서 동작하는 도구에 적합하다. 다른 하나는 **Streamable HTTP**인데, HTTP POST 위에 SSE 스트리밍을 얹어서 양방향에 가까운 통신을 만들어내는 방식이다. 원격 서버, OAuth 인증, 다중 클라이언트 연결, 클라우드 배포처럼 네트워크 너머에서 일어나는 시나리오에 적합하다.
+### 두 가지 전송 방식
 
-여기서 SSE(Server-Sent Events)는 HTTP 연결을 통해 서버가 클라이언트로 단방향 데이터를 푸시하는 방식이고, 지금은 [WHATWG HTML 표준](https://html.spec.whatwg.org/multipage/server-sent-events.html)에 정의돼 있다. media type은 `text/event-stream`이고 자바스크립트에서는 `EventSource` API로 접근한다. WebSocket과 달리 단방향이지만 HTTP 위에서 동작하므로 프록시·방화벽 친화적이라는 장점이 있다. Streamable HTTP는 이 SSE를 활용해서 양방향 통신을 흉내내는 셈인데, **2025년 3월 26일** spec(version `2025-03-26`)에서 도입되어 기존의 HTTP+SSE 전송을 대체했다.
+[표준 전송 방식](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)은 두 가지이고, 스펙은 그 밖의 커스텀 전송도 허용한다(MAY). 하나는 **stdio**로, MCP 서버를 로컬 서브프로세스로 실행하고 표준 입출력으로 통신하는 방식이다. 파일시스템이나 깃처럼 로컬에서 동작하는 도구에 적합하다. 다른 하나는 **Streamable HTTP**인데, HTTP POST와 GET에 SSE(Server-Sent Events) 스트리밍을 얹어서 양방향에 가까운 통신을 만들어내는 방식이다. SSE는 HTTP 연결 위에서 서버가 클라이언트로 데이터를 한 방향으로 밀어 보내는 방식이다. 원격 서버, OAuth 인증, 다중 클라이언트 연결, 클라우드 배포처럼 네트워크 너머에서 일어나는 시나리오에 적합하다.
 
 
 ### LLM이 MCP 도구를 호출하는 흐름
@@ -62,7 +62,7 @@ primitive와 전송 방식까지 봤으니, 이제 **실제로 LLM이 MCP 도구
 - **클라이언트 → 서버**: `tools/list` 요청 → 사용 가능한 도구 목록 수신
 - (이후) LLM이 도구를 호출하기로 결정 → 클라이언트가 `tools/call` 발송 → 결과 수신
 
-여기서 자주 간과되는 것이 **`initialize` 응답의 `instructions` 필드**다. 서버가 도구를 어떻게 써야 하는지 텍스트로 적어 보내는 자리인데, [스펙 schema의 주석](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts)은 이 내용을 시스템 프롬프트에 넣어도 된다(MAY)고만 적는다. 넣을지는 호스트가 정한다. 아래 예제에서 TypeScript SDK 1.32.1은 이 값을 `getInstructions()` 로 꺼내 줄 뿐 모델 쪽으로 넘기지 않는다. 필자는 이 슬롯도 뒤에서 다룰 Tool Poisoning과 같은 성격의 자리라고 본다. 서버가 쓴 텍스트가 모델 앞에 놓일 수 있기 때문이다.
+여기서 볼 것이 **`initialize` 응답의 `instructions` 필드**다. 서버가 도구를 어떻게 써야 하는지 텍스트로 적어 보내는 자리인데, [스펙 schema의 주석](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts)은 이 내용을 시스템 프롬프트에 넣어도 된다(MAY)고만 적으므로 넣을지는 호스트가 정한다.
 
 그러면 tool 정의 자체는 어떻게 LLM의 시야에 들어갈까. MCP의 tool 정의는 다음과 같은 JSON Schema 형태다.
 
@@ -128,7 +128,7 @@ console.log("tool_result:", JSON.stringify({ type: "tool_result", tool_use_id: t
 await client.close();
 ```
 
-코드 중간에서 `clientT.send` 를 덮어쓴 두 줄은 클라이언트가 보내는 메시지의 메서드 이름을 찍으려고 넣은 것이고, 변환에는 관여하지 않는다. `node post-demo.mjs` 의 출력은 이렇다.
+`node post-demo.mjs` 의 출력은 이렇다.
 
 ```text
 C->S initialize 2025-11-25
@@ -141,7 +141,7 @@ C->S tools/call
 tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type":"text","text":"Seoul: 15C, partly cloudy"}]}
 ```
 
-변환은 필드 이름을 바꾸는 것이 전부다. MCP의 `inputSchema` 가 Anthropic에서는 `input_schema`, OpenAI에서는 `parameters` 가 된다. SDK가 schema에 `$schema` 를 덧붙인다는 점도 출력에서 보인다. 반대 방향도 짧다. Anthropic의 `tool_use.input` 은 객체라서 그대로 `tools/call` 의 `arguments` 가 된다. 위 OpenAI 쪽 모양은 Responses API의 형식이다. OpenAI가 돌려주는 호출의 `arguments` 는 [JSON 문자열](https://developers.openai.com/api/docs/guides/function-calling)이라서 넘기기 전에 `JSON.parse` 를 한 번 거쳐야 한다. 위 코드는 Anthropic 모양의 `tool_use` 블록만 만들었으므로 이 parse 단계는 출력에 나오지 않는다.
+도구 정의의 변환은 필드 이름을 바꾸는 것이 전부다. MCP의 `inputSchema` 가 Anthropic에서는 `input_schema`, OpenAI에서는 `parameters` 가 된다. SDK가 schema에 `$schema` 를 덧붙인다는 점도 출력에서 보인다. 반대 방향도 짧다. Anthropic의 `tool_use.input` 은 객체라서 그대로 `tools/call` 의 `arguments` 가 된다. 결과 쪽도 text 블록은 모양이 같아 그대로 넘어가지만, 이미지나 에러 결과는 모양이 달라 Anthropic SDK의 MCP helper가 따로 변환한다. 위 OpenAI 쪽 모양은 Responses API의 형식이다. OpenAI가 돌려주는 호출의 `arguments` 는 [JSON 문자열](https://developers.openai.com/api/docs/guides/function-calling)이라서 넘기기 전에 `JSON.parse` 를 한 번 거쳐야 한다. 위 코드는 Anthropic 모양의 `tool_use` 블록만 만들었으므로 이 parse 단계는 출력에 나오지 않는다.
 
 
 ### MCP가 더하는 네 가지
@@ -149,11 +149,13 @@ tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type"
 그렇다면 MCP는 function calling에 무엇을 더하는가? 2025-11-25 개정판 기준으로 네 가지다.
 
 - **동적 발견**: 빌드 타임에 도구 목록을 모르고 런타임에 `tools/list` 로 가져온다. 서버는 `notifications/tools/list_changed` 로 연결 도중 목록이 바뀌었다고 알릴 수 있다
-- **Stateful session**: `initialize` 로 연결을 맺고 그 안에서 요청이 오간다. 종료 메시지는 따로 없고, 전송을 닫는 것이 곧 종료다
+- **Stateful session**: `initialize` 로 연결을 맺고 그 안에서 요청이 오간다. 종료용 JSON-RPC 메시지는 따로 없고 전송을 닫는 것으로 끝낸다
 - **Tool 외 primitive**: Resource·Prompt·Sampling·Roots·Elicitation을 capability negotiation으로 노출한다. capability negotiation은 `initialize` 에서 양쪽이 지원하는 기능을 서로 알리는 단계다
 - **양방향성**: 서버가 Sampling으로 클라이언트의 LLM에게 completion을 거꾸로 요청할 수 있다(2026-07-28 개정판에서 deprecated)
 
-그런데 2026-10-08 현재 공식 사이트에서 latest로 열리는 것은 [2026-07-28 개정판](https://modelcontextprotocol.io/specification/2026-07-28/changelog)이고, 여기서 이 목록의 절반이 바뀌었다. 먼저 `initialize` 와 `notifications/initialized` 로 이루어진 handshake와 프로토콜 수준의 세션이 사라졌다. 대신 매 요청이 `_meta` 에 프로토콜 버전과 클라이언트 capabilities를 싣는다. 이 필드는 메시지의 본래 인자와 별도로 메타데이터를 붙이도록 MCP가 예약해 둔 자리다. 서버는 `server/discover` 를 반드시 구현해야 한다(MUST). 클라이언트가 다른 요청보다 먼저 불러 서버가 지원하는 프로토콜 버전, capabilities, 서버 정보를 받아 오는 RPC다.
+### 2026-07-28 개정판 이후
+
+2026-10-08 현재 공식 사이트에서 latest로 열리는 것은 [2026-07-28 개정판](https://modelcontextprotocol.io/specification/2026-07-28/changelog)이고, 여기서 이 목록의 절반이 바뀌었다. 먼저 `initialize` 와 `notifications/initialized` 로 이루어진 handshake와 프로토콜 수준의 세션이 사라졌다. 대신 매 요청이 `_meta` 에 프로토콜 버전과 클라이언트 capabilities를 싣는다. 이 필드는 메시지의 본래 인자와 별도로 메타데이터를 붙이도록 MCP가 예약해 둔 자리다. 서버는 `server/discover` 를 반드시 구현해야 한다(MUST). 서버가 지원하는 프로토콜 버전, capabilities, 서버 정보를 돌려주는 RPC로, 클라이언트는 다른 요청보다 먼저 이것을 불러 지원 버전과 capabilities를 미리 확인할 수 있다.
 
 서버가 먼저 보내던 요청은 Multi Round-Trip Requests(MRTR)라는 패턴으로 바뀌었다. 서버가 요청을 따로 보내는 대신 추가 입력이 필요하다는 중간 결과(`input_required`)를 돌려주고, 클라이언트가 그 입력을 채워 원래 요청을 다시 보내는 방식이다.
 
@@ -166,9 +168,9 @@ Sampling과 Roots는 Logging과 함께 deprecated 되었다. 명세에 남아 �
 
 ### API가 MCP 클라이언트가 될 때
 
-이 계약 중 어디까지가 모델에게 닿는지는 Anthropic의 [MCP connector](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector)가 보여 준다. Messages API가 원격 MCP 서버에 직접 붙는 기능인데, 문서의 Limitations는 MCP 명세의 기능 가운데 "only tool calls are currently supported" 라고 적고, "Local STDIO servers cannot be connected directly" 라고 적는다. 같은 문서는 로컬 서버나 MCP prompt, resource가 필요하면 MCP SDK로 연결을 직접 관리하면서 Anthropic SDK의 변환 helper를 쓰라고 안내한다.
+이 계약 중 어디까지가 모델에게 닿는지는 Anthropic의 [MCP connector](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector)(beta)가 보여 준다. Messages API가 원격 MCP 서버에 직접 붙는 기능인데, 문서의 Limitations는 MCP 명세의 기능 가운데 "only tool calls are currently supported" 라고 적고, "Local STDIO servers cannot be connected directly" 라고 적는다. 같은 문서는 로컬 서버나 MCP prompt, resource가 필요하면 MCP SDK로 연결을 직접 관리하면서 Anthropic SDK의 변환 helper를 쓰라고 안내한다.
 
-즉 function calling layer에서 MCP를 소비하면 Tool만 남는다. Resource와 Prompt는 그것을 화면이나 context로 옮겨 줄 호스트가 있어야 의미를 갖는다. OpenAI도 function calling 가이드에서 MCP 서버의 기능을 built-in tool로 쓰는 길을 소개한다. OpenAI의 Remote MCP 가이드는 도구 목록을 가져오고 호출하는 방법만 설명하고, Resource나 Prompt를 지원하는지는 적지 않는다.
+즉 function calling layer에서 MCP를 소비하면 Tool만 남는다. Resource와 Prompt는 그것을 화면이나 context로 옮겨 줄 호스트가 있어야 의미를 갖는다. OpenAI도 function calling 가이드에서 MCP 서버의 기능을 built-in tool로 쓰는 길을 소개한다. OpenAI의 [MCP servers 가이드](https://developers.openai.com/api/docs/guides/tools-connectors-mcp)는 도구 목록을 가져오고 호출하는 방법만 설명하고, Resource나 Prompt를 지원하는지는 적지 않는다.
 
 
 ### 동적 발견이 여는 공격면
@@ -177,11 +179,11 @@ Sampling과 Roots는 Logging과 함께 deprecated 되었다. 명세에 남아 �
 
 대표적인 공격 두 가지가 모두 도구 정의가 런타임에 오간다는 데서 나온다.
 
-- **Tool Poisoning Attack(TPA)** : [Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)가 2025년 4월에 명명하고 PoC를 공개한 공격이다. MCP 서버의 도구 설명(description)에 악의적 지시사항을 숨겨두면, 모델은 그것을 사용자 지시로 착각하고 따른다. 사용자에게는 보이지 않는 텍스트지만 모델에는 보이는 것이다.
+- **Tool Poisoning Attack(TPA)** : [Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)가 2025년 4월에 명명하고 PoC를 공개한 공격이다. MCP 서버의 도구 설명(description)에 악의적 지시사항을 숨겨두면, 모델이 사용자 모르게 그 지시를 따를 수 있다. 사용자에게는 보이지 않는 텍스트지만 모델에는 보이는 것이다. 필자는 앞에서 본 `instructions` 필드도 같은 성격의 자리라고 본다. 서버가 쓴 텍스트가 모델 앞에 놓일 수 있기 때문이다.
 
-- **Rug Pull**(Silent Redefinition): 사용자가 승인한 뒤에 서버가 도구 정의를 바꾸는 공격이다. Invariant Labs가 같은 글에서 먼저 설명했고, Silent Redefinition이라는 이름은 Elena Cross의 글에서 왔으며, [Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/)이 2025년 4월 9일 이를 인용해 정리했다. 도구는 처음엔 합법적으로 시작된다. 사용자가 검토하고 승인하고 워크플로우에 통합한다. 몇 주 뒤, 도구 정의가 조용히 변경되어 악성 지시사항이 포함된다. 사용자는 재승인을 받지 않았으니 그대로 동작이 바뀐다.
+- **Rug Pull**(Silent Redefinition): 사용자가 승인한 뒤에 서버가 도구 정의를 바꾸는 공격이다. Invariant Labs가 같은 글에서 먼저 설명했고, Silent Redefinition이라는 이름은 Elena Cross의 글에서 왔으며, [Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/)이 2025년 4월 9일 이를 인용해 정리했다. 1일 차에 안전해 보이는 도구를 승인했는데, 7일 차에는 그 도구가 API 키를 공격자에게 보내도록 바뀌어 있는 식이다. 사용자에게 다시 승인을 받지 않으니 동작이 그대로 바뀐다.
 
-Rug Pull이 생기는 자리는 동적 발견을 가능하게 한 `notifications/tools/list_changed` 와 같다. 이 이름은 2025-11-25 개정판의 것이고, 2026-07-28 개정판에서는 앞서 본 대로 opt-in 한 클라이언트만 이 알림을 받는다. 스펙은 목록이 바뀌었다고 알리는 방법을 정할 뿐, 바뀐 정의를 사용자에게 다시 보여 주라고 요구하지는 않는다. Willison은 MCP 클라이언트가 처음 도구 설명을 사용자에게 보여 주고, 설명이 바뀌면 경고해야 한다고 적었다. 변경 뒤에 재승인을 받는 일은 스펙이 아니라 호스트가 맡는다.
+Rug Pull은 도구 정의를 설치 시점이 아니라 런타임에 서버에서 받아 온다는 구조에서 나온다. `notifications/tools/list_changed` 는 그 변경을 알리는 통로일 뿐이고, 알림 없이 다음 `tools/list` 응답만 바뀌어도 같은 일이 생긴다. 스펙은 목록이 바뀌었다고 알리는 방법을 정하고, 어떤 도구가 모델에 노출되는지 보여 주는 UI를 권할(SHOULD) 뿐, 바뀐 정의를 사용자에게 다시 보여 주라고 요구하지는 않는다. Willison은 MCP 클라이언트가 처음 도구 설명을 사용자에게 보여 주고, 설명이 바뀌면 경고해야 한다고 적었다. 변경 뒤에 재승인을 받는 일은 스펙이 아니라 호스트가 맡는다.
 
 
 ## 마무리
@@ -196,5 +198,4 @@ MCP가 에이전트에게 무엇을 할 수 있게 해줄지의 문제라면, �
 :::ref
 - [docs] [MCP Specification 2025-11-25, Lifecycle](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle)
 - [docs] [MCP Specification 2026-07-28, Versioning](https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning)
-- [docs] [OpenAI, Remote MCP](https://developers.openai.com/api/docs/guides/tools-remote-mcp)
 :::

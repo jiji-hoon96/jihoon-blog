@@ -6,8 +6,8 @@ date: "2026-05-24"
 updatedAt: "2026-10-08"
 locale: ja
 translationOf: '260524'
-sourceHash: 2293f3e018d512db6374f7146c812d706079a5d30ab86c875e6a6dd19b522ea4
-categories: AI 開発ツール Claude MCP CodeGraph
+sourceHash: fd3f65bb3af440c545df1ff8dc578fe055a2f12ae9af2be784adc03369a89d11
+categories: AI 開発ツール Claude MCP
 description: "MCPがfunction callingとどう違うのかをプロトコル構造から整理する。6つのプリミティブ、stdioとStreamable HTTP、tools/listからtool_useループまでの流れ、Tool Poisoningなどのセキュリティ問題を扱う。"
 keywords: "MCP, Model Context Protocol, MCP function calling 違い, MCP プリミティブ, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP セキュリティ"
 ---
@@ -23,21 +23,21 @@ Claude CodeやCursorにMCPサーバーをつないで使ってはいるものの
 
 MCP（Model Context Protocol）は「**エージェントに何ができるようにするか**」という問題を解く。
 
-少し具体的に説明しよう。AIエージェントがSlackへメッセージを送るには、Slack APIを呼び出せなければならない。GitHub Issueを作るには、GitHub APIを呼び出せなければならない。Postgresへクエリするには、DB接続を扱えなければならない。こうした外部システムとの統合を、**一つの標準プロトコルにまとめたもの**がMCPだ。（どのクライアントも、どのサーバーにも、同じインターフェースで接続できるという意味だ。）
+少し具体的に説明しよう。AIエージェントがSlackへメッセージを送るには、Slack APIを呼び出せなければならない。GitHub Issueを作るには、GitHub APIを呼び出せなければならない。Postgresへクエリするには、DB接続を扱えなければならない。こうした外部システムとの統合を、**一つの標準プロトコルにまとめたもの**がMCPだ。（クライアントとサーバーが同じ規格で接続されるという意味だ。）
 
-MCPはAnthropicが**2024年11月25日**に初めて公開したオープン標準だ。そして**2025年12月9日**、Anthropic・Block・OpenAIの3社は共同創設者として、MCP仕様をLinux Foundation傘下の**Agentic AI Foundation**（AAIF）へ寄贈した。Google・Microsoft・AWS・Cloudflare・Bloombergがプラチナメンバーとして参加した。（2025年12月の寄贈時点で、SDKは月間9,700万回以上ダウンロードされ、1万以上の公開MCPサーバーが稼働していた。）
+MCPはAnthropicが**2024年11月25日**に初めて公開したオープン標準だ。そして**2025年12月9日**、AnthropicはMCPをLinux Foundation傘下の[Agentic AI Foundation（AAIF）](https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation)へ寄贈した。AAIFはAnthropic・Block・OpenAIが共同で創設した。
 
-MCPはJSON-RPC上に構築されたプロトコルだ。[JSON-RPC 2.0](https://www.jsonrpc.org/specification)は、JSONをワイヤーフォーマットとして使うstatelessで軽量なRPC（Remote Procedure Call）プロトコルである。トランスポート層に依存せず、HTTP・TCP・標準入出力のいずれでも動作する。notification（応答のない呼び出し）とbatch呼び出しも定義しているが、MCPは[2025-06-18改訂版](https://modelcontextprotocol.io/specification/2025-06-18/changelog)でbatchを外した。この記事は2025-11-25改訂版を基準に説明する。この版のMCPは、接続ごとにセッションを張るstatefulなプロトコルだ。その後の改訂版で何が変わったのかは、呼び出しの流れを見てから扱う。
+MCPはJSON-RPC上に構築されたプロトコルだ。[JSON-RPC 2.0](https://www.jsonrpc.org/specification)は、JSONをワイヤーフォーマットとして使うstatelessで軽量なRPC（Remote Procedure Call）プロトコルである。トランスポート層に依存せず、HTTP・TCP・標準入出力のいずれでも動作する。この記事は2025-11-25改訂版を基準に説明する。この版のMCPは、接続ごとにセッションを張るstatefulなプロトコルだ。その後の改訂版で何が変わったのかは、呼び出しの流れを見てから扱う。
 
 
-### プロトコルの内部
+### 6つのプリミティブ
 
-2025-11-25仕様の概要は、クライアントとサーバーがやり取りする機能を6つのプリミティブ（primitive）に分けている。ここでいうプリミティブは、JavaScriptのプリミティブ型（stringやnumberなど）とは関係がなく、プロトコルが定めた基本的なやり取りの種類を指す。サーバー側の3つとクライアント側のSampling・Rootsは最初の改訂版（2024-11-05）からあり、Elicitationは2025-06-18改訂版で加わった。
+2025-11-25仕様の概要は、サーバーが提供する機能3つと、クライアントが提供する機能3つを挙げている。この記事ではこの6つをプリミティブ（primitive）と呼ぶ。ここでいうプリミティブは、JavaScriptのプリミティブ型（stringやnumberなど）とは関係がなく、プロトコルが定めた基本的なやり取りの種類を指す。
 
 **サーバー側プリミティブ**
 
 - **Tool**（model-controlled）：モデルが呼び出すかどうかを自ら判断して実行する操作。この操作は副作用（side effect）を持つことがある
-- **Resource**（application-controlled）：URIで識別されるデータ。仕様には内容を読み出す`resources/read`だけがあり、書き込むメソッドはない。どのリソースを公開するかはホストアプリケーションが決める
+- **Resource**（application-controlled）：URIで識別されるデータ。仕様には内容を読み出す`resources/read`だけがあり、書き込むメソッドはない。そのリソースをコンテキストにどう入れるかはホストアプリケーションが決める
 - **Prompt**（user-controlled）：ユーザーがスラッシュコマンドなどで明示的にトリガーする、再利用可能なテンプレート
 
 **クライアント側プリミティブ**
@@ -48,9 +48,9 @@ MCPはJSON-RPC上に構築されたプロトコルだ。[JSON-RPC 2.0](https://w
 
 この区別が重要なのは、**誰が呼び出しや提供を決めるのか**が異なるからだ。Toolはモデルの判断で実行されるため誤った呼び出しのリスクがあり、Promptはユーザーが明示的に選ぶ。Resourceはアプリが選ぶのが基本だが、仕様はヒューリスティクスやモデルの選択による自動的な取り込みを行う実装も認めている。そのため、Resourceが常にToolより安全だとは言えない。クライアント側の3つは向きが逆だ。サーバーが要求し、応じるかどうかはクライアントが決める。
 
-[標準の転送方式](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)は2つで、仕様はそれ以外のカスタム転送も認めている（MAY）。一つは**stdio**で、MCPサーバーをローカルのサブプロセスとして実行し、標準入出力で通信する方式だ。ファイルシステムやGitなど、ローカルで動くツールに適している。もう一つは**Streamable HTTP**で、HTTP POST上にSSEストリーミングを重ね、双方向に近い通信を実現する方式だ。リモートサーバー、OAuth認証、複数クライアント接続、クラウドデプロイなど、ネットワーク越しのシナリオに適している。
+### 2つの転送方式
 
-ここでSSE（Server-Sent Events）とは、HTTP接続を通じてサーバーからクライアントへ一方向にデータをpushする方式で、現在は[WHATWG HTML標準](https://html.spec.whatwg.org/multipage/server-sent-events.html)に定義されている。media typeは`text/event-stream`で、JavaScriptからは`EventSource` APIでアクセスする。WebSocketと違って一方向だが、HTTP上で動作するため、プロキシやファイアウォールとの相性がよい。Streamable HTTPは、このSSEを使って双方向通信を再現している。**2025年3月26日**のspec（version `2025-03-26`）で導入され、従来のHTTP+SSE転送を置き換えた。
+[標準の転送方式](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)は2つで、仕様はそれ以外のカスタム転送も認めている（MAY）。一つは**stdio**で、MCPサーバーをローカルのサブプロセスとして実行し、標準入出力で通信する方式だ。ファイルシステムやGitなど、ローカルで動くツールに適している。もう一つは**Streamable HTTP**で、HTTP POSTとGETにSSE（Server-Sent Events）ストリーミングを重ね、双方向に近い通信を実現する方式だ。SSEは、HTTP接続の上でサーバーからクライアントへ一方向にデータを送り出す方式だ。リモートサーバー、OAuth認証、複数クライアント接続、クラウドデプロイなど、ネットワーク越しのシナリオに適している。
 
 
 ### LLMがMCPツールを呼び出す流れ
@@ -65,7 +65,7 @@ MCPはJSON-RPC上に構築されたプロトコルだ。[JSON-RPC 2.0](https://w
 - **クライアント → サーバー**：`tools/list`リクエスト → 利用可能なツール一覧を受信
 - （以後）LLMがツールを呼び出すと判断 → クライアントが`tools/call`を送信 → 結果を受信
 
-ここで見落とされがちなのが、**`initialize`レスポンスの`instructions`フィールド**だ。サーバーがツールの使い方をテキストで書いて送る場所だが、[仕様スキーマのコメント](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts)は、この内容をシステムプロンプトに追加してもよい（MAY）と書いているだけだ。追加するかどうかはホストが決める。下の例では、TypeScript SDK 1.32.1はこの値を`getInstructions()`で取り出せるようにするだけで、モデル側へは渡さない。筆者は、この枠も後で扱うTool Poisoningと同じ性質の場所だと見ている。サーバーが書いたテキストがモデルの前に置かれうるからだ。
+ここで見ておきたいのが、**`initialize`レスポンスの`instructions`フィールド**だ。サーバーがツールの使い方をテキストで書いて送る場所だが、[仕様スキーマのコメント](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts)は、この内容をシステムプロンプトに追加してもよい（MAY）と書いているだけなので、追加するかどうかはホストが決める。
 
 では、tool定義そのものはどのようにLLMの視野に入るのか。MCPのtool定義は、次のようなJSON Schemaの形をしている。
 
@@ -131,7 +131,7 @@ console.log("tool_result:", JSON.stringify({ type: "tool_result", tool_use_id: t
 await client.close();
 ```
 
-コードの途中で`clientT.send`を上書きしている2行は、クライアントが送るメッセージのメソッド名を表示するためだけに入れたもので、変換には関わらない。`node post-demo.mjs`の出力は次のとおりだ。
+`node post-demo.mjs`の出力は次のとおりだ。
 
 ```text
 C->S initialize 2025-11-25
@@ -144,7 +144,7 @@ C->S tools/call
 tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type":"text","text":"Seoul: 15C, partly cloudy"}]}
 ```
 
-変換はフィールド名を変えるだけだ。MCPの`inputSchema`がAnthropicでは`input_schema`、OpenAIでは`parameters`になる。SDKがスキーマに`$schema`を付け足すことも出力からわかる。逆方向も短い。Anthropicの`tool_use.input`はオブジェクトなので、そのまま`tools/call`の`arguments`になる。上のOpenAI側の形はResponses APIの形式だ。OpenAIが返す呼び出しの`arguments`は[JSON文字列](https://developers.openai.com/api/docs/guides/function-calling)なので、渡す前に`JSON.parse`を一度通す必要がある。上のコードはAnthropic形式の`tool_use`ブロックしか作っていないので、このparseの段階は出力に現れない。
+ツール定義の変換はフィールド名を変えるだけだ。MCPの`inputSchema`がAnthropicでは`input_schema`、OpenAIでは`parameters`になる。SDKがスキーマに`$schema`を付け足すことも出力からわかる。逆方向も短い。Anthropicの`tool_use.input`はオブジェクトなので、そのまま`tools/call`の`arguments`になる。結果の側も、textブロックは形が同じなのでそのまま渡せるが、画像やエラーの結果は形が異なるため、Anthropic SDKのMCP helperが別途変換する。上のOpenAI側の形はResponses APIの形式だ。OpenAIが返す呼び出しの`arguments`は[JSON文字列](https://developers.openai.com/api/docs/guides/function-calling)なので、渡す前に`JSON.parse`を一度通す必要がある。上のコードはAnthropic形式の`tool_use`ブロックしか作っていないので、このparseの段階は出力に現れない。
 
 
 ### MCPが加える4つのもの
@@ -152,11 +152,13 @@ tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type"
 では、MCPはfunction callingに何を加えるのか。2025-11-25改訂版を基準にすると4つある。
 
 - **動的な発見**：ビルド時にはツール一覧を知らず、実行時に`tools/list`で取得する。サーバーは`notifications/tools/list_changed`で、接続中に一覧が変わったことを知らせられる
-- **Stateful session**：`initialize`で接続を確立し、その中でリクエストがやり取りされる。専用の終了メッセージはなく、転送を閉じることがそのまま終了になる
+- **Stateful session**：`initialize`で接続を確立し、その中でリクエストがやり取りされる。終了用のJSON-RPCメッセージはなく、転送を閉じることで終える
 - **Tool以外のプリミティブ**：Resource・Prompt・Sampling・Roots・Elicitationをcapability negotiationで公開する。capability negotiationとは、`initialize`で双方が対応する機能を互いに知らせる段階だ
 - **双方向性**：サーバーがSamplingを使って、クライアントのLLMへ逆にcompletionを要求できる（2026-07-28改訂版でdeprecated）
 
-ところが2026-10-08時点で、公式サイトでlatestとして開くのは[2026-07-28改訂版](https://modelcontextprotocol.io/specification/2026-07-28/changelog)で、ここでこのリストの半分が変わった。まず、`initialize`と`notifications/initialized`からなるハンドシェイクとプロトコルレベルのセッションがなくなった。代わりに、すべてのリクエストが`_meta`にプロトコルバージョンとクライアントcapabilitiesを載せる。このフィールドは、メッセージ本来の引数とは別にメタデータを付けるためにMCPが予約している場所だ。サーバーは`server/discover`を必ず実装しなければならない（MUST）。クライアントがほかのリクエストより先に呼び出し、サーバーが対応するプロトコルバージョン、capabilities、サーバー情報を受け取るRPCだ。
+### 2026-07-28改訂版以降
+
+2026-10-08時点で、公式サイトでlatestとして開くのは[2026-07-28改訂版](https://modelcontextprotocol.io/specification/2026-07-28/changelog)で、ここでこのリストの半分が変わった。まず、`initialize`と`notifications/initialized`からなるハンドシェイクとプロトコルレベルのセッションがなくなった。代わりに、すべてのリクエストが`_meta`にプロトコルバージョンとクライアントcapabilitiesを載せる。このフィールドは、メッセージ本来の引数とは別にメタデータを付けるためにMCPが予約している場所だ。サーバーは`server/discover`を必ず実装しなければならない（MUST）。サーバーが対応するプロトコルバージョン、capabilities、サーバー情報を返すRPCで、クライアントはほかのリクエストより先にこれを呼び出し、対応バージョンとcapabilitiesを事前に確認できる。
 
 サーバーが先に送っていたリクエストは、Multi Round-Trip Requests（MRTR）というパターンに置き換えられた。サーバーは別途リクエストを送る代わりに、追加の入力が必要だという中間結果（`input_required`）を返し、クライアントがその入力を埋めて元のリクエストを送り直す方式だ。
 
@@ -169,9 +171,9 @@ SamplingとRootsはLoggingとともにdeprecatedになった。仕様に残っ�
 
 ### APIがMCPクライアントになるとき
 
-この契約のうちどこまでがモデルに届くのかは、Anthropicの[MCP connector](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector)が示している。Messages APIがリモートのMCPサーバーに直接つなぐ機能だが、ドキュメントのLimitationsは、MCP仕様の機能のうち"only tool calls are currently supported"と書き、"Local STDIO servers cannot be connected directly"と書いている。同じドキュメントは、ローカルサーバーやMCPのprompt、resourceが必要なら、MCP SDKで接続を自分で管理しながらAnthropic SDKの変換helperを使うよう案内している。
+この契約のうちどこまでがモデルに届くのかは、Anthropicの[MCP connector](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector)（beta）が示している。Messages APIがリモートのMCPサーバーに直接つなぐ機能だが、ドキュメントのLimitationsは、MCP仕様の機能のうち"only tool calls are currently supported"と書き、"Local STDIO servers cannot be connected directly"と書いている。同じドキュメントは、ローカルサーバーやMCPのprompt、resourceが必要なら、MCP SDKで接続を自分で管理しながらAnthropic SDKの変換helperを使うよう案内している。
 
-つまり、function callingのレイヤーでMCPを消費するとToolだけが残る。ResourceとPromptは、それを画面やコンテキストへ運ぶホストがあって初めて意味を持つ。OpenAIもfunction callingガイドで、MCPサーバーの機能をbuilt-in toolとして使う方法を紹介している。OpenAIのRemote MCPガイドはツール一覧の取得と呼び出しの方法だけを説明し、ResourceやPromptに対応しているかどうかは書いていない。
+つまり、function callingのレイヤーでMCPを消費するとToolだけが残る。ResourceとPromptは、それを画面やコンテキストへ運ぶホストがあって初めて意味を持つ。OpenAIもfunction callingガイドで、MCPサーバーの機能をbuilt-in toolとして使う方法を紹介している。OpenAIの[MCP serversガイド](https://developers.openai.com/api/docs/guides/tools-connectors-mcp)はツール一覧の取得と呼び出しの方法だけを説明し、ResourceやPromptに対応しているかどうかは書いていない。
 
 
 ### 動的な発見が開く攻撃面
@@ -180,11 +182,11 @@ SamplingとRootsはLoggingとともにdeprecatedになった。仕様に残っ�
 
 代表的な2つの攻撃は、どちらもツール定義が実行時にやり取りされることから生まれる。
 
-- **Tool Poisoning Attack（TPA）**：[Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)が2025年4月に命名し、PoCを公開した攻撃だ。MCPサーバーのツール説明（description）に悪意ある指示を隠すと、モデルはそれをユーザーの指示と誤認して従う。ユーザーには見えないが、モデルには見えるテキストである。
+- **Tool Poisoning Attack（TPA）**：[Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)が2025年4月に命名し、PoCを公開した攻撃だ。MCPサーバーのツール説明（description）に悪意ある指示を隠すと、モデルがユーザーの知らないうちにその指示に従うことがある。ユーザーには見えないが、モデルには見えるテキストである。筆者は、先に見た`instructions`フィールドも同じ性質の場所だと見ている。サーバーが書いたテキストがモデルの前に置かれうるからだ。
 
-- **Rug Pull**（Silent Redefinition）：ユーザーが承認した後に、サーバーがツール定義を変える攻撃だ。Invariant Labsが同じ記事で先に説明しており、Silent Redefinitionという名前はElena Crossの記事に由来し、[Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/)が2025年4月9日にそれを引用してまとめた。ツールは最初、正当なものとして始まる。ユーザーが確認・承認し、ワークフローへ統合する。数週間後、ツール定義がひそかに変更され、悪意ある指示が含まれるようになる。ユーザーは再承認を求められないため、動作はそのまま変わってしまう。
+- **Rug Pull**（Silent Redefinition）：ユーザーが承認した後に、サーバーがツール定義を変える攻撃だ。Invariant Labsが同じ記事で先に説明しており、Silent Redefinitionという名前はElena Crossの記事に由来し、[Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/)が2025年4月9日にそれを引用してまとめた。1日目に安全そうに見えるツールを承認したのに、7日目にはそのツールがAPIキーを攻撃者へ送るように変わっている、という具合だ。ユーザーに改めて承認を求めないので、動作はそのまま変わってしまう。
 
-Rug Pullが起きる場所は、動的な発見を可能にした`notifications/tools/list_changed`と同じだ。この名前は2025-11-25改訂版のもので、2026-07-28改訂版では先に見たとおり、opt-inしたクライアントだけがこの通知を受け取る。仕様は一覧が変わったことを知らせる方法を定めるだけで、変わった定義をユーザーに改めて見せることまでは求めていない。Willisonは、MCPクライアントが最初にツール説明をユーザーに見せ、説明が変わったら警告すべきだと書いている。変更後に再承認を取るのは、仕様ではなくホストの役目だ。
+Rug Pullは、ツール定義をインストール時点ではなく実行時にサーバーから受け取るという構造から生まれる。`notifications/tools/list_changed`はその変更を知らせる経路にすぎず、通知がなくても次の`tools/list`レスポンスが変わるだけで同じことが起きる。仕様は一覧が変わったことを知らせる方法を定め、どのツールがモデルに公開されているかを示すUIを推奨する（SHOULD）だけで、変わった定義をユーザーに改めて見せることまでは求めていない。Willisonは、MCPクライアントが最初にツール説明をユーザーに見せ、説明が変わったら警告すべきだと書いている。変更後に再承認を取るのは、仕様ではなくホストの役目だ。
 
 
 ## まとめ
@@ -199,5 +201,4 @@ MCPがエージェントに何をできるようにするかの問題なら、�
 :::ref
 - [docs] [MCP Specification 2025-11-25, Lifecycle](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle)
 - [docs] [MCP Specification 2026-07-28, Versioning](https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning)
-- [docs] [OpenAI, Remote MCP](https://developers.openai.com/api/docs/guides/tools-remote-mcp)
 :::

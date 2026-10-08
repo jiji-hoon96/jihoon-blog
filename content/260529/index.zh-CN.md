@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: zh-CN
 translationOf: '260529'
-sourceHash: a8deda13246ed45566b723f969c3c12046709a55068c9d2bbec8d976fd7f8ec5
+sourceHash: fed5bdb321dec9666f12273f4c77b5c082799acd8ee57d2aeddff7096e128221
 categories: AI 开发工具 Claude MCP CodeGraph
 description: "梳理 CLAUDE.md、AGENTS.md、SKILL.md 与 Cursor rules 何时、如何被智能体读取，并根据 CLAUDE.md 以 user message 注入的机制、上下文遗忘与 ETH Zurich 研究，给出上下文文件该写什么的判断标准。"
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, 上下文文件, AI 编程智能体, Claude Code, ETH Zurich AGENTS.md 研究"
@@ -41,7 +41,7 @@ AI 编程智能体存在一个根本局限：**它没有持久记忆**。每个 
 
 ### AGENTS.md
 
-`AGENTS.md` 是为解决上述各工具专属文件泛滥而创建的标准。2025 年 12 月，Anthropic、Block、OpenAI 三家公司将它与 MCP（把智能体连接到外部系统的协议）一同捐赠给 Linux Foundation 旗下的 **Agentic AI Foundation（AAIF）**，使其成为事实上的行业标准。官方网站（`agents.md`）明确表示，**已有超过 6 万个开源仓库采用该文件**。
+`AGENTS.md` 是为解决上述各工具专属文件泛滥而创建的标准。2025 年 12 月，OpenAI 将这一标准捐赠给 Linux Foundation 旗下的 **Agentic AI Foundation**（AAIF）。据 [Linux Foundation 的公告](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation)，AAIF 由 Anthropic、Block、OpenAI 共同创立，创始项目有三个：Anthropic 的 MCP（把智能体连接到外部系统的协议）、Block 的 goose，以及 OpenAI 的 `AGENTS.md`。官方网站（`agents.md`）明确表示，**已有超过 6 万个开源仓库采用该文件**。
 
 看看支持工具的名单，这一点就更清楚了。OpenAI Codex、Google Jules、VS Code、GitHub Copilot、Cursor、JetBrains Junie、Aider、Devin、Zed、Factory、Warp、goose、opencode、Amp、RooCode、Gemini CLI、Kilo Code、Phoenix、Semgrep、Ona、Windsurf、Augment Code 等众多工具都提供支持。GitHub Copilot 从 2025 年 8 月起原生支持 `AGENTS.md`。有趣的是，**Claude Code 对 `AGENTS.md` 的原生支持目前仍处于 active feature request 状态**。Claude Code 依然将 `CLAUDE.md` 视为主要文件。
 
@@ -70,6 +70,8 @@ Claude Skills 于 2025 年 10 月 16 日在 Claude.ai、Claude Code、API 与 Ag
 
 这里与 Skills 相比较的 MCP（Model Context Protocol），是把智能体与 Slack、GitHub、DB 等外部系统连接起来、使其能够调用这些系统的标准协议。如果说上下文文件关乎该告诉智能体什么，MCP 关乎的就是该让智能体能做什么。MCP 与 function calling 有何不同，另外整理在[MCP 与 function calling](/260524)中。
 
+帮助智能体降低查找相关代码成本的工具（Repomix、Aider、CodeGraph、Serena），因理解代码的深度不同，所降低的成本也不同。相关比较另外整理在[代码智能的四个层级](/260526)中。
+
 
 ### 其他工具使用的文件
 
@@ -94,7 +96,7 @@ Cursor、Copilot 以外的工具也都在向相似模式靠拢。汇总如下。
 | **Windsurf** | `.windsurfrules` + `global_rules.md` | 全局与项目两级 |
 | **标准** | `AGENTS.md`（AAIF） | 已被 60,000+ 个仓库采用 |
 
-尤其值得注意的是 **Aider 的 `CONVENTIONS.md`**。官方文档明确指出，由于每次请求都会将该文件完整加入上下文，因此应**“保持在 200 行以内”**。（可以说，Aider 很早就意识到这一限制，并明确提醒了用户。）
+尤其值得注意的是 **Aider 的 `CONVENTIONS.md`**。官方文档明确指出，由于每次请求都会将该文件完整加入上下文，因此应“**保持在 200 行以内**”。（可以说，Aider 很早就意识到这一限制，并明确提醒了用户。）
 
 
 ### MEMORY.md
@@ -185,7 +187,7 @@ Aider 的“200 行建议”是实用层面的提醒——文件每次都会进�
 
 所以，我想做的不是推荐某种特定的文件格式，而是培养一种**看清文件如何被智能体读取的眼光**。理解 CLAUDE.md 为何以 user message 注入、不同工具为何以不同方式读取同一个 AGENTS.md、指令为何会在上下文中间变弱之后，新的上下文文件格式出现时，就能快速看懂：“它何时被加载，作用有多强。”
 
-最终留下的，是 ETH Zurich 研究带来的一个直觉：**模型本来就知道很多东西。**把所有内容都塞进上下文文件，并不会让智能体更认真地遵循。更好的做法是，只保留模型很可能不知道的信息——项目专属 convention、非标准工具、过去的错误——删除其余内容。把上下文文件写长，与把它写好，是两回事。
+最终留下的，是 ETH Zurich 研究带来的一个直觉：**模型本来就知道很多东西。** 把所有内容都塞进上下文文件，并不会让智能体更认真地遵循。更好的做法是，只保留模型很可能不知道的信息——项目专属 convention、非标准工具、过去的错误——删除其余内容。把上下文文件写长，与把它写好，是两回事。
 
 我也建议读者不要急着把 CLAUDE.md 扩展到几百行，不妨先深入了解一下，自己当前使用的工具会在何时、放在哪个位置、以多大的力度读取这个文件。无论文件格式如何变化，这种理解都会成为不易动摇的基础。
 

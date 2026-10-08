@@ -38,7 +38,7 @@ AI 코딩 에이전트에는 **지속 메모리가 없다는** 근본적인 한�
 
 ### AGENTS.md
 
-`AGENTS.md`는 위에서 말한 도구별 파일 난립을 풀기 위해 만들어진 표준이다. 2025년 12월, Anthropic·Block·OpenAI 세 회사가 MCP(에이전트를 외부 시스템에 연결하는 프로토콜)와 함께 Linux Foundation 산하 **Agentic AI Foundation(AAIF)** 에 기증하면서 사실상의 업계 표준이 되었다. 공식 사이트(`agents.md`)에서 **6만 개 이상의 오픈소스 저장소가 이 파일을 채택하고 있다**고 명시하고 있다.
+`AGENTS.md`는 위에서 말한 도구별 파일 난립을 풀기 위해 만들어진 표준이다. 2025년 12월, OpenAI는 이 표준을 Linux Foundation 산하 **Agentic AI Foundation(AAIF)** 에 기증했다. [Linux Foundation의 발표](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation)에 따르면 AAIF는 Anthropic·Block·OpenAI가 공동 창립했고, 창립 프로젝트는 Anthropic의 MCP(에이전트를 외부 시스템에 연결하는 프로토콜), Block의 goose, OpenAI의 `AGENTS.md` 셋이다. 공식 사이트(`agents.md`)에서 **6만 개 이상의 오픈소스 저장소가 이 파일을 채택하고 있다**고 명시하고 있다.
 
 지원하는 도구 목록을 보면 더 분명해진다. OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf, Augment Code 까지 수많은 도구들을 지원한다. GitHub Copilot은 2025년 8월부터 `AGENTS.md`를 네이티브로 지원하기 시작했다. 한 가지 흥미로운 점은 **Claude Code의 네이티브 `AGENTS.md` 지원은 아직 active feature request 상태**라는 것이다. Claude Code는 여전히 `CLAUDE.md`를 1차 파일로 본다.
 
@@ -66,6 +66,8 @@ AI 코딩 에이전트에는 **지속 메모리가 없다는** 근본적인 한�
 Claude Skills는 2025년 10월 16일 Claude.ai, Claude Code, API, Agent SDK에 동시 출시되었다. 그리고 2025년 12월 18일, Anthropic은 Skills 사양 자체를 오픈 표준(`agentskills.io`)으로 발표했다. Simon Willison은 "**Skills are awesome, maybe a bigger deal than MCP**"라는 평가를 내놓기도 했는데, 그 이유는 형식이 MCP보다 극적으로 단순하면서 컨텍스트 윈도우 비용 문제를 progressive disclosure로 해결한다는 점에 있었다.
 
 여기서 Skills와 비교된 MCP(Model Context Protocol)는 에이전트가 Slack, GitHub, DB 같은 외부 시스템을 호출할 수 있게 연결하는 표준 프로토콜이다. Context file이 에이전트에게 무엇을 알려줄지의 문제라면, MCP는 무엇을 할 수 있게 해줄지의 문제다. MCP가 function calling과 무엇이 다른지는 [MCP와 function calling](/260524)에 따로 정리해 두었다.
+
+에이전트가 관련 코드를 찾는 비용을 줄이는 도구들(Repomix, Aider, CodeGraph, Serena)은 코드를 얼마나 깊이 이해하느냐에 따라 줄이는 비용이 다르다. 그 비교는 [Code intelligence의 네 계층](/260526)에 따로 정리해 두었다.
 
 
 ### 다른 도구들의 파일

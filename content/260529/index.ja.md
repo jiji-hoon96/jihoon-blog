@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: ja
 translationOf: '260529'
-sourceHash: a8deda13246ed45566b723f969c3c12046709a55068c9d2bbec8d976fd7f8ec5
+sourceHash: fed5bdb321dec9666f12273f4c77b5c082799acd8ee57d2aeddff7096e128221
 categories: AI 開発ツール Claude MCP CodeGraph
 description: "CLAUDE.md・AGENTS.md・SKILL.md・Cursor rulesがいつ、どのようにエージェントに読み込まれるのかを整理する。CLAUDE.mdがuser messageとして注入される仕組みとコンテキストの忘却、ETH Zurichの研究をもとに、何を書くべきかの基準を示す。"
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, コンテキストファイル, AIコーディングエージェント, Claude Code, ETH Zurich AGENTS.md 研究"
@@ -34,14 +34,14 @@ AIコーディングエージェントには、**永続的な記憶がない**�
 - **プロジェクトメモリ**（プロジェクトルートの`CLAUDE.md`）：Gitにコミットされ、チーム全体で共有
 - **ローカルメモリ**（サブディレクトリの`CLAUDE.md`）：そのディレクトリで作業するときだけ追加で読み込まれる
 
-3階層がすべて存在する場合、Claudeは**すべてを読み込んで連結（concatenate）**する。優先順位によって一つだけを選ぶのではなく、CSSのcascadeのように、より具体的なものが追加で重なる構造だ。（オーバーライドではなくマージである。）したがって、同じテーマのルールを複数の階層に分散させると競合する可能性がある。（Anthropicの公式ドキュメントも、競合時の動作は保証されないと明記している。）
+3階層がすべて存在する場合、Claudeは**すべてを読み込んで連結**（concatenate）する。優先順位によって一つだけを選ぶのではなく、CSSのcascadeのように、より具体的なものが追加で重なる構造だ。（オーバーライドではなくマージである。）したがって、同じテーマのルールを複数の階層に分散させると競合する可能性がある。（Anthropicの公式ドキュメントも、競合時の動作は保証されないと明記している。）
 
 ここで見落とされがちな点が一つある。**現在の作業ディレクトリからリポジトリルートまで遡り、途中にあるすべての`CLAUDE.md`を読む**という点だ。そのため、モノレポの`packages/ui/`に入って作業すると、ルートの`CLAUDE.md`と`packages/ui/CLAUDE.md`が両方読み込まれる。（これは強力だが、同時にコンテキストが気づかないうちに膨らむ可能性も意味する。）
 
 
 ### AGENTS.md
 
-`AGENTS.md`は、前述したツール別ファイルの乱立を解消するために作られた標準だ。2025年12月、Anthropic・Block・OpenAIの3社がMCP（エージェントを外部システムにつなぐプロトコル）とともにLinux Foundation傘下の**Agentic AI Foundation（AAIF）**へ寄贈し、事実上の業界標準となった。公式サイト（`agents.md`）では、**6万以上のオープンソースリポジトリがこのファイルを採用している**と明記されている。
+`AGENTS.md`は、前述したツール別ファイルの乱立を解消するために作られた標準だ。2025年12月、OpenAIはこの標準をLinux Foundation傘下の**Agentic AI Foundation**（AAIF）へ寄贈した。[Linux Foundationの発表](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation)によると、AAIFはAnthropic・Block・OpenAIが共同で創設し、創設プロジェクトはAnthropicのMCP（エージェントを外部システムにつなぐプロトコル）、Blockのgoose、OpenAIの`AGENTS.md`の3つだ。公式サイト（`agents.md`）では、**6万以上のオープンソースリポジトリがこのファイルを採用している**と明記されている。
 
 対応ツールの一覧を見れば、さらに明確だ。OpenAI Codex、Google Jules、VS Code、GitHub Copilot、Cursor、JetBrains Junie、Aider、Devin、Zed、Factory、Warp、goose、opencode、Amp、RooCode、Gemini CLI、Kilo Code、Phoenix、Semgrep、Ona、Windsurf、Augment Codeなど、数多くのツールが対応している。GitHub Copilotは2025年8月から`AGENTS.md`をネイティブサポートし始めた。興味深いのは、**Claude Codeによる`AGENTS.md`のネイティブサポートは、いまだactive feature requestの状態**だという点だ。Claude Codeは今も`CLAUDE.md`を第一のファイルとして扱う。
 
@@ -57,7 +57,7 @@ AIコーディングエージェントには、**永続的な記憶がない**�
 
 `SKILL.md`は、前の2つとは性質が異なる。`CLAUDE.md`と`AGENTS.md`が**常にコンテキストに存在する永続的な指示**であるのに対し、スキル（Skill）は**必要なときだけ呼び出されるオンデマンドの能力**だ。
 
-スキルはフォルダ単位で構成される。フォルダの中には、1つの`SKILL.md`と、そのスキルが実行するスクリプト、追加のMarkdownドキュメントが入る。Claudeは、現在のタスクがスキルの`description`と一致するときだけ、そのフォルダを読み込む。これを**progressive disclosure（段階的開示）**と呼ぶ。これは1995年にUX分野でJakob Nielsenが確立した概念で、高度な機能や使用頻度の低い機能を補助画面に移し、ユーザーが一度に一つの作業だけに集中できるようにして、認知負荷とエラーを減らす手法だ。Claude Skillsの文脈では、「必要なときだけ、そのスキルの本文をコンテキストへ取り込む」仕組みを指す。その結果、コンテキストウィンドウのコストを劇的に節約できる。
+スキルはフォルダ単位で構成される。フォルダの中には、1つの`SKILL.md`と、そのスキルが実行するスクリプト、追加のMarkdownドキュメントが入る。Claudeは、現在のタスクがスキルの`description`と一致するときだけ、そのフォルダを読み込む。これを**progressive disclosure**（段階的開示）と呼ぶ。これは1995年にUX分野でJakob Nielsenが確立した概念で、高度な機能や使用頻度の低い機能を補助画面に移し、ユーザーが一度に一つの作業だけに集中できるようにして、認知負荷とエラーを減らす手法だ。Claude Skillsの文脈では、「必要なときだけ、そのスキルの本文をコンテキストへ取り込む」仕組みを指す。その結果、コンテキストウィンドウのコストを劇的に節約できる。
 
 `SKILL.md`のfrontmatterには、いくつか固有のフィールドがある。
 
@@ -69,6 +69,8 @@ AIコーディングエージェントには、**永続的な記憶がない**�
 Claude Skillsは2025年10月16日、Claude.ai、Claude Code、API、Agent SDKで同時にリリースされた。そして2025年12月18日、AnthropicはSkillsの仕様そのものをオープン標準（`agentskills.io`）として公開した。Simon Willisonは「**Skills are awesome, maybe a bigger deal than MCP**」と評価している。その理由は、形式がMCPよりも劇的に単純でありながら、コンテキストウィンドウのコスト問題をprogressive disclosureで解決している点にあった。
 
 ここでSkillsと比較されたMCP（Model Context Protocol）は、エージェントがSlack、GitHub、DBのような外部システムを呼び出せるようにつなぐ標準プロトコルだ。コンテキストファイルがエージェントに何を知らせるかの問題なら、MCPは何をできるようにするかの問題だ。MCPがfunction callingと何が違うのかは、[MCPとfunction calling](/260524)に別途まとめておいた。
+
+エージェントが関連コードを探すコストを減らすツール（Repomix、Aider、CodeGraph、Serena）は、コードをどこまで深く理解するかによって、減らせるコストが異なる。その比較は[コードインテリジェンスの4つの階層](/260526)に別途まとめておいた。
 
 
 ### ほかのツールのファイル
@@ -94,7 +96,7 @@ Cursor・Copilot以外のツールも、すべて似たパターンへ収束し�
 | **Windsurf** | `.windsurfrules` + `global_rules.md` | グローバルとプロジェクトの2段階 |
 | **標準** | `AGENTS.md`（AAIF） | 60,000以上のリポジトリが採用 |
 
-なかでも、**Aiderの`CONVENTIONS.md`は興味深い**。公式ドキュメントには、リクエストのたびにこのファイル全体をコンテキストへ含めるため、**「200行以内に保つこと」**と明記されている。（Aiderは、この制約を早くから認識し、ユーザーへ明示的に伝えているわけだ。）
+なかでも、**Aiderの`CONVENTIONS.md`は興味深い。** 公式ドキュメントには、リクエストのたびにこのファイル全体をコンテキストへ含めるため、「**200行以内に保つこと**」と明記されている。（Aiderは、この制約を早くから認識し、ユーザーへ明示的に伝えているわけだ。）
 
 
 ### MEMORY.md
@@ -175,7 +177,7 @@ ETH Zurichの研究チームが2026年2月に発表した論文「Evaluating AGE
 先ほど扱ったAiderの「200行推奨」「毎回コンテキストに入るため短く保つこと」という案内は実用的な指針であり、ETH Zurichの研究は「長いコンテキストファイルが統計的に性能を下げる」ことを定量的に示した。筆者が考える、この研究の実践的な示唆は次のとおりだ。
 
 - **自動生成された巨大なコンテキストファイルは、役立つより害になる可能性がある**。300行の`CLAUDE.md`にコーディング規約・アーキテクチャ・ワークフローをすべて詰め込むと、エージェントは一部だけに従い、残りを無視する。その不整合は、コンテキストがない場合より悪い結果につながり得る。
-- **必ず書くべきなのは「推論できない情報」**だ。非標準ツール、プロジェクト固有の規約、過去の失敗事例などが該当する。一般的なコーディングのベストプラクティスは、モデルがすでに知っている。
+- **必ず書くべきなのは「推論できない情報」だ。** 非標準ツール、プロジェクト固有の規約、過去の失敗事例などが該当する。一般的なコーディングのベストプラクティスは、モデルがすでに知っている。
 - AGENTS.mdを単一の情報源とし、CLAUDE.mdにはツール固有の短い指示だけを書き、詳細なワークフローはSkillへ分離する。
 
 

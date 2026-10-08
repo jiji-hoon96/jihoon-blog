@@ -9,7 +9,7 @@ description: "Como agentes carregam CLAUDE.md, AGENTS.md, SKILL.md e regras do C
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, regras do Cursor, copilot-instructions.md, arquivos de contexto, agente de programação com IA, Claude Code, estudo ETH Zurich AGENTS.md"
 locale: pt-BR
 translationOf: '260529'
-sourceHash: a8deda13246ed45566b723f969c3c12046709a55068c9d2bbec8d976fd7f8ec5
+sourceHash: fed5bdb321dec9666f12273f4c77b5c082799acd8ee57d2aeddff7096e128221
 ---
 
 Neste post, quero falar sobre **os arquivos de contexto que os agentes de programação com IA leem**.
@@ -41,7 +41,7 @@ Há um detalhe frequentemente ignorado: **todos os arquivos `CLAUDE.md` encontra
 
 ### AGENTS.md
 
-`AGENTS.md` é um padrão criado para resolver a proliferação de arquivos específicos de cada ferramenta descrita acima. Em dezembro de 2025, Anthropic, Block e OpenAI o doaram, junto com o MCP (o protocolo que conecta agentes a sistemas externos), à **Agentic AI Foundation (AAIF)**, vinculada à Linux Foundation, e ele se tornou o padrão de fato do setor. O site oficial (`agents.md`) afirma que **mais de 60 mil repositórios open source já adotam esse arquivo**.
+`AGENTS.md` é um padrão criado para resolver a proliferação de arquivos específicos de cada ferramenta descrita acima. Em dezembro de 2025, a OpenAI doou esse padrão à **Agentic AI Foundation (AAIF)**, vinculada à Linux Foundation. Segundo o [anúncio da Linux Foundation](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation), a AAIF foi cofundada por Anthropic, Block e OpenAI, e seus projetos fundadores são três: o MCP da Anthropic (o protocolo que conecta agentes a sistemas externos), o goose da Block e o `AGENTS.md` da OpenAI. O site oficial (`agents.md`) afirma que **mais de 60 mil repositórios open source já adotam esse arquivo**.
 
 A lista de ferramentas compatíveis deixa isso ainda mais claro. OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf e Augment Code estão entre as muitas ferramentas com suporte. O GitHub Copilot passou a oferecer suporte nativo a `AGENTS.md` em agosto de 2025. Um detalhe interessante é que **o suporte nativo do Claude Code a `AGENTS.md` ainda está no estado de active feature request**. Para o Claude Code, `CLAUDE.md` continua sendo o arquivo principal.
 
@@ -69,6 +69,8 @@ O frontmatter de `SKILL.md` possui alguns campos próprios.
 Claude Skills foi lançado simultaneamente no Claude.ai, Claude Code, API e Agent SDK em 16 de outubro de 2025. Em 18 de dezembro de 2025, a Anthropic publicou a própria especificação das Skills como padrão aberto (`agentskills.io`). Simon Willison chegou a avaliá-las dizendo: “**Skills are awesome, maybe a bigger deal than MCP**”. O motivo é que seu formato é drasticamente mais simples que o MCP e, ao mesmo tempo, resolve o custo da janela de contexto por meio de progressive disclosure.
 
 O MCP (Model Context Protocol), com o qual as Skills foram comparadas aqui, é um protocolo padrão que conecta o agente a sistemas externos como Slack, GitHub ou um banco de dados para que ele possa chamá-los. Se os arquivos de contexto tratam do que informar ao agente, o MCP trata do que permitir que ele faça. Como o MCP difere de function calling está explicado à parte em [MCP e function calling](/260524).
+
+As ferramentas que reduzem o custo de o agente encontrar o código relevante (Repomix, Aider, CodeGraph, Serena) reduzem custos diferentes conforme a profundidade com que entendem o código. Essa comparação está explicada à parte em [Quatro camadas de inteligência de código](/260526).
 
 
 ### Arquivos de outras ferramentas
