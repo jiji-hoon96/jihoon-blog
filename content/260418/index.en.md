@@ -9,7 +9,7 @@ description: "Where frontend domain logic should live, with an income tax exampl
 keywords: "frontend domain model, domain-driven design, frontend DDD, Frontend DDD, domain logic separation, Anemic Domain Model, Clean Architecture frontend, Martin Fowler, React design patterns, frontend architecture, ViewModel separation, Bounded Context"
 locale: en
 translationOf: '260418'
-sourceHash: d6b76ba7f8a6d52a0ab5d57ff19ae3a276e5feee996a0536f0a670a00ad6e878
+sourceHash: 000e6a66d1f0d04efadc85f811baced7fd8a4c85197034a3063499e601dd7468
 ---
 
 In this post, I want to talk about **where domain logic should live on the frontend**.
@@ -491,11 +491,11 @@ FilingModel.canSubmit(filing);
 
 `FilingModel.canAmend(filing)` is not quite as compact as `filing.canAmend()`, but the code makes it immediately clear that this function belongs to the Filing domain. It also eliminates the risk of functions from several domains being mixed together.
 
-#### Always Make the Domain Subject the First Argument
+#### The Domain Subject Goes First
 
 Another convention expresses cohesion in a functional style: **always make the first argument the "subject of the behavior."** Consistent signatures such as `canAmend(filing)` and `calculateTotalIncome(income)` allow `canAmend(filing)` to read as "ask canAmend about filing." This also resonates with the Unix pipeline mindset (`data |> transform`). In fact, Go's method receiver follows precisely this pattern, and Rust's `impl` blocks accept `self` as the first argument from the same underlying idea.
 
-#### Bundle Behavior with a Domain Object Factory
+#### Bundle Behavior with a Factory
 
 This pattern is useful when we miss the cohesion of a class. A factory function returns a domain object and its behavior together.
 

@@ -9,7 +9,7 @@ description: "Como a gestão de queryKey no TanStack Query evoluiu de vetores in
 keywords: "queryKey, fábrica de chaves de consulta, queryKey do TanStack Query, regras para escrever queryKey, queryOptions, setQueryData, chaves de consulta de TkDodo, query-key-factory, React Query v5, invalidação de consultas"
 locale: pt-BR
 translationOf: '260104'
-sourceHash: b801dce44f70d60f81790117fc82d189a0e094de05808ebffdb5c5e93fd7fb07
+sourceHash: 656658f5b0027731d26608d9e33befbc7cb1a57c2bd9294a9279962764a7c00c
 ---
 
 Neste artigo, quero falar sobre a **queryKey do TanStack Query**.
@@ -99,7 +99,7 @@ Então, como o TanStack Query reconhece como a mesma chave um vetor criado de no
 
 Depois de entender que a queryKey é ao mesmo tempo o identificador do cache e um vetor de dependências, as regras de escrita decorrem naturalmente. As recomendações da documentação oficial podem ser resumidas assim.
 
-### queryKey precisa ser um vetor
+### Sempre um vetor
 
 Mesmo que uma cadeia de caracteres funcione (ela é convertida internamente em um vetor), é melhor usar um vetor desde o início para manter a consistência.
 
@@ -111,7 +111,7 @@ useQuery({ queryKey: 'todos', queryFn });
 useQuery({ queryKey: ['todos'], queryFn });
 ```
 
-### Inclua em queryKey todas as variáveis das quais queryFn depende
+### Todas as variáveis que queryFn usa
 
 ```tsx
 // 잘못된 예: userId가 쿼리키에 없다
@@ -129,7 +129,7 @@ useQuery({
 
 O raciocínio é idêntico ao das dependências de `useEffect`. Todas as variáveis usadas dentro da função precisam estar na chave, isto é, no vetor de dependências. Se essa regra for violada, pode surgir um erro difícil de rastrear: o usuário muda, mas os dados do usuário anterior continuam aparecendo.
 
-### Organize os elementos do mais genérico para o mais específico
+### Do genérico ao específico
 
 ```tsx
 // 좋다
@@ -381,7 +381,7 @@ export const todoQueries = {
 
 Vejamos, um a um, os motivos pelos quais esse padrão funciona bem.
 
-### Ele oferece, ao mesmo tempo, uma hierarquia e inferência de tipos
+### Hierarquia e inferência de tipos
 
 `todoQueries.all()` e `todoQueries.lists()` retornam apenas vetores, enquanto `todoQueries.detail(1)` retorna, por meio de `queryOptions`, um objeto com a marca de tipo dos dados. Usa-se o vetor para invalidar e o objeto de opções para executar a consulta.
 
@@ -390,7 +390,7 @@ useQuery(todoQueries.detail(1));                                // 옵션 객체
 queryClient.invalidateQueries({ queryKey: todoQueries.all() }); // 배열
 ```
 
-### O componente pode sobrescrever parcialmente as opções
+### Opções sobrescritas por componente
 
 Como o resultado de `queryOptions` é, no fim das contas, um objeto, algumas opções podem ser combinadas no momento da chamada.
 
@@ -403,7 +403,7 @@ const { data: title } = useQuery({
 
 Esse padrão é especialmente poderoso porque o tipo retornado por `select` é inferido automaticamente e o tipo de `data` é restringido para `string`. Do ponto de vista do componente, é possível selecionar apenas a parte necessária, mantendo a definição do domínio intacta em um só lugar.
 
-### Hooks personalizados que envolvem `useQuery` tornam-se cada vez menos necessários
+### Menos hooks personalizados sobre `useQuery`
 
 Na época da v4, um padrão comum era criar um hook personalizado para cada domínio.
 

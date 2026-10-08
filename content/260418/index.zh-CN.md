@@ -9,7 +9,7 @@ description: "以综合所得税为例，讨论前端的领域逻辑应该放在
 keywords: "前端领域模型, 领域驱动设计, DDD 前端, 前端 DDD, 领域逻辑分离, 贫血领域模型, Clean Architecture 前端, Martin Fowler, React 设计模式, 前端架构, ViewModel 分离, 限界上下文"
 locale: zh-CN
 translationOf: '260418'
-sourceHash: d6b76ba7f8a6d52a0ab5d57ff19ae3a276e5feee996a0536f0a670a00ad6e878
+sourceHash: 000e6a66d1f0d04efadc85f811baced7fd8a4c85197034a3063499e601dd7468
 ---
 
 这篇文章想聊聊**前端的领域逻辑应该放在哪里**。
@@ -491,11 +491,11 @@ FilingModel.canSubmit(filing);
 
 `FilingModel.canAmend(filing)` 虽然不如 `filing.canAmend()` 简洁，但至少能直接从代码中看出这个函数属于申报领域，也不会再出现函数跨多个领域混杂的风险。
 
-#### 统一把第一个参数作为领域主体
+#### 第一个参数是领域主体
 
 函数式风格还有另一种表达内聚的约定：**始终把第一个参数设为“行为主体**”。将签名统一为 `canAmend(filing)`、`calculateTotalIncome(income)` 这样的形式后，`canAmend(filing)` 就可以理解为“询问 filing 是否可以修改”。这也与 Unix 的流水线思维（`data |> transform`）一脉相承。事实上，Go 语言的方法接收者正是这种模式，Rust 的 `impl` 块把 `self` 作为第一个参数也是同样的思路。
 
-#### 用领域对象工厂函数聚合行为
+#### 用 Factory 函数聚合行为
 
 想念类的内聚性时，可以使用这种模式。工厂函数一次性返回领域对象及其行为。
 

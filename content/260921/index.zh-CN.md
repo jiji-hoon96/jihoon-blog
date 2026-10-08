@@ -8,7 +8,7 @@ description: '把用全局状态保存模态框开关的代码换成一行 await
 keywords: 'overlay-kit, React 模态框状态管理, 声明式接口, openAsync, useOverlay, Promise 模态框, React overlay, nice-modal-react'
 locale: zh-CN
 translationOf: '260921'
-sourceHash: bd323089f5880e7531b68e2536604afc740c2c5ebb61d2fcfdf83385a556a83b
+sourceHash: 4f728d708b53ac4df10a72ae8b6da95ae923df39f44d27a36e90f57b381593ec
 ---
 
 这篇文章想聊聊以声明式方式处理 overlay 的接口。
@@ -183,7 +183,7 @@ useEffect(() => {
 
 关闭的一侧之所以归使用者负责，原因就在最后一行。打开的一侧，库知道"一帧就够"这个常量。关闭的一侧，库无从知道动画是 200 毫秒还是 400 毫秒。
 
-#### 所以一侧是自动的，另一侧则以 `unmount` 这个函数交了出去
+#### 以 `unmount` 交出的关闭
 
 关闭的一侧能够成立，依据在 reducer 里。`CLOSE` 只翻转 `overlayData` 中的 `isOpen`，不碰 `overlayOrderList`。Provider 遍历那个列表来渲染，因此只要还留在列表里，组件就活着。只有 `REMOVE` 把它从列表中移除，才会真正卸载。
 
@@ -277,7 +277,7 @@ overlay.open(ControllerB, { overlayId: 'id-close' });
 
 第三行是文档作为功能来说明的行为，所以和预期一致。问题在第一行。
 
-### 只做 `close` 然后用同一个 id 再次打开，携带新内容的 JSX 会被忽略，之前的画面原样出现
+### 被忽略的新 JSX
 
 笔者在这里又确认了一件事。同一个 reducer 的后半部分有这样一段注释。
 
@@ -290,7 +290,7 @@ overlayOrderList: [...state.overlayOrderList.filter((item) => item !== action.ov
 
 意思是关闭之后再次打开会把 overlay 带到最前面。可是因为前面的分支会先 `return`，这一行在那种情况下根本不会执行。笔者把两个 overlay 叠着打开，对压在下面的那个执行 `close` 再重新打开，DOM 顺序并没有变化。
 
-### 注释描述的行为和实际情况不一致
+### 与注释不符的实际行为
 
 不过笔者没有确认这在画面上是否会立刻表现为问题。测试只看到 DOM 顺序为止，而大多数对话框库都使用自己的 z-index 或 portal，所以 DOM 顺序并不等同于视觉顺序。
 

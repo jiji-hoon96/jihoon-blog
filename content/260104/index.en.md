@@ -9,7 +9,7 @@ description: "How TanStack Query queryKey management evolved from inline arrays 
 keywords: "queryKey, query key factory, TanStack Query queryKey, queryKey best practices, queryOptions, setQueryData, TkDodo query keys, query-key-factory, React Query v5, query invalidation"
 locale: en
 translationOf: '260104'
-sourceHash: b801dce44f70d60f81790117fc82d189a0e094de05808ebffdb5c5e93fd7fb07
+sourceHash: 656658f5b0027731d26608d9e33befbc7cb1a57c2bd9294a9279962764a7c00c
 ---
 
 In this post, I want to explore **TanStack Query's queryKey**.
@@ -99,7 +99,7 @@ So how does TanStack Query recognize an array that is created anew on every rend
 
 Once you understand that a queryKey is both the cache identifier and a dependency array, the rules for writing queryKeys follow naturally. The official recommendations can be summarized as follows.
 
-### A queryKey must be an array
+### Always an array
 
 Passing a string still works because it is converted to an array internally. For consistency, however, it is better to use an array from the start.
 
@@ -111,7 +111,7 @@ useQuery({ queryKey: 'todos', queryFn });
 useQuery({ queryKey: ['todos'], queryFn });
 ```
 
-### Include every variable that the queryFn depends on in the queryKey
+### Every variable the queryFn uses
 
 ```tsx
 // 잘못된 예: userId가 쿼리키에 없다
@@ -129,7 +129,7 @@ useQuery({
 
 The mental model is exactly the same as the dependency array in `useEffect`. Every variable used inside the function must be part of the key (= dependency). Violating this rule creates bugs that are difficult to trace, such as continuing to display the previous user's data after switching to another user.
 
-### Arrange the key from the most generic element to the most specific
+### From generic to specific
 
 ```tsx
 // 좋다
@@ -381,7 +381,7 @@ export const todoQueries = {
 
 Let us unpack the strengths of this pattern one by one.
 
-### You get hierarchy and type inference at the same time
+### Hierarchy and type inference
 
 `todoQueries.all()` and `todoQueries.lists()` return plain arrays, while `todoQueries.detail(1)` returns an object created through `queryOptions` with a data tag attached. Use the arrays for invalidation and the options object for query calls.
 
@@ -390,7 +390,7 @@ useQuery(todoQueries.detail(1));                                // 옵션 객체
 queryClient.invalidateQueries({ queryKey: todoQueries.all() }); // 배열
 ```
 
-### Components can partially override the options
+### Per-component option overrides
 
 The result of `queryOptions` is ultimately an object, so individual options can be composed at the call site.
 
@@ -403,7 +403,7 @@ const { data: title } = useQuery({
 
 What makes this especially powerful is that the return type of `select` is inferred automatically, narrowing the type of `data` to `string`. The component can select only the piece it needs while leaving the domain definition centralized.
 
-### Custom hooks wrapping `useQuery` gradually disappear
+### Fewer custom hooks around `useQuery`
 
 A common pattern in v4 was to create a custom hook for each domain.
 

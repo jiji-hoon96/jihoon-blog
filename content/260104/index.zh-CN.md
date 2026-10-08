@@ -9,7 +9,7 @@ description: "梳理 TanStack Query 的 queryKey 管理方式如何从内联数�
 keywords: "queryKey, query key factory, TanStack Query queryKey, queryKey 编写规则, queryOptions, setQueryData, TkDodo query keys, query-key-factory, React Query v5, 查询失效"
 locale: zh-CN
 translationOf: '260104'
-sourceHash: b801dce44f70d60f81790117fc82d189a0e094de05808ebffdb5c5e93fd7fb07
+sourceHash: 656658f5b0027731d26608d9e33befbc7cb1a57c2bd9294a9279962764a7c00c
 ---
 
 这篇文章想聊一聊 **TanStack Query 的 queryKey**。
@@ -99,7 +99,7 @@ const { data } = useQuery({
 
 理解了 queryKey 既是缓存的标识符又是依赖数组之后，编写规则也就顺理成章了。官方文档推荐的规则可以归纳如下。
 
-### queryKey 必须是数组
+### 始终用数组
 
 传入字符串也能工作（内部会转换成数组），但为了保持一致，最好从一开始就使用数组。
 
@@ -111,7 +111,7 @@ useQuery({ queryKey: 'todos', queryFn });
 useQuery({ queryKey: ['todos'], queryFn });
 ```
 
-### 把 queryFn 依赖的所有变量都放进 queryKey
+### 放入 queryFn 用到的所有变量
 
 ```tsx
 // 잘못된 예: userId가 쿼리키에 없다
@@ -129,7 +129,7 @@ useQuery({
 
 思路和 `useEffect` 的依赖完全一样：函数内部使用的所有变量，都必须进入键（也就是依赖）中。违反这条规则，就可能出现用户已经切换，界面上却仍显示前一个用户数据的隐蔽缺陷。
 
-### 按照从最 generic 到最 specific 的顺序排列
+### 从 generic 到 specific 排列
 
 ```tsx
 // 좋다
@@ -381,7 +381,7 @@ export const todoQueries = {
 
 下面逐一解释这个模式的优点。
 
-### 同时获得层级结构和类型推断
+### 层级结构与类型推断
 
 `todoQueries.all()` 和 `todoQueries.lists()` 只返回数组，而 `todoQueries.detail(1)` 返回通过 `queryOptions` 创建、带有 data tag 的对象。做缓存失效时使用数组，调用查询时则使用 options 对象。
 
@@ -390,7 +390,7 @@ useQuery(todoQueries.detail(1));                                // 옵션 객체
 queryClient.invalidateQueries({ queryKey: todoQueries.all() }); // 배열
 ```
 
-### 可以在组件中局部覆盖 options
+### 按组件覆盖 options
 
 `queryOptions` 的结果归根结底是对象，因此可以在调用时组合一部分 options。
 
@@ -403,7 +403,7 @@ const { data: title } = useQuery({
 
 这个模式尤其强大的一点是，`select` 的返回类型会被自动推断，`data` 的类型也随之收窄为 `string`。对组件来说，可以只选择自己需要的部分，同时把 domain 定义完整保留在同一处。
 
-### 包装 `useQuery` 的自定义 hook 会逐渐消失
+### 越来越少的 `useQuery` 自定义 hook
 
 在 v4 时代，常见模式是为每个 domain 创建自定义 hook。
 

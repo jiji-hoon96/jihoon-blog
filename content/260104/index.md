@@ -96,7 +96,7 @@ const { data } = useQuery({
 
 queryKey가 캐시의 식별자이자 의존성 배열이라는 점을 이해했다면, 작성 규칙도 자연스럽게 따라온다. 공식 문서가 권하는 규칙을 정리하면 다음과 같다.
 
-### queryKey는 반드시 배열이어야 한다
+### 배열로 쓰기
 
 문자열로 넘겨도 동작은 한다(내부적으로 배열로 변환된다). 하지만 일관성을 위해 처음부터 배열로 쓰는 것이 좋다.
 
@@ -108,7 +108,7 @@ useQuery({ queryKey: 'todos', queryFn });
 useQuery({ queryKey: ['todos'], queryFn });
 ```
 
-### queryFn이 의존하는 모든 변수를 queryKey에 포함한다
+### queryFn이 쓰는 변수를 모두 넣기
 
 ```tsx
 // 잘못된 예: userId가 쿼리키에 없다
@@ -126,7 +126,7 @@ useQuery({
 
 `useEffect`의 deps와 똑같은 사고방식이다. 함수 안에서 사용하는 변수는 모두 키(=의존성)에 들어가야 한다. 이걸 어기면 사용자가 다른 사용자로 바뀌었는데도 이전 사용자의 데이터가 그대로 보이는, 추적하기 어려운 버그가 생긴다.
 
-### 가장 generic한 것에서 가장 specific한 것 순서로 배치한다
+### generic에서 specific 순으로 놓기
 
 ```tsx
 // 좋다
@@ -378,7 +378,7 @@ export const todoQueries = {
 
 이 패턴이 좋은 이유를 하나씩 풀어보자.
 
-### 계층 구조와 타입 추론을 동시에 얻는다
+### 계층 구조와 타입 추론
 
 `todoQueries.all()`이나 `todoQueries.lists()`는 그냥 배열을 반환하지만, `todoQueries.detail(1)`은 `queryOptions`를 통해 만들어진 데이터 태그가 붙은 객체를 반환한다. 무효화에는 배열을, 쿼리 호출에는 옵션 객체를 쓰면 된다.
 
@@ -387,7 +387,7 @@ useQuery(todoQueries.detail(1));                                // 옵션 객체
 queryClient.invalidateQueries({ queryKey: todoQueries.all() }); // 배열
 ```
 
-### 컴포넌트에서 옵션을 부분적으로 덮어쓸 수 있다
+### 컴포넌트별 옵션 덮어쓰기
 
 `queryOptions`의 결과는 결국 객체이니, 호출 시점에서 일부 옵션을 합성할 수 있다.
 
@@ -400,7 +400,7 @@ const { data: title } = useQuery({
 
 이 패턴이 특히 강력한 이유는, `select`의 반환 타입이 자동으로 추론되어 `data`의 타입이 `string`으로 좁혀진다는 점이다. 컴포넌트 입장에서는 필요한 부분만 골라쓰면서, 도메인 정의는 한 곳에 그대로 둘 수 있다.
 
-### `useQuery`를 감싼 커스텀 훅이 점점 사라진다
+### 줄어드는 `useQuery` 커스텀 훅
 
 v4 시절의 일반적인 패턴은 도메인별 커스텀 훅을 만드는 것이었다.
 

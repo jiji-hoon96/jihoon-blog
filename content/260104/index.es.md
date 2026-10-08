@@ -9,7 +9,7 @@ description: "Cómo evolucionó la gestión de queryKey en TanStack Query: de ar
 keywords: "queryKey, fábrica de claves de consulta, queryKey de TanStack Query, reglas para escribir queryKey, queryOptions, setQueryData, claves de consulta de TkDodo, query-key-factory, React Query v5, invalidación de consultas"
 locale: es
 translationOf: '260104'
-sourceHash: b801dce44f70d60f81790117fc82d189a0e094de05808ebffdb5c5e93fd7fb07
+sourceHash: 656658f5b0027731d26608d9e33befbc7cb1a57c2bd9294a9279962764a7c00c
 ---
 
 En esta publicación quiero hablar sobre **queryKey de TanStack Query**.
@@ -99,7 +99,7 @@ Entonces, ¿cómo reconoce TanStack Query como la misma clave un arreglo que se 
 
 Una vez que se entiende que la queryKey es a la vez el identificador de la caché y un arreglo de dependencias, las reglas de escritura se deducen de forma natural. Las recomendaciones de la documentación oficial pueden resumirse así.
 
-### queryKey debe ser siempre un arreglo
+### Siempre un arreglo
 
 Aunque pasar una cadena también funciona (internamente se convierte en un arreglo), conviene usar un arreglo desde el principio para mantener la coherencia.
 
@@ -111,7 +111,7 @@ useQuery({ queryKey: 'todos', queryFn });
 useQuery({ queryKey: ['todos'], queryFn });
 ```
 
-### Incluye en queryKey todas las variables de las que depende queryFn
+### Todas las variables que usa queryFn
 
 ```tsx
 // 잘못된 예: userId가 쿼리키에 없다
@@ -129,7 +129,7 @@ useQuery({
 
 Es la misma forma de pensar que con las dependencias de `useEffect`. Todas las variables utilizadas dentro de la función deben formar parte de la clave (= dependencia). Si se incumple esta regla, pueden aparecer errores difíciles de rastrear, como que los datos del usuario anterior sigan mostrándose después de cambiar a otro usuario.
 
-### Organiza los elementos desde el más genérico hasta el más específico
+### De lo genérico a lo específico
 
 ```tsx
 // 좋다
@@ -381,7 +381,7 @@ export const todoQueries = {
 
 Veamos una por una las razones por las que este patrón resulta útil.
 
-### Permite obtener al mismo tiempo jerarquía e inferencia de tipos
+### Jerarquía e inferencia de tipos
 
 `todoQueries.all()` y `todoQueries.lists()` devuelven simples arreglos, mientras que `todoQueries.detail(1)` devuelve mediante `queryOptions` un objeto con una etiqueta de datos. Para invalidar se usa el arreglo; para invocar la consulta, el objeto de opciones.
 
@@ -390,7 +390,7 @@ useQuery(todoQueries.detail(1));                                // 옵션 객체
 queryClient.invalidateQueries({ queryKey: todoQueries.all() }); // 배열
 ```
 
-### Los componentes pueden sobrescribir parcialmente las opciones
+### Opciones sobrescritas por componente
 
 Como el resultado de `queryOptions` sigue siendo un objeto, en el momento de la llamada pueden combinarse algunas opciones.
 
@@ -403,7 +403,7 @@ const { data: title } = useQuery({
 
 Este patrón es especialmente potente porque el tipo devuelto por `select` se infiere automáticamente y el tipo de `data` se restringe a `string`. Desde el punto de vista del componente, es posible seleccionar solo la parte necesaria y mantener la definición del dominio intacta en un único lugar.
 
-### Los hooks personalizados que envuelven `useQuery` van desapareciendo
+### Menos hooks personalizados sobre `useQuery`
 
 Durante la época de v4, el patrón habitual consistía en crear hooks personalizados para cada dominio.
 

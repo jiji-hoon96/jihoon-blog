@@ -8,7 +8,7 @@ description: "Swapping a global isOpen flag for one await: what I gained, what I
 keywords: 'overlay-kit, React modal state management, declarative interface, openAsync, useOverlay, promise based modal, React overlay, nice-modal-react'
 locale: en
 translationOf: '260921'
-sourceHash: bd323089f5880e7531b68e2536604afc740c2c5ebb61d2fcfdf83385a556a83b
+sourceHash: 4f728d708b53ac4df10a72ae8b6da95ae923df39f44d27a36e90f57b381593ec
 ---
 
 In this post, I want to talk about interfaces that treat overlays declaratively.
@@ -183,7 +183,7 @@ The failure shows up in two shapes. On opening, there is no start state, so noth
 
 The last row explains why the closing side is left to the user. On the opening side, the library knows the constant: one frame is enough. On the closing side, the library cannot know whether the animation is 200 or 400 milliseconds.
 
-#### So one side is automatic and the other is handed over as a function called `unmount`
+#### Closing handed over as `unmount`
 
 The reducer is what makes the closing side work. `CLOSE` only flips, inside `overlayData`, the `isOpen` value, and leaves `overlayOrderList` alone. The provider renders by walking that list, so the component stays alive as long as it remains in the list. It only unmounts once `REMOVE` takes it out.
 
@@ -277,7 +277,7 @@ The results were as follows, run with vitest on the main branch at overlay-kit 1
 
 The third row is behavior the docs describe as a feature, so it was as expected. The problem is the first row.
 
-### If you only call `close` and then reopen with the same id, the new JSX carrying the changed content is ignored and the previous screen appears as it was
+### The new JSX is ignored
 
 I checked one more thing here. Further down in the same reducer there is this comment.
 
@@ -290,7 +290,7 @@ overlayOrderList: [...state.overlayOrderList.filter((item) => item !== action.ov
 
 It says that reopening after closing brings the overlay to the front. But because the earlier branch hits `return` first, this line does not run in that situation. I stacked two overlays, ran `close` on the one underneath, reopened it, and the DOM order did not change.
 
-### What the comment describes and what actually happens are different
+### Behavior that contradicts the comment
 
 I did not confirm whether this shows up as a visible problem on screen, though. The test only looked at DOM order, and since most dialog libraries use their own z-index or portals, DOM order is not the same as visual order.
 

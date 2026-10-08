@@ -9,7 +9,7 @@ description: "TanStack Query の queryKey の管理方法が、インライン�
 keywords: "queryKey, クエリキーファクトリー, TanStack Query queryKey, queryKey 記述規則, queryOptions, setQueryData, TkDodo クエリキー, query-key-factory, React Query v5, クエリの無効化"
 locale: ja
 translationOf: '260104'
-sourceHash: b801dce44f70d60f81790117fc82d189a0e094de05808ebffdb5c5e93fd7fb07
+sourceHash: 656658f5b0027731d26608d9e33befbc7cb1a57c2bd9294a9279962764a7c00c
 ---
 
 今回は、**TanStack Query の queryKey**について掘り下げてみたい。
@@ -99,7 +99,7 @@ const { data } = useQuery({
 
 queryKey がキャッシュの識別子であり依存配列でもあることを理解すれば、記述規則も自然に見えてくる。公式ドキュメントが推奨する規則を整理すると、次のようになる。
 
-### queryKey は必ず配列にする
+### 常に配列で
 
 文字列を渡しても動作はする（内部で配列へ変換される）。ただし、一貫性を保つため、最初から配列で記述する方がよい。
 
@@ -111,7 +111,7 @@ useQuery({ queryKey: 'todos', queryFn });
 useQuery({ queryKey: ['todos'], queryFn });
 ```
 
-### queryFn が依存するすべての変数を queryKey に含める
+### queryFn が使う変数をすべて入れる
 
 ```tsx
 // 잘못된 예: userId가 쿼리키에 없다
@@ -129,7 +129,7 @@ useQuery({
 
 `useEffect` の依存配列と同じ考え方だ。関数内で使う変数はすべてキー（＝依存関係）に含めなければならない。この規則を破ると、対象ユーザーが変わったにもかかわらず以前のユーザーのデータがそのまま表示されるような、追跡しにくい不具合が生じる。
 
-### 最も汎用的なものから最も具体的なものの順に配置する
+### generic から specific の順に
 
 ```tsx
 // 좋다
@@ -381,7 +381,7 @@ export const todoQueries = {
 
 このパターンが優れている理由を、一つずつ見ていこう。
 
-### 階層構造と型推論を同時に得られる
+### 階層構造と型推論
 
 `todoQueries.all()` や `todoQueries.lists()` は単に配列を返すが、`todoQueries.detail(1)` は `queryOptions` によって作られた、データタグ付きのオブジェクトを返す。無効化には配列を、クエリの呼び出しにはオプションオブジェクトを使えばよい。
 
@@ -390,7 +390,7 @@ useQuery(todoQueries.detail(1));                                // 옵션 객체
 queryClient.invalidateQueries({ queryKey: todoQueries.all() }); // 배열
 ```
 
-### コンポーネントでオプションを部分的に上書きできる
+### コンポーネントごとのオプション上書き
 
 `queryOptions` の結果は最終的にはオブジェクトなので、呼び出す時点で一部のオプションを合成できる。
 
@@ -403,7 +403,7 @@ const { data: title } = useQuery({
 
 このパターンが特に強力なのは、`select` の返り値の型が自動的に推論され、`data` の型が `string` に絞り込まれる点だ。コンポーネント側では必要な部分だけを選んで使いながら、ドメインの定義は一か所に保てる。
 
-### `useQuery` をラップするカスタムフックが次第に不要になる
+### 減っていく `useQuery` のカスタムフック
 
 v4 の頃は、ドメインごとにカスタムフックを作るのが一般的なパターンだった。
 
