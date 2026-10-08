@@ -151,6 +151,6 @@ Event handlers, Server side rendering, Errors thrown in the error boundary itsel
 새 글을 쓴다면 이 파일을 복사해 소제목만 바꾸는 데서 시작하면 된다. 기존 글을 고친다면 굵은 글씨 한 줄과 본문의 `---` 부터 찾아보길 권한다.
 
 :::ref
-[docs] [Google Technical Writing, 긴 문서 구성](https://developers.google.com/tech-writing/two/large-docs)
-[docs] [George Mason Writing Center, reverse outlining](https://writingcenter.gmu.edu/writing-resources/writing-as-process/reverse-outlining)
+- [docs] [Google Technical Writing, 긴 문서 구성](https://developers.google.com/tech-writing/two/large-docs)
+- [docs] [George Mason Writing Center, reverse outlining](https://writingcenter.gmu.edu/writing-resources/writing-as-process/reverse-outlining)
 :::
