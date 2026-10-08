@@ -61,7 +61,7 @@ In `(2,3,_)`, the length 3 is longer than the distance 2. With `ban` already wri
 
 In this approach, **the dictionary is not stored or transmitted separately.** The decoder reconstructs the search buffer itself while decompressing, so the dictionary is implicitly embedded in the data itself. Because references point to earlier data, decompression basically proceeds in order from the beginning. References, however, only reach as far back as the window. RFC 1951 limits DEFLATE references to at most 32K bytes back. That is why zlib provides `Z_FULL_FLUSH`, which resets the compression state, and [zlib.h](https://github.com/madler/zlib/blob/v1.3.1/zlib.h) says decompression can restart from that point, so it can be used when random access is needed. It also warns that using it too often can seriously degrade compression.
 
-Window size has a direct trade-off with compression ratio. A larger window can refer to patterns farther away and therefore often compress better, but it also increases the computation required for match searching and uses more memory.
+Window size has a direct trade-off with compression ratio. A larger window can refer to patterns farther away and therefore compress better, but it also increases the computation required for match searching and uses more memory.
 
 <hr>
 
@@ -169,7 +169,7 @@ Each paper showed asymptotic optimality under its own model. The 1977 paper show
 
 ## Conclusion
 
-LZ77 and LZ78 started from the same idea of replacing repeated patterns with short references. Neither transmits its dictionary, and in both the decoder rebuilds it, but they diverged on whether a reference points to a position in the data already seen or to the number of an entry in a separately built dictionary, and they also forget old content differently. The mainstream compressors that followed, from DEFLATE through LZMA, LZ4, and Zstd, descend from LZ77, while the LZ78 side lives on as LZW in formats such as GIF.
+LZ77 and LZ78 started from the same idea of replacing repeated patterns with short references. Neither transmits its dictionary, and in both the decoder rebuilds it, but they diverged on whether a reference points to a position in the data already seen or to the number of an entry in a separately built dictionary, and they also forget old content differently. The mainstream compressors that run from DEFLATE through LZMA, LZ4, and Zstd descend from LZ77, while the LZ78 side lives on as LZW in formats such as GIF.
 
 How this lineage plays out in an actual format choice, comparing the speed and compression ratio of ZIP, GZIP, ZSTD, and XZ and deciding what to use for build artifacts, is covered in [Understanding Compression Algorithms](/240706).
 

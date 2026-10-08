@@ -99,7 +99,7 @@ resetErrorBoundary(...e) {
 }
 ```
 
-它们用逗号运算符连在一起，所以**`onReset` 先跑，`setState` 在后**。`d` 是 `didCatch` 为 `false` 的初始状态。所以 children 是在缓存的锁解开之后才重新挂载的。**一行之差，重试才成了真正的重试。**
+它们用逗号运算符连在一起，所以 **`onReset` 先跑，`setState` 在后**。`d` 是 `didCatch` 为 `false` 的初始状态。所以 children 是在缓存的锁解开之后才重新挂载的。**一行之差，重试才成了真正的重试。**
 
 即使不用 `QueryErrorResetBoundary` 包裹，从 `useQueryErrorResetBoundary()` 取出 `reset` 接到 `onReset` 上，重试也能生效。没有外层边界时，这个 hook 会返回模块级的全局默认值。代价是，正如 [Suspense 指南](https://tanstack.com/query/latest/docs/framework/react/guides/suspense)所写，重置会作用于全局，整个应用共享同一个标记。
 

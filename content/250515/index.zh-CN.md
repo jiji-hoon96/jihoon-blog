@@ -28,7 +28,7 @@ sourceHash: b2240aadc9a34dfdbdb5f30061426c525d49af520ebc5bb3ff62b6991bcf445c
 
 笔者认为，这种 starvation 源于 `requestIdleCallback` 的定义。[W3C 规范](https://w3c.github.io/requestidlecallback/)规定，这个回调在浏览器完成帧工作后剩下的空闲期（idle period）中调用。页面繁忙时这样的空闲期很少出现，React 的工作也就相应被推迟。Dan Abramov 也在 2018 年 8 月的一条 issue 评论中写道，React 不再使用这个 API 的原因是"it's not as aggressive as we need"（[facebook/react#11171](https://github.com/facebook/react/issues/11171#issuecomment-417349573)）。
 
-之后放弃 `requestAnimationFrame` 方式的原因写在 PR #16214 的描述里。这种方式必须猜测下一次 vsync（与显示器刷新周期对应的信号）的时机。它一开始假定 30fps，把帧长设为 33.33ms；如果连续两个帧间隔都比它短，就把帧长缩短为两者中较长的那个。本帧的截止时间是帧开始的时刻加上这个长度（[PR #17252 之前的 SchedulerHostConfig.default.js](https://github.com/facebook/react/blob/6dc2734b41aef944e457eaa23ae218952fce0a54/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L305-L336)）。由于只有缩短帧长的规则，正如 PR 描述所说，页面打开后刷新率上升可以检测到，下降却检测不到。
+之后放弃 `requestAnimationFrame` 方式的原因写在 PR #16214 的描述里。这种方式必须猜测下一次 vsync（与显示器刷新周期对应的信号）的时机。它一开始假定 30fps，把帧长设为 33.33ms；如果连续两个帧间隔都比它短，就把帧长缩短为两者中较长的那个。本帧的截止时间是帧开始的时刻加上这个长度（[PR #17252 合并前夕的 SchedulerHostConfig.default.js](https://github.com/facebook/react/blob/6dc2734b41aef944e457eaa23ae218952fce0a54/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L305-L336)）。由于只有缩短帧长的规则，正如 PR 描述所说，页面打开后刷新率上升可以检测到，下降却检测不到。
 
 message 循环无论处在 vsync 周期的哪个位置都每 5ms 让出一次。PR 描述预期这样即使在刷新率非常高的屏幕上，主线程也能保持响应（"should keep the main thread responsive"）。现在 Scheduler 源码中的注释也写着，大多数任务不需要与帧边界对齐。
 
@@ -110,5 +110,5 @@ schedule();
 ## 来源
 
 :::ref
-- [repo] [React 16.0 之前的 ReactDOMFrameScheduling.js](https://github.com/facebook/react/blob/3019210df2b486416ed94d7b9becffaf254e81c4/src/renderers/shared/ReactDOMFrameScheduling.js)
+- [repo] [React 16.0 发布前夕的 ReactDOMFrameScheduling.js](https://github.com/facebook/react/blob/3019210df2b486416ed94d7b9becffaf254e81c4/src/renderers/shared/ReactDOMFrameScheduling.js)
 :::

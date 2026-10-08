@@ -61,7 +61,7 @@ A [RFC 1951](https://www.rfc-editor.org/rfc/rfc1951) especifica o mesmo comporta
 
 Nessa abordagem, **o dicionário não é armazenado nem transmitido separadamente.** O decodificador reconstrói sozinho o buffer de busca durante a descompressão, de modo que o dicionário fica implícito nos próprios dados. Como as referências apontam para dados anteriores, a descompressão, em princípio, avança em ordem desde o início. No entanto, as referências só alcançam até onde vai a janela. A RFC 1951 limita as referências do DEFLATE a no máximo 32K bytes para trás. Por isso o zlib oferece `Z_FULL_FLUSH`, que reinicia o estado de compressão, e o [zlib.h](https://github.com/madler/zlib/blob/v1.3.1/zlib.h) diz que a descompressão pode recomeçar a partir desse ponto, então ele serve quando se precisa de acesso aleatório. O mesmo texto avisa que usá-lo com muita frequência pode degradar seriamente a compressão.
 
-O tamanho da janela tem uma relação direta de compromisso com a taxa de compressão. Uma janela maior consegue referenciar padrões mais distantes e tende a comprimir melhor, mas aumenta o custo da busca e o uso de memória.
+O tamanho da janela tem uma relação direta de compromisso com a taxa de compressão. Uma janela maior consegue referenciar padrões mais distantes e comprime melhor, mas aumenta o custo da busca e o uso de memória.
 
 <hr>
 
@@ -169,7 +169,7 @@ Cada artigo demonstrou otimalidade assintótica dentro do próprio modelo. O art
 
 ## Conclusão
 
-LZ77 e LZ78 partiram da mesma ideia de substituir padrões repetidos por referências curtas. Nenhum dos dois transmite o dicionário e, em ambos, o decodificador o reconstrói, mas eles se separaram em se uma referência aponta para uma posição nos dados já percorridos ou para o número de uma entrada de um dicionário construído à parte, e também esquecem o conteúdo antigo de formas diferentes. Os compressores mais usados que vieram depois, do DEFLATE ao LZMA, LZ4 e Zstd, descendem do LZ77, enquanto o lado do LZ78 sobrevive como LZW em formatos como o GIF.
+LZ77 e LZ78 partiram da mesma ideia de substituir padrões repetidos por referências curtas. Nenhum dos dois transmite o dicionário e, em ambos, o decodificador o reconstrói, mas eles se separaram em se uma referência aponta para uma posição nos dados já percorridos ou para o número de uma entrada de um dicionário construído à parte, e também esquecem o conteúdo antigo de formas diferentes. Os compressores predominantes que vão do DEFLATE ao LZMA, LZ4 e Zstd descendem do LZ77, enquanto o lado do LZ78 sobrevive como LZW em formatos como o GIF.
 
 Como essa linhagem se reflete na escolha de um formato real, comparando velocidade e taxa de compressão de ZIP, GZIP, ZSTD e XZ e decidindo o que usar para artefatos de build, está em [Entendendo algoritmos de compressão](/240706).
 

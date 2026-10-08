@@ -5,7 +5,7 @@ seoTitle: "MCP frente a function calling: protocolo y flujo de llamadas"
 date: "2026-05-24"
 updatedAt: "2026-10-08"
 categories: IA Herramientas-de-desarrollo Claude MCP CodeGraph
-description: "Cómo difiere MCP de function calling: seis primitive types, stdio y Streamable HTTP, el bucle de tools/list a tool_use y riesgos como Tool Poisoning."
+description: "Cómo difiere MCP de function calling: seis primitivas, stdio y Streamable HTTP, el bucle de tools/list a tool_use y riesgos como Tool Poisoning."
 keywords: "MCP, Model Context Protocol, MCP vs function calling, primitivas MCP, tools/list, Streamable HTTP, Tool Poisoning Attack, seguridad MCP"
 locale: es
 translationOf: '260524'

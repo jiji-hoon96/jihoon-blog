@@ -149,7 +149,7 @@ LZ78 (0,b) (0,a) (0,n) (2,n) (2,_) (1,a) (3,a) (7,) true
 
 コードの二つのデコーダーはトークンだけを受け取る。つまり、**LZ78も辞書を送らない**。デコーダーはトークンを読みながらエンコーダーと同じ順序で項目を追加するので、同じ辞書が再び積み上がる。辞書を送信しない点は二つのアルゴリズムの共通点であり、両者が分かれるのは**古い内容を忘れる方法**だ。LZ77のウィンドウは前へ進みながら古いデータを自然に忘れる。LZ78の辞書は大きくなる一方なので、実装が上限を決め、いっぱいになった後はそのまま凍結するか空にするしかない。
 
-LZ78で最も有名な派生が**LZW**（Lempel-Ziv-Welch）だ。Terry WelchがLZ78を改良して1984年に発表し、GIF画像形式とUnixの`compress`ユーティリティ（`.Z`拡張子）で使われた。どちらの実装も辞書に上限を設けた。[GIF89a仕様](https://www.w3.org/Graphics/GIF/spec-gif89a.txt)はコードを最大12ビット（最大値4095）に抑え、辞書を初期状態に戻すClear codeを別に用意している。[ncompressのmanページ](https://github.com/vapier/ncompress/blob/v5.0/compress.1)によれば、`compress`はコード長が`-b`の上限（既定値16ビット）に達した後も圧縮率を監視し、圧縮率が下がると辞書を捨てて最初から積み直す。
+LZ78で最も有名な派生が**LZW**（Lempel-Ziv-Welch）だ。Terry WelchがLZ78を改良して1984年に発表し、GIF画像形式とUnixの`compress`ユーティリティ（`.Z`拡張子）で使われた。どちらの実装も辞書に上限を設けた。[GIF89a仕様](https://www.w3.org/Graphics/GIF/spec-gif89a.txt)はコードを最大12ビット（最大値4095）に抑え、辞書を初期状態に戻すClear codeを別に用意している。[ncompressのmanページ](https://github.com/vapier/ncompress/blob/v5.0/compress.1)によれば、`compress`はコード長が`-b`の上限（既定値16ビット）に達した後は圧縮率を監視し、圧縮率が下がると辞書を捨てて最初から積み直す。
 
 <hr>
 

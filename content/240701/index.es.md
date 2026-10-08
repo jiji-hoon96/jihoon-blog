@@ -14,7 +14,7 @@ sourceHash: 3fe0bc5f9354bcd879485454d0b7f37acf77ad6e53d5a8ff9132076f428eb156
 
 En este artículo quiero hablar de **en qué se diferencian LZ77 y LZ78**.
 
-Este artículo es para desarrolladores que usan herramientas como zip, gzip o zstd y se han preguntado cómo funciona la compresión basada en diccionario que llevan dentro. Al terminar, podrás explicar en qué se diferencian ambos algoritmos al manejar su diccionario y de cuál de los dos descienden los compresores de uso general actuales.
+Este artículo es para desarrolladores que usan herramientas como zip, gzip o zstd y se han preguntado cómo funciona la compresión basada en diccionario que llevan dentro. Al terminar, podrás explicar en qué se diferencian ambos algoritmos al manejar su diccionario y de cuál de los dos descienden los compresores dominantes actuales.
 
 Si se comparan formatos para comprimir artefactos de compilación, tarde o temprano se acaba remontando a estos dos algoritmos.
 
@@ -61,7 +61,7 @@ En `(2,3,_)`, la longitud 3 es mayor que la distancia 2. Con `ban` ya escrito, e
 
 En este método **el diccionario no se guarda ni se transmite por separado.** El decodificador reconstruye por sí mismo el búfer de búsqueda mientras descomprime, de modo que el diccionario queda implícito en los propios datos. Como las referencias apuntan a datos anteriores, la descompresión avanza, en principio, en orden desde el comienzo. Sin embargo, las referencias solo alcanzan hasta donde llega la ventana. RFC 1951 limita las referencias de DEFLATE a un máximo de 32K bytes hacia atrás. Por eso zlib ofrece `Z_FULL_FLUSH`, que reinicia el estado de compresión, y [zlib.h](https://github.com/madler/zlib/blob/v1.3.1/zlib.h) indica que la descompresión puede reanudarse desde ese punto, de modo que sirve cuando se necesita acceso aleatorio. También advierte que usarlo con demasiada frecuencia puede degradar seriamente la compresión.
 
-El tamaño de la ventana mantiene una relación directa de compromiso con la tasa de compresión. Una ventana mayor puede referirse a patrones más lejanos y suele comprimir mejor, pero también aumenta el trabajo de búsqueda y el uso de memoria.
+El tamaño de la ventana mantiene una relación directa de compromiso con la tasa de compresión. Una ventana mayor puede referirse a patrones más lejanos y comprime mejor, pero también aumenta el trabajo de búsqueda y el uso de memoria.
 
 <hr>
 
@@ -169,7 +169,7 @@ Cada artículo demostró optimalidad asintótica dentro de su propio modelo. El 
 
 ## Conclusión
 
-LZ77 y LZ78 partieron de la misma idea, sustituir patrones repetidos por referencias breves. Ninguno transmite su diccionario y en ambos lo reconstruye el decodificador, pero se separaron en si una referencia apunta a una posición de los datos ya recorridos o al número de una entrada de un diccionario construido aparte, y también olvidan lo antiguo de forma distinta. Los compresores de uso general que siguieron, de DEFLATE a LZMA, LZ4 y Zstd, descienden de LZ77, mientras que el lado de LZ78 sigue vivo como LZW en formatos como GIF.
+LZ77 y LZ78 partieron de la misma idea, sustituir patrones repetidos por referencias breves. Ninguno transmite su diccionario y en ambos lo reconstruye el decodificador, pero se separaron en si una referencia apunta a una posición de los datos ya recorridos o al número de una entrada de un diccionario construido aparte, y también olvidan lo antiguo de forma distinta. Los compresores dominantes que van de DEFLATE a LZMA, LZ4 y Zstd descienden de LZ77, mientras que el lado de LZ78 sigue vivo como LZW en formatos como GIF.
 
 Cómo se traduce este linaje en la elección de un formato real, comparando la velocidad y la tasa de compresión de ZIP, GZIP, ZSTD y XZ y decidiendo qué usar para artefactos de compilación, lo trato en [Cómo funcionan los algoritmos de compresión](/240706).
 

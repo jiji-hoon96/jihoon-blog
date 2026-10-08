@@ -25,7 +25,7 @@ MCP（Model Context Protocol）は「**エージェントに何ができるよ�
 
 少し具体的に説明しよう。AIエージェントがSlackへメッセージを送るには、Slack APIを呼び出せなければならない。GitHub Issueを作るには、GitHub APIを呼び出せなければならない。Postgresへクエリするには、DB接続を扱えなければならない。こうした外部システムとの統合を、**一つの標準プロトコルにまとめたもの**がMCPだ。（どのクライアントも、どのサーバーにも、同じインターフェースで接続できるという意味だ。）
 
-MCPはAnthropicが**2024年11月25日**に初めて公開したオープン標準だ。そして**2025年12月9日**、Anthropic・Block・OpenAIの3社は共同創設者として、MCP仕様をLinux Foundation傘下の**Agentic AI Foundation（AAIF）**へ寄贈した。Google・Microsoft・AWS・Cloudflare・Bloombergがプラチナメンバーとして参加した。（2025年12月の寄贈時点で、SDKは月間9,700万回以上ダウンロードされ、1万以上の公開MCPサーバーが稼働していた。）
+MCPはAnthropicが**2024年11月25日**に初めて公開したオープン標準だ。そして**2025年12月9日**、Anthropic・Block・OpenAIの3社は共同創設者として、MCP仕様をLinux Foundation傘下の**Agentic AI Foundation**（AAIF）へ寄贈した。Google・Microsoft・AWS・Cloudflare・Bloombergがプラチナメンバーとして参加した。（2025年12月の寄贈時点で、SDKは月間9,700万回以上ダウンロードされ、1万以上の公開MCPサーバーが稼働していた。）
 
 MCPはJSON-RPC上に構築されたプロトコルだ。[JSON-RPC 2.0](https://www.jsonrpc.org/specification)は、JSONをワイヤーフォーマットとして使うstatelessで軽量なRPC（Remote Procedure Call）プロトコルである。トランスポート層に依存せず、HTTP・TCP・標準入出力のいずれでも動作する。notification（応答のない呼び出し）とbatch呼び出しも定義しているが、MCPは[2025-06-18改訂版](https://modelcontextprotocol.io/specification/2025-06-18/changelog)でbatchを外した。この記事は2025-11-25改訂版を基準に説明する。この版のMCPは、接続ごとにセッションを張るstatefulなプロトコルだ。その後の改訂版で何が変わったのかは、呼び出しの流れを見てから扱う。
 
