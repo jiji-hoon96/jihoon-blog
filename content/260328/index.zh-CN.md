@@ -6,7 +6,7 @@ date: '2026-03-28'
 categories: 前端 React 重构
 locale: zh-CN
 translationOf: '260328'
-sourceHash: e75600c42d28660cf4be9524c11586daace94efe680b2f23f02421b5f5e9d451
+sourceHash: 8923c8faeb0909fd5fee8880f17c5920e68b3589e7236965925ee70f6b304162
 description: "分享在 Toss Frontend Fundamentals 模拟考试第 2 期中重构会议室预订应用的经历。文中梳理单体组件的拆分方式、领域逻辑的提取过程，以及以测试为基础推进重构的完整步骤，并记录其中做出的取舍与复盘，供准备同类练习的开发者参考。"
 keywords: "Toss Frontend Fundamentals, 前端重构, React 组件拆分, 代码审查, Toss 模拟考试, 前端设计"
 ---
@@ -24,7 +24,7 @@ keywords: "Toss Frontend Fundamentals, 前端重构, React 组件拆分, 代码�
 
 接着查看实际代码时，最先映入眼帘的是两个单体组件。
 
-- `ReservationStatusPage` 是一个 400 多行的组件，日期选择、时间线可视化、预订详情工具提示、我的预订列表和取消功能全都塞在同一个文件里。
+- `ReservationStatusPage` 是一个 385 行的组件，日期选择、时间线可视化、预订详情工具提示、我的预订列表和取消功能全都塞在同一个文件里。
 - `RoomBookingPage` 是一个 300 多行的组件，筛选器、房间列表、创建预订逻辑和 URL 参数同步交织在一起。
 
 阅读代码时，比起先下结论说“需要改进”，我更专注于**对代码的特性进行分类**。也就是区分哪些代码承载领域信息，哪些具有工具性质，哪些属于纯粹的 UI 层。

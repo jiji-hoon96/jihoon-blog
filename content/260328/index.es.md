@@ -8,7 +8,7 @@ description: "Refactorización de la app de reserva de salas del segundo simulac
 keywords: "Toss Frontend Fundamentals, refactorización frontend, separación de componentes React, revisión de código, simulacro de Toss, diseño frontend"
 locale: es
 translationOf: '260328'
-sourceHash: e75600c42d28660cf4be9524c11586daace94efe680b2f23f02421b5f5e9d451
+sourceHash: 8923c8faeb0909fd5fee8880f17c5920e68b3589e7236965925ee70f6b304162
 ---
 
 En este artículo quiero hablar de mi experiencia de refactorización al participar en el segundo simulacro de Toss Frontend Fundamentals.
@@ -24,7 +24,7 @@ Lo primero que hice al abrir el código fue **leer las especificaciones de los t
 
 Después examiné el código real y encontré dos componentes monolíticos.
 
-- `ReservationStatusPage` era un componente de unas 400 líneas que reunía en un único archivo la selección de fecha, la visualización de la línea temporal, el tooltip con los detalles de la reserva, la lista de mis reservas y la función de cancelación.
+- `ReservationStatusPage` era un componente de 385 líneas que reunía en un único archivo la selección de fecha, la visualización de la línea temporal, el tooltip con los detalles de la reserva, la lista de mis reservas y la función de cancelación.
 - `RoomBookingPage` era un componente de unas 300 líneas en el que se entrelazaban los filtros, la lista de salas, la lógica de creación de reservas y la sincronización de los parámetros de la URL.
 
 Mientras leía el código, antes de decidir que «había que mejorarlo», me centré en **clasificar sus características**: qué partes contenían información de dominio, cuáles tenían carácter de utilidad y cuáles pertenecían exclusivamente a la capa de UI.

@@ -8,7 +8,7 @@ description: 'Measure AI coding token costs with a React POC and cut them using 
 keywords: 'save AI tokens, Claude Code cost, reduce token costs, prompt caching, context engineering, subagent, MCP tokens, Cursor Composer, model routing, context rot, LLM cost optimization'
 locale: en
 translationOf: '260611'
-sourceHash: fc7da8aff34f64d252e4a5c2b7376733a51d128f0148a4a8a2406a7f82cb3f29
+sourceHash: a31b4bb872403d70f4f524ad76327633a6dcf6c8343ff09741f403a58e59a467
 ---
 
 In this post, I want to talk about how to save AI tokens.
@@ -17,7 +17,7 @@ In the early days, I focused on results and process rather than performance and 
 
 After a while, however, I became increasingly conscious of token usage. Individuals felt the burden of monthly subscriptions, while companies grew more concerned about labor and operating costs. As I wrote in [The AI Agent Tool Landscape](/260529), my other articles have focused less on what AI is or how it works and more on how to use it well, what help it can provide, which tools exist, what is currently popular, and why those trends emerged. I still think those topics matter, but as time passes, cost will ultimately become the question people care about most.
 
-I covered the mechanics of tokens—what exactly they are, how BPE creates them, and what happens inside a transformer when prompt caching lowers the unit price—in a separate article, [How Tokens Work](/260610). Building on that foundation, this article first examines how costs are billed and where inefficiencies arise, then organizes proven cost-saving patterns, and finishes with a small POC that measures token usage by running the same task under several strategies.
+I covered the mechanics of tokens—what exactly they are, how BPE creates them, and what happens inside a transformer when prompt caching lowers the unit price—in a separate article, [How Tokens Work](/260610). Building on that foundation, this article first examines how costs are billed and where inefficiencies arise, then organizes proven cost-saving patterns. For the main patterns, I attached token usage I measured myself by running the same task under different strategies.
 
 ---
 

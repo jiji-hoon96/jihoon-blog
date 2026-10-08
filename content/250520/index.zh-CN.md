@@ -8,7 +8,7 @@ description: "基于 React 源码，深入分析 React Fiber 架构，从 Stack 
 keywords: "React Fiber, React Fiber 架构, Stack Reconciler, Concurrent Mode, React 18 并发, useTransition, useDeferredValue, Suspense, React 渲染原理, React 源码分析, Virtual DOM, Reconciliation, Lane 优先级, 前端面试"
 locale: zh-CN
 translationOf: '250520'
-sourceHash: 412f62b5791d4a5cb8194d72a33592355783df8495cc4274b2e2d4d2e8162f6e
+sourceHash: 5f4d292c9e9b26fce26a9220b9d9d706f2ae418e385b27133899d86216a9d3bd
 ---
 
 这篇文章想聊聊堪称 React 心脏的 **Fiber 架构**。
@@ -187,7 +187,7 @@ React 基于这一结构，以深度优先搜索（DFS）的顺序遍历节点�
 
 理解 Fiber 时不能遗漏的核心概念，正是**双缓冲（Double Buffering）**。
 
-为了理解这个概念，可以想象游戏图形的绘制过程。如果游戏直接在当前画面上绘制像素，用户就可能看到只画了一半的帧，出现**画面撕裂（tearing）**。为了避免这种情况，游戏引擎会使用**两个缓冲区**：先在一个缓冲区中完整绘制下一帧，绘制完成后，再一次性切换屏幕正在显示的缓冲区。
+为了理解这个概念，可以想象游戏图形的绘制过程。如果游戏直接在当前画面上绘制像素，用户就可能看到只画了一半的帧，出现**画面闪烁（flicker）**。为了避免这种情况，游戏引擎会使用**两个缓冲区**：先在一个缓冲区中完整绘制下一帧，绘制完成后，再一次性切换屏幕正在显示的缓冲区。
 
 React Fiber 使用的正是同一种策略。
 

@@ -8,7 +8,7 @@ description: "BiomeのLintとフォーマット性能を、ESLintとPrettierを�
 keywords: "Biome vs ESLint, Biome vs Prettier, Biome移行, JavaScriptリンター比較, Rust製リンター, フロントエンド開発ツール"
 locale: ja
 translationOf: '241201'
-sourceHash: 09c08de2a01b115d2a003056b07b9ec373e98a19617d193019e192f006ee3551
+sourceHash: 8abdacf533591fb96f96bebe31b926f4d95d367b3e2ece1af59af9b80fd9ad07
 ---
 
 今回は、Biomeというツールについて紹介したい。
@@ -37,7 +37,7 @@ Biomeを選ぶ理由は、大きく三つにまとめられる。
 
 **一つのツールでフォーマットとLintの両方を処理できる。** ESLint + Prettierの組み合わせでは、二つのツール間でルールが競合しないよう、`eslint-config-prettier`のような追加設定が必要だった。Biomeはこの複雑さを根本から取り除く。
 
-**圧倒的な性能を持つ。** 公式ベンチマークによると、Prettierより約25倍、ESLintより約15倍高速だ。この数値が実際にどの程度なのかは、後ほど直接比較する。
+**圧倒的な性能を持つ。** 公式ベンチマークによると、Prettierより約35倍、ESLintより約15倍高速だ。この数値が実際にどの程度なのかは、後ほど直接比較する。
 
 ![Biome 公式サイトのフォーマット速度比較。2,104 ファイル 171,127 行で Biome 0.41 秒、Prettier 14.35 秒と約 35 倍の差](1.png)
 

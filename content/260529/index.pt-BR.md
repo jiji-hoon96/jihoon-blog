@@ -8,7 +8,7 @@ description: "Mapa prático das ferramentas para agentes de IA: CLAUDE.md, AGENT
 keywords: 'CLAUDE.md, AGENTS.md, SKILL.md, MCP, Model Context Protocol, Serena MCP, CodeGraph, inteligência de código, GitHub Trending, agente de programação com IA, Claude Code, regras do Cursor, tree-sitter, LSP'
 locale: pt-BR
 translationOf: '260529'
-sourceHash: e247a66c9497f5ada777da4de742036ed499bf8e72e78434eb01bfeae463d13d
+sourceHash: 8c61afbd211b1678064788ce88779f4c8f6df2735cb0704109c8232f98a58b44
 ---
 
 Neste post, quero falar sobre o **ecossistema de ferramentas em torno dos agentes de programação com IA**.
@@ -366,8 +366,6 @@ O **Serena**, discutido na seção sobre MCP, pertence exatamente a essa camada.
 Por fim, vale mencionar que conheci boa parte das ferramentas acima por meio do **GitHub Trending**. É um lugar onde se pode ver de uma só vez quem está criando quais ferramentas e o que ganhou popularidade repentinamente.
 
 Em `github.com/trending`, é possível visualizar três períodos: today, this week e this month. Também há filtros por linguagem e categoria. (Em geral, acompanho weekly + TypeScript / Python e, às vezes, amplio para todas as linguagens.)
-
-Ao acompanhar o Trending nas últimas semanas, percebi algo interessante: **os principais repositórios deste trimestre formam clusters bem definidos**. Entender esses clusters ajuda a situar melhor cada ferramenta.
 
 ## E então?
 

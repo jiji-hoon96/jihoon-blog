@@ -8,7 +8,7 @@ description: "AIがコードを書く時代に、フロントエンドエンジ�
 keywords: 'AI時代のフロントエンド, AI時代の開発者, vibe coding, agentic engineering, AIコーディングツール, Product Engineer, フロントエンドのキャリアロードマップ'
 locale: ja
 translationOf: '260302'
-sourceHash: 9e820add9fbee97043f989e52c79451d2190faff3d6f17cb0a4fac02eeebbba1
+sourceHash: c38de9f219e846c233a2afb136f3ea0ee2a9f849517236b327d2e82dd05659f5
 ---
 
 今回の記事では、**AI時代にエンジニアがどのように成長し、生き残れるのか**について、個人的な視点から考えてみたい。
@@ -54,7 +54,7 @@ There's a new kind of coding I call 'vibe coding', where you fully give in to th
 
 ### ツールは暴走する勢いで進化している
 
-ツール側も、この流れに合わせて急速に進化している。2026年5月時点で最もよく言及されるコーディングツールは、Cursor、Claude Code、GitHub Copilot、Windsurf、v0 by Vercel、Bolt.new、Devinあたりだ。
+ツール側も、この流れに合わせて急速に進化している。2026年3月時点で最もよく言及されるコーディングツールは、Cursor、Claude Code、GitHub Copilot、Windsurf、v0 by Vercel、Bolt.new、Devinあたりだ。
 
 とりわけ、v0の変化は象徴的だ。Vercelは[「90% problem」](https://venturebeat.com/infrastructure/vercel-rebuilt-v0-to-tackle-the-90-problem-connecting-ai-generated-code-to)という表現を使っている。現実の開発の90%は、既存のコードベースと既存のインフラの中で行われる、という意味だ。当初はグリーンフィールドのプロトタイプさえうまく作れればよかったv0が、今ではGitHubリポジトリを直接取り込んで作業し、デザインシステムを適用し、デプロイ環境変数を自動で取得して使う。「AIはおもちゃのようなデモしか上手に作れないのでは」というシニアたちの反論に、ツール側が直接答えているわけだ。
 

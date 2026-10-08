@@ -6,7 +6,7 @@ date: '2025-05-20'
 categories: frontend React
 locale: es
 translationOf: '250520'
-sourceHash: 412f62b5791d4a5cb8194d72a33592355783df8495cc4274b2e2d4d2e8162f6e
+sourceHash: 5f4d292c9e9b26fce26a9220b9d9d706f2ae418e385b27133899d86216a9d3bd
 description: "Análisis de React Fiber desde el código fuente: Stack Reconciler, prioridades por Lanes, doble búfer, scheduler con MessageChannel y Concurrent Features."
 keywords: "React Fiber, arquitectura de React Fiber, Stack Reconciler, Concurrent Mode, concurrencia en React 18, useTransition, useDeferredValue, Suspense, renderizado de React, análisis del código fuente de React, Virtual DOM, Reconciliation, prioridad por Lanes, entrevista de frontend"
 ---
@@ -187,7 +187,7 @@ Este campo sirve de puente entre el mundo virtual de Fiber y el DOM real del nav
 
 Un concepto esencial que no puede faltar al estudiar Fiber es el **doble búfer (Double Buffering)**.
 
-Para entenderlo, pensemos en los gráficos de un videojuego. Si se dibujan píxeles directamente sobre la pantalla visible, el usuario puede ver un frame a medio dibujar, un fenómeno de **desgarro de imagen (tearing)**. Para evitarlo, los motores de juegos utilizan **dos búferes**. Dibujan por completo el siguiente frame en uno de ellos y, cuando está terminado, sustituyen de una vez el búfer que se muestra en pantalla.
+Para entenderlo, pensemos en los gráficos de un videojuego. Si se dibujan píxeles directamente sobre la pantalla visible, el usuario puede ver un frame a medio dibujar, un fenómeno de **parpadeo (flicker)**. Para evitarlo, los motores de juegos utilizan **dos búferes**. Dibujan por completo el siguiente frame en uno de ellos y, cuando está terminado, sustituyen de una vez el búfer que se muestra en pantalla.
 
 React Fiber utiliza exactamente la misma estrategia.
 

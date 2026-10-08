@@ -8,7 +8,7 @@ description: 'Meça custos de tokens com um React POC e reduza-os com prompt cac
 keywords: 'economizar tokens de IA, custo do Claude Code, Cursor Composer, React POC, prompt caching, context engineering, subagent, MCP, model routing, context rot'
 locale: pt-BR
 translationOf: '260611'
-sourceHash: fc7da8aff34f64d252e4a5c2b7376733a51d128f0148a4a8a2406a7f82cb3f29
+sourceHash: a31b4bb872403d70f4f524ad76327633a6dcf6c8343ff09741f403a58e59a467
 ---
 
 Neste artigo, quero falar sobre como economizar tokens de IA.
@@ -17,7 +17,7 @@ No começo, eu me concentrava mais nos resultados e no processo do que em desemp
 
 Com o tempo, porém, fiquei cada vez mais atento ao uso de tokens. Para as pessoas, a mensalidade pesava; para as empresas, aumentavam as preocupações com custos de pessoal e operação. Como organizei em [O panorama das ferramentas de agentes de IA](/260529), meus outros textos se concentraram menos no que é a IA ou como ela funciona e mais em como usá-la bem, que ajuda ela oferece, quais ferramentas existem, o que está em alta e por que essas tendências surgiram. Ainda considero isso importante, mas acredito que o custo acabará sendo a maior dúvida.
 
-Expliquei os princípios dos tokens — o que são, como o BPE os cria e o que ocorre dentro do transformador quando prompt caching reduz o preço — em [Como os tokens funcionam](/260610). Com essa base, veremos primeiro como os custos são cobrados e onde surgem ineficiências, depois reuniremos padrões comprovados de economia e, por fim, faremos um pequeno POC que mede o uso de tokens ao executar a mesma tarefa com várias estratégias.
+Expliquei os princípios dos tokens — o que são, como o BPE os cria e o que ocorre dentro do transformador quando prompt caching reduz o preço — em [Como os tokens funcionam](/260610). Com essa base, veremos primeiro como os custos são cobrados e onde surgem ineficiências, depois reuniremos padrões comprovados de economia. Os principais padrões vêm acompanhados do uso de tokens que medi eu mesmo executando a mesma tarefa com estratégias diferentes.
 
 ---
 

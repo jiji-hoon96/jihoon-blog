@@ -5,10 +5,10 @@ seoTitle: 'フロントエンド状態管理の設計眼: 7つの状態分類と
 date: "2026-05-18"
 locale: ja
 translationOf: '260518'
-sourceHash: cabf96853929aff5912a6fa8fe6d320eba746be8a7c4f721c09b6f08d4447b66
+sourceHash: c29c3eb016acb3fa6ee86740afa1cdf4888bb4fa2e78cbf0a931a18ad2e7f70c
 categories: フロントエンド 状態管理 React アーキテクチャ
-description: "フロントエンド開発で特に難しい状態管理を、ローカル・グローバル・サーバー・フォーム・URL・外部・ガードの7分類で整理。Single Source of Truth、不可能な状態の排除、State Colocationなど4つの視点から、ツール選定とモデリングの基準を解説する。"
-keywords: "フロントエンド 状態管理, React 状態管理, Zustand Jotai 比較, TanStack Query, Server State Client State, State Colocation, Single Source of Truth, React 19 useOptimistic"
+description: "フロントエンドの状態管理をローカル・グローバル・サーバー・フォーム・URL・外部・ガードの7分類に分け、分類ごとに合うツールと境界を整理する。最後に、状態を作る前に投げかける4つの問いにまとめる。"
+keywords: "フロントエンド 状態管理, React 状態管理, TanStack Query, Server State Client State, State Colocation, Single Source of Truth"
 ---
 
 今回の記事では、**状態管理（State Management）**について考えてみたい。ライブラリの比較記事ではない。どのツールが優れているかを決めるよりも、状態というものを**どう捉え**、どこに**境界を引くべきか**という感覚を整理するための記事だ。

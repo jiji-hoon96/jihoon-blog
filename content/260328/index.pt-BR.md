@@ -8,7 +8,7 @@ description: "Refatoração do app de reserva de salas do 2º simulado do Toss F
 keywords: "Toss Frontend Fundamentals, refatoração de frontend, separação de componentes React, revisão de código, simulado da Toss, arquitetura frontend"
 locale: pt-BR
 translationOf: '260328'
-sourceHash: e75600c42d28660cf4be9524c11586daace94efe680b2f23f02421b5f5e9d451
+sourceHash: 8923c8faeb0909fd5fee8880f17c5920e68b3589e7236965925ee70f6b304162
 ---
 
 Neste post, quero contar como foi minha experiência de refatoração durante a 2ª edição do simulado do Toss Frontend Fundamentals.
@@ -24,7 +24,7 @@ A primeira coisa que fiz ao abrir o código foi **ler as especificações dos te
 
 Em seguida, examinei o código em si e dois componentes monolíticos chamaram minha atenção.
 
-- `ReservationStatusPage` era um componente com cerca de 400 linhas que reunia, em um único arquivo, seleção de data, visualização da timeline, tooltip com os detalhes da reserva, lista das minhas reservas e funcionalidade de cancelamento.
+- `ReservationStatusPage` era um componente com 385 linhas que reunia, em um único arquivo, seleção de data, visualização da timeline, tooltip com os detalhes da reserva, lista das minhas reservas e funcionalidade de cancelamento.
 - `RoomBookingPage` era um componente com cerca de 300 linhas no qual filtros, lista de salas, lógica de criação de reservas e sincronização dos parâmetros da URL estavam todos entrelaçados.
 
 Enquanto lia o código, antes mesmo de concluir que ele "precisava melhorar", concentrei-me em **classificar suas características**. A ideia era distinguir o que continha informações de domínio, o que tinha natureza utilitária e o que pertencia puramente à camada de UI.

@@ -8,7 +8,7 @@ description: "Biome versus ESLint e Prettier: desempenho de linting e formataç�
 keywords: "Biome vs ESLint, Biome vs Prettier, migração para Biome, comparação de linters JavaScript, linter baseado em Rust, ferramentas de desenvolvimento frontend"
 locale: pt-BR
 translationOf: '241201'
-sourceHash: 09c08de2a01b115d2a003056b07b9ec373e98a19617d193019e192f006ee3551
+sourceHash: 8abdacf533591fb96f96bebe31b926f4d95d367b3e2ece1af59af9b80fd9ad07
 ---
 
 Neste post, quero falar sobre uma ferramenta chamada Biome.
@@ -37,7 +37,7 @@ Há três motivos principais para escolher o Biome.
 
 **Uma única ferramenta cuida tanto da formatação quanto do linting.** Com a combinação ESLint + Prettier, eram necessárias configurações adicionais, como `eslint-config-prettier`, para evitar conflitos de regras entre as duas ferramentas. O Biome elimina essa complexidade pela raiz.
 
-**O desempenho é impressionante.** Segundo os benchmarks oficiais, ele é cerca de 25 vezes mais rápido que o Prettier e aproximadamente 15 vezes mais rápido que o ESLint. Mais adiante, vamos comparar diretamente o que esses números representam na prática.
+**O desempenho é impressionante.** Segundo os benchmarks oficiais, ele é cerca de 35 vezes mais rápido que o Prettier e aproximadamente 15 vezes mais rápido que o ESLint. Mais adiante, vamos comparar diretamente o que esses números representam na prática.
 
 ![Comparativo de formatação do site do Biome: 0,41 s contra 14,35 s do Prettier em 171.127 linhas de 2.104 arquivos, cerca de 35 vezes mais rápido](1.png)
 

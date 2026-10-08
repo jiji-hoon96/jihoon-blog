@@ -5,10 +5,10 @@ seoTitle: "Frontend State Management: 7 Categories and React Design"
 date: "2026-05-18"
 categories: frontend State-Management React Architecture
 description: "A framework for frontend state management across seven categories (local, global, server, form, URL, external, guards) with React modeling criteria."
-keywords: "frontend state management, React state management, Zustand vs Jotai, TanStack Query, Server State vs Client State, State Colocation, Single Source of Truth, React 19 useOptimistic"
+keywords: "frontend state management, React state management, TanStack Query, Server State vs Client State, State Colocation, Single Source of Truth"
 locale: en
 translationOf: '260518'
-sourceHash: cabf96853929aff5912a6fa8fe6d320eba746be8a7c4f721c09b6f08d4447b66
+sourceHash: c29c3eb016acb3fa6ee86740afa1cdf4888bb4fa2e78cbf0a931a18ad2e7f70c
 ---
 
 In this post, I want to talk about **State Management**. This is not a library comparison. Rather than deciding which tool is better, the goal is to develop a feel for **how to think about** state and **where to draw its boundaries**.

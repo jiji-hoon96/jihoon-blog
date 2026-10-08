@@ -8,7 +8,7 @@ description: "Análise do React Fiber pelo código-fonte: Stack Reconciler, prio
 keywords: "React Fiber, arquitetura React Fiber, Stack Reconciler, Concurrent Mode, concorrência no React 18, useTransition, useDeferredValue, Suspense, renderização do React, análise do código-fonte do React, Virtual DOM, Reconciliation, prioridade de Lane, entrevista de frontend"
 locale: pt-BR
 translationOf: '250520'
-sourceHash: 412f62b5791d4a5cb8194d72a33592355783df8495cc4274b2e2d4d2e8162f6e
+sourceHash: 5f4d292c9e9b26fce26a9220b9d9d706f2ae418e385b27133899d86216a9d3bd
 ---
 
 Neste post, quero falar sobre a **arquitetura Fiber**, que pode ser considerada o coração do React.
@@ -187,7 +187,7 @@ Esse campo funciona como uma ponte entre o mundo virtual do Fiber e o DOM real d
 
 Um conceito central que não pode faltar ao entender Fiber é o **double buffering (Double Buffering)**.
 
-Para compreendê-lo, pense em gráficos de jogos. Se os pixels fossem desenhados diretamente na tela atual, o usuário veria um frame pela metade, fenômeno chamado de **screen tearing (tearing)**. Para evitar isso, engines de jogos usam **dois buffers**. O próximo frame é desenhado por completo em um deles e, quando fica pronto, o buffer exibido na tela é trocado de uma só vez.
+Para compreendê-lo, pense em gráficos de jogos. Se os pixels fossem desenhados diretamente na tela atual, o usuário veria um frame pela metade, fenômeno chamado de **cintilação (flicker)**. Para evitar isso, engines de jogos usam **dois buffers**. O próximo frame é desenhado por completo em um deles e, quando fica pronto, o buffer exibido na tela é trocado de uma só vez.
 
 O React Fiber usa exatamente a mesma estratégia.
 

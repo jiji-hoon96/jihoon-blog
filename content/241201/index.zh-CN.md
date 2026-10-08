@@ -8,7 +8,7 @@ description: "对比 Biome 与 ESLint、Prettier 组合的 lint 与格式化性�
 keywords: "Biome vs ESLint, Biome vs Prettier, Biome 迁移, JavaScript linter 对比, Rust linter, 前端开发工具"
 locale: zh-CN
 translationOf: '241201'
-sourceHash: 09c08de2a01b115d2a003056b07b9ec373e98a19617d193019e192f006ee3551
+sourceHash: 8abdacf533591fb96f96bebe31b926f4d95d367b3e2ece1af59af9b80fd9ad07
 ---
 
 这篇文章想聊聊一款名为 Biome 的工具。
@@ -37,7 +37,7 @@ Biome 的前身是 [Rome](https://github.com/rome/tools)。**Rome Tools Inc.** �
 
 **一款工具就能同时处理格式化与 lint。** 使用 ESLint + Prettier 组合时，为避免两款工具的规则冲突，需要添加 `eslint-config-prettier` 等额外配置。Biome 从根本上消除了这种复杂性。
 
-**性能非常出色。** 根据官方 benchmark，它的速度约为 Prettier 的 25 倍、ESLint 的 15 倍。后文会通过直接对比来看看这些数字在实际中意味着什么。
+**性能非常出色。** 根据官方 benchmark，它的速度约为 Prettier 的 35 倍、ESLint 的 15 倍。后文会通过直接对比来看看这些数字在实际中意味着什么。
 
 ![Biome 官网的格式化速度对比：2,104 个文件共 171,127 行，Biome 0.41 秒，Prettier 14.35 秒，约快 35 倍](1.png)
 

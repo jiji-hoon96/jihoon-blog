@@ -8,7 +8,7 @@ description: "How frontend engineers grow when AI writes the code: new skills in
 keywords: 'frontend in the AI era, developers in the AI era, vibe coding, agentic engineering, AI coding tools, Product Engineer, frontend career roadmap'
 locale: en
 translationOf: '260302'
-sourceHash: 9e820add9fbee97043f989e52c79451d2190faff3d6f17cb0a4fac02eeebbba1
+sourceHash: c38de9f219e846c233a2afb136f3ea0ee2a9f849517236b327d2e82dd05659f5
 ---
 
 In this post, I want to share my personal perspective on **how engineers can grow and survive alongside AI**.
@@ -54,7 +54,7 @@ A year ago, the baseline assumption was, “Just tell it what to do and it will 
 
 ### The Tools Are Racing Ahead
 
-The tools are also evolving rapidly in step with this shift. As of May 2026, the most frequently discussed coding tools include Cursor, Claude Code, GitHub Copilot, Windsurf, v0 by Vercel, Bolt.new, and Devin.
+The tools are also evolving rapidly in step with this shift. As of March 2026, the most frequently discussed coding tools include Cursor, Claude Code, GitHub Copilot, Windsurf, v0 by Vercel, Bolt.new, and Devin.
 
 The evolution of v0 is especially symbolic. Vercel uses the phrase [“the 90% problem”](https://venturebeat.com/infrastructure/vercel-rebuilt-v0-to-tackle-the-90-problem-connecting-ai-generated-code-to), meaning that 90% of real-world development takes place within existing codebases and infrastructure. At first, v0 only needed to excel at greenfield prototypes. Now it can import a GitHub repository directly, work within it, enforce a design system, and automatically pull in deployment environment variables. In effect, toolmakers are directly answering senior engineers who ask, “Isn’t AI only good at making toy demos?”
 

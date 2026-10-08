@@ -5,10 +5,10 @@ seoTitle: "Estado no frontend: 7 categorias e arquitetura React"
 date: "2026-05-18"
 categories: frontend gerenciamento-de-estado React arquitetura
 description: "Gerenciamento de estado no frontend em sete categorias (local, global, servidor, formulário, URL, externo e guards) e critérios de design no React."
-keywords: "gerenciamento de estado no frontend, gerenciamento de estado React, comparação Zustand Jotai, TanStack Query, Server State Client State, State Colocation, Single Source of Truth, React 19 useOptimistic"
+keywords: "gerenciamento de estado no frontend, gerenciamento de estado React, TanStack Query, Server State Client State, State Colocation, Single Source of Truth"
 locale: pt-BR
 translationOf: '260518'
-sourceHash: cabf96853929aff5912a6fa8fe6d320eba746be8a7c4f721c09b6f08d4447b66
+sourceHash: c29c3eb016acb3fa6ee86740afa1cdf4888bb4fa2e78cbf0a931a18ad2e7f70c
 ---
 
 Neste post, quero falar sobre **gerenciamento de estado (State Management)**. Não se trata de uma comparação entre bibliotecas. Mais importante do que decidir qual ferramenta é melhor é desenvolver uma percepção sobre **como enxergar** o estado e onde **traçar seus limites**.

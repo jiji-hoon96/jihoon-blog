@@ -4,8 +4,8 @@ title: "상태 관리"
 seoTitle: "프론트엔드 상태 관리의 안목: 지역·전역·서버·폼·URL 7가지 범주와 React 설계 기준"
 date: "2026-05-18"
 categories: 프론트엔드 상태관리 React 아키텍처
-description: "프론트엔드에서 가장 까다로운 작업으로 꼽히는 상태 관리. 지역·전역·서버·폼·URL·외부·가드 7가지 범주로 상태를 분류하고, 단일 진실 공급원·불가능한 상태 제거·State Colocation 등 4가지 안목으로 도구 선택과 모델링 기준을 정리한다."
-keywords: "프론트엔드 상태관리, React 상태관리, Zustand Jotai 비교, TanStack Query, 서버 상태 클라이언트 상태, State Colocation, 단일 진실 공급원, React 19 useOptimistic"
+description: "프론트엔드 상태 관리를 지역·전역·서버·폼·URL·외부·가드 7가지 범주로 나누고, 범주마다 맞는 도구와 경계를 정리한다. 마지막에는 상태를 만들기 전에 던질 네 가지 질문으로 압축한다."
+keywords: "프론트엔드 상태관리, React 상태관리, TanStack Query, 서버 상태 클라이언트 상태, URL 상태, 폼 상태, State Colocation, 단일 진실 공급원"
 ---
 
 이번 포스팅에서는 **상태 관리(State Management)** 에 대한 이야기를 해보려고 한다. 라이브러리 비교 글은 아니다. 어떤 도구가 더 좋은지를 가리는 것보다, 상태라는 것을 **어떻게 바라보고**, 어디에 **경계를 그어야 하는지**에 대한 감각을 정리하는 글이다.

@@ -8,7 +8,7 @@ description: "Mapa práctico de herramientas para agentes de IA: CLAUDE.md, AGEN
 keywords: 'CLAUDE.md, AGENTS.md, SKILL.md, MCP, Model Context Protocol, Serena MCP, CodeGraph, inteligencia de código, GitHub Trending, agente de codificación con IA, Claude Code, Cursor rules, tree-sitter, LSP'
 locale: es
 translationOf: '260529'
-sourceHash: e247a66c9497f5ada777da4de742036ed499bf8e72e78434eb01bfeae463d13d
+sourceHash: 8c61afbd211b1678064788ce88779f4c8f6df2735cb0704109c8232f98a58b44
 ---
 
 En esta publicación quiero hablar sobre el **ecosistema de herramientas que rodea a los agentes de codificación con IA**.
@@ -366,8 +366,6 @@ Veamos la diferencia con un ejemplo concreto. El LSP de TypeScript sabe que `Use
 Para terminar, descubrí por primera vez muchas de las herramientas anteriores a través de **GitHub Trending**. Es un lugar donde se puede ver de un vistazo quién está creando qué herramientas y cuáles están ganando popularidad de repente.
 
 En `github.com/trending` se puede consultar por tres intervalos: today, this week y this month. También permite filtrar por lenguaje y categoría. (Normalmente consulto weekly + TypeScript / Python y, de vez en cuando, amplío la búsqueda a todos los lenguajes).
-
-Al seguir Trending durante las últimas semanas, descubrí algo interesante: **los repositorios más destacados de este trimestre forman clusters claros**. Conocer esos clusters ayuda a situar mejor cada herramienta.
 
 ## En conclusión
 

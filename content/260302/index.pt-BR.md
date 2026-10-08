@@ -6,7 +6,7 @@ date: '2026-03-02'
 categories: frontend carreira IA
 locale: pt-BR
 translationOf: '260302'
-sourceHash: 9e820add9fbee97043f989e52c79451d2190faff3d6f17cb0a4fac02eeebbba1
+sourceHash: c38de9f219e846c233a2afb136f3ea0ee2a9f849517236b327d2e82dd05659f5
 description: "Como crescer como engenheiro frontend quando a IA escreve o código: validação, especificação e discernimento, a partir de Karpathy, Vercel v0 e METR."
 keywords: 'frontend na era da IA, desenvolvedor na era da IA, vibe coding, agentic engineering, ferramentas de programação com IA, Product Engineer, plano de carreira para frontend'
 ---
@@ -54,7 +54,7 @@ Se, um ano atrás, a premissa era “é só pedir que ela faz tudo”, agora “
 
 ### As ferramentas estão avançando sem freio
 
-O ecossistema de ferramentas também evolui rapidamente para acompanhar essa tendência. Em maio de 2026, as ferramentas de programação mais mencionadas são Cursor, Claude Code, GitHub Copilot, Windsurf, v0 by Vercel, Bolt.new e Devin.
+O ecossistema de ferramentas também evolui rapidamente para acompanhar essa tendência. Em março de 2026, as ferramentas de programação mais mencionadas são Cursor, Claude Code, GitHub Copilot, Windsurf, v0 by Vercel, Bolt.new e Devin.
 
 A transformação do v0 é especialmente emblemática. A Vercel usa a expressão [“90% problem”](https://venturebeat.com/infrastructure/vercel-rebuilt-v0-to-tackle-the-90-problem-connecting-ai-generated-code-to), que significa que 90% do desenvolvimento no mundo real acontece dentro de bases de código e infraestruturas existentes. No início, bastava ao v0 criar bons protótipos greenfield; agora, ele importa diretamente repositórios do GitHub para trabalhar, impõe o uso do design system e obtém automaticamente as variáveis de ambiente de implantação. É a resposta direta do ecossistema de ferramentas ao contraponto dos profissionais seniores: “A IA não serve apenas para criar demos que parecem brinquedos?”
 

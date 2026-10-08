@@ -8,7 +8,7 @@ description: 'Mide costos de tokens con un React POC y redúcelos con prompt cac
 keywords: 'ahorrar tokens de IA, costo de Claude Code, Cursor Composer, React POC, prompt caching, context engineering, subagent, MCP, model routing, context rot'
 locale: es
 translationOf: '260611'
-sourceHash: fc7da8aff34f64d252e4a5c2b7376733a51d128f0148a4a8a2406a7f82cb3f29
+sourceHash: a31b4bb872403d70f4f524ad76327633a6dcf6c8343ff09741f403a58e59a467
 ---
 
 En este artículo quiero hablar de cómo ahorrar tokens de IA.
@@ -17,7 +17,7 @@ Al principio me centraba más en los resultados y el proceso que en el rendimien
 
 Sin embargo, con el tiempo empecé a ser cada vez más consciente del uso de tokens. Para las personas, la cuota mensual pesaba; para las empresas, crecían las dudas sobre los costos laborales y operativos. Como expliqué en [El panorama de herramientas de agentes de IA](/260529), mis otros artículos se han centrado menos en qué es la IA o cómo funciona y más en cómo aprovecharla bien, qué ayuda puede ofrecer, qué herramientas existen, qué está de moda y por qué surgieron esas tendencias. Sigo pensando que esos temas importan, pero con el tiempo el costo terminará siendo la pregunta que más interese.
 
-En otro artículo, [Cómo funcionan los tokens](/260610), expliqué qué son exactamente, cómo los crea BPE y qué ocurre dentro de un transformador cuando prompt caching reduce el precio unitario. Sobre esa base, aquí veremos primero cómo se factura el costo y dónde nacen las ineficiencias, después ordenaremos patrones de ahorro comprobados y cerraremos con un pequeño POC que mide el uso de tokens al ejecutar la misma tarea con distintas estrategias.
+En otro artículo, [Cómo funcionan los tokens](/260610), expliqué qué son exactamente, cómo los crea BPE y qué ocurre dentro de un transformador cuando prompt caching reduce el precio unitario. Sobre esa base, aquí veremos primero cómo se factura el costo y dónde nacen las ineficiencias, después ordenaremos patrones de ahorro comprobados. Los patrones principales van acompañados del uso de tokens que medí yo mismo ejecutando la misma tarea con distintas estrategias.
 
 ---
 
