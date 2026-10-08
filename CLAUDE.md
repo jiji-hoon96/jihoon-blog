@@ -48,6 +48,12 @@
 - 필요한 정의와 전제는 처음 사용하기 전에 둔다. 뒤 절의 내용을 미리 길게 설명하거나 앞 절의 결론을 이유 없이 반복하지 않는다.
 - 긴 글의 구성과 문단 검토에는 [Google Technical Writing의 문서 구성](https://developers.google.com/tech-writing/two/large-docs)과 [문단 작성 원칙](https://developers.google.com/tech-writing/one/paragraphs), 초고의 구조 검토에는 [George Mason Writing Center의 reverse outlining](https://writingcenter.gmu.edu/writing-resources/writing-as-process/reverse-outlining)을 참고한다.
 
+### 글 구조
+
+- 소제목, 목록, 라벨, 구분선, 참고 자료를 어떤 마크다운으로 쓰는지는 `docs/post-structure.md` 가 정한다. 새 글은 `docs/post-structure-sample.md` 를 복사해 시작한다.
+- 요약: 소제목은 `##` `###` `####` 세 단계이고 번호를 붙이지 않는다. 굵은 글씨만 있는 줄과 본문의 `---`, `<hr>` 은 쓰지 않는다. 라벨 항목은 `- **라벨**: 설명` 이다. `:::ref` 앞에 소제목을 두지 않는다.
+- `pnpm content:structure` 가 기계로 잡을 수 있는 것을 검사하고, `pnpm build` 가 같은 검사를 돌린다. 순서 없는 나열에 쓴 `1.` 처럼 판단이 필요한 것은 잡지 않는다.
+
 ### 마크다운 문법 규칙
 
 - **강조는 `**텍스트**` (볼드)만 사용**한다. `*텍스트*` (이탤릭)는 사용하지 않는다.
