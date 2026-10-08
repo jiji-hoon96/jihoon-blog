@@ -51,7 +51,7 @@ There's a new kind of coding I call 'vibe coding', where you fully give in to th
 
 ### 도구는 폭주하고 있다
 
-도구 진영도 이 흐름에 맞춰 빠르게 진화 중이다. 2026년 5월 기준 가장 많이 언급되는 코딩 도구는 Cursor, Claude Code, GitHub Copliot, Windsurf, v0 by Vercel, Bolt.new, Devin이 정도다.
+도구 진영도 이 흐름에 맞춰 빠르게 진화 중이다. 2026년 3월 기준 가장 많이 언급되는 코딩 도구는 Cursor, Claude Code, GitHub Copilot, Windsurf, v0 by Vercel, Bolt.new, Devin이 정도다.
 
 특히 v0의 변화가 상징적이다. Vercel은 ["90% problem"](https://venturebeat.com/infrastructure/vercel-rebuilt-v0-to-tackle-the-90-problem-connecting-ai-generated-code-to)이라는 표현을 쓰는데, 현실 개발의 90%는 기존 코드베이스와 기존 인프라 안에서 일어난다 는 뜻이다. 처음엔 그린필드 프로토타입만 잘 만들면 됐던 v0가, 이제는 GitHub 저장소를 직접 가져와 작업하고, 디자인 시스템을 강제하며, 배포 환경 변수를 자동으로 끌어다 쓴다. "AI는 장난감 같은 데모만 잘 만들지 않냐" 라는 시니어들의 반론에 도구 진영이 직접 답하고 있는 셈이다.
 

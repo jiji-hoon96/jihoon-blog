@@ -8,7 +8,7 @@ description: "AI 编程工具的 Token 成本从哪里产生，又该如何降�
 keywords: 'AI Token 节省, Claude Code 成本, Token 成本优化, prompt caching, context engineering, subagent, MCP Token, Cursor Composer, model routing, context rot, LLM 成本优化'
 locale: zh-CN
 translationOf: '260611'
-sourceHash: fc7da8aff34f64d252e4a5c2b7376733a51d128f0148a4a8a2406a7f82cb3f29
+sourceHash: a31b4bb872403d70f4f524ad76327633a6dcf6c8343ff09741f403a58e59a467
 ---
 
 这篇文章想聊一聊如何节省 AI Token。
@@ -17,7 +17,7 @@ sourceHash: fc7da8aff34f64d252e4a5c2b7376733a51d128f0148a4a8a2406a7f82cb3f29
 
 但过了一段时间，我渐渐对 Token 用量警觉起来。个人感到月费负担沉重，企业则开始认真考虑人力和运营成本。正如我在 [AI Agent 工具版图](/260529)中总结的那样，之前的文章与其说在讨论 AI 是什么、怎样工作，不如说更关注如何用好 AI、能从中获得什么帮助、有哪些工具、最近流行什么，以及这些潮流为何出现。我依然认同这个方向，不过随着时间推移，人们最终最想知道的恐怕还是成本。
 
-关于 Token 究竟是什么、如何通过 BPE 生成，以及 prompt caching 降低单价时 Transformer 内部发生了什么，我已在 [Token 的工作原理](/260610)中单独整理。本文以此为基础，先看费用如何计算、低效从何而来，再归纳经过验证的节省模式，最后用一个小型 POC 收尾：采用多种策略执行同一任务，直接测量 Token 用量。
+关于 Token 究竟是什么、如何通过 BPE 生成，以及 prompt caching 降低单价时 Transformer 内部发生了什么，我已在 [Token 的工作原理](/260610)中单独整理。本文以此为基础，先看费用如何计算、低效从何而来，再归纳经过验证的节省模式。主要模式都附上了笔者用多种策略执行同一任务、亲自测得的 Token 用量。
 
 ---
 

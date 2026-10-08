@@ -8,7 +8,7 @@ description: '在 AI 代替人编写代码的时代，前端工程师该如何�
 keywords: 'AI 时代前端, AI 时代开发者, vibe coding, agentic engineering, AI 编程工具, Product Engineer, 前端职业路线图'
 locale: zh-CN
 translationOf: '260302'
-sourceHash: 9e820add9fbee97043f989e52c79451d2190faff3d6f17cb0a4fac02eeebbba1
+sourceHash: c38de9f219e846c233a2afb136f3ea0ee2a9f849517236b327d2e82dd05659f5
 ---
 
 这篇文章想从个人视角聊一聊：**在 AI 时代，工程师该如何成长并生存下去**。
@@ -54,7 +54,7 @@ There's a new kind of coding I call 'vibe coding', where you fully give in to th
 
 ### 工具正在狂飙
 
-工具阵营也顺应这股趋势快速演进。截至 2026 年 5 月，最常被提及的编程工具包括 Cursor、Claude Code、GitHub Copilot、Windsurf、v0 by Vercel、Bolt.new 和 Devin。
+工具阵营也顺应这股趋势快速演进。截至 2026 年 3 月，最常被提及的编程工具包括 Cursor、Claude Code、GitHub Copilot、Windsurf、v0 by Vercel、Bolt.new 和 Devin。
 
 v0 的变化尤其具有象征意义。Vercel 使用了“[90% problem](https://venturebeat.com/infrastructure/vercel-rebuilt-v0-to-tackle-the-90-problem-connecting-ai-generated-code-to)”这个说法，意思是现实开发中 90% 的工作都发生在现有代码库和基础设施之内。起初，只要能做好全新项目原型就够了；如今，v0 已经可以直接导入 GitHub 仓库进行开发、强制遵循设计系统，并自动读取部署环境变量。对于资深工程师提出的“AI 不就只会做好玩具式演示吗”这一质疑，工具阵营正在亲自作答。
 

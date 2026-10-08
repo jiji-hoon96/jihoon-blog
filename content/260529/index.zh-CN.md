@@ -5,7 +5,7 @@ seoTitle: 'AI 编程智能体工具全景图: Markdown 文件、MCP、代码智�
 date: '2026-05-29'
 locale: zh-CN
 translationOf: '260529'
-sourceHash: e247a66c9497f5ada777da4de742036ed499bf8e72e78434eb01bfeae463d13d
+sourceHash: 8c61afbd211b1678064788ce88779f4c8f6df2735cb0704109c8232f98a58b44
 categories: AI 开发工具 Claude MCP CodeGraph
 description: '从四个角度梳理使用 Claude 进行前端开发时遇到的工具：CLAUDE.md、AGENTS.md 与 SKILL.md 的区别，MCP 的原理，Serena、CodeGraph 等代码智能工具的工作方式，以及如何阅读 GitHub Trending。'
 keywords: 'CLAUDE.md, AGENTS.md, SKILL.md, MCP, Model Context Protocol, Serena MCP, CodeGraph, 代码智能, GitHub Trending, AI 编程智能体, Claude Code, Cursor rules, tree-sitter, LSP'
@@ -366,8 +366,6 @@ benchmark 同样令人印象深刻。官方 README 比较了在 headless 模式�
 最后再补充一点：上文介绍的许多工具，我最初都是通过 **GitHub Trending** 了解到的。这里可以一眼看出谁在开发什么，以及哪些工具突然开始流行。
 
 进入 `github.com/trending`，可以按 today、this week、this month 三种时间范围浏览，也可按语言和类别筛选。（我通常会看 weekly + TypeScript / Python，偶尔再扩展到所有语言。）
-
-连续几周追踪 Trending 后，我发现了一个有趣现象：**本季度排名靠前的仓库形成了明确的 cluster**。了解这些 cluster，能帮助我们更好地定位单个工具。
 
 ## 总结
 

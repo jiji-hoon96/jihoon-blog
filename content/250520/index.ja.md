@@ -8,7 +8,7 @@ description: "React Fiberアーキテクチャを、Stack ReconcilerからLane�
 keywords: "React Fiber, React Fiberアーキテクチャ, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, Reactレンダリングの仕組み, Reactソースコード解析, Virtual DOM, Reconciliation, Lane優先度, フロントエンド面接"
 locale: ja
 translationOf: '250520'
-sourceHash: 412f62b5791d4a5cb8194d72a33592355783df8495cc4274b2e2d4d2e8162f6e
+sourceHash: 5f4d292c9e9b26fce26a9220b9d9d706f2ae418e385b27133899d86216a9d3bd
 ---
 
 今回は、Reactの心臓部ともいえる**Fiberアーキテクチャ**について話したい。
@@ -187,7 +187,7 @@ Reactはこの構造を基に、深さ優先探索（DFS）の順序でノード
 
 Fiberを理解するうえで欠かせない重要な概念が、**ダブルバッファリング（Double Buffering）**だ。
 
-この概念を理解するために、ゲームグラフィックスを思い浮かべてみよう。ゲームで画面を描くとき、現在の画面にピクセルを直接描くと、描画途中のフレームがユーザーに見えてしまう**ティアリング**が発生する。これを防ぐため、ゲームエンジンは**二つのバッファ**を使う。一方のバッファに次のフレームを完全に描き、完成した時点で画面に表示するバッファを一度に切り替えるのだ。
+この概念を理解するために、ゲームグラフィックスを思い浮かべてみよう。ゲームで画面を描くとき、現在の画面にピクセルを直接描くと、描画途中のフレームがユーザーに見えてしまう**ちらつき（flicker）**が発生する。これを防ぐため、ゲームエンジンは**二つのバッファ**を使う。一方のバッファに次のフレームを完全に描き、完成した時点で画面に表示するバッファを一度に切り替えるのだ。
 
 React Fiberもまったく同じ戦略を使う。
 

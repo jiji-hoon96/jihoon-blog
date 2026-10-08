@@ -5,7 +5,7 @@ seoTitle: 'AI Coding Agent Tools: Context Files, MCP, Code Graphs'
 date: '2026-05-29'
 locale: en
 translationOf: '260529'
-sourceHash: e247a66c9497f5ada777da4de742036ed499bf8e72e78434eb01bfeae463d13d
+sourceHash: 8c61afbd211b1678064788ce88779f4c8f6df2735cb0704109c8232f98a58b44
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "A practical map of AI coding agent tools: CLAUDE.md vs AGENTS.md vs SKILL.md, how MCP and Serena work, code intelligence, and GitHub Trending."
 keywords: 'CLAUDE.md, AGENTS.md, SKILL.md, MCP, Model Context Protocol, Serena MCP, CodeGraph, code intelligence, GitHub Trending, AI coding agents, Claude Code, Cursor rules, tree-sitter, LSP'
@@ -366,8 +366,6 @@ Consider a concrete example. A TypeScript LSP knows that `UserService` implement
 Finally, **GitHub Trending** is where I first discovered many of the tools discussed above. It offers an at-a-glance view of who is building what and which projects are suddenly gaining traction.
 
 At `github.com/trending`, you can browse three time ranges: today, this week, and this month. You can also filter by language and category. (I usually look at weekly results for TypeScript and Python, occasionally expanding to all languages.)
-
-One interesting pattern I noticed while tracking Trending over the past few weeks is that **this quarter’s leading repositories form clear clusters**. Understanding those clusters makes it easier to place individual tools in context.
 
 ## So, What Does This Mean?
 

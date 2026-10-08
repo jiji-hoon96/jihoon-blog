@@ -8,7 +8,7 @@ description: "Refactoring the meeting room reservation app from the second Toss 
 keywords: "Toss Frontend Fundamentals, frontend refactoring, React component decomposition, code review, Toss mock exam, frontend architecture"
 locale: en
 translationOf: '260328'
-sourceHash: e75600c42d28660cf4be9524c11586daace94efe680b2f23f02421b5f5e9d451
+sourceHash: 8923c8faeb0909fd5fee8880f17c5920e68b3589e7236965925ee70f6b304162
 ---
 
 In this post, I want to share my experience refactoring the project from the second Toss Frontend Fundamentals mock exam.
@@ -24,7 +24,7 @@ The first thing I did after opening the code was **read the test specifications*
 
 I then turned to the implementation itself, where two monolithic components immediately stood out.
 
-- `ReservationStatusPage` was a component of roughly 400 lines, with date selection, timeline visualization, reservation detail tooltips, the user's reservation list, and cancellation functionality all packed into a single file.
+- `ReservationStatusPage` was a component of 385 lines, with date selection, timeline visualization, reservation detail tooltips, the user's reservation list, and cancellation functionality all packed into a single file.
 - `RoomBookingPage` was a component of roughly 300 lines, with filters, the room list, reservation creation logic, and URL parameter synchronization all tangled together.
 
 As I read through the code, rather than immediately deciding that it “needed improvement,” I first focused on **classifying the characteristics of the code**. I distinguished between code that contained domain knowledge, code that behaved like a utility, and code that belonged purely to the UI layer.

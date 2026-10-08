@@ -5,7 +5,7 @@ seoTitle: 'AIコーディングエージェントのツール地図: mdファイ
 date: '2026-05-29'
 locale: ja
 translationOf: '260529'
-sourceHash: e247a66c9497f5ada777da4de742036ed499bf8e72e78434eb01bfeae463d13d
+sourceHash: 8c61afbd211b1678064788ce88779f4c8f6df2735cb0704109c8232f98a58b44
 categories: AI 開発ツール Claude MCP CodeGraph
 description: 'Claudeを使ったフロントエンド開発で出会ったツールを、4つの視点から整理する。CLAUDE.md・AGENTS.md・SKILL.mdの違い、MCPの仕組みとSerena、CodeGraphなどコードインテリジェンスツールの動作原理、GitHub Trendingの読み方まで解説。'
 keywords: 'CLAUDE.md, AGENTS.md, SKILL.md, MCP, Model Context Protocol, Serena MCP, CodeGraph, コードインテリジェンス, GitHub Trending, AIコーディングエージェント, Claude Code, Cursor rules, tree-sitter, LSP'
@@ -366,8 +366,6 @@ MCPの節で取り上げた**Serena**は、まさにこの階層に位置する�
 最後にもう一つ。前述のツールの多くを筆者が初めて知ったきっかけは、**GitHub Trending**だった。誰がどのようなツールを作り、何が急速に人気を集めているのかを、一目で確認できる場所だ。
 
 `github.com/trending`を開くと、today、this week、this monthという3つの期間で確認できる。言語とカテゴリによるフィルタリングも可能だ。（筆者は通常、weekly + TypeScript / Pythonで確認し、ときどき全言語へ広げている。）
-
-筆者がここ数週間Trendingを追いながら気づいた興味深い点は、**今四半期の上位リポジトリが、明確なクラスターを形成している**ことだ。クラスターが分かれば、個々のツールの位置づけも見えやすくなる。
 
 ## まとめ
 

@@ -8,7 +8,7 @@ description: "Cómo crecer como ingeniero frontend cuando la IA escribe el códi
 keywords: 'frontend en la era de la IA, desarrolladores en la era de la IA, vibe coding, agentic engineering, herramientas de programación con IA, Product Engineer, hoja de ruta profesional para frontend'
 locale: es
 translationOf: '260302'
-sourceHash: 9e820add9fbee97043f989e52c79451d2190faff3d6f17cb0a4fac02eeebbba1
+sourceHash: c38de9f219e846c233a2afb136f3ea0ee2a9f849517236b327d2e82dd05659f5
 ---
 
 En esta publicación quiero hablar, desde una perspectiva personal, de **cómo pueden crecer y sobrevivir los ingenieros en la era de la IA**.
@@ -54,7 +54,7 @@ Si hace un año el punto de partida era «basta con pedírselo y lo construye to
 
 ### Las herramientas avanzan sin freno
 
-El ecosistema de herramientas también evoluciona rápidamente en consonancia con esta corriente. A mayo de 2026, las herramientas de programación más mencionadas son Cursor, Claude Code, GitHub Copilot, Windsurf, v0 by Vercel, Bolt.new y Devin.
+El ecosistema de herramientas también evoluciona rápidamente en consonancia con esta corriente. A marzo de 2026, las herramientas de programación más mencionadas son Cursor, Claude Code, GitHub Copilot, Windsurf, v0 by Vercel, Bolt.new y Devin.
 
 La evolución de v0 es especialmente simbólica. Vercel utiliza la expresión [«90% problem»](https://venturebeat.com/infrastructure/vercel-rebuilt-v0-to-tackle-the-90-problem-connecting-ai-generated-code-to), que significa que el 90% del desarrollo real tiene lugar dentro de una base de código y una infraestructura ya existentes. Al principio bastaba con que v0 creara buenos prototipos greenfield; ahora importa repositorios de GitHub para trabajar directamente con ellos, aplica sistemas de diseño y obtiene automáticamente las variables de entorno de despliegue. En cierto modo, el ecosistema de herramientas está respondiendo directamente a la objeción de los perfiles senior: «¿La IA no sirve únicamente para crear demos de juguete?».
 
