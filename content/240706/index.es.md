@@ -34,7 +34,7 @@ ZIP es un formato creado por Phil Katz en 1989. En su interior suele usar **DEFL
 
 ZIP **comprime cada archivo por separado**. Esta estructura, en la que cada archivo se comprime de forma independiente, se conoce como archivo no sólido (Non-solid Archive). El enfoque opuesto, que une todos los archivos en un solo flujo y lo comprime de una vez, es el archivo sólido. Gracias a la estructura no sólida, es posible extraer un archivo concreto sin descomprimir los demás. Como contrapartida, no aprovecha datos repetidos entre archivos, por lo que puede obtener una tasa inferior a tar.gz, que veremos más adelante.
 
-Windows, macOS, Linux y la mayoría de los sistemas operativos lo admiten sin instalar software adicional. Por eso es una opción segura cuando importa la compatibilidad entre plataformas.
+Windows, macOS, Linux y la mayoría de los sistemas operativos lo admiten sin instalar software adicional. Por eso es la opción más segura cuando importa la compatibilidad entre plataformas.
 
 <hr>
 
@@ -56,13 +56,13 @@ En entornos Unix y Linux se utiliza como un estándar para distribuir código fu
 
 ZSTD es un algoritmo desarrollado por Yann Collet en Meta, antes Facebook, y publicado como código abierto en 2016. Su gran ventaja es que **comprime y descomprime mucho más rápido, manteniendo una tasa comparable a GZIP**.
 
-Su funcionamiento interno tiene tres grandes etapas. Primero, un **buscador de coincidencias (Match Finder)** de la familia LZ77 detecta patrones repetidos. Después codifica los literales, las longitudes y los desplazamientos encontrados como **secuencias**. Por último, comprime esas secuencias mediante **codificación entrópica**. En lugar de depender únicamente de Huffman como GZIP, utiliza **FSE (Finite State Entropy)**, un codificador basado en ANS (Asymmetric Numeral Systems). ANS actualiza un único estado entero cada vez que procesa un símbolo y emite menos bits cuanto más frecuente es el símbolo. Su objetivo es lograr una tasa de compresión cercana a la de la codificación aritmética (Arithmetic Coding) con una velocidad cercana a la de Huffman. Huffman solo puede asignar un número entero de bits por símbolo; FSE puede representar probabilidades equivalentes a bits fraccionarios y acercarse más al límite teórico. (A pesar del nombre, la idea esencial es expresar los mismos datos con menos bits de una manera más inteligente.)
+Su funcionamiento interno tiene tres grandes etapas. Primero, un **buscador de coincidencias (Match Finder)** de la familia LZ77 detecta patrones repetidos. Después codifica los literales, las longitudes y los desplazamientos encontrados como **secuencias**. Por último, comprime esas secuencias mediante **codificación entrópica**. En lugar de la codificación Huffman de GZIP, utiliza **FSE (Finite State Entropy)**, un codificador basado en ANS (Asymmetric Numeral Systems). ANS actualiza un único estado entero cada vez que procesa un símbolo y emite menos bits cuanto más frecuente es el símbolo. Su objetivo es lograr una tasa de compresión cercana a la de la codificación aritmética (Arithmetic Coding) con una velocidad cercana a la de Huffman. Huffman solo puede asignar un número entero de bits por símbolo; FSE puede representar probabilidades equivalentes a bits fraccionarios y acercarse más al límite teórico. (A pesar del nombre, la idea esencial es expresar los mismos datos con menos bits de una manera más inteligente.)
 
 El buscador también cambia de estrategia según el nivel. Los niveles bajos, del 1 al 4, usan tablas hash sencillas para ganar velocidad. Los intermedios, del 5 al 12, comparan varios candidatos mediante una estrategia Lazy. Los altos, del 13 al 22, recurren a árboles binarios y programación dinámica para encontrar coincidencias casi óptimas. Esta escala permite usar niveles bajos para transmisión en tiempo real y altos para archivo.
 
-En el benchmark Silesia Corpus, ZSTD en su nivel predeterminado 3 comprime a unos 300 MB/s y descomprime a unos 1.200 MB/s. GZIP en el nivel 6 alcanza apenas 34 MB/s y 380 MB/s, respectivamente. **ZSTD comprime unas ocho veces más rápido y descomprime unas tres, mientras obtiene una tasa ligeramente superior: 3,17 frente a 3,09 de GZIP.** Estas cifras muestran de forma directa cómo mejora el compromiso tradicional.
+En el benchmark Silesia Corpus, ZSTD en su nivel predeterminado 3 comprime a unos 300 MB/s y descomprime a unos 1.200 MB/s. GZIP en el nivel 6 alcanza apenas 34 MB/s y 380 MB/s, respectivamente. **ZSTD comprime unas ocho veces más rápido y descomprime unas tres, y aun así su tasa es superior: 3,17 frente a 3,09 de GZIP.** Estas cifras muestran de forma directa cómo mejora el compromiso tradicional.
 
-Su adopción crece con rapidez. Se usa para comprimir módulos del kernel de Linux y de forma transparente en sistemas de archivos; distribuciones como Arch Linux, Fedora, Debian y Ubuntu lo han adoptado para sus paquetes. Desde la versión 1.5.7, publicada en febrero de 2025, la **compresión multihilo está activada de forma predeterminada** con hasta cuatro hilos, ampliando aún más la diferencia práctica frente al GZIP monohilo. AWS también ha explicado que redujo alrededor de un 30% el almacenamiento en S3 al migrar servicios internos de gzip a zstd.
+Su adopción crece con rapidez. Se usa para comprimir módulos del kernel de Linux y de forma transparente en sistemas de archivos; distribuciones como Arch Linux, Fedora, Debian y Ubuntu lo han adoptado como formato predeterminado de compresión de paquetes. Desde la versión 1.5.7, publicada en febrero de 2025, la **compresión multihilo está activada de forma predeterminada** con hasta cuatro hilos, ampliando aún más la diferencia práctica frente al GZIP monohilo. AWS también ha explicado que redujo alrededor de un 30% el almacenamiento en S3 al migrar servicios internos de gzip a zstd.
 
 <hr>
 
@@ -78,7 +78,7 @@ BZIP2 comprime mediante una cadena de transformaciones.
 
 BZIP2 proporciona una tasa mayor que GZIP, pero tanto la compresión como la descompresión son más lentas. Se ha usado para archivo cuando el tamaño importaba más que la velocidad.
 
-Su última versión fue la 1.0.8, publicada en 2019, y el desarrollo activo prácticamente se ha detenido. A medida que los benchmarks muestran que ZSTD supera a BZIP2 en tasa y velocidad, los proyectos nuevos tienden a elegir ZSTD.
+Su última versión fue la 1.0.8, publicada en 2019, y no está en desarrollo activo. A medida que los benchmarks muestran que ZSTD supera a BZIP2 en tasa y velocidad, los proyectos nuevos tienden a elegir ZSTD.
 
 <hr>
 
@@ -100,7 +100,7 @@ Su organización interna es sorprendentemente sencilla. Todo se procesa en **blo
 
 La propiedad clave es que TAR conserva **los metadatos del sistema de archivos Unix**, como permisos, propietarios, marcas de tiempo y enlaces simbólicos. ZIP no siempre conserva perfectamente estos datos específicos de Unix, por lo que TAR suele encajar mejor en despliegues de servidor.
 
-TAR no reduce el tamaño por sí mismo; las cabeceras y el relleno pueden incluso aumentarlo ligeramente. La compresión real se consigue al combinarlo con GZIP, BZIP2, XZ o ZSTD. De ahí proceden extensiones como `.tar.gz`, `.tar.bz2`, `.tar.xz` y `.tar.zst`. TAR se encarga de “agrupar” y la otra herramienta de “reducir”, un ejemplo clásico de la filosofía Unix de “hacer bien una sola cosa”.
+TAR no reduce el tamaño por sí mismo; de hecho, las cabeceras y el relleno lo hacen ligeramente mayor que el original. La compresión real se consigue al combinarlo con GZIP, BZIP2, XZ o ZSTD. De ahí proceden extensiones como `.tar.gz`, `.tar.bz2`, `.tar.xz` y `.tar.zst`. TAR se encarga de “agrupar” y la otra herramienta de “reducir”, un ejemplo clásico de la filosofía Unix de “hacer bien una sola cosa”.
 
 Es el método estándar de archivado en Unix/Linux, mientras que Windows puede necesitar software adicional como 7-Zip.
 
@@ -137,7 +137,7 @@ Añadí esta sección en 2026. Entonces escogí tar.gz por su compatibilidad y e
 
 Si afrontara hoy la misma situación, consideraría seriamente **tar.zst (TAR + ZSTD)**. Recordemos las cifras anteriores.
 
-GZIP comprime a 34 MB/s en su nivel predeterminado y ZSTD a 300 MB/s. Para una carpeta de 2 GB, un cálculo simple da unos 60 segundos con GZIP y siete con ZSTD. Si además contamos el multihilo activado por defecto desde ZSTD v1.5.7, con hasta cuatro hilos, la diferencia real puede ser mayor. En una canalización CI/CD esos segundos se acumulan en cada despliegue.
+GZIP comprime a 34 MB/s en su nivel predeterminado y ZSTD a 300 MB/s. Para una carpeta de 2 GB, un cálculo simple da unos 60 segundos con GZIP y siete con ZSTD. Si además contamos el multihilo activado por defecto desde ZSTD v1.5.7, con hasta cuatro hilos, el tiempo real es todavía menor. En una canalización CI/CD esta diferencia se acumula en cada despliegue, así que no es una cifra despreciable.
 
 ```sh
 # tar.zst 생성 (멀티스레드 자동 활용)

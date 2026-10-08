@@ -56,11 +56,11 @@ GZIP has long been a standard for distributing source code, compressing logs, an
 
 ZSTD is a compression algorithm developed by Yann Collet at Meta, formerly Facebook, and released as open source in 2016. Its main advantage is **dramatically faster compression and decompression while retaining a ratio comparable to GZIP**.
 
-ZSTD has three broad stages. First, an LZ77-family **match finder** detects repeated patterns in the input. It then encodes the results, including literals, match lengths, and offsets, as **sequences**. Finally, it compresses those sequences with **entropy coding**. Instead of relying only on GZIP-style Huffman coding, ZSTD uses **FSE (Finite State Entropy)**. FSE is an entropy coder based on ANS (Asymmetric Numeral Systems). ANS updates a single integer state each time it processes a symbol and emits fewer bits for more frequent symbols. Its goal is a compression ratio close to arithmetic coding at a speed close to Huffman coding. Huffman coding can assign only an integer number of bits per symbol, while FSE can represent fractional-bit probabilities and get closer to the theoretical optimum. (Despite the grand name, the key idea is simply a smarter way to express the same data with fewer bits.)
+ZSTD has three broad stages. First, an LZ77-family **match finder** detects repeated patterns in the input. It then encodes the results, including literals, match lengths, and offsets, as **sequences**. Finally, it compresses those sequences with **entropy coding**. Instead of GZIP-style Huffman coding, ZSTD uses **FSE (Finite State Entropy)**. FSE is an entropy coder based on ANS (Asymmetric Numeral Systems). ANS updates a single integer state each time it processes a symbol and emits fewer bits for more frequent symbols. Its goal is a compression ratio close to arithmetic coding at a speed close to Huffman coding. Huffman coding can assign only an integer number of bits per symbol, while FSE can represent fractional-bit probabilities and get closer to the theoretical optimum. (Despite the grand name, the key idea is simply a smarter way to express the same data with fewer bits.)
 
 The match finder also changes strategy with the compression level. Lower levels, from 1 to 4, use simple hash tables for speed. Middle levels, from 5 to 12, compare multiple candidates and lazily choose a better match. Higher levels, from 13 to 22, use binary trees and dynamic programming to find near-optimal matches. This broad range makes it possible to choose a low level for real-time transfer and a high level for archival work.
 
-On the Silesia Corpus benchmark, ZSTD’s default level 3 compresses at around 300 MB/s and decompresses at around 1,200 MB/s. GZIP’s default level 6 reaches only around 34 MB/s for compression and 380 MB/s for decompression. **ZSTD is roughly eight times faster at compression and three times faster at decompression, while its compression ratio is slightly better at 3.17 versus GZIP’s 3.09.** These figures make ZSTD’s improved trade-off easy to see.
+On the Silesia Corpus benchmark, ZSTD’s default level 3 compresses at around 300 MB/s and decompresses at around 1,200 MB/s. GZIP’s default level 6 reaches only around 34 MB/s for compression and 380 MB/s for decompression. **ZSTD is roughly eight times faster at compression and three times faster at decompression, while its compression ratio is even ahead at 3.17 versus GZIP’s 3.09.** These figures make ZSTD’s improved trade-off easy to see.
 
 Adoption has expanded quickly. ZSTD is used for Linux kernel module compression and transparent filesystem compression, and major distributions including Arch Linux, Fedora, Debian, and Ubuntu have adopted it as a default package format. Starting with v1.5.7, released in February 2025, **multithreaded compression is enabled by default** with up to four threads, further widening the practical speed gap with single-threaded GZIP. AWS has also reported reducing S3 storage by about 30% after switching internal services from gzip to zstd.
 
@@ -78,7 +78,7 @@ BZIP2 compresses data through a pipeline of transformations.
 
 BZIP2 offers a higher compression ratio than GZIP, but both compression and decompression are slower. It has traditionally been used for archival work where size matters more than speed.
 
-Its latest release was v1.0.8 in 2019, and active development has largely stopped. As benchmarks increasingly show ZSTD outperforming BZIP2 in both ratio and speed, new projects are more likely to choose ZSTD.
+Its latest release was v1.0.8 in 2019, and it is not under active development. As benchmarks increasingly show ZSTD outperforming BZIP2 in both ratio and speed, new projects are more likely to choose ZSTD.
 
 <hr>
 
@@ -100,7 +100,7 @@ TAR’s internal structure is surprisingly simple. Everything is processed in **
 
 The key property is that TAR preserves **Unix filesystem metadata**, including permissions, ownership, timestamps, and symbolic links. ZIP does not always preserve this Unix-specific metadata perfectly, which often makes TAR a better fit for server deployment.
 
-TAR does not make data smaller by itself. Its headers and padding can actually make the result slightly larger. Compression is performed by combining TAR with GZIP, BZIP2, XZ, ZSTD, or another compressor. That is why extensions such as `.tar.gz`, `.tar.bz2`, `.tar.xz`, and `.tar.zst` exist. TAR handles “bundling,” while the compression tool handles “shrinking,” a classic example of the Unix philosophy to “do one thing well.”
+TAR does not make data smaller by itself. In fact, its headers and padding make the result slightly larger than the original. Compression is performed by combining TAR with GZIP, BZIP2, XZ, ZSTD, or another compressor. That is why extensions such as `.tar.gz`, `.tar.bz2`, `.tar.xz`, and `.tar.zst` exist. TAR handles “bundling,” while the compression tool handles “shrinking,” a classic example of the Unix philosophy to “do one thing well.”
 
 TAR is standard in Unix and Linux environments, while Windows may require additional software such as 7-Zip.
 
@@ -137,7 +137,7 @@ I added this section in 2026. I chose tar.gz at the time because of its compatib
 
 If I faced the same situation today, however, I would seriously consider **tar.zst (TAR + ZSTD)**. Recall the benchmark figures above.
 
-GZIP’s default compression speed is 34 MB/s, while ZSTD’s default is 300 MB/s. For a 2 GB build directory, a simple calculation gives about 60 seconds for GZIP and around seven seconds for ZSTD. With multithreading enabled by default in ZSTD v1.5.7, using as many as four threads, the practical difference can be even larger. In a CI/CD pipeline, those seconds accumulate on every deployment cycle.
+GZIP’s default compression speed is 34 MB/s, while ZSTD’s default is 300 MB/s. For a 2 GB build directory, a simple calculation gives about 60 seconds for GZIP and around seven seconds for ZSTD. With multithreading enabled by default in ZSTD v1.5.7, using as many as four threads, the time it actually takes is shorter still. In a CI/CD pipeline, this difference accumulates on every deployment cycle, so it is not a number you can ignore.
 
 ```sh
 # tar.zst 생성 (멀티스레드 자동 활용)
