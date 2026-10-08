@@ -9,7 +9,7 @@ description: "Dónde debe vivir la lógica de dominio en el frontend, con un eje
 keywords: "modelo de dominio en frontend, diseño guiado por el dominio, DDD en frontend, Frontend DDD, separación de lógica de dominio, Anemic Domain Model, modelo de dominio anémico, Clean Architecture en frontend, Martin Fowler, patrones de diseño en React, arquitectura frontend, separación del ViewModel, Bounded Context"
 locale: es
 translationOf: '260418'
-sourceHash: 039f1e97e4489460d06d530778716de5e88fd6a6ad59594bcdb04f51366e2eed
+sourceHash: 60644795c5361206d2908732e77d5e7dfd99e1aeca18d5e650675781c0af1fa4
 ---
 
 En esta entrada quiero hablar de **dónde debe vivir la lógica de dominio en el frontend**.
@@ -23,7 +23,7 @@ Todos los ejemplos usan el cálculo del impuesto sobre la renta, un dominio que 
 
 ## ¿Dónde debe estar la lógica de dominio en el frontend?
 
-Antes de responder, pongámonos de acuerdo en un término. En esta entrada, un **modelo de dominio** reúne los conceptos de negocio junto con las reglas que operan sobre ellos. Es distinto de un **modelo de datos**, como el tipo de una respuesta de la API, que solo define la forma en que viajan los datos. Esta diferencia es también la razón por la que, cuando los componentes dependen directamente de la estructura de la respuesta, todo el frontend se tambalea cada vez que cambia el esquema del backend. En qué se diferencian los cuatro términos (dominio, modelo de dominio, objeto de dominio y modelo de objetos de dominio) lo explico aparte en [Dominio y modelo de dominio](/261008).
+Antes de responder, pongámonos de acuerdo en un término. En esta entrada, un **modelo de dominio** reúne los conceptos de negocio junto con las reglas que operan sobre ellos. Es distinto de un **modelo de datos**, como el tipo de una respuesta de la API, que solo define la forma en que viajan los datos. Esta diferencia es también la razón por la que, cuando los componentes dependen directamente de la estructura de la respuesta, todo el frontend se tambalea cada vez que cambia el esquema del backend. En qué se diferencian los cuatro términos (dominio, modelo de dominio, objeto de dominio y modelo de objetos de dominio) lo explico aparte en [Términos de dominio](/261008).
 
 [Khalil Stemmler](https://khalilstemmler.com/about/), muy interesado en el diseño de software, sostuvo al principio que «la lógica de negocio no pertenece al frontend», pero más adelante revisó su postura y afirmó que «casi todo lo que hacemos arquitectónicamente en el backend también podemos y debemos hacerlo en el frontend».
 

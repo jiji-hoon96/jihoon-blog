@@ -1,6 +1,6 @@
 ---
 emoji: 📖
-title: "Domínio e modelo de domínio"
+title: "Termos de domínio"
 seoTitle: "Domínio, modelo de domínio e objeto de domínio: diferenças"
 date: "2026-10-08"
 categories: frontend arquitetura DDD
@@ -8,7 +8,7 @@ description: "Diferenças entre domínio, modelo de domínio, objeto de domínio
 keywords: "modelo de domínio, objeto de domínio, modelo de objetos de domínio, modelo de domínio vs modelo de dados, Entity Value Object, terminologia DDD, DDD no frontend, Eric Evans"
 locale: pt-BR
 translationOf: '261008'
-sourceHash: 3afe226b523a5e987c1bd99df63c9d9b63955e9ee64e14fa11c8404948284762
+sourceHash: eae49014df4120d4b2d931c7b8bfb2038c7621ea82bd7fcab150b49bc63ad05e
 ---
 
 Neste post, quero falar sobre **como domínio, modelo de domínio, objeto de domínio e modelo de objetos de domínio se diferenciam**.

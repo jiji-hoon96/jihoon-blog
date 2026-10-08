@@ -1,6 +1,6 @@
 ---
 emoji: 📖
-title: "领域与领域模型"
+title: "领域术语"
 seoTitle: "领域、领域模型与领域对象的区别: 写给前端开发者的整理"
 date: "2026-10-08"
 categories: 前端 架构 DDD
@@ -8,7 +8,7 @@ description: "以 Eric Evans 与 Martin Fowler 的定义，梳理领域、领域
 keywords: "领域模型, 领域对象, 领域对象模型, 领域模型 数据模型 区别, 实体 值对象, 领域驱动设计 术语, DDD 前端, Eric Evans"
 locale: zh-CN
 translationOf: '261008'
-sourceHash: 3afe226b523a5e987c1bd99df63c9d9b63955e9ee64e14fa11c8404948284762
+sourceHash: eae49014df4120d4b2d931c7b8bfb2038c7621ea82bd7fcab150b49bc63ad05e
 ---
 
 这篇文章想聊聊**领域、领域模型、领域对象与领域对象模型之间到底有什么区别**。
