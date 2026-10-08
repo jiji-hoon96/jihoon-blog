@@ -8,7 +8,7 @@ description: "Cómo crecer como ingeniero frontend cuando la IA escribe el códi
 keywords: 'frontend en la era de la IA, desarrolladores en la era de la IA, vibe coding, agentic engineering, herramientas de programación con IA, Product Engineer, hoja de ruta profesional para frontend'
 locale: es
 translationOf: '260302'
-sourceHash: c38de9f219e846c233a2afb136f3ea0ee2a9f849517236b327d2e82dd05659f5
+sourceHash: c2fa8469abc21ff1a933ac6f740362bfc7b640c4b87f1f0780aeaabf148ee5bc
 ---
 
 En esta publicación quiero hablar, desde una perspectiva personal, de **cómo pueden crecer y sobrevivir los ingenieros en la era de la IA**.
@@ -227,7 +227,5 @@ Si examinamos los escritos de Andrej Karpathy, una autoridad de Open AI, el núc
 
 El mensaje final del artículo original también era que se convierte en senior «la persona que no se conforma con terminar bien el trabajo asignado, sino que examina el contexto anterior y posterior y genera un gran impacto». En la era de la IA solo ha cambiado la definición de ese «impacto». Hay quien hace merge de una pantalla creada por la IA en una hora con un «funciona, así que vale», y hay quien dedica treinta minutos más a comprobar hasta qué punto esa pantalla es razonable en términos de accesibilidad, seguridad, rendimiento y coherencia con el sistema. Dentro de un año, se reconocerá como senior al segundo. Sobre la frontera entre el 70% —funcionamiento— y el 30% —aplicación y aprovechamiento—, sobrevivirá quien se sitúe del lado del 30%.
 
-Espero que los ingenieros frontend que lean este artículo también se lleven su propia respuesta a la pregunta «¿qué debo estudiar ahora?». Nadie conoce la respuesta correcta, pero estoy bastante convencido de que, cuanto más programe la IA, más sobrevivirán quienes sepan ver «lo que hay más allá del código». Concluyo con la esperanza de poder volver a escribir dentro de un año sobre cuánto habrá cambiado una vez más este panorama.
-
-**(Si dentro de un año este artículo parece demasiado obvio o anticuado, quizá signifique que hemos sabido responder bien).**
+Espero que los ingenieros frontend que lean este artículo también se lleven su propia respuesta a la pregunta «¿qué debo estudiar ahora?». Nadie conoce la respuesta correcta, pero estoy bastante convencido de que, cuanto más programe la IA, más sobrevivirán quienes sepan ver «lo que hay más allá del código». Concluyo con la esperanza de poder volver a escribir dentro de un año sobre cuánto habrá cambiado una vez más este panorama. **(Si dentro de un año este artículo parece demasiado obvio o anticuado, quizá signifique que hemos sabido responder bien).**
 

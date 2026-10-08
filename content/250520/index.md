@@ -580,17 +580,19 @@ Commit Phase는 Render Phase에서 계산된 변경 사항을 **실제 DOM에 �
 
 Commit Phase는 내부적으로 다음과 같은 세밀한 순서로 동작한다.
 
-1. **Before Mutation Phase** : `commitBeforeMutationEffects()`
+1. **Before Mutation Phase**: `commitBeforeMutationEffects()`
    - DOM이 변경되기 전에 현재 DOM 상태를 읽는다. `getSnapshotBeforeUpdate` 라이프사이클이 여기서 실행된다. 이 시점에서 `current` 트리는 아직 화면의 상태를 나타내므로, DOM의 스크롤 위치나 크기 같은 정보를 안전하게 캡처할 수 있다.
-2. **Mutation Phase** : `commitMutationEffects()`
+2. **Mutation Phase**: `commitMutationEffects()`
    - **실제 DOM 조작**이 수행되는 단계다. 새 노드 삽입, 기존 노드 수정, 불필요한 노드 삭제가 모두 여기서 일어난다. `componentWillUnmount`도 이 시점에 실행되는데, 아직 `current`가 이전 트리를 가리키고 있으므로 이전 상태를 읽을 수 있기 때문이다.
-3. **트리 교체** : `root.current = finishedWork`
+3. **트리 교체**: `root.current = finishedWork`
    - double buffering의 핵심이다. workInProgress 트리가 current 트리로 승격된다. 이 교체가 Mutation 후, Layout 전에 실행되는 이유가 중요하다. `componentWillUnmount`는 **이전 트리**를 읽어야 하므로 Mutation 단계에서 실행되어야 하고, `componentDidMount`/`componentDidUpdate`는 **새 트리**를 읽어야 하므로 Layout 단계에서 실행되어야 하기 때문이다.
-4. **Layout Phase** : `commitLayoutEffects()`
-   - DOM 변경이 완료된 후, 새 DOM 상태를 기반으로 하는 작업들이 실행된다.
-      - `componentDidMount`, `componentDidUpdate` 실행
-      - `useLayoutEffect` 콜백 실행
-      - 이 시점에서 `current`는 이미 새 트리를 가리키므로, DOM을 읽으면 업데이트된 값을 얻을 수 있다
+4. **Layout Phase**: `commitLayoutEffects()`
+
+   DOM 변경이 완료된 후, 새 DOM 상태를 기반으로 하는 작업들이 실행된다.
+
+   - `componentDidMount`, `componentDidUpdate` 실행
+   - `useLayoutEffect` 콜백 실행
+   - 이 시점에서 `current`는 이미 새 트리를 가리키므로, DOM을 읽으면 업데이트된 값을 얻을 수 있다
 5. **Passive Effects** (비동기)
    - `useEffect`의 cleanup과 setup은 별도로 스케줄링되어 **비동기적**으로 실행된다. 이들은 DOM 변경에 의존하지 않는 부수 효과(데이터 패칭, 이벤트 구독 등)를 처리하기 위한 것이므로, 동기적으로 실행할 필요가 없다. 이를 비동기로 처리함으로써 브라우저가 먼저 화면을 그릴 수 있도록 양보하는 것이다.
 
@@ -644,8 +646,6 @@ React 18의 `renderToPipeableStream`은 Suspense 경계를 활용한다.
 
 이 글을 통해 React Fiber가 단순한 면접 키워드가 아닌, React의 모든 기능을 떠받치는 런타임 아키텍처라는 점이 전달되었기를 바란다. 정답은 없지만, 이 글을 읽는 독자분들도 소스코드를 직접 들여다보며 각자만의 이해를 쌓아가기를 바란다.
 
-
-## 출처
 
 :::ref
 - [repo] [React 소스코드, ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberWorkLoop.js)

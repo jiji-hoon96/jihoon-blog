@@ -8,7 +8,7 @@ description: 'Split a React payment screen into view, model, and data, following
 keywords: 'React layered architecture, React application architecture, extract custom hook, domain object React, Strategy pattern React, Presentation Domain Data layering, refactoring React components, modularizing React apps'
 locale: en
 translationOf: '261001'
-sourceHash: 04386dc525603086b1a6518b3fc3658aa52bda3e4f74955bd48e7683dad0f199
+sourceHash: a471069dd1f6949b51da4ba268781878b3bb9d94f9bf5e928521cd4799ecef3e
 ---
 
 In this post, I want to talk about how to split the code of a React app into the screen, the business rules, and data access. It is written for developers whose component holds fetch, calculation, and render all together, so that every fix means reading the whole thing. By the end you will know which signals tell you to pull out a hook, a pure component, a domain object, a Strategy, and a network client, in what order, and where that structure breaks when you carry it over as is.
@@ -356,7 +356,7 @@ To sum up, here is my judgment. The original's order (hook, pure component, doma
 There is no single right answer, but I hope you, the reader, will take a moment to check which stage's pain your own code is going through right now.
 
 :::ref
-[docs] [Microsoft Azure Architecture Center, Anti-corruption Layer pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer)
-[article] [Juntao Qiu, Headless Component](https://martinfowler.com/articles/headless-component.html)
-[article] [Juntao Qiu, Data Fetching Patterns in Single-Page Applications](https://martinfowler.com/articles/data-fetch-spa.html)
+- [docs] [Microsoft Azure Architecture Center, Anti-corruption Layer pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer)
+- [article] [Juntao Qiu, Headless Component](https://martinfowler.com/articles/headless-component.html)
+- [article] [Juntao Qiu, Data Fetching Patterns in Single-Page Applications](https://martinfowler.com/articles/data-fetch-spa.html)
 :::

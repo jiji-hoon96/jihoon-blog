@@ -18,11 +18,11 @@ Fiber를 공부하다가 "브라우저가 한가할 때 조금씩 일한다"는 
 
 Fiber의 개념을 설명할 때는 `requestIdleCallback`으로 작업을 나눠 실행하는 코드를 흔히 쓴다. 브라우저가 할 일이 없을 때마다 작업 단위를 하나씩 처리하는 모델이다. React도 처음에는 이 API를 실제로 썼고, 지금의 모양에 이르기까지 PR 몇 개를 거쳤다.
 
-- **2017년 1월** : 네이티브 `requestIdleCallback`을 쓰되, 없는 브라우저에서는 `requestAnimationFrame`과 `postMessage`로 흉내 낸 polyfill을 쓰게 했다([PR #8833](https://github.com/facebook/react/pull/8833)). Safari처럼 이 API가 없는 브라우저는 처음부터 polyfill이 맡았다. Safari 정식판에는 [2026년 10월 현재도 이 API가 없다](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback#browser_compatibility).
-- **2018년 3월과 4월** : 네이티브 API가 있어도 polyfill을 쓰는 플래그를 넣었다. Andrew Clark는 PR 본문에서 그동안 겪어 온 starvation(작업이 실행 기회를 얻지 못하고 계속 밀리는 현상) 문제를 polyfill이 줄이는지 시험하려는 것이라고 적었고, 재현이 어려워 확신하기는 어렵다고 덧붙였다([PR #12385](https://github.com/facebook/react/pull/12385)). 한 달 뒤 내부에서 네이티브보다 낫다고 판단해 플래그를 지우고 polyfill로 굳혔다([PR #12648](https://github.com/facebook/react/pull/12648)).
-- **2018년 11월** : polyfill이 `window`에 보내던 message 이벤트를 `MessageChannel`로 옮겼다. `window`에 보내면 페이지의 다른 message 핸들러까지 매 프레임 불리기 때문이다([PR #14234](https://github.com/facebook/react/pull/14234)).
-- **2019년 7월** : 다음 vsync를 추측해 프레임 끝에서 양보하던 방식 대신, message 이벤트 안에서 5ms 일하고 양보하는 루프를 실험 플래그로 넣었다([PR #16214](https://github.com/facebook/react/pull/16214)). 이 루프는 `requestAnimationFrame`을 아예 쓰지 않는다.
-- **2019년 8월과 11월** : 8월에 성능 테스트에서 message 루프 쪽 CPU 활용이 더 낫게 나왔다는 보고([PR #16271](https://github.com/facebook/react/pull/16271), 머지되지 않음)를 거쳐, 11월에 rAF 구현을 지웠다([PR #17252](https://github.com/facebook/react/pull/17252)).
+- **2017년 1월**: 네이티브 `requestIdleCallback`을 쓰되, 없는 브라우저에서는 `requestAnimationFrame`과 `postMessage`로 흉내 낸 polyfill을 쓰게 했다([PR #8833](https://github.com/facebook/react/pull/8833)). Safari처럼 이 API가 없는 브라우저는 처음부터 polyfill이 맡았다. Safari 정식판에는 [2026년 10월 현재도 이 API가 없다](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback#browser_compatibility).
+- **2018년 3월과 4월**: 네이티브 API가 있어도 polyfill을 쓰는 플래그를 넣었다. Andrew Clark는 PR 본문에서 그동안 겪어 온 starvation(작업이 실행 기회를 얻지 못하고 계속 밀리는 현상) 문제를 polyfill이 줄이는지 시험하려는 것이라고 적었고, 재현이 어려워 확신하기는 어렵다고 덧붙였다([PR #12385](https://github.com/facebook/react/pull/12385)). 한 달 뒤 내부에서 네이티브보다 낫다고 판단해 플래그를 지우고 polyfill로 굳혔다([PR #12648](https://github.com/facebook/react/pull/12648)).
+- **2018년 11월**: polyfill이 `window`에 보내던 message 이벤트를 `MessageChannel`로 옮겼다. `window`에 보내면 페이지의 다른 message 핸들러까지 매 프레임 불리기 때문이다([PR #14234](https://github.com/facebook/react/pull/14234)).
+- **2019년 7월**: 다음 vsync를 추측해 프레임 끝에서 양보하던 방식 대신, message 이벤트 안에서 5ms 일하고 양보하는 루프를 실험 플래그로 넣었다([PR #16214](https://github.com/facebook/react/pull/16214)). 이 루프는 `requestAnimationFrame`을 아예 쓰지 않는다.
+- **2019년 8월과 11월**: 8월에 성능 테스트에서 message 루프 쪽 CPU 활용이 더 낫게 나왔다는 보고([PR #16271](https://github.com/facebook/react/pull/16271), 머지되지 않음)를 거쳐, 11월에 rAF 구현을 지웠다([PR #17252](https://github.com/facebook/react/pull/17252)).
 
 starvation이 왜 생기는지는 `requestIdleCallback`의 정의에서 짐작할 수 있다. [W3C 명세](https://w3c.github.io/requestidlecallback/)는 유휴 기간(idle period)을 브라우저가 정한다고 두고, 프레임과 프레임 사이의 남는 시간을 그 예 가운데 하나로 든다. 애니메이션 중에는 이 기간이 자주 오지만 60Hz 화면에서는 대개 16ms보다 짧다. 메인 스레드가 긴 작업으로 바쁘면 이마저 줄어들고, React 작업은 그만큼 밀린다고 필자는 본다. Dan Abramov도 2018년 8월 이슈 댓글에서 React가 이 API를 그만 쓴 이유를 "it's not as aggressive as we need"라고 적었다([facebook/react#11171](https://github.com/facebook/react/issues/11171#issuecomment-417349573)).
 
@@ -104,8 +104,6 @@ schedule();
 
 이 Scheduler가 나눠 실행하는 작업 단위인 Fiber 노드가 어떻게 생겼고 Work Loop가 그것을 어떻게 순회하는지는 [React Fiber 완전 정복](/250520)에서 다룬다. 이 글을 읽는 독자 분들도 React 소스코드에서 `MessageChannel`을 다시 만나면, 그 자리에 왜 그것이 있는지 한 번쯤 떠올려 보기를 바란다.
 
-
-## 참고 자료
 
 :::ref
 - [repo] [React 16.0.0의 ReactDOMFrameScheduling.js](https://github.com/facebook/react/blob/v16.0.0/src/renderers/shared/ReactDOMFrameScheduling.js)

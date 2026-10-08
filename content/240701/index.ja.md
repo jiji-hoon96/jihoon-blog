@@ -9,7 +9,7 @@ description: "LZ77とLZ78が辞書をどう扱うのかの違いを整理する�
 keywords: "LZ77, LZ78, LZ77 LZ78 違い, LZ77 アルゴリズム, スライディングウィンドウ 圧縮, LZW, DEFLATE 仕組み, 辞書式圧縮"
 locale: ja
 translationOf: '240701'
-sourceHash: adffb2f465dace79a47b172dc53877d2d34bbfaa46c14978fa16575a00ae19df
+sourceHash: ddc4d9e1f3f50970b1b45c010136599e1ae4ffc77291be473b4b38679baa37a9
 ---
 
 今回は、**LZ77とLZ78がどう違うのか**について話してみたい。
@@ -169,8 +169,6 @@ LZ77とLZ78は、繰り返されるパターンを短い参照に置き換える
 
 次に`.zip`や`.gz`ファイルを展開するとき、その中で「何文字戻って何文字コピーせよ」という指示がやり取りされていることを一度思い出してもらえたらうれしい。
 
-
-### 参考資料
 
 :::ref
 - [paper] [Storer, Szymanski, Data compression via textual substitution (1982)](https://doi.org/10.1145/322344.322346)

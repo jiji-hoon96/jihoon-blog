@@ -6,7 +6,7 @@ date: "2026-05-26"
 updatedAt: "2026-10-08"
 locale: zh-CN
 translationOf: '260526'
-sourceHash: 443bddf4754e316487730bed1445d039acc52211b70f3df7ebb4269a217329f1
+sourceHash: 182bb75afe619d0d97875b8a9abbc855d796bdf96b4c9aaf93ff0695021afce5
 categories: AI 开发工具 Claude MCP CodeGraph
 description: "将降低 AI 编程智能体查找相关代码成本的工具分为四个层级进行比较，梳理 Repomix 等上下文打包、Aider 的 tree-sitter 仓库地图、CodeGraph 知识图谱，以及 Serena 等基于 LSP 的工具分别能理解代码到什么程度。"
 keywords: "代码智能, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider repo map, AI 编程智能体 节省 token"
@@ -169,8 +169,6 @@ Serena 会给每个引用附上[前后各 1 行](https://github.com/oraios/seren
 
 如果这些工具降低的是智能体查找代码的成本，那么智能体从一开始就该知道的项目规则要写在哪个文件、写多少，就是另一个问题了。这部分内容在[上下文文件](/260529)中讨论。
 
-
-## 参考资料
 
 :::ref
 - [repo] [ast-grep/ast-grep](https://github.com/ast-grep/ast-grep)

@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: en
 translationOf: '260529'
-sourceHash: fed5bdb321dec9666f12273f4c77b5c082799acd8ee57d2aeddff7096e128221
+sourceHash: 03edb5679e5e12f5dfab8b993152fdcc6c46eb0469c401b0c40f6255723f212d
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "How agents load CLAUDE.md, AGENTS.md, SKILL.md, and Cursor rules, why instructions get lost, and what an ETH Zurich study says to put in context files."
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, context files, AI coding agents, Claude Code, ETH Zurich AGENTS.md study"
@@ -191,8 +191,6 @@ What remains, ultimately, is one intuition from the ETH Zurich study: **the mode
 
 Rather than expanding CLAUDE.md to hundreds of lines right away, I encourage readers to dig, at least once, into when, where, and how strongly the tools they already use read that file. I believe that understanding provides a stable foundation, however file formats change.
 
-
-## References
 
 :::ref
 - [docs] [Claude Code Memory, Anthropic](https://code.claude.com/docs/en/memory)

@@ -9,7 +9,7 @@ description: "Cómo TanStack Query decide que dos queryKey son iguales: la seria
 keywords: "comparación de queryKey, hashKey, queryHash, clave de caché de TanStack Query, orden de queryKey en React Query, queryKeyHashFn, JSON.stringify claves ordenadas, QueryCache"
 locale: es
 translationOf: '251230'
-sourceHash: 24fc2216b382a69ba99c1d4ca8676c6ef3f58966b132171d60acb75e1be1f38c
+sourceHash: 47c18317b91a4b6f5d16479d680433d97c9f8ee7a016da28cd3387dd9417f417
 ---
 
 En esta publicación quiero hablar sobre **cómo decide TanStack Query que dos queryKey son la misma clave**.
@@ -72,7 +72,7 @@ El ordenamiento de claves solo se aplica a los **objetos planos**. `isPlainObjec
 
 Visto desde quien lo usa, hay dos resultados.
 
-**1. El orden de las claves de un objeto es irrelevante.**
+### El orden de las claves de un objeto es irrelevante
 
 ```tsx
 useQuery({ queryKey: ['todos', { status: 'done', page: 1 }], queryFn });
@@ -82,7 +82,7 @@ useQuery({ queryKey: ['todos', { page: 1, status: 'done' }], queryFn });
 
 Sin el ordenamiento de claves, al escribir un literal de objeto habría que recordar siempre el orden de sus claves.
 
-**2. El orden de los elementos de un arreglo sí importa.**
+### El orden de los elementos de un arreglo sí importa
 
 ```tsx
 useQuery({ queryKey: ['todos', status, page], queryFn });
@@ -191,9 +191,6 @@ En resumen, TanStack Query no compara las referencias de los arreglos queryKey. 
 Cómo este criterio se traslada a la forma de escribir y gestionar las queryKey, es decir, el camino desde los arreglos en línea, pasando por las fábricas de claves, hasta `queryOptions`, se trata en [queryKey](/260104).
 
 La próxima vez que metas un objeto o un `Map` en una queryKey, espero que pienses por un momento en qué cadena se va a serializar.
-
-
-## Referencias
 
 :::ref
 - [documentación] [TanStack Query, claves de consulta](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)

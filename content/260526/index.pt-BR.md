@@ -9,7 +9,7 @@ description: "Quatro camadas de ferramentas que barateiam a busca de código de 
 keywords: "inteligência de código, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider repo map, economia de tokens agente de IA"
 locale: pt-BR
 translationOf: '260526'
-sourceHash: 443bddf4754e316487730bed1445d039acc52211b70f3df7ebb4269a217329f1
+sourceHash: 182bb75afe619d0d97875b8a9abbc855d796bdf96b4c9aaf93ff0695021afce5
 ---
 
 Neste post, quero falar sobre **o que diferencia entre si as ferramentas que reduzem o custo de um agente de programação com IA encontrar o código relevante**.
@@ -169,8 +169,6 @@ Por isso, ao escolher uma ferramenta, olho primeiro qual custo é o problema ago
 
 Se essas ferramentas reduzem o custo de um agente encontrar código, quantas regras do projeto o agente deve conhecer desde o início, e em qual arquivo escrevê-las, é outro problema. Trato disso em [Arquivos de contexto](/260529).
 
-
-## Referências
 
 :::ref
 - [repo] [ast-grep/ast-grep](https://github.com/ast-grep/ast-grep)

@@ -8,7 +8,7 @@ description: "Gerenciamento de estado no frontend em sete categorias (local, glo
 keywords: "gerenciamento de estado no frontend, gerenciamento de estado React, TanStack Query, Server State Client State, State Colocation, Single Source of Truth"
 locale: pt-BR
 translationOf: '260518'
-sourceHash: c29c3eb016acb3fa6ee86740afa1cdf4888bb4fa2e78cbf0a931a18ad2e7f70c
+sourceHash: 296e313b1c4b7d8b64dca1de6c4fe4d7aceb74f42321a01fd6a691ee98c806a5
 ---
 
 Neste post, quero falar sobre **gerenciamento de estado (State Management)**. Não se trata de uma comparação entre bibliotecas. Mais importante do que decidir qual ferramenta é melhor é desenvolver uma percepção sobre **como enxergar** o estado e onde **traçar seus limites**.
@@ -60,13 +60,13 @@ O ponto central é claro: **Server State e Client State são problemas diferente
 
 Vou um passo além e divido o estado do frontend em **sete categorias**. Vale esclarecer desde já que essas categorias não se separam perfeitamente em um único eixo. Local de armazenamento, origem, ciclo de vida e função se misturam, de modo que um mesmo estado pode pertencer a mais de uma categoria. Em vez de uma taxonomia perfeita, encare-as como **perguntas que ajudam a decidir como gerenciar um estado**.
 
-- **Estado local (Local State)** — Estado usado apenas em um componente ou em uma subárvore restrita
-- **Estado global (Global State)** — Estado que precisa ser compartilhado por toda a aplicação
-- **Estado do servidor (Server State)** — Estado cuja fonte da verdade é o servidor e cuja cópia no cliente é um cache
-- **Estado de formulário (Form State)** — Estado temporário que existe enquanto o usuário preenche dados
-- **Estado da URL (URL State)** — Estado compartilhável que vive na barra de endereços e sobrevive ao refresh
-- **Estado externo (External State)** — Estado fora do React, como cookies, localStorage, sessionStorage e IndexedDB
-- **Guard de estado (State Guard)** — Lógica que bloqueia, permite ou valida acessos e ações conforme combinações de estado, em vez de ser um estado em si
+- **Estado local (Local State)**: Estado usado apenas em um componente ou em uma subárvore restrita
+- **Estado global (Global State)**: Estado que precisa ser compartilhado por toda a aplicação
+- **Estado do servidor (Server State)**: Estado cuja fonte da verdade é o servidor e cuja cópia no cliente é um cache
+- **Estado de formulário (Form State)**: Estado temporário que existe enquanto o usuário preenche dados
+- **Estado da URL (URL State)**: Estado compartilhável que vive na barra de endereços e sobrevive ao refresh
+- **Estado externo (External State)**: Estado fora do React, como cookies, localStorage, sessionStorage e IndexedDB
+- **Guard de estado (State Guard)**: Lógica que bloqueia, permite ou valida acessos e ações conforme combinações de estado, em vez de ser um estado em si
 
 Além dessas categorias, há estados de fluxo que podem exigir uma máquina de estados e estados colaborativos em tempo real baseados em WebSocket ou CRDT.
 
@@ -268,8 +268,6 @@ Como mencionei no início, a IA permanecerá ao nosso lado por muito tempo. O te
 
 Não existe uma resposta única. Ainda assim, há uma diferença evidente entre **“criar estado sem saber o que é estado”** e **“criá-lo tendo consciência de seu tipo e de sua localização”**. Espero que, da próxima vez que você estiver prestes a escrever uma linha de `useState`, pare por um instante e pergunte: “A qual categoria de estado isto pertence?”
 
-
-### Referências
 
 :::ref
 - [docs] [React, Choosing the State Structure](https://react.dev/learn/choosing-the-state-structure)

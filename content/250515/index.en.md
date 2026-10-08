@@ -9,7 +9,7 @@ description: "Why React's Scheduler uses MessageChannel over requestIdleCallback
 keywords: "requestIdleCallback, MessageChannel, React Scheduler, setTimeout 4ms clamp, how the React scheduler works, shouldYieldToHost, requestAnimationFrame, React Fiber"
 locale: en
 translationOf: '250515'
-sourceHash: f9e36a7b0a0e10bfe8dc30ec353c2703fbf8e586fb8ce86dccf0c23a712b3454
+sourceHash: 2b9882e6b7b4a6ad16bcb679ac72102e95b7c50101ea3ffda6bbc08e3c63f7ca
 ---
 
 In this post, I want to talk about **why React schedules its work with MessageChannel instead of requestIdleCallback**.
@@ -107,8 +107,6 @@ To summarize, what React needed was not an API that waits until the browser is i
 
 How the units of work this Scheduler runs, the Fiber nodes, are structured and how the Work Loop traverses them is covered in [Mastering React Fiber](/250520). The next time you come across `MessageChannel` in React's source code, I hope you will take a moment to recall why it is there.
 
-
-## References
 
 :::ref
 - [repo] [ReactDOMFrameScheduling.js in React 16.0.0](https://github.com/facebook/react/blob/v16.0.0/src/renderers/shared/ReactDOMFrameScheduling.js)

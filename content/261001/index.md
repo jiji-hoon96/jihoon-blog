@@ -353,7 +353,7 @@ fetch에 대해서는 React 공식 문서가 한 걸음 더 간다. [You Might N
 정답은 없지만, 이 글을 읽는 독자 분들도 자기 코드가 지금 몇 번째 단계의 불편을 겪고 있는지 한 번 짚어 보기를 바란다.
 
 :::ref
-[docs] [Microsoft Azure Architecture Center, Anti-corruption Layer pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer)
-[article] [Juntao Qiu, Headless Component](https://martinfowler.com/articles/headless-component.html)
-[article] [Juntao Qiu, Data Fetching Patterns in Single-Page Applications](https://martinfowler.com/articles/data-fetch-spa.html)
+- [docs] [Microsoft Azure Architecture Center, Anti-corruption Layer pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer)
+- [article] [Juntao Qiu, Headless Component](https://martinfowler.com/articles/headless-component.html)
+- [article] [Juntao Qiu, Data Fetching Patterns in Single-Page Applications](https://martinfowler.com/articles/data-fetch-spa.html)
 :::

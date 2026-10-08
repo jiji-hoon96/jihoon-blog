@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: ja
 translationOf: '260529'
-sourceHash: fed5bdb321dec9666f12273f4c77b5c082799acd8ee57d2aeddff7096e128221
+sourceHash: 03edb5679e5e12f5dfab8b993152fdcc6c46eb0469c401b0c40f6255723f212d
 categories: AI 開発ツール Claude MCP CodeGraph
 description: "CLAUDE.md・AGENTS.md・SKILL.md・Cursor rulesがいつ、どのようにエージェントに読み込まれるのかを整理する。CLAUDE.mdがuser messageとして注入される仕組みとコンテキストの忘却、ETH Zurichの研究をもとに、何を書くべきかの基準を示す。"
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, コンテキストファイル, AIコーディングエージェント, Claude Code, ETH Zurich AGENTS.md 研究"
@@ -191,8 +191,6 @@ ETH Zurichの研究チームが2026年2月に発表した論文「Evaluating AGE
 
 この記事を読んだ方にも、今すぐCLAUDE.mdを数百行へ増やすのではなく、いま使っているツールがそのファイルをいつ、どこに、どれくらい強く読み込むのか、一度掘り下げてみることを勧めたい。それが、ファイル形式がどう変わっても揺らがない土台になると考えている。
 
-
-## 参考資料
 
 :::ref
 - [docs] [Claude Code Memory, Anthropic](https://code.claude.com/docs/en/memory)

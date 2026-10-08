@@ -8,7 +8,7 @@ description: "What abstraction means in frontend and how good abstractions diffe
 keywords: "frontend abstraction, React component abstraction, Clean Code abstraction, level of abstraction, Level of Abstraction, writing good code, intention-revealing names, Composed Method, Law of Leaky Abstractions, component design, custom hook design, frontend architecture, Kent Beck, Robert C. Martin"
 locale: en
 translationOf: '260201'
-sourceHash: 5efbefc3d64dc594438caaa486c232919b92fc74e1211a9ba56fa124dbcef0c4
+sourceHash: 2035d8bcaf96c40a302631b399747f5dacf236e3e3ff1368cdaa3429e5e3f2de
 ---
 
 In this post, I want to talk about abstraction in programming and how to write good code from the perspective of abstraction.
@@ -514,9 +514,9 @@ If we find ourselves in this situation, the solution is clear. Inline the abstra
 
 Then when should we abstract? In my experience, the **signals for abstraction** look roughly like these.
 
-- **Consistency is breaking down.** The same logic is inline in one component and separated into its own function in another. The same calculation is scattered throughout the codebase.
-- **The internal structure is being exposed externally without need.** The caller is forced to manage implementation details it has no reason to know.
-- **A module keeps exposing its own procedure.** It fails to hide its internal steps, forcing consumers to follow those steps themselves.
+- **Consistency is breaking down**: The same logic is inline in one component and separated into its own function in another. The same calculation is scattered throughout the codebase.
+- **The internal structure is being exposed externally without need**: The caller is forced to manage implementation details it has no reason to know.
+- **A module keeps exposing its own procedure**: It fails to hide its internal steps, forcing consumers to follow those steps themselves.
 
 The problem is that while detecting these signals is generally straightforward, **in practice, it is easy to ignore them and focus on satisfying more “important” requirements**. Under deadline pressure or absorbed in implementing a feature, we tell ourselves, “It works for now; I’ll clean it up later,” and later rarely comes.
 

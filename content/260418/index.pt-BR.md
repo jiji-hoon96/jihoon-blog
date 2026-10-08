@@ -9,7 +9,7 @@ description: "Onde a lógica de domínio deve ficar no frontend, com um exemplo 
 keywords: "modelo de domínio no frontend, design orientado a domínio, DDD no frontend, Frontend DDD, separação da lógica de domínio, Anemic Domain Model, modelo de domínio anêmico, Clean Architecture no frontend, Martin Fowler, padrões de design React, arquitetura frontend, separação de ViewModel, Bounded Context"
 locale: pt-BR
 translationOf: '260418'
-sourceHash: 263cc7c7f9b3268ef9d5e341b869de5c782febdf64a07af5ec969eef54639d56
+sourceHash: d6b76ba7f8a6d52a0ab5d57ff19ae3a276e5feee996a0536f0a670a00ad6e878
 ---
 
 Neste post, quero falar sobre **onde a lógica de domínio deve ficar no frontend**.
@@ -454,7 +454,7 @@ Com isso, a ligação entre sujeito e verbo fica mais frouxa. Para saber que a f
 
 Sinceramente, a resposta é **"depende da situação"**. Mas, segundo minha experiência, há motivos práticos para Class não ser uma solução universal em ambientes React + TypeScript.
 
-**1. Atrito com o gerenciamento de estado do React**
+#### Atrito com o gerenciamento de estado do React
 
 O gerenciamento de estado do React combina de forma mais natural com **Plain Object**. Tecnicamente, `useState` e `useReducer` podem conter qualquer valor, e o Redux DevTools não remove por si só o protótipo de uma instância de Class. Porém, quando o middleware de persistência de Redux/Zustand salva e restaura o estado como JSON, uma instância de Class perde seus métodos e seu protótipo no ciclo de `JSON.stringify` → `JSON.parse` e se degrada em plain object. A fronteira de props entre React Server Component e Client Component tem outra restrição: aceita apenas valores serializáveis (serializable) compatíveis, portanto uma instância arbitrária de Class não pode atravessá-la.
 
@@ -468,7 +468,7 @@ const [filing, setFiling] = useState(
 
 Atualizar o estado do React, por si só, não faz `filing` deixar de ser uma instância de `TaxFilingModel`. Porém, se a persistência de Redux/Zustand o salvar e restaurar como JSON, o valor recuperado pode ser um plain object sem métodos, e uma chamada desatenta a `filing.canAmend()` pode provocar um erro em runtime. Ao transmiti-lo de React Server Component para Client Component, a falha acontece antes, porque uma instância de Class não é um valor serializável de props compatível.
 
-**2. Dificuldade de garantir imutabilidade**
+#### Dificuldade de garantir imutabilidade
 
 O React detecta mudanças de estado com base em **igualdade referencial (referential equality)**. Se um método de uma instância de Class fizer uma mutação interna como `this.items.push(...)`, a referência permanecerá a mesma e o React não disparará uma nova renderização. Por isso, no fim, é preciso escrever `addDeduction(item)` de modo que retorne uma nova instância toda vez, como em `return new DeductionList([...this.items, item])`; isso esvazia a vantagem da Class de oferecer uma "mudança de estado encapsulada". O código deixa de ser muito diferente de uma atualização funcional.
 
@@ -477,7 +477,7 @@ O React detecta mudanças de estado com base em **igualdade referencial (referen
 
 Então, como melhorar no estilo funcional o problema da coesão frouxa visto em `eat('jihoon', '감자탕')`? Apresento três métodos que considero eficazes.
 
-**1. Obter coesão com namespace de módulo**
+#### Obter coesão com namespace de módulo
 
 É o método mais intuitivo. Transformamos o próprio arquivo (módulo) em uma unidade de domínio e usamos um namespace na importação. Basta usar diretamente o `domain/filing.ts` que definimos anteriormente.
 
@@ -491,11 +491,11 @@ FilingModel.canSubmit(filing);
 
 `FilingModel.canAmend(filing)` não é tão conciso quanto `filing.canAmend()`, mas ao menos torna evidente no próprio código que a função pertence ao domínio de Filing. Também elimina o risco de misturar funções de vários domínios.
 
-**2. Padronizar o primeiro argumento como sujeito do domínio**
+#### Padronizar o primeiro argumento como sujeito do domínio
 
 Há outra convenção para expressar coesão no estilo funcional: **o primeiro argumento é sempre o "sujeito da ação"**. Ao padronizar as assinaturas como `canAmend(filing)` e `calculateTotalIncome(income)`, `canAmend(filing)` passa a ser lido como "perguntar canAmend sobre filing". Isso também se alinha à mentalidade de pipeline do Unix (`data |> transform`). Na verdade, o receiver de método da linguagem Go segue exatamente esse padrão, e, em um bloco `impl` do Rust, receber `self` como primeiro argumento parte da mesma ideia.
 
-**3. Agrupar comportamentos em uma função de criação de objeto de domínio (Factory)**
+#### Agrupar comportamentos em uma função de criação de objeto de domínio (Factory)
 
 Esse padrão pode ser usado quando sentimos falta da coesão de uma Class. Uma função Factory retorna de uma só vez o objeto de domínio e seus comportamentos.
 
@@ -566,9 +566,6 @@ Colocar isso em prática no frontend não significa simplesmente dividir pastas,
 É claro que nem todo projeto precisa de todas as camadas da Clean Architecture. Dividir um aplicativo CRUD simples em quatro camadas e aplicar o padrão Factory a todos os domínios pode criar mais estrutura do que valor. Entre a coesão elegante da Class e a flexibilidade prática do estilo funcional, a resposta correta depende da complexidade do projeto e do contexto da equipe.
 
 Não existe uma resposta única. Mas há uma diferença clara entre **"escrever código sem saber o que é o domínio"** e **"reconhecer o domínio, avaliar suas fronteiras e separá-lo de forma consciente"**. Espero que este texto também incentive você a perguntar, ao menos uma vez, em seu próprio projeto: "qual é o domínio aqui, e onde este código deveria ficar?"
-
-
-### Referências
 
 :::ref
 - [article] [Eric Evans, Domain-Driven Design (Book)](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215)

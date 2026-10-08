@@ -7,7 +7,7 @@ updatedAt: "2026-10-08"
 categories: frontend React
 locale: es
 translationOf: '250515'
-sourceHash: f9e36a7b0a0e10bfe8dc30ec353c2703fbf8e586fb8ce86dccf0c23a712b3454
+sourceHash: 2b9882e6b7b4a6ad16bcb679ac72102e95b7c50101ea3ffda6bbc08e3c63f7ca
 description: "Por qué el Scheduler de React usa MessageChannel y no requestIdleCallback, rAF ni setTimeout: los PR de React y el retraso de 4 ms medido en Chrome."
 keywords: "requestIdleCallback, MessageChannel, React Scheduler, setTimeout 4 ms, cómo funciona el scheduler de React, shouldYieldToHost, requestAnimationFrame, React Fiber"
 ---
@@ -107,8 +107,6 @@ En resumen, lo que React necesitaba no era una API que esperara a que el navegad
 
 Cómo son los nodos Fiber, las unidades de trabajo que este Scheduler reparte, y cómo los recorre el Work Loop lo trato en [React Fiber al completo](/250520). Ojalá que, la próxima vez que encuentres `MessageChannel` en el código fuente de React, recuerdes por un momento por qué está ahí.
 
-
-## Referencias
 
 :::ref
 - [repo] [ReactDOMFrameScheduling.js de React 16.0.0](https://github.com/facebook/react/blob/v16.0.0/src/renderers/shared/ReactDOMFrameScheduling.js)

@@ -451,7 +451,7 @@ eat("jihoon", "감자탕");
 
 솔직히 말하면, 답은 **"상황에 따라 다르다"** 이다. 하지만 필자의 경험상 React + TypeScript 환경에서는 Class가 만능이 아닌 현실적 이유들이 있다.
 
-**1. React 상태 관리와의 마찰**
+#### React 상태 관리와의 마찰
 
 React의 상태 관리는 기본적으로 **Plain Object**와 가장 자연스럽게 맞물린다. `useState`나 `useReducer`는 기술적으로 어떤 값이든 담을 수 있고 Redux DevTools도 Class 인스턴스의 프로토타입을 직접 제거하지는 않는다. 하지만 Redux/Zustand의 영속화 미들웨어가 JSON으로 상태를 저장했다가 복원하면 Class 인스턴스는 `JSON.stringify` → `JSON.parse` 사이클에서 메서드와 프로토타입을 잃은 plain object가 된다. 한편 React Server Component에서 Client Component로 props를 전달하는 경계는 직렬화 가능한(serializable) 값만 지원하므로, 임의의 Class 인스턴스는 애초에 전달할 수 없다.
 
@@ -465,7 +465,7 @@ const [filing, setFiling] = useState(
 
 React 상태를 업데이트하는 것만으로는 `filing`이 `TaxFilingModel` 인스턴스라는 사실이 사라지지 않는다. 다만 Redux/Zustand 영속화가 JSON으로 저장·복원한 값은 메서드 없는 plain object가 될 수 있어, 무심코 호출한 `filing.canAmend()`가 런타임 에러로 터질 수 있다. React Server Component에서 Client Component로 넘길 때는 Class 인스턴스가 지원되는 직렬화 형식이 아니므로 전달 단계에서 막힌다.
 
-**2. 불변성 보장의 어려움**
+#### 불변성 보장의 어려움
 
 React는 상태 변경을 **참조 비교(referential equality)** 를 기반으로 감지한다. Class 인스턴스의 메서드가 `this.items.push(...)` 같은 내부 변경을 하면 참조가 그대로라 React가 리렌더링을 트리거하지 않는다. 그래서 결국 `addDeduction(item)`이 `return new DeductionList([...this.items, item])` 처럼 매번 새 인스턴스를 반환하도록 짜야 하는데, 이러면 Class의 이점인 "캡슐화된 상태 변경"이 무색해진다. 함수형 갱신과 별로 다르지 않은 코드가 된다.
 
@@ -474,7 +474,7 @@ React는 상태 변경을 **참조 비교(referential equality)** 를 기반으�
 
 그렇다면 함수형 스타일에서 `eat('jihoon', '감자탕')` 같은 느슨한 응집 문제를 어떻게 개선할 수 있을까? 필자가 효과적이라고 느낀 방법 세 가지를 소개한다.
 
-**1. 모듈 네임스페이스로 응집하기**
+#### 모듈 네임스페이스로 응집하기
 
 가장 직관적인 방법이다. 파일(모듈) 자체를 도메인 단위로 만들고, import 시 네임스페이스를 활용한다. 앞서 정의한 `domain/filing.ts`를 그대로 가져다 쓰면 된다.
 
@@ -488,11 +488,11 @@ FilingModel.canSubmit(filing);
 
 `FilingModel.canAmend(filing)`은 `filing.canAmend()`만큼은 아니지만, 최소한 이 함수가 Filing 도메인에 속한다는 것이 코드에서 바로 드러난다. 함수가 여러 도메인에 걸쳐 섞일 위험도 없어진다.
 
-**2. 첫 번째 인자를 도메인 주체로 통일하기**
+#### 첫 번째 인자를 도메인 주체로 통일하기
 
 함수형에서 응집을 표현하는 또 다른 컨벤션이 있다. **첫 번째 인자를 항상 "행위의 주체"로 둔다.** `canAmend(filing)`, `calculateTotalIncome(income)`처럼 시그니처를 통일하면 `canAmend(filing)`은 "filing에 대해 canAmend를 물어본다"로 읽힌다. Unix의 파이프라인 사고방식(`data |> transform`)과도 일맥상통한다. 사실 Go 언어의 메서드 리시버가 정확히 이 패턴이고, Rust의 `impl` 블록에서 `self`를 첫 인자로 받는 것도 같은 발상이다.
 
-**3. 도메인 객체 생성 함수(Factory)로 행위를 묶기**
+#### 도메인 객체 생성 함수(Factory)로 행위를 묶기
 
 Class의 응집력이 그리울 때 사용할 수 있는 패턴이다. 팩토리 함수가 도메인 객체와 그 행위를 한 번에 반환한다.
 
@@ -563,9 +563,6 @@ src/
 물론 모든 프로젝트에 Clean Architecture의 레이어를 다 갖출 필요는 없다. 단순한 CRUD 앱에 4개 레이어를 나누고 모든 도메인에 Factory 패턴을 적용하는 것은 배보다 배꼽이 더 큰 격이다. Class의 우아한 응집과 함수형의 실용적 유연함 사이에서 정답은 프로젝트의 복잡도와 팀의 컨텍스트가 결정한다.
 
 정답은 없다. 하지만 적어도 **"도메인이 무엇인지 모르고 코드를 짜는 것"** 과 **"도메인을 인식하고, 경계를 판단하고, 의식적으로 분리하는 것"** 사이에는 분명한 차이가 있다. 이 글을 읽는 독자 분들도 자신의 프로젝트에서 "여기서 도메인은 뭘까, 그리고 이 코드는 어디에 있어야 할까?"라는 질문을 한 번쯤 던져보시길 바란다.
-
-
-### 참고 자료
 
 :::ref
 - [article] [Eric Evans, Domain-Driven Design (Book)](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215)

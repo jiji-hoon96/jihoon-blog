@@ -9,7 +9,7 @@ description: "Cómo difiere MCP de function calling: seis primitivas, stdio y St
 keywords: "MCP, Model Context Protocol, MCP vs function calling, primitivas MCP, tools/list, Streamable HTTP, Tool Poisoning Attack, seguridad MCP"
 locale: es
 translationOf: '260524'
-sourceHash: c875da907fb126eda19d80e783e72785cccab4386558a197481c554cc9d8efce
+sourceHash: b205038e9317d3f184709c9982ea3836b1f40973e9c105d846718153ca395fd3
 ---
 
 En esta publicación quiero hablar sobre **en qué se diferencia MCP (Model Context Protocol) de function calling**.
@@ -34,13 +34,13 @@ MCP es un protocolo construido sobre JSON-RPC. [JSON-RPC 2.0](https://www.jsonrp
 
 La visión general de la especificación 2025-11-25 enumera tres funciones que ofrecen los servidores y tres que ofrecen los clientes. Este artículo llama primitivas a estas seis. Aquí, una primitiva no tiene nada que ver con los tipos primitivos de JavaScript (como string o number); se refiere a un tipo básico de interacción definido por el protocolo.
 
-**Primitivas del lado del servidor**
+#### Primitivas del lado del servidor
 
 - **Tool** (model-controlled): una acción cuya invocación decide el propio modelo. Estas acciones pueden tener efectos secundarios (side effects)
 - **Resource** (application-controlled): datos identificados por una URI. La especificación solo tiene `resources/read` para leer su contenido y ningún método para escribir. Cómo se incorporan esos recursos al contexto lo decide la aplicación host
 - **Prompt** (user-controlled): una plantilla reutilizable que el usuario activa explícitamente, por ejemplo con un comando de barra
 
-**Primitivas del lado del cliente**
+#### Primitivas del lado del cliente
 
 - **Sampling**: un mecanismo que permite al servidor pedir en sentido inverso una completion al LLM del cliente, lo que vuelve bidireccional la relación entre cliente y servidor. Sirve para que un servidor que necesita generar texto mientras ejecuta una herramienta use el modelo del cliente sin tener su propia clave de API. En la revisión 2026-07-28 quedó deprecated, es decir, con su eliminación prevista
 - **Roots**: información sobre los límites del espacio de trabajo con la que el cliente le dice al servidor «hasta aquí llega el área en la que puedes trabajar»
@@ -190,9 +190,6 @@ Las descripciones de las herramientas y los resultados de sus invocaciones llega
 En resumen, MCP no sustituye a function calling; es un estándar que se apoya sobre él. El modelo sigue invocando herramientas mediante el parámetro `tools` y el bucle de `tool_use`, y el host traduce entre los dos protocolos. En la revisión 2025-11-25, lo que añadía MCP era el descubrimiento dinámico, una stateful session, primitivas además de Tool y llamadas que van del servidor al cliente. Al desaparecer las sesiones y quedar Sampling deprecated en la revisión 2026-07-28, lo que queda es un contrato para intercambiar la lista de herramientas y el contexto en tiempo de ejecución. Por ese contrato, los ataques que envenenan las definiciones de herramientas o las cambian en silencio surgen en el mismo lugar. Cuando añadas otro servidor MCP, te recomiendo comprobar no solo qué puede hacer ese servidor, sino también si tu host te avisa cuando cambian sus definiciones.
 
 Si MCP trata de qué permitir hacer al agente, qué contarle es tarea de archivos de contexto como `CLAUDE.md` o `AGENTS.md`. Cómo lee el agente esos archivos y hasta qué punto se respetan sus instrucciones se trata en [Archivos de contexto](/260529).
-
-
-## Referencias
 
 :::ref
 - [docs] [MCP Specification 2025-11-25, Lifecycle](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle)

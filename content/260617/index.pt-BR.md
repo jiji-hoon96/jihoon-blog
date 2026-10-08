@@ -9,7 +9,7 @@ description: 'Por que criei o Kalyx, DatePicker headless para React, e como dife
 keywords: 'Kalyx, DatePicker React, DatePicker headless React, DatePicker React fuso horário, ISO 8601 UTC, data com um dia a menos, bug de horário de verão JavaScript, teste de propriedades fast-check, alternativa ao react-day-picker'
 locale: pt-BR
 translationOf: '260617'
-sourceHash: 80176614ac16b54692eaef49e0e57c5e4d771c737abd741e3e8905c5f4cdbe87
+sourceHash: 623e415de2fed4e1a482540920a8081dd7a4923f5cd41f61f749302cba79cc1d
 ---
 
 Neste post, quero falar sobre o **Kalyx**, a biblioteca headless de DatePicker para React que eu criei.
@@ -44,9 +44,7 @@ Do outro lado, Ark UI e React Aria usam objetos `@internationalized/date` como `
 
 O suporte a fusos horários também pode ficar preso à escolha da biblioteca de datas. No código dos adapters do MUI X Date Pickers 9.13.0, os adapters de dayjs, Luxon e Moment têm `isTimezoneCompatible = true`, e a família date-fns tem `false`. Um app que usa date-fns precisa trazer mais uma biblioteca de datas para usar a prop `timezone`.
 
-Os modos estavam espalhados em combinações de props, os valores em objetos `Date` cuja interpretação depende do ambiente e o suporte a fusos horários na escolha da biblioteca de datas.
-
-**Era difícil expressar a intenção em uma única declaração.**
+Os modos estavam espalhados em combinações de props, os valores em objetos `Date` cuja interpretação depende do ambiente e o suporte a fusos horários na escolha da biblioteca de datas. **Era difícil expressar a intenção em uma única declaração.**
 
 ### Aprender construindo
 
@@ -267,9 +265,7 @@ Em fusos com offset positivo, os dois deslocamentos se anulavam e por acaso dava
 
 Os mecanismos são diferentes, mas a regra violada é uma só: converter uma única vez por direção, com a função definida para aquela direção.
 
-Esse incidente ampliou os testes de propriedades de ida e volta do core de "alguns fusos representativos" para "todos os fusos que o runtime conhece". (Os testes de componentes do lado React ainda usam fusos representativos como `America/New_York`.)
-
-**Defeitos que só aparecem onde o sinal muda não são pegos por amostragem.**
+Esse incidente ampliou os testes de propriedades de ida e volta do core de "alguns fusos representativos" para "todos os fusos que o runtime conhece". (Os testes de componentes do lado React ainda usam fusos representativos como `America/New_York`.) **Defeitos que só aparecem onde o sinal muda não são pegos por amostragem.**
 
 ### O 01:30 de Londres que resolvia tarde
 
@@ -283,9 +279,7 @@ Essas correções custaram código. O Kalyx define na CI um teto para o bundle d
 
 O tamanho era um argumento de venda exibido no badge do README. Um seletor de datas que desloca um dia em fusos com offset negativo não serve, seja pequeno ou grande.
 
-**Se eu tiver que escolher entre pequeno e correto, fico com o correto.**
-
-Hoje o teto está apertado. Segundo o documento de mapa de bytes do bundle do repositório, de 2026-09-11, `dist/index.cjs` medido com o gzip padrão do Node tem 20.259 B, contra um teto de 20.480 B, deixando 221 B de folga. (É o tamanho do próprio arquivo com as dependências externas, então é uma quantidade diferente da do gráfico anterior.) A próxima funcionalidade vai precisar recuperar bytes antes de entrar.
+**Se eu tiver que escolher entre pequeno e correto, fico com o correto.** Hoje o teto está apertado. Segundo o documento de mapa de bytes do bundle do repositório, de 2026-09-11, `dist/index.cjs` medido com o gzip padrão do Node tem 20.259 B, contra um teto de 20.480 B, deixando 221 B de folga. (É o tamanho do próprio arquivo com as dependências externas, então é uma quantidade diferente da do gráfico anterior.) A próxima funcionalidade vai precisar recuperar bytes antes de entrar.
 
 ## Uma conclusão diferente da inicial
 
@@ -305,10 +299,10 @@ No [Playground](https://kalyx-docs-site.vercel.app/playground) do site de docume
 
 :::ref
 
-[docs] [Site de documentação oficial do Kalyx](https://kalyx-docs-site.vercel.app/)
+- [docs] [Site de documentação oficial do Kalyx](https://kalyx-docs-site.vercel.app/)
 
-[docs] [MUI, Date and Time Pickers Timezone](https://mui.com/x/react-date-pickers/timezone/)
+- [docs] [MUI, Date and Time Pickers Timezone](https://mui.com/x/react-date-pickers/timezone/)
 
-[docs] [Documentação oficial do Floating UI](https://floating-ui.com/)
+- [docs] [Documentação oficial do Floating UI](https://floating-ui.com/)
 
 :::

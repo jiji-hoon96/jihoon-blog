@@ -9,7 +9,7 @@ description: "整理 LZ77 与 LZ78 处理字典的方式有何不同：滑动窗
 keywords: "LZ77, LZ78, LZ77 LZ78 区别, LZ77 算法, 滑动窗口压缩, LZW, DEFLATE 原理, 基于字典的压缩"
 locale: zh-CN
 translationOf: '240701'
-sourceHash: adffb2f465dace79a47b172dc53877d2d34bbfaa46c14978fa16575a00ae19df
+sourceHash: ddc4d9e1f3f50970b1b45c010136599e1ae4ffc77291be473b4b38679baa37a9
 ---
 
 这篇文章想聊聊 **LZ77 与 LZ78 有何不同**。
@@ -169,8 +169,6 @@ LZ77 与 LZ78 都源于“用简短引用替换重复模式”这一想法。两
 
 下次解压 `.zip` 或 `.gz` 文件时，希望你能想起，其中正来回传递着“往回数若干个字符，再复制若干个字符”这样的指令。
 
-
-### 参考资料
 
 :::ref
 - [paper] [Storer, Szymanski, Data compression via textual substitution (1982)](https://doi.org/10.1145/322344.322346)

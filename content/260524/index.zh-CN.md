@@ -6,7 +6,7 @@ date: "2026-05-24"
 updatedAt: "2026-10-08"
 locale: zh-CN
 translationOf: '260524'
-sourceHash: c875da907fb126eda19d80e783e72785cccab4386558a197481c554cc9d8efce
+sourceHash: b205038e9317d3f184709c9982ea3836b1f40973e9c105d846718153ca395fd3
 categories: AI 开发工具 Claude MCP
 description: "从协议结构梳理 MCP（Model Context Protocol）与 function calling 的区别：六种 primitive、stdio 与 Streamable HTTP、从 tools/list 到 tool_use 循环的调用流程，以及 Tool Poisoning 等安全问题。"
 keywords: "MCP, Model Context Protocol, MCP 与 function calling 区别, MCP primitive, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP 安全"
@@ -34,13 +34,13 @@ MCP 是建立在 JSON-RPC 之上的协议。[JSON-RPC 2.0](https://www.jsonrpc.o
 
 2025-11-25 规范的概览列出了 server 提供的三项功能和 client 提供的三项功能。本文把这六项称为 primitive。这里的 primitive 与 JavaScript 的原始类型（如 string、number）无关，指的是协议所定义的基本交互类型。
 
-**Server 侧 primitive**
+#### Server 侧 primitive
 
 - **Tool**（model-controlled）：模型自行判断是否调用并执行的操作，可能产生副作用（side effect）
 - **Resource**（application-controlled）：由 URI 标识的数据。规范中只有读取内容的 `resources/read`，没有写入方法。如何把这些 resource 放入 context，由 host application 决定
 - **Prompt**（user-controlled）：由用户通过斜杠命令等方式明确触发的可复用模板
 
-**Client 侧 primitive**
+#### Client 侧 primitive
 
 - **Sampling**：让 server 反向请求 client 的 LLM 生成 completion，从而在 client 与 server 之间建立双向结构。它的用途是让 server 在执行工具时需要生成文本，可以不用自己的 API key，借用 client 所用的模型。在 2026-07-28 修订版中，它成为计划移除的 deprecated 状态
 - **Roots**：client 向 server 说明“可操作范围到这里为止”的 workspace 边界信息
@@ -190,9 +190,6 @@ Sampling 和 Roots 与 Logging 一起被标为 deprecated。它们仍留在规�
 总而言之，MCP 并不是要取代 function calling，而是建立在它之上的标准。模型调用工具的方式仍然是 `tools` 参数和 `tool_use` 循环，两个协议之间由 host 负责翻译。在 2025-11-25 修订版中，MCP 增加的是动态发现、stateful session、Tool 以外的 primitive，以及从 server 发往 client 的调用。在 2026-07-28 修订版中 session 消失、Sampling 被标为 deprecated 之后，留下的是在运行时交换工具列表与 context 的约定。正因为有这份约定，污染工具定义或悄悄修改它们的攻击也从同一个地方产生。再接入一个 MCP server 时，建议不仅确认这个 server 能做什么，也确认定义变化时 host 是否会提醒你。
 
 如果说 MCP 关乎该让智能体能做什么，那么该告诉它什么，就是 `CLAUDE.md`、`AGENTS.md` 这类上下文文件的问题。这些文件如何被智能体读取、其中的指令能被遵守到什么程度，在[上下文文件](/260529)中讨论。
-
-
-## 参考资料
 
 :::ref
 - [docs] [MCP Specification 2025-11-25, Lifecycle](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle)

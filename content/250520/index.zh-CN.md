@@ -9,7 +9,7 @@ description: "基于 React 源码，深入分析 React Fiber 架构，从 Stack 
 keywords: "React Fiber, React Fiber 架构, Stack Reconciler, Concurrent Mode, React 18 并发, useTransition, useDeferredValue, Suspense, React 渲染原理, React 源码分析, Virtual DOM, Reconciliation, Lane 优先级, 前端面试"
 locale: zh-CN
 translationOf: '250520'
-sourceHash: 829e3fcfb711596a9ec0772911ab6d13e00e41ba3ddcb03ae930070dbee27260
+sourceHash: 85d40d1c649dd353904731d56b58a7aa98ef44ef02eae868a59d2edcfa4da326
 ---
 
 这篇文章想聊聊堪称 React 心脏的 **Fiber 架构**。
@@ -590,10 +590,12 @@ Commit Phase 在内部按以下细致顺序运行。
 3. **树切换**：`root.current = finishedWork`
    - 这是双缓冲的核心。workInProgress 树会被提升为 current 树。为何必须在 Mutation 之后、Layout 之前切换？原因很重要：`componentWillUnmount` 需要读取**旧树**，所以必须在 Mutation 阶段执行；而 `componentDidMount`/`componentDidUpdate` 需要读取**新树**，所以必须在 Layout 阶段执行。
 4. **Layout Phase**：`commitLayoutEffects()`
-   - DOM 变更完成后，执行基于新 DOM 状态的工作。
-      - 执行 `componentDidMount`、`componentDidUpdate`
-      - 执行 `useLayoutEffect` 回调
-      - 此时 `current` 已经指向新树，因此读取 DOM 时会得到更新后的值
+
+   DOM 变更完成后，执行基于新 DOM 状态的工作。
+
+   - 执行 `componentDidMount`、`componentDidUpdate`
+   - 执行 `useLayoutEffect` 回调
+   - 此时 `current` 已经指向新树，因此读取 DOM 时会得到更新后的值
 5. **Passive Effects**（异步）
    - `useEffect` 的 cleanup 与 setup 会被单独调度并**异步**执行。它们用于处理不依赖 DOM 变更的副作用（数据获取、事件订阅等），因此无需同步执行。采用异步方式，可以把控制权让给浏览器，使其先绘制画面。
 
@@ -647,8 +649,6 @@ React 18 的 `renderToPipeableStream` 会利用 Suspense 边界。
 
 希望本文能让读者理解：React Fiber 并不只是一个面试关键词，而是支撑 React 全部功能的运行时架构。虽然不存在唯一正确的答案，但也希望各位读者亲自阅读源码，建立属于自己的理解。
 
-
-## 来源
 
 :::ref
 - [repo] [React 源码，ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberWorkLoop.js)

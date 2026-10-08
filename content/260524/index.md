@@ -31,13 +31,13 @@ MCP는 JSON-RPC 위에 만들어진 프로토콜이다. [JSON-RPC 2.0](https://w
 
 2025-11-25 명세의 개요는 서버가 제공하는 기능 셋과 클라이언트가 제공하는 기능 셋을 든다. 이 글은 이 여섯을 primitive라고 부른다. 여기서 primitive는 JavaScript의 원시 타입(string, number 같은 것)과는 관계가 없고, 프로토콜이 정의해 둔 기본 상호작용 유형을 가리킨다.
 
-**서버측 primitive**
+#### 서버측 primitive
 
 - **Tool** (model-controlled): 모델이 호출 여부를 스스로 판단해 실행하는 동작이다. 이런 동작은 부작용(side effect)을 가질 수 있다
 - **Resource** (application-controlled): URI로 식별되는 데이터다. 스펙에는 내용을 읽어 오는 `resources/read` 만 있고 쓰는 메서드는 없다. 그 리소스를 context에 어떻게 넣을지는 호스트 애플리케이션이 결정한다.
 - **Prompt** (user-controlled): 사용자가 슬래시 명령 등으로 명시적으로 트리거하는 재사용 가능한 템플릿이다.
 
-**클라이언트측 primitive**
+#### 클라이언트측 primitive
 
 - **Sampling**: 서버가 거꾸로 클라이언트의 LLM에게 completion을 요청할 수 있게 해주는 메커니즘으로 클라이언트와 서버를 양방향 구조로 만든다. 서버가 도구를 실행하다 문장 생성이 필요할 때 자기 API 키 없이 클라이언트가 쓰는 모델을 빌리는 용도다. 2026-07-28 개정판에서는 제거 예정인 deprecated 상태가 되었다.
 - **Roots**: 클라이언트가 서버에게 "여기까지가 작업 가능한 범위"라고 알려주는 워크스페이스 경계 정보
@@ -177,7 +177,7 @@ Sampling과 Roots는 Logging과 함께 deprecated 되었다. 명세에 남아 �
 
 도구의 description과 도구 호출 결과는 호스트를 거쳐 모델의 context에 들어간다. 그러니 서버가 그 자리에 무엇을 쓰든 모델은 그것을 읽는다. 대표적인 공격 두 가지가 모두 여기서 나온다.
 
-- **Tool Poisoning Attack(TPA)** : [Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)가 2025년 4월에 명명하고 PoC를 공개한 공격이다. MCP 서버의 도구 설명(description)에 악의적 지시사항을 숨겨 두면, 모델은 사용자에게 보이지 않는 그 텍스트를 읽고 사용자 모르게 따를 수 있다.
+- **Tool Poisoning Attack(TPA)**: [Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)가 2025년 4월에 명명하고 PoC를 공개한 공격이다. MCP 서버의 도구 설명(description)에 악의적 지시사항을 숨겨 두면, 모델은 사용자에게 보이지 않는 그 텍스트를 읽고 사용자 모르게 따를 수 있다.
 
 - **Rug Pull**: Invariant Labs가 같은 글에서 설명한 공격으로, 사용자가 승인한 뒤에 서버가 도구 정의를 바꾼다. [Simon Willison이 인용한](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/) Elena Cross의 예처럼, 1일 차에 안전해 보이는 도구를 승인했는데 7일 차에는 그 도구가 API 키를 공격자에게 보내도록 바뀌어 있는 식이고, 도구 정의를 설치 시점이 아니라 런타임에 서버에서 받아 오는 구조라서 생긴다. [tool 명세](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)는 어떤 도구가 모델에 노출되는지 보여 주는 UI를 권할(SHOULD) 뿐 바뀐 정의를 다시 승인받으라고 요구하지는 않으므로, 재승인은 호스트의 몫이다.
 
@@ -187,9 +187,6 @@ Sampling과 Roots는 Logging과 함께 deprecated 되었다. 명세에 남아 �
 정리하면, MCP는 function calling을 대체하는 것이 아니라 그 위에 얹힌 표준이다. 모델이 도구를 부르는 방식은 여전히 `tools` 파라미터와 `tool_use` 루프이고, 두 프로토콜 사이는 호스트가 번역한다. 2025-11-25 개정판에서 MCP가 더한 것은 동적 발견, stateful session, Tool 밖의 primitive, 서버에서 클라이언트로 향하는 호출이었다. 2026-07-28 개정판에서 세션이 사라지고 Sampling이 deprecated 되면서 남는 것은 도구 목록과 context를 런타임에 주고받는 계약이다. 그 계약 때문에 도구 정의를 오염시키거나 몰래 바꾸는 공격도 같은 자리에서 생긴다. MCP 서버를 하나 더 붙일 때는 그 서버가 무엇을 할 수 있는지와 함께, 정의가 바뀌었을 때 호스트가 알려 주는지도 확인해 보길 권한다.
 
 MCP가 에이전트에게 무엇을 할 수 있게 해줄지의 문제라면, 무엇을 알려줄지는 `CLAUDE.md`나 `AGENTS.md` 같은 context file의 문제다. 그 파일들이 에이전트에게 어떻게 읽히고 어디까지 지켜지는지는 [Context file](/260529)에서 다룬다.
-
-
-## 참고 자료
 
 :::ref
 - [docs] [MCP Specification 2025-11-25, Lifecycle](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle)

@@ -41,9 +41,7 @@ react-datepicker와 react-day-picker는 native `Date`를 주고받는다. 둘 �
 
 timezone 지원이 날짜 라이브러리 선택에 묶이기도 한다. MUI X Date Pickers 9.13.0의 adapter 코드를 보면 dayjs, Luxon, Moment adapter는 `isTimezoneCompatible = true`, date-fns 계열은 `false`다. date-fns를 쓰는 앱이 `timezone` prop을 쓰려면 날짜 라이브러리를 하나 더 들여야 한다.
 
-모드는 prop 조합으로, 값은 해석이 실행 환경에 기대는 `Date`로, timezone 지원은 날짜 라이브러리 선택으로 흩어져 있다.
-
-**선언 하나로 의도를 적기 어려웠다.**
+모드는 prop 조합으로, 값은 해석이 실행 환경에 기대는 `Date`로, timezone 지원은 날짜 라이브러리 선택으로 흩어져 있다. **선언 하나로 의도를 적기 어려웠다.**
 
 ### 만들며 배우기
 
@@ -264,9 +262,7 @@ MonthPicker의 Root는 표시 형식 기본값을 `yyyy-MM`으로 바꾸고 Date
 
 기전은 달라도 어긴 규칙은 하나다. 변환은 방향마다 정해진 함수로 한 번만 한다.
 
-이 사고로 core의 왕복 속성 테스트가 "대표 존 몇 개"에서 "런타임이 아는 존 전부"로 넓어졌다. (React 쪽 컴포넌트 테스트는 아직 `America/New_York` 같은 대표 존을 쓴다)
-
-**부호가 바뀌는 자리에서만 드러나는 결함은 표본으로 잡히지 않는다.**
+이 사고로 core의 왕복 속성 테스트가 "대표 존 몇 개"에서 "런타임이 아는 존 전부"로 넓어졌다. (React 쪽 컴포넌트 테스트는 아직 `America/New_York` 같은 대표 존을 쓴다) **부호가 바뀌는 자리에서만 드러나는 결함은 표본으로 잡히지 않는다.**
 
 ### 런던에서 늦게 잡히던 01:30
 
@@ -280,9 +276,7 @@ MonthPicker의 Root는 표시 형식 기본값을 `yyyy-MM`으로 바꾸고 Date
 
 크기는 README 배지에 나가 있던 셀링 포인트였다. 음수 오프셋 존에서 하루씩 밀리는 날짜 picker는 작든 크든 쓸 수 없다.
 
-**작다와 맞다 중 하나를 골라야 한다면 맞는 쪽이다.**
-
-지금 천장은 빠듯하다. 레포의 2026-09-11 번들 바이트 지도 문서에 따르면 `dist/index.cjs`를 Node 기본 gzip으로 잰 값이 20,259B, 천장이 20,480B로 여유가 221B다. (의존성을 외부로 남긴 자기 파일 크기라 앞 도표와는 다른 양이다) 다음 기능은 바이트를 먼저 회수해야 들어온다.
+**작다와 맞다 중 하나를 골라야 한다면 맞는 쪽이다.** 지금 천장은 빠듯하다. 레포의 2026-09-11 번들 바이트 지도 문서에 따르면 `dist/index.cjs`를 Node 기본 gzip으로 잰 값이 20,259B, 천장이 20,480B로 여유가 221B다. (의존성을 외부로 남긴 자기 파일 크기라 앞 도표와는 다른 양이다) 다음 기능은 바이트를 먼저 회수해야 들어온다.
 
 ## 처음 생각과 달라진 결론
 
@@ -302,10 +296,10 @@ pnpm add @kalyx/react
 
 :::ref
 
-[docs] [Kalyx 공식 문서 사이트](https://kalyx-docs-site.vercel.app/)
+- [docs] [Kalyx 공식 문서 사이트](https://kalyx-docs-site.vercel.app/)
 
-[docs] [MUI, Date and Time Pickers Timezone](https://mui.com/x/react-date-pickers/timezone/)
+- [docs] [MUI, Date and Time Pickers Timezone](https://mui.com/x/react-date-pickers/timezone/)
 
-[docs] [Floating UI 공식 문서](https://floating-ui.com/)
+- [docs] [Floating UI 공식 문서](https://floating-ui.com/)
 
 :::

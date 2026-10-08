@@ -25,7 +25,7 @@ sourceHash: aa14385fc8ca2a3c0a5b713cc2b3c36f328877e6cdc181f184e2ac7936036ef4
 
 后来，工作的单位变大了。随着运行数十个轮次的 agent 日益普及，重要的不再是一次 prompt，而是如何组织**模型在每个轮次看到的完整 context**（system prompt + 工具定义 + 对话记录 + 搜索结果 + 记忆）。这就是 **context engineering**。Anthropic 在 2025 年 9 月的“Effective context engineering for AI agents”一文中梳理了这一框架；同年 Chroma 研究团队（Hong et al.）发表的 context rot 研究又提供了定量依据。他们测试了 GPT-4.1、Claude 4、Gemini 2.5、Qwen3 等 18 个模型，发现即使只是原样抄写单词这样的简单任务，输入越长，性能也会出现不均匀的下降。模型会同等处理第 100 个 token 和第 10,000 个 token 这一常见假设，在现实中并不成立。结论不是“context 越长越好”，而是“信息如何摆放，与其中包含什么同样重要”。这进一步推动了从填满 context 向筛选 context 的转变，也让这个术语迅速普及。
 
-这里需要指出一个常见误解。prompt engineering 并没有被 context engineering **取代**。写好 prompt 依然是基础，而 context engineering 更接近建立在其上的上位概念。（关注点从写好代码转向设计好系统，并不意味着 coding 不再必要。）所以更准确的表述不是“换轨”，而是**“在包含原有概念的同时扩大了范围”**。
+这里需要指出一个常见误解。prompt engineering 并没有被 context engineering **取代**。写好 prompt 依然是基础，而 context engineering 更接近建立在其上的上位概念。（关注点从写好代码转向设计好系统，并不意味着 coding 不再必要。）所以更准确的表述不是“换轨”，而是“**在包含原有概念的同时扩大了范围**”。
 
 那么再问一次：这种扩展止步于 context 了吗？看起来并没有。
 

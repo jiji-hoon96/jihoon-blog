@@ -8,7 +8,7 @@ description: "Refatoração do app de reserva de salas do 2º simulado do Toss F
 keywords: "Toss Frontend Fundamentals, refatoração de frontend, separação de componentes React, revisão de código, simulado da Toss, arquitetura frontend"
 locale: pt-BR
 translationOf: '260328'
-sourceHash: 8923c8faeb0909fd5fee8880f17c5920e68b3589e7236965925ee70f6b304162
+sourceHash: c2f3ff4e13d42fcd24e6ac8beaefd56e00e3fe59d4c28b6b5d08a10a5ec0ead9
 ---
 
 Neste post, quero contar como foi minha experiência de refatoração durante a 2ª edição do simulado do Toss Frontend Fundamentals.

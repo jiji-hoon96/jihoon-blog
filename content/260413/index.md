@@ -151,9 +151,6 @@ Entity는 ID 기반 비교, Value Object는 속성 기반 비교. 이 구분을 
 
 이 글을 읽는 독자 분들도 다음에 API 응답 타입을 보면 "이건 데이터 모델인가, 도메인 모델인가"를 한 번쯤 물어보시길 바란다.
 
-
-### 참고 자료
-
 :::ref
 - [article] [Eric Evans, Domain-Driven Design (Book)](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215)
 :::

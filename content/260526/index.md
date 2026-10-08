@@ -167,8 +167,6 @@ Serena는 참조마다 [앞뒤 1줄](https://github.com/oraios/serena/blob/3b99f
 이 도구들이 에이전트가 코드를 찾는 비용을 줄인다면, 에이전트가 처음부터 알아야 할 프로젝트 규칙을 어떤 파일에 얼마나 적을지는 또 다른 문제다. 그 이야기는 [Context file](/260529)에서 다룬다.
 
 
-## 참고 자료
-
 :::ref
 - [repo] [ast-grep/ast-grep](https://github.com/ast-grep/ast-grep)
 - [repo] [ast-grep/ast-grep-mcp](https://github.com/ast-grep/ast-grep-mcp)

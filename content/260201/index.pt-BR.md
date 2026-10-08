@@ -8,7 +8,7 @@ description: "O que é abstração no frontend e como distinguir a boa da ruim: 
 keywords: "abstração no frontend, abstração de componentes React, abstração no Clean Code, nível de abstração, Level of Abstraction, como escrever um bom código, nomes que revelam intenção, Composed Method, lei das abstrações com vazamento, design de componentes, design de hooks customizados, arquitetura frontend, Kent Beck, Robert C. Martin"
 locale: pt-BR
 translationOf: '260201'
-sourceHash: 5efbefc3d64dc594438caaa486c232919b92fc74e1211a9ba56fa124dbcef0c4
+sourceHash: 2035d8bcaf96c40a302631b399747f5dacf236e3e3ff1368cdaa3429e5e3f2de
 ---
 
 Neste post, quero falar sobre abstração na programação e sobre como escrever um bom código a partir dessa perspectiva.
@@ -514,9 +514,9 @@ Se chegamos a essa situação, a solução é clara: colocar o código abstraíd
 
 Então, quando devemos abstrair? Os **sinais de abstração** que percebo são mais ou menos estes.
 
-- **A consistência está se perdendo.** Embora a lógica seja a mesma, em alguns componentes ela fica inline e, em outros, é separada em uma função. A mesma lógica de cálculo está espalhada por toda parte.
-- **A estrutura interna está desnecessariamente exposta ao exterior.** O chamador precisa lidar, um por um, com detalhes de implementação que não deveria conhecer.
-- **O procedimento interno continua exposto.** O módulo não consegue ocultar seus próprios procedimentos, e quem o utiliza precisa segui-los diretamente.
+- **A consistência está se perdendo**: Embora a lógica seja a mesma, em alguns componentes ela fica inline e, em outros, é separada em uma função. A mesma lógica de cálculo está espalhada por toda parte.
+- **A estrutura interna está desnecessariamente exposta ao exterior**: O chamador precisa lidar, um por um, com detalhes de implementação que não deveria conhecer.
+- **O procedimento interno continua exposto**: O módulo não consegue ocultar seus próprios procedimentos, e quem o utiliza precisa segui-los diretamente.
 
 O problema é que, embora detectar esses sinais costume ser simples, **na prática é fácil ignorá-los e se concentrar em atender a requisitos mais "importantes"**. Quando estamos sob pressão de prazos ou concentrados em implementar funcionalidades, pensamos: "Por enquanto funciona; organizo depois" — e esse depois raramente chega.
 

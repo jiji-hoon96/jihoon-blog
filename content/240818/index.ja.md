@@ -8,7 +8,7 @@ description: "ZustandがProviderなしで状態管理を実現する仕組みを
 keywords: "Zustandの仕組み, ZustandにProviderがない理由, React状態管理ライブラリ, Zustandソースコード分析, useSyncExternalStore, React Context API"
 locale: ja
 translationOf: '240818'
-sourceHash: 7128866f5e5b91c42a8b11b5a62e46fec3ff6b39defa8ce185c304c755039851
+sourceHash: 3e57a2ce5bbe419d4da395f2e35c5acc0dbda2a29badcb792fd83a76e89a509e
 ---
 
 今回の記事では、ZustandがどのようにProviderなしで状態管理を実現しているのかを取り上げる。
@@ -45,9 +45,7 @@ ReactはコンポーネントツリーをFiberという内部データ構造で�
 
 ZustandはFluxパターンに基づいて動作する。クロージャ内部の`state`がStore、ユーザー定義関数がAction、`set`関数がDispatcher、ReactコンポーネントがViewの役割を担う。ここに決定的な違いがある。 
 
-**ZustandのストアはReactコンポーネントツリーの外側、JavaScriptモジュールのスコープ内に存在する。**
-
-コンポーネントツリーの外側という表現は、React内部の状態管理とは異なり、Zustandの状態がReactのFiberツリーとは無関係に独立して存在することを意味する。どのコンポーネントでも`import`さえすればストアにアクセスでき、Providerでアプリをラップする必要はない。（グローバル変数のようにどこからでもアクセスできる一方、クロージャによって適切に保護されているわけだ。）
+**ZustandのストアはReactコンポーネントツリーの外側、JavaScriptモジュールのスコープ内に存在する**。コンポーネントツリーの外側という表現は、React内部の状態管理とは異なり、Zustandの状態がReactのFiberツリーとは無関係に独立して存在することを意味する。どのコンポーネントでも`import`さえすればストアにアクセスでき、Providerでアプリをラップする必要はない。（グローバル変数のようにどこからでもアクセスできる一方、クロージャによって適切に保護されているわけだ。）
 
 どうしてこれが可能なのだろうか？ 次のコードを見てみよう。
 
@@ -118,77 +116,77 @@ const createStoreImpl: CreateStoreImpl = (createState) => {
 
 このコードを1行ずつ読み解くと、Zustandの中核メカニズムが見えてくる。
 
-- **クロージャによる状態のカプセル化**
+#### クロージャによる状態のカプセル化
 
-  - `let state: TState`という変数が、`createStoreImpl`関数のローカル変数として宣言されている。この変数は関数の実行終了後も`setState`、`getState`などの内部関数から参照され続けるため、ガベージコレクションされない。これがクロージャの本質だ。
+- `let state: TState`という変数が、`createStoreImpl`関数のローカル変数として宣言されている。この変数は関数の実行終了後も`setState`、`getState`などの内部関数から参照され続けるため、ガベージコレクションされない。これがクロージャの本質だ。
 
-  - 外部から`state`変数へ直接アクセスする方法はない。`getState()`で読み、`setState()`で書くことしかできない。（オブジェクト指向でいうprivateフィールドをクロージャで実装したようなものだ。）
+- 外部から`state`変数へ直接アクセスする方法はない。`getState()`で読み、`setState()`で書くことしかできない。（オブジェクト指向でいうprivateフィールドをクロージャで実装したようなものだ。）
 
-- **`Object.is`を利用した変更検出**
+#### `Object.is`を利用した変更検出
 
-  - `setState`は新しい状態を計算した後、`Object.is(nextState, state)`で既存の状態と比較する。参照が同一なら何も起こらない。これが不要な再レンダリングを防ぐ最初の防衛線だ。
+- `setState`は新しい状態を計算した後、`Object.is(nextState, state)`で既存の状態と比較する。参照が同一なら何も起こらない。これが不要な再レンダリングを防ぐ最初の防衛線だ。
 
-  - ただし、この`Object.is`による比較は**厳密な参照同一性（strict reference equality）**の検査なので、利用側が注意すべき点がある。プリミティブ値（数値や文字列など）を1つだけ取り出して使う場合は問題ない。
+- ただし、この`Object.is`による比較は**厳密な参照同一性（strict reference equality**）の検査なので、利用側が注意すべき点がある。プリミティブ値（数値や文字列など）を1つだけ取り出して使う場合は問題ない。
 
-    ```typescript
-    const count = useStore((state) => state.count);
-    ```
+  ```typescript
+  const count = useStore((state) => state.count);
+  ```
 
-    しかし、selectorが**新しいオブジェクトを返す**場合は話が変わる。
+  しかし、selectorが**新しいオブジェクトを返す**場合は話が変わる。
 
-    ```typescript
-    const { count, name } = useStore((state) => ({
-      count: state.count,
-      name: state.name,
-    }));
-    ```
+  ```typescript
+  const { count, name } = useStore((state) => ({
+    count: state.count,
+    name: state.name,
+  }));
+  ```
 
-    `{ count, name }`オブジェクトは、値が同じでも呼び出すたびに新しい参照が作られる。`Object.is`は内部のプロパティを比較せず参照だけを比較するため、Zustandから見ると「状態が変わった」と判断され、毎回再レンダリングがトリガーされる。
+  `{ count, name }`オブジェクトは、値が同じでも呼び出すたびに新しい参照が作られる。`Object.is`は内部のプロパティを比較せず参照だけを比較するため、Zustandから見ると「状態が変わった」と判断され、毎回再レンダリングがトリガーされる。
 
-    この問題を解決するために、Zustandは**`useShallow`**フックを提供している。
+  この問題を解決するために、Zustandは **`useShallow`** フックを提供している。
 
-    ```typescript
-    import { useShallow } from 'zustand/react/shallow';
+  ```typescript
+  import { useShallow } from 'zustand/react/shallow';
 
-    const { count, name } = useStore(
-      useShallow((state) => ({ count: state.count, name: state.name }))
-    );
-    ```
+  const { count, name } = useStore(
+    useShallow((state) => ({ count: state.count, name: state.name }))
+  );
+  ```
 
-    `useShallow`は、返されたオブジェクトの**トップレベルのプロパティを1つずつ比較**し、実際に値が変わった場合にだけ再レンダリングを発生させる。Reduxの`useSelector`がデフォルトでは参照比較を使いながら、`shallowEqual`を第2引数として渡せるのと似た考え方だ。（ただし、`useShallow`は名前どおり「浅い」比較なので、ネストしたオブジェクトの内部までは追跡しないことを覚えておこう。）
+  `useShallow`は、返されたオブジェクトの**トップレベルのプロパティを1つずつ比較**し、実際に値が変わった場合にだけ再レンダリングを発生させる。Reduxの`useSelector`がデフォルトでは参照比較を使いながら、`shallowEqual`を第2引数として渡せるのと似た考え方だ。（ただし、`useShallow`は名前どおり「浅い」比較なので、ネストしたオブジェクトの内部までは追跡しないことを覚えておこう。）
 
-- **Pub/Subパターンのリスナーシステム**
+#### Pub/Subパターンのリスナーシステム
 
-  - `const listeners: Set<Listener> = new Set()`という1行が、Zustandの購読システムのすべてだ。状態が変わると、`listeners.forEach`ですべての購読者に通知する。 
-  - `subscribe`を呼び出すとリスナーが`Set`に追加され、返された関数を呼び出すと`Set`から削除される。
-  - このパターンが重要なのは、**ReactのFiberツリーから完全に独立した通知システム**だからだ。Providerがツリーを走査して購読者を探すのではなく、ストアが購読者の一覧を直接管理する方式なのだ。
+- `const listeners: Set<Listener> = new Set()`という1行が、Zustandの購読システムのすべてだ。状態が変わると、`listeners.forEach`ですべての購読者に通知する。 
+- `subscribe`を呼び出すとリスナーが`Set`に追加され、返された関数を呼び出すと`Set`から削除される。
+- このパターンが重要なのは、**ReactのFiberツリーから完全に独立した通知システム**だからだ。Providerがツリーを走査して購読者を探すのではなく、ストアが購読者の一覧を直接管理する方式なのだ。
 
-- **初期状態の生成**
+#### 初期状態の生成
 
-  - 初期状態を扱う最後の行を見てみよう。
+- 初期状態を扱う最後の行を見てみよう。
 
-    ```typescript
-    const initialState = (state = createState(setState, getState, api))
-    ```
-    
-    1行に多くの処理が凝縮されている。JavaScriptでは、代入演算子（`=`）は**代入された値そのものを返す**式（expression）だ。つまり、括弧内の`state = createState(...)`が先に実行されて`state`へ初期状態が代入され、その戻り値が再び`const initialState`に代入される。結果として、`state`と`initialState`は**同じオブジェクトを参照**する。
+  ```typescript
+  const initialState = (state = createState(setState, getState, api))
+  ```
+  
+  1行に多くの処理が凝縮されている。JavaScriptでは、代入演算子（`=`）は**代入された値そのものを返す**式（expression）だ。つまり、括弧内の`state = createState(...)`が先に実行されて`state`へ初期状態が代入され、その戻り値が再び`const initialState`に代入される。結果として、`state`と`initialState`は**同じオブジェクトを参照**する。
 
-    では、なぜ同じ値をわざわざ2つの変数に分けて保持するのだろうか？ 要点は、2つの変数の役割が異なることにある。
+  では、なぜ同じ値をわざわざ2つの変数に分けて保持するのだろうか？ 要点は、2つの変数の役割が異なることにある。
 
-    - **`state`** は`let`で宣言された変数だ。`setState`が呼び出されるたびに新しい値へ置き換わる。つまり、**現時点で生きている状態**を表す。
-    - **`initialState`** は`const`で宣言された変数だ。ストアが生成された時点の状態が永続的に保持される。その後どのような`setState`が呼び出されても、この値は変わらない。**ストアの最初のスナップショット**というわけだ。
+  - **`state`** は`let`で宣言された変数だ。`setState`が呼び出されるたびに新しい値へ置き換わる。つまり、**現時点で生きている状態**を表す。
+  - **`initialState`** は`const`で宣言された変数だ。ストアが生成された時点の状態が永続的に保持される。その後どのような`setState`が呼び出されても、この値は変わらない。**ストアの最初のスナップショット**というわけだ。
 
-    この`initialState`は`getInitialState()`メソッドを通じて外部へ公開され、`react.ts`で`useSyncExternalStore`の**第3引数（サーバースナップショット）**として渡される。
+  この`initialState`は`getInitialState()`メソッドを通じて外部へ公開され、`react.ts`で`useSyncExternalStore`の**第3引数（サーバースナップショット**）として渡される。
 
-    ```typescript
-    const slice = React.useSyncExternalStore(
-      api.subscribe,
-      () => selector(api.getState()),       
-      () => selector(api.getInitialState()), 
-    )
-    ```
+  ```typescript
+  const slice = React.useSyncExternalStore(
+    api.subscribe,
+    () => selector(api.getState()),       
+    () => selector(api.getInitialState()), 
+  )
+  ```
 
-    サーバーサイドレンダリング（SSR）環境にはブラウザAPIがなく、ユーザーインタラクションもないため、`setState`が呼び出されることはない。そのため、サーバーでは常に`initialState`（= 初期状態）がスナップショットとして使われる。クライアントでhydrationが始まるとき、ReactはサーバーでレンダリングされたHTMLとクライアントの初回レンダリング結果を比較するが、両方が同じ`initialState`を基準にレンダリングしているため、**hydrationの不一致を防ぐ**ことができる。
+  サーバーサイドレンダリング（SSR）環境にはブラウザAPIがなく、ユーザーインタラクションもないため、`setState`が呼び出されることはない。そのため、サーバーでは常に`initialState`（= 初期状態）がスナップショットとして使われる。クライアントでhydrationが始まるとき、ReactはサーバーでレンダリングされたHTMLとクライアントの初回レンダリング結果を比較するが、両方が同じ`initialState`を基準にレンダリングしているため、**hydrationの不一致を防ぐ**ことができる。
 
 ### react.ts
 
@@ -256,15 +254,15 @@ Reduxの`<Provider store={store}>`は、React Contextを通じてストアイン
 
 JotaiはReduxやZustandとは根本的に異なる**アトミック（atomic）状態モデル**を採用している。1つの大きなストアオブジェクトに状態を集めるのではなく、**各状態の断片を独立したatomに分割**するアプローチだ。（Jotaiの公式ドキュメントでも、「ZustandがReduxに似ているなら、JotaiはRecoilに似ている」と説明されている。）
 
-この構造の重要な違いは、**レンダリングの最適化方法**にある。Zustandは、1つのストアからselectorを通じて必要な部分だけを抽出する**トップダウン（top-down）**のアプローチだ。開発者が`useStore((state) => state.count)`のようにselectorを直接記述する必要があり、参照同一性（referential equality）を維持するため、場合によってはメモ化が必要になる。一方Jotaiは、atom間の**依存関係グラフ（dependency graph）**を自動的に構築し、特定のatomが変わると、そのatomに依存するコンポーネントだけを正確に再レンダリングする**ボトムアップ（bottom-up）**の伝播を行う。スプレッドシートやキャンバスエディターのように、数十の状態が互いに絡み合う場合、この自動依存関係追跡が大きな力を発揮する。
+この構造の重要な違いは、**レンダリングの最適化方法**にある。Zustandは、1つのストアからselectorを通じて必要な部分だけを抽出する**トップダウン（top-down**）のアプローチだ。開発者が`useStore((state) => state.count)`のようにselectorを直接記述する必要があり、参照同一性（referential equality）を維持するため、場合によってはメモ化が必要になる。一方Jotaiは、atom間の**依存関係グラフ（dependency graph**）を自動的に構築し、特定のatomが変わると、そのatomに依存するコンポーネントだけを正確に再レンダリングする**ボトムアップ（bottom-up**）の伝播を行う。スプレッドシートやキャンバスエディターのように、数十の状態が互いに絡み合う場合、この自動依存関係追跡が大きな力を発揮する。
 
-Providerの観点では、Jotaiは興味深い中間地点に位置する。デフォルトではグローバルストアを使ってProviderなしで動作するが、必要なら`<Provider>`でラップして分離されたストアスコープを作成できる。Jotaiの公式ドキュメントの表現を借りれば、Jotaiは**「context first, module second」**で、Zustandは**「module first, context second」**なのだ。
+Providerの観点では、Jotaiは興味深い中間地点に位置する。デフォルトではグローバルストアを使ってProviderなしで動作するが、必要なら`<Provider>`でラップして分離されたストアスコープを作成できる。Jotaiの公式ドキュメントの表現を借りれば、Jotaiは「**context first, module second**」で、Zustandは「**module first, context second**」なのだ。
 
 ### Zustandの選択
 
 Zustandは最も急進的な選択をした。デフォルトではモジュールレベルのシングルトンであり、Providerがまったく存在しない。この選択がもたらすものは、**きわめてシンプルなAPI**だ。`create`でストアを作り、コンポーネントでフックを呼び出せば終わりだ。
 
-ただし、「Providerがまったく存在しない」という表現は、正確には**デフォルト設計**についての話だ。v4以降は、`createStore`（vanillaストア）とReactの`createContext`を組み合わせて、**スコープ付きストア（Scoped Store）**パターンを実装できる。
+ただし、「Providerがまったく存在しない」という表現は、正確には**デフォルト設計**についての話だ。v4以降は、`createStore`（vanillaストア）とReactの`createContext`を組み合わせて、**スコープ付きストア（Scoped Store）パターン**を実装できる。
 
 [TkDodo（React Queryメンテナー）のブログ](https://tkdodo.eu/blog/zustand-and-react-context)では、このパターンが詳しく扱われており、彼が示す中心的な主張は次のとおりだ。グローバルシングルトンストアには3つの制約がある。
 
@@ -390,7 +388,7 @@ beforeEach(() => {
 
 上記の内容を調べている中で知ったことだが、**Zustand v5.0.0が2024年10月に正式リリース**された。
 
-興味深いのは、v5には新機能がほとんどないことだ。v4.xですでに新機能を追加しながら既存APIをdeprecatedにしてきており、v5は**整理（cleanup）リリース**としての性格が強い。主な変更点は次のとおりだ。（詳細は**[リリースページ](https://github.com/pmndrs/zustand/releases)**と**[移行ガイド](https://zustand.docs.pmnd.rs/reference/migrations/migrating-to-v5)**を参照してほしい。）
+興味深いのは、v5には新機能がほとんどないことだ。v4.xですでに新機能を追加しながら既存APIをdeprecatedにしてきており、v5は**整理（cleanup）リリース**としての性格が強い。主な変更点は次のとおりだ。（詳細は[リリースページ](https://github.com/pmndrs/zustand/releases)と[移行ガイド](https://zustand.docs.pmnd.rs/reference/migrations/migrating-to-v5)を参照してほしい。）
 
 - 最小要件が**React 18、TypeScript 4.5以上**へ引き上げられた。
 - **`getServerState`が削除**された。（`useSyncExternalStore`の第3引数で代替）
@@ -399,8 +397,6 @@ beforeEach(() => {
 - iterableオブジェクトをサポートするように、**`shallow`関数が改善**された。
 
 v4からv5へ移行するときは、まずv4の最新バージョンへ更新することが推奨される。v4の最新バージョンではdeprecation警告が表示されるため、それらを先に解消してからv5へ上げれば、無理なく移行できる。
-
-### 参考資料
 
 :::ref
 - [docs] [React useSyncExternalStore](https://react.dev/reference/react/useSyncExternalStore)

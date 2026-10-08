@@ -6,7 +6,7 @@ date: '2026-03-02'
 categories: frontend carreira IA
 locale: pt-BR
 translationOf: '260302'
-sourceHash: c38de9f219e846c233a2afb136f3ea0ee2a9f849517236b327d2e82dd05659f5
+sourceHash: c2fa8469abc21ff1a933ac6f740362bfc7b640c4b87f1f0780aeaabf148ee5bc
 description: "Como crescer como engenheiro frontend quando a IA escreve o código: validação, especificação e discernimento, a partir de Karpathy, Vercel v0 e METR."
 keywords: 'frontend na era da IA, desenvolvedor na era da IA, vibe coding, agentic engineering, ferramentas de programação com IA, Product Engineer, plano de carreira para frontend'
 ---
@@ -227,7 +227,5 @@ Ao examinar os textos de Andrej Karpathy, autoridade em OpenAI, vemos que a ess�
 
 A mensagem final do texto original também era que se torna sênior “quem não se satisfaz apenas em concluir bem o trabalho recebido, mas observa o contexto anterior e posterior e gera um impacto maior”. Na era da IA, apenas a definição desse “impacto” mudou. Há quem faça merge de uma tela produzida pela IA em uma hora pensando “funciona, então está pronto”; e há quem passe mais trinta minutos verificando até que ponto essa tela é adequada em termos de acessibilidade, segurança, desempenho e coerência com o sistema. Daqui a um ano, quem será reconhecido como sênior é o segundo. Sobrevive quem se posiciona do lado dos 30% na fronteira entre 70% (funcionamento) e 30% (aplicação e uso).
 
-Espero que os engenheiros frontend que lerem este texto também encontrem sua própria resposta para a pergunta “o que mais devo estudar agora?”. Ninguém sabe a resposta certa, mas tenho bastante convicção de que, quanto mais a IA escreve código, mais sobrevivem as pessoas capazes de enxergar “o que existe além do código”. Encerro na esperança de que, daqui a um ano, eu possa voltar a escrever sobre como esse cenário terá mudado mais uma vez.
-
-**(Se este texto parecer óbvio demais ou ultrapassado daqui a um ano, talvez isso signifique que reagimos bem.)**
+Espero que os engenheiros frontend que lerem este texto também encontrem sua própria resposta para a pergunta “o que mais devo estudar agora?”. Ninguém sabe a resposta certa, mas tenho bastante convicção de que, quanto mais a IA escreve código, mais sobrevivem as pessoas capazes de enxergar “o que existe além do código”. Encerro na esperança de que, daqui a um ano, eu possa voltar a escrever sobre como esse cenário terá mudado mais uma vez. **(Se este texto parecer óbvio demais ou ultrapassado daqui a um ano, talvez isso signifique que reagimos bem.)**
 

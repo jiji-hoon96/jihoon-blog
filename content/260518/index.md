@@ -57,13 +57,13 @@ React 공식 문서는 좀 더 형식적으로 정의한다. 페이지 제목이
 
 필자는 여기서 한 발 더 나아가, 프론트엔드의 상태를 **일곱 가지 범주**로 구분해서 본다. 미리 짚어두자면, 이 일곱 가지는 단일 축으로 깔끔하게 나뉘지 않는다. 저장 위치·출처·생애주기·역할이 섞여 있어 한 상태가 여러 범주에 동시에 속할 수도 있다. 완벽한 분류표가 아니라 **상태를 어떻게 관리할지 결정할 때 던지는 질문들**이라고 봐주면 좋겠다.
 
-- **지역 상태(Local State).** 한 컴포넌트, 또는 좁은 트리 안에서만 쓰는 상태
-- **전역 상태(Global State).** 앱 전체가 공유해야 하는 상태
-- **서버 상태(Server State).** 서버가 진실의 출처이고, 클라이언트는 캐시인 상태
-- **폼 상태(Form State).** 사용자 입력 중 일시적으로 존재하는 상태
-- **URL 상태(URL State).** 주소창에 사는, 공유 가능하고 새로고침에도 살아남는 상태
-- **외부 상태(External State).** 쿠키, localStorage, sessionStorage, IndexedDB 등 React 외부에 사는 상태
-- **상태 가드(State Guard).** 상태 자체가 아닌, 상태의 조합으로 접근/실행을 막거나 검증하는 로직
+- **지역 상태(Local State)**: 한 컴포넌트, 또는 좁은 트리 안에서만 쓰는 상태
+- **전역 상태(Global State)**: 앱 전체가 공유해야 하는 상태
+- **서버 상태(Server State)**: 서버가 진실의 출처이고, 클라이언트는 캐시인 상태
+- **폼 상태(Form State)**: 사용자 입력 중 일시적으로 존재하는 상태
+- **URL 상태(URL State)**: 주소창에 사는, 공유 가능하고 새로고침에도 살아남는 상태
+- **외부 상태(External State)**: 쿠키, localStorage, sessionStorage, IndexedDB 등 React 외부에 사는 상태
+- **상태 가드(State Guard)**: 상태 자체가 아닌, 상태의 조합으로 접근/실행을 막거나 검증하는 로직
 
 이 분류 외에도 상태머신으로 정교화해야 하는 워크플로우 상태, WebSocket·CRDT 기반의 실시간 협업 상태가 있다.
 
@@ -240,8 +240,8 @@ return children;
 
 권한 가드를 짤 때 두 가지 모델이 흔히 쓰인다.
 
-- **RBAC(Role-Based Access Control)** : 역할 단위로 권한을 부여한다. "admin은 모든 사용자 정보를 볼 수 있다" 처럼. 단순하고 빠르지만, 역할이 세분화될수록 역할의 수가 폭발한다
-- **ABAC(Attribute-Based Access Control)** : 속성 조합으로 권한을 결정한다. "사용자가 그 게시글의 작성자이거나, 같은 팀이거나, admin인 경우" 처럼. 표현력이 크지만 구현·디버깅이 어렵다
+- **RBAC(Role-Based Access Control)**: 역할 단위로 권한을 부여한다. "admin은 모든 사용자 정보를 볼 수 있다" 처럼. 단순하고 빠르지만, 역할이 세분화될수록 역할의 수가 폭발한다
+- **ABAC(Attribute-Based Access Control)**: 속성 조합으로 권한을 결정한다. "사용자가 그 게시글의 작성자이거나, 같은 팀이거나, admin인 경우" 처럼. 표현력이 크지만 구현·디버깅이 어렵다
 
 [TanStack Router의 RBAC 가이드](https://tanstack.com/router/v1/docs/framework/react/how-to/setup-rbac)처럼 라우터 레벨에서 `beforeLoad`에 가드를 박는 패턴이 권장된다. 핵심은 **권한 검사를 코드에 흩뿌리지 않고 데이터(역할/권한 목록)로 표현 가능해야** 한다는 것이다. 그래야 권한 정책 변경이 **데이터 변경**으로 끝난다.
 
@@ -265,8 +265,6 @@ return children;
 
 정답은 없다. 하지만 적어도 **"상태가 뭔지 모르고 상태를 만드는 것"** 과 **"상태의 종류와 위치를 의식하면서 만드는 것"** 사이에는 명백한 차이가 있다. 이 글을 읽는 독자 분들도 다음에 `useState`를 한 줄 적기 전에 한 번쯤 멈추고, "이건 어느 범주의 상태일까?"라고 물어봐 주시기를 바란다.
 
-
-### 참고 자료
 
 :::ref
 - [docs] [React, Choosing the State Structure](https://react.dev/learn/choosing-the-state-structure)

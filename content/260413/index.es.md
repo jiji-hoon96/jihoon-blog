@@ -8,7 +8,7 @@ description: "Diferencias entre dominio, modelo de dominio, objeto de dominio y 
 keywords: "modelo de dominio, objeto de dominio, modelo de objetos de dominio, modelo de dominio vs modelo de datos, Entity Value Object, terminología DDD, DDD en frontend, Eric Evans"
 locale: es
 translationOf: '260413'
-sourceHash: aeb26f1209027c081c1785b1c47b80315eba3977fbe2e60693868979c7b24af0
+sourceHash: 200a8b74a4f7351393d1f58ad8a0395a05f2832ac9b1227d1e8df78b0b84e5a2
 ---
 
 En esta entrada quiero hablar de **en qué se diferencian el dominio, el modelo de dominio, el objeto de dominio y el modelo de objetos de dominio**.
@@ -153,9 +153,6 @@ En resumen, el **dominio** es el área problemática que queremos resolver; el *
 Cómo se traduce esta distinción en el código, es decir, dónde debe vivir fuera de los componentes la lógica de dominio como el cálculo de impuestos y hasta dónde separarla, lo trato en [Modelo de dominio](/260418).
 
 Ojalá que, la próxima vez que mires el tipo de una respuesta de la API, te preguntes al menos una vez: «¿esto es un modelo de datos o un modelo de dominio?».
-
-
-### Referencias
 
 :::ref
 - [article] [Eric Evans, Domain-Driven Design (Book)](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215)

@@ -9,7 +9,7 @@ description: "React Fiberアーキテクチャを、Stack ReconcilerからFiber�
 keywords: "React Fiber, React Fiberアーキテクチャ, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, Reactレンダリングの仕組み, Reactソースコード解析, Virtual DOM, Reconciliation, Lane優先度, フロントエンド面接"
 locale: ja
 translationOf: '250520'
-sourceHash: 829e3fcfb711596a9ec0772911ab6d13e00e41ba3ddcb03ae930070dbee27260
+sourceHash: 85d40d1c649dd353904731d56b58a7aa98ef44ef02eae868a59d2edcfa4da326
 ---
 
 今回は、Reactの心臓部ともいえる**Fiberアーキテクチャ**について話したい。
@@ -590,10 +590,12 @@ function bubbleProperties(completedWork) {
 3. **ツリーの切り替え**：`root.current = finishedWork`
    - ダブルバッファリングの核心だ。workInProgressツリーがcurrentツリーへ昇格する。この切り替えが変更フェーズ後、レイアウトフェーズ前に行われる理由は重要だ。`componentWillUnmount`は**以前のツリー**を読む必要があるため変更フェーズで実行しなければならず、`componentDidMount`/`componentDidUpdate`は**新しいツリー**を読む必要があるためレイアウトフェーズで実行しなければならない。
 4. **レイアウトフェーズ**：`commitLayoutEffects()`
-   - DOMの変更が完了した後、新しいDOMの状態を基にする処理が実行される。
-      - `componentDidMount`、`componentDidUpdate`を実行
-      - `useLayoutEffect`のコールバックを実行
-      - この時点では`current`がすでに新しいツリーを指しているため、DOMを読むと更新後の値を取得できる
+
+   DOMの変更が完了した後、新しいDOMの状態を基にする処理が実行される。
+
+   - `componentDidMount`、`componentDidUpdate`を実行
+   - `useLayoutEffect`のコールバックを実行
+   - この時点では`current`がすでに新しいツリーを指しているため、DOMを読むと更新後の値を取得できる
 5. **パッシブエフェクト**（非同期）
    - `useEffect`のクリーンアップとセットアップは別途スケジュールされ、**非同期的**に実行される。これらはDOM変更に依存しない副作用（データ取得、イベント購読など）を処理するため、同期的に実行する必要がない。非同期で処理することで、ブラウザーが先に画面を描画できるよう制御を譲る。
 
@@ -647,8 +649,6 @@ React 18の`renderToPipeableStream`はSuspense境界を活用する。
 
 この記事を通じて、React Fiberが単なる面接用キーワードではなく、Reactのすべての機能を支える実行アーキテクチャだということが伝われば幸いだ。唯一の正解はないが、読者の皆さんにもソースコードを直接読み、それぞれの理解を築いていってほしい。
 
-
-## 出典
 
 :::ref
 - [repo] [Reactソースコード, ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberWorkLoop.js)

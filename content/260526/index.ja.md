@@ -6,7 +6,7 @@ date: "2026-05-26"
 updatedAt: "2026-10-08"
 locale: ja
 translationOf: '260526'
-sourceHash: 443bddf4754e316487730bed1445d039acc52211b70f3df7ebb4269a217329f1
+sourceHash: 182bb75afe619d0d97875b8a9abbc855d796bdf96b4c9aaf93ff0695021afce5
 categories: AI 開発ツール Claude MCP CodeGraph
 description: "AIコーディングエージェントが関連コードを探すコストを減らすツールを4つの階層に分けて比較する。Repomixのようなコンテキストパッキング、Aiderのtree-sitterリポジトリマップ、CodeGraphのナレッジグラフ、SerenaのようなLSPベースのツールを整理する。"
 keywords: "コードインテリジェンス, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider repo map, AIコーディングエージェント トークン削減"
@@ -169,8 +169,6 @@ Serenaは参照ごとに[前後1行](https://github.com/oraios/serena/blob/3b99f
 
 これらのツールがエージェントのコード探索コストを減らすものだとすれば、エージェントが最初から知っておくべきプロジェクトのルールをどのファイルにどれだけ書くかは、また別の問題だ。その話は[コンテキストファイル](/260529)で扱う。
 
-
-## 参考資料
 
 :::ref
 - [repo] [ast-grep/ast-grep](https://github.com/ast-grep/ast-grep)

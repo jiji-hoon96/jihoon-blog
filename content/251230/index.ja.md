@@ -9,7 +9,7 @@ description: "TanStack Query がレンダリングのたびに新しく作られ
 keywords: "queryKey 比較, hashKey, queryHash, TanStack Query キャッシュキー, React Query queryKey 順序, queryKeyHashFn, JSON.stringify キーのソート, QueryCache"
 locale: ja
 translationOf: '251230'
-sourceHash: 24fc2216b382a69ba99c1d4ca8676c6ef3f58966b132171d60acb75e1be1f38c
+sourceHash: 47c18317b91a4b6f5d16479d680433d97c9f8ee7a016da28cd3387dd9417f417
 ---
 
 今回は、**TanStack Query が二つの queryKey を同じキーと判定する仕組み**について話してみたい。
@@ -72,7 +72,7 @@ export function hashKey(queryKey: QueryKey | MutationKey): string {
 
 使う側から見ると、結果は二つある。
 
-**1. オブジェクトのキー順は問わない。**
+### オブジェクトのキー順は問わない
 
 ```tsx
 useQuery({ queryKey: ['todos', { status: 'done', page: 1 }], queryFn });
@@ -82,7 +82,7 @@ useQuery({ queryKey: ['todos', { page: 1, status: 'done' }], queryFn });
 
 キーの並べ替えがなければ、オブジェクトリテラルを使うたびにキーの順序を覚えておかなければならなかっただろう。
 
-**2. 配列の要素順は重要である。**
+### 配列の要素順は重要である
 
 ```tsx
 useQuery({ queryKey: ['todos', status, page], queryFn });
@@ -191,9 +191,6 @@ console.log(partialMatchKey(queryKey, ['todos', { status: 'todo' }])) // false
 この判定基準が queryKey をどう書き、どう管理するかにつながる話、つまりインライン配列からクエリキーファクトリーを経て `queryOptions` に至った流れは [queryKey](/260104) で扱う。
 
 読者の皆さんも、次に queryKey にオブジェクトや `Map` を入れるとき、その値がどんな文字列にシリアライズされるのかを一度思い浮かべてみてほしい。
-
-
-## 参考資料
 
 :::ref
 - [ドキュメント] [TanStack Query：クエリキー](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)
