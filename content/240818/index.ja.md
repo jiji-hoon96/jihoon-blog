@@ -143,7 +143,7 @@ const createStoreImpl: CreateStoreImpl = (createState) => {
 
   `{ count, name }`オブジェクトは、値が同じでも呼び出すたびに新しい参照が作られる。`Object.is`は内部のプロパティを比較せず参照だけを比較するため、Zustandから見ると「状態が変わった」と判断され、毎回再レンダリングがトリガーされる。
 
-  この問題を解決するために、Zustandは **`useShallow`** フックを提供している。
+  この問題を解決するために、Zustandは`useShallow`フックを提供している。
 
   ```typescript
   import { useShallow } from 'zustand/react/shallow';
