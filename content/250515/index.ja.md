@@ -9,7 +9,7 @@ description: "React SchedulerがrequestIdleCallback、requestAnimationFrame、se
 keywords: "requestIdleCallback, MessageChannel, React Scheduler, setTimeout 4ms, Reactスケジューラーの仕組み, shouldYieldToHost, requestAnimationFrame, React Fiber"
 locale: ja
 translationOf: '250515'
-sourceHash: c20d808fbc7fe90e85f472d92d3b24bb3f520c7351c0ceabf29c7b9af754822a
+sourceHash: f9e36a7b0a0e10bfe8dc30ec353c2703fbf8e586fb8ce86dccf0c23a712b3454
 ---
 
 今回の記事では、**ReactがrequestIdleCallbackではなくMessageChannelで作業を予約する理由**について話してみたい。
@@ -17,7 +17,7 @@ sourceHash: c20d808fbc7fe90e85f472d92d3b24bb3f520c7351c0ceabf29c7b9af754822a
 Fiberを学ぶなかで「ブラウザーが暇なときに少しずつ働く」という説明を読んだのに、実際のReactのソースコードでは`MessageChannel`に出会って混乱したフロントエンド開発者に向けた記事である。先に答えを書くと、`requestIdleCallback`はReactが望むほど頻繁には呼ばれず、`setTimeout`はネストすると4msを超える遅延が付く。そのためReactのSchedulerパッケージは、ブラウザーでは人為的な遅延なしに次のマクロタスクを予約できる`MessageChannel`を使う。その4msが実際にどれほど大きいかは、headless Chromeで測った数字で確かめる。
 
 
-## requestIdleCallbackを捨てた理由
+## 捨てられた予約方式
 
 Fiberの概念を説明するときには、`requestIdleCallback`で作業を分けて実行するコードがよく使われる。ブラウザーにやることがないたびに作業単位を一つずつ処理するモデルである。Reactも最初は実際にこのAPIを使っており、今の形にたどり着くまでにいくつかのPRを経た。
 
@@ -61,11 +61,11 @@ if (typeof localSetImmediate === 'function') {
 }
 ```
 
-分岐は三つある。今のブラウザーには`setImmediate`がないので、二つ目の分岐の`MessageChannel`が選ばれる。ソースコメントによれば、一つ目の分岐はNode.jsと古いIEのためのものだ。同じコメントは、`MessageChannel`はNode.jsプロセスが終了しないよう引き止めるが、`setImmediate`はそうしないと書いている（[facebook/react#20756](https://github.com/facebook/react/issues/20756)）。そのためJestのnode環境でSchedulerを追うと、`MessageChannel`ではなく`setImmediate`の経路を通る。jsdom環境は違う。Jest 27から`jest-environment-jsdom`はグローバルから`setImmediate`を外し（[jestjs/jest#11222](https://github.com/jestjs/jest/pull/11222)）、jsdomには`MessageChannel`もないので、三つ目の分岐である`setTimeout`の経路を通る。
+分岐は三つある。今のブラウザーには`setImmediate`がないので、二つ目の分岐の`MessageChannel`が選ばれる。ソースコメントによれば、一つ目の分岐はNode.jsと古いIEのためのもので、`MessageChannel`はNode.jsプロセスが終了しないよう引き止めるが、`setImmediate`はそうしない（[facebook/react#20756](https://github.com/facebook/react/issues/20756)）。そのためJestのnode環境は`setImmediate`の経路を通る。Jest 27以降のjsdom環境はグローバルから`setImmediate`が外され（[jestjs/jest#11222](https://github.com/jestjs/jest/pull/11222)）、`MessageChannel`もないので、`setTimeout`の経路を通る。
 
-Schedulerがこうして次の番を予約する目的は、メインスレッドをブラウザーに返すことである。JavaScriptがメインスレッドを握っている間、ブラウザーは入力を処理することも画面を描くこともできない。ただし、すべてのレンダーが途中で譲るわけではない。React v19.3.0のReconcilerは、レンダーを始めるときに今回のレンダーのlaneを見て、時間を分割するかを決める（[ReactFiberWorkLoop.js 1168行](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L1168)）。Sync、InputContinuous、Defaultのlaneが含まれていれば、譲らずに最後までレンダーする（[ReactFiberLane.js 684行](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberLane.js#L684)）。長く待たされて期限切れになったlaneも、starvationを防ぐために譲らずレンダーする。時間を分割して途中で譲るのは、TransitionやRetryのようなレンダーだ。
+Schedulerがこうして次の番を予約する目的は、メインスレッドをブラウザーに返すことである。JavaScriptがメインスレッドを握っている間、ブラウザーは入力を処理することも画面を描くこともできない。ただし、途中で譲るのはTransitionやRetryのように時間を分割するレンダーだけだ。React v19.3.0のReconcilerは、Sync、InputContinuous、Defaultのようなblocking laneが含まれるか、長く待たされて期限切れになったlaneがあるか、`forceSync`で呼ばれたレンダーなら、譲らずに最後までレンダーする（[ReactFiberWorkLoop.js 1168行](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L1168)）。
 
-こうしたレンダーでは、ReconcilerはFiberを一つ処理するたびに`shouldYield()`を尋ねる（[ReactFiberWorkLoop.js 3073〜3078行](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L3073-L3078)）。この関数はSchedulerが公開しているもので、実際の判断はScheduler内の`shouldYieldToHost()`が行う。基準は、今回のメッセージタスクが始まってからの経過時間だ。その時間が`frameInterval`以上になると譲る。`frameInterval`の初期値は`SchedulerFeatureFlags.js`で定義された`frameYieldMs`、つまり**5ms**である（[11行](https://github.com/facebook/react/blob/v19.3.0/packages/scheduler/src/SchedulerFeatureFlags.js#L11)）。5msは作業の断片の大きさではなく、譲るかどうかを確認する時間の基準である。コンポーネント一つのレンダリングに20msかかれば、その20msは分割されない。
+こうしたレンダーでは、ReconcilerはFiberを一つ処理するたびに`shouldYield()`を尋ねる（[ReactFiberWorkLoop.js 3073〜3078行](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L3073-L3078)）。この関数はSchedulerが公開しているもので、実際の判断はScheduler内の`shouldYieldToHost()`が行う。基準は、今回のメッセージタスクが始まってからの経過時間だ。その時間が`frameInterval`以上になると譲り、コミットの後に`requestPaint()`が呼ばれていれば、時間に関係なく譲る。`frameInterval`の初期値は`SchedulerFeatureFlags.js`で定義された`frameYieldMs`、つまり**5ms**である（[11行](https://github.com/facebook/react/blob/v19.3.0/packages/scheduler/src/SchedulerFeatureFlags.js#L11)）。5msは作業の断片の大きさではなく、譲るかどうかを確認する時間の基準である。コンポーネント一つのレンダリングに20msかかれば、その20msは分割されない。ここまではstableビルドの動作だ。experimentalビルドでは同じファイルの`enableAlwaysYieldScheduler`が有効になっていて、Schedulerは5msを使い切らず、次のタスクがすでに期限切れでない限り、タスクを一つ終えるとすぐにブラウザーへ譲り、`requestPaint()`の合図も見ない。
 
 ## setTimeoutの4ms遅延
 
@@ -108,7 +108,7 @@ schedule();
 このSchedulerが分けて実行する作業単位であるFiberノードがどんな形をしていて、Work Loopがそれをどう巡回するのかは、[React Fiber完全攻略](/250520)で扱う。この記事を読んだ皆さんも、Reactのソースコードで再び`MessageChannel`に出会ったら、なぜそこにそれがあるのかを一度思い出してみてほしい。
 
 
-## 出典
+## 参考資料
 
 :::ref
 - [repo] [React 16.0.0のReactDOMFrameScheduling.js](https://github.com/facebook/react/blob/v16.0.0/src/renderers/shared/ReactDOMFrameScheduling.js)

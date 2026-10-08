@@ -144,9 +144,15 @@ LZ78 (0,b) (0,a) (0,n) (2,n) (2,_) (1,a) (3,a) (7,) true
 사전 1:b 2:a 3:n 4:an 5:a_ 6:ba 7:na
 ```
 
+<hr>
+
+## 두 방식이 갈리는 곳
+
 코드의 두 디코더는 토큰만 받는다. **LZ78도 사전을 보내지 않는다**는 뜻이다. 디코더가 토큰을 읽으며 인코더와 같은 순서로 항목을 추가하므로 같은 사전이 다시 쌓인다. 사전을 전송하지 않는다는 점은 두 알고리즘의 공통점이고, 둘이 갈리는 곳은 **오래된 내용을 잊는 방식**이다. LZ77의 윈도우는 앞으로 밀려가며 오래된 데이터를 저절로 잊는다. LZ78의 사전은 그대로 두면 계속 자란다. 원 논문은 정해진 길이의 블록이 끝날 때마다 사전을 통째로 비웠고, 실제 구현은 사전 크기에 상한을 두고 꽉 차면 얼리거나 비우거나 일부 항목을 재사용한다.
 
 LZ78의 가장 유명한 변종이 바로 **LZW**(Lempel-Ziv-Welch)이다. 1984년 Terry Welch가 LZ78을 개선하여 발표한 것으로, GIF 이미지 포맷과 유닉스의 `compress` 유틸리티(`.Z` 확장자)에서 사용되었다. 두 구현 모두 사전에 상한을 두었다. [GIF89a 명세](https://www.w3.org/Graphics/GIF/spec-gif89a.txt)는 코드를 최대 12비트(최댓값 4095)로 묶고, 사전을 초기 상태로 되돌리는 Clear code를 따로 둔다. [ncompress man page](https://github.com/vapier/ncompress/blob/v5.0/compress.1)에 따르면 `compress` 는 코드 길이가 `-b` 상한(기본 16비트)에 닿은 뒤로 압축률을 지켜보다가, 압축률이 떨어지면 사전을 버리고 처음부터 다시 쌓는다.
+
+두 논문은 각자의 모형에서 점근적 최적성을 보였다. 1977년 논문은 LZ77의 압축률이 원천을 미리 알고 설계한 부호의 하한에 균일하게 다가간다("uniformly approaches the lower bounds")고 보였고, 1978년 논문은 개별 수열(individual sequence)을 대상으로 LZ78의 incremental parsing이 점근적으로 최적임을 보였다. 모형이 서로 다르므로 이 결과만으로 둘을 비교할 수는 없다.
 
 <hr>
 
@@ -158,9 +164,9 @@ LZ78의 가장 유명한 변종이 바로 **LZW**(Lempel-Ziv-Welch)이다. 1984�
 
 **DEFLATE**는 Phil Katz가 PKZIP 2를 위해 설계했고, 1996년 RFC 1951로 명세가 정리됐다. RFC 1951은 DEFLATE를 LZ77과 **허프만 부호화**(빈도가 높은 심볼에 짧은 비트를 할당하는 엔트로피 코딩)의 조합이라고 쓴다. 출력은 리터럴과 (길이, 거리) 쌍이 섞인 열이고, 리터럴과 매치 길이를 한 알파벳(0~285)에 합쳐 허프만 부호 하나로 구분한다. 대부분의 ZIP 프로그램이 기본으로 쓰는 압축 방식, GZIP, PNG가 모두 이 DEFLATE를 사용한다. 즉, 우리가 매일같이 만지는 `.zip`, `.gz`, `.png` 파일은 대부분 LZ77의 직계 후손인 셈이다.
 
-이후에 등장한 **LZMA**(7-Zip, XZ), **LZ4**, **Zstd** 도 LZ77의 sliding window 아이디어에서 출발했다. LZMA와 Zstd는 매치 검색과 엔트로피 코딩을 함께 발전시켰고, LZ4는 엔트로피 코딩을 아예 빼고 바이트 단위 형식으로 속도를 택했다. LZ78 계열은 LZW의 형태로 GIF 같은 형식 안에 남아 있다.
+LZ77 쪽이 주류가 된 이유를 하나로 꼽을 수는 없지만, 명세들이 직접 내세운 점 하나는 특허다. RFC 1951은 LZ77의 변형 가운데에도 특허가 걸린 것이 많다고 적으면서, DEFLATE 형식은 특허에 걸리지 않는 방식으로 쉽게 구현할 수 있다고 명시한다. [PNG 명세](https://www.w3.org/TR/png-3/)는 첫머리에서 PNG를 특허 없는 GIF 대체 형식으로 소개한다. GIF는 앞에서 본 LZW를 쓰는 형식이다.
 
-두 논문은 각자의 모형에서 점근적 최적성을 보였다. 1977년 논문은 LZ77의 압축률이 원천을 미리 알고 설계한 부호의 하한에 균일하게 다가간다("uniformly approaches the lower bounds")고 보였고, 1978년 논문은 개별 수열(individual sequence)을 대상으로 LZ78의 incremental parsing이 점근적으로 최적임을 보였다. 모형이 서로 다르므로 이 결과만으로 둘을 비교할 수는 없다.
+이후에 등장한 **LZMA**(7-Zip, XZ), **LZ4**, **Zstd** 도 LZ77의 sliding window 아이디어에서 출발했다. LZMA와 Zstd는 매치 검색과 엔트로피 코딩을 함께 발전시켰고, LZ4는 엔트로피 코딩을 아예 빼고 바이트 단위 형식으로 속도를 택했다. LZ78 계열은 LZW의 형태로 GIF 같은 형식 안에 남아 있다.
 
 <hr>
 
@@ -179,5 +185,4 @@ LZ77과 LZ78은 반복되는 패턴을 짧은 참조로 바꾼다는 같은 아�
 - [paper] [Storer, Szymanski, Data compression via textual substitution (1982)](https://doi.org/10.1145/322344.322346)
 - [paper] [Welch, A Technique for High-Performance Data Compression (1984)](https://doi.org/10.1109/MC.1984.1659158)
 - [docs] [PKWARE, APPNOTE.TXT: .ZIP File Format Specification](https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT)
-- [docs] [W3C, Portable Network Graphics (PNG) Specification (Third Edition)](https://www.w3.org/TR/png-3/)
 :::

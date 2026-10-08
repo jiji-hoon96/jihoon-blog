@@ -9,7 +9,7 @@ description: "Como LZ77 e LZ78 diferem no uso do dicionário e na forma de esque
 keywords: "LZ77, LZ78, LZ77 vs LZ78, algoritmo LZ77, compressão com janela deslizante, LZW, como funciona o DEFLATE, compressão baseada em dicionário"
 locale: pt-BR
 translationOf: '240701'
-sourceHash: 29216d8e93d6fdaf86db46ce5a539dbbda0ebcb2b851d59aa3a5e384e313908f
+sourceHash: 426ffbfa58f5bda51c09d5cd03341869aaf698a60a927d896f19a52e723c7ed5
 ---
 
 Neste artigo, quero falar sobre **como LZ77 e LZ78 diferem**.
@@ -147,9 +147,15 @@ LZ78 (0,b) (0,a) (0,n) (2,n) (2,_) (1,a) (3,a) (7,) true
 사전 1:b 2:a 3:n 4:an 5:a_ 6:ba 7:na
 ```
 
+<hr>
+
+## Onde os dois se separam
+
 Os dois decodificadores do código recebem apenas tokens. Isso significa que **o LZ78 também não transmite o dicionário**. O decodificador lê os tokens e adiciona entradas na mesma ordem que o codificador, então o mesmo dicionário é reconstruído. Não transmitir o dicionário é algo que os dois algoritmos têm em comum; onde eles se separam é na **forma de esquecer o conteúdo antigo**. A janela do LZ77 avança e esquece os dados antigos por conta própria. O dicionário do LZ78 continua crescendo se for deixado como está. O artigo original o esvaziava por inteiro sempre que terminava um bloco de comprimento fixo, e as implementações reais limitam o tamanho do dicionário e, quando ele enche, o congelam, o esvaziam ou reutilizam parte das entradas.
 
 A variação mais conhecida do LZ78 é o **LZW** (Lempel-Ziv-Welch). Terry Welch publicou essa melhoria em 1984, e ela foi usada no formato GIF e no utilitário Unix `compress`, associado à extensão `.Z`. As duas implementações colocaram um limite no dicionário. A [especificação GIF89a](https://www.w3.org/Graphics/GIF/spec-gif89a.txt) limita os códigos a 12 bits (valor máximo 4095) e define à parte um Clear code que devolve o dicionário ao estado inicial. Segundo a [página de manual do ncompress](https://github.com/vapier/ncompress/blob/v5.0/compress.1), o `compress` acompanha a taxa de compressão depois que o comprimento do código atinge o limite de `-b` (16 bits por padrão) e, se a taxa cair, descarta o dicionário e o reconstrói do zero.
+
+Cada artigo demonstrou otimalidade assintótica dentro do próprio modelo. O artigo de 1977 mostrou que a taxa de compressão do LZ77 “uniformly approaches the lower bounds” (aproxima-se uniformemente dos limites inferiores) atingíveis por códigos projetados conhecendo a fonte de antemão, e o artigo de 1978 mostrou, para sequências individuais, que o incremental parsing do LZ78 é assintoticamente ótimo. Como os modelos são diferentes, esses resultados sozinhos não permitem comparar os dois.
 
 <hr>
 
@@ -161,9 +167,9 @@ O **LZSS**, que surgiu do artigo de Storer e Szymanski de 1982, é uma variante 
 
 O **DEFLATE** foi projetado por Phil Katz para o PKZIP 2, e sua especificação foi consolidada em 1996 como RFC 1951. A RFC 1951 descreve o DEFLATE como a combinação do LZ77 com a **codificação de Huffman**, que atribui sequências de bits mais curtas aos símbolos mais frequentes. Sua saída é uma sequência que mistura literais e pares (comprimento, distância), e junta literais e comprimentos de correspondência em um único alfabeto (0 a 285), distinguido por um único código de Huffman. O método de compressão que a maioria dos programas ZIP usa por padrão, assim como GZIP e PNG, usam esse DEFLATE. Ou seja, a maioria dos arquivos `.zip`, `.gz` e `.png` que manipulamos todos os dias é descendente direta do LZ77.
 
-Algoritmos posteriores como **LZMA** (usado pelo 7-Zip e pelo XZ), **LZ4** e **Zstd** também partiram da ideia da janela deslizante do LZ77. LZMA e Zstd desenvolveram juntas a busca de correspondências e a codificação de entropia, enquanto o LZ4 abriu mão por completo da codificação de entropia e escolheu a velocidade com um formato orientado a bytes. A família LZ78 continua presente, na forma do LZW, dentro de formatos como o GIF.
+Nenhuma razão isolada explica por que o lado do LZ77 se tornou predominante, mas um ponto que as próprias especificações destacam são as patentes. A RFC 1951 observa que muitas variações do LZ77 são patenteadas e afirma que o formato DEFLATE pode ser implementado facilmente de uma forma não coberta por patentes. A [especificação PNG](https://www.w3.org/TR/png-3/) apresenta o PNG logo no início como um substituto do GIF livre de patentes. O GIF é o formato que usa o LZW visto antes.
 
-Cada artigo demonstrou otimalidade assintótica dentro do próprio modelo. O artigo de 1977 mostrou que a taxa de compressão do LZ77 “uniformly approaches the lower bounds” (aproxima-se uniformemente dos limites inferiores) atingíveis por códigos projetados conhecendo a fonte de antemão, e o artigo de 1978 mostrou, para sequências individuais, que o incremental parsing do LZ78 é assintoticamente ótimo. Como os modelos são diferentes, esses resultados sozinhos não permitem comparar os dois.
+Algoritmos posteriores como **LZMA** (usado pelo 7-Zip e pelo XZ), **LZ4** e **Zstd** também partiram da ideia da janela deslizante do LZ77. LZMA e Zstd desenvolveram juntas a busca de correspondências e a codificação de entropia, enquanto o LZ4 abriu mão por completo da codificação de entropia e escolheu a velocidade com um formato orientado a bytes. A família LZ78 continua presente, na forma do LZW, dentro de formatos como o GIF.
 
 <hr>
 
@@ -182,5 +188,4 @@ Da próxima vez que você descompactar um arquivo `.zip` ou `.gz`, espero que se
 - [paper] [Storer, Szymanski, Data compression via textual substitution (1982)](https://doi.org/10.1145/322344.322346)
 - [paper] [Welch, A Technique for High-Performance Data Compression (1984)](https://doi.org/10.1109/MC.1984.1659158)
 - [docs] [PKWARE, APPNOTE.TXT: .ZIP File Format Specification](https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT)
-- [docs] [W3C, Portable Network Graphics (PNG) Specification (Third Edition)](https://www.w3.org/TR/png-3/)
 :::

@@ -9,7 +9,7 @@ description: "整理 LZ77 与 LZ78 处理字典的方式有何不同：滑动窗
 keywords: "LZ77, LZ78, LZ77 LZ78 区别, LZ77 算法, 滑动窗口压缩, LZW, DEFLATE 原理, 基于字典的压缩"
 locale: zh-CN
 translationOf: '240701'
-sourceHash: 29216d8e93d6fdaf86db46ce5a539dbbda0ebcb2b851d59aa3a5e384e313908f
+sourceHash: 426ffbfa58f5bda51c09d5cd03341869aaf698a60a927d896f19a52e723c7ed5
 ---
 
 这篇文章想聊聊 **LZ77 与 LZ78 有何不同**。
@@ -147,9 +147,15 @@ LZ78 (0,b) (0,a) (0,n) (2,n) (2,_) (1,a) (3,a) (7,) true
 사전 1:b 2:a 3:n 4:an 5:a_ 6:ba 7:na
 ```
 
+<hr>
+
+## 两种方式的分歧
+
 代码里的两个解码器都只接收 token。也就是说，**LZ78 同样不传输字典**。解码器一边读 token，一边按与编码器相同的顺序添加条目，于是重新积累出同一份字典。不传输字典是两种算法的共同点，二者真正分开的地方在于**遗忘旧内容的方式**。LZ77 的窗口向前滑动，旧数据会自然被遗忘。LZ78 的字典如果放任不管就会一直增长。原论文在每个固定长度的分块结束时把字典整个清空，实际的实现则给字典大小设上限，满了以后要么冻结，要么清空，要么重用部分条目。
 
 LZ78 最著名的变体是 **LZW**（Lempel-Ziv-Welch）。Terry Welch 在 1984 年发表了这项改进，它被用于 GIF 图像格式和 Unix 的 `compress` 工具（扩展名为 `.Z`）。这两种实现都给字典设了上限。[GIF89a 规范](https://www.w3.org/Graphics/GIF/spec-gif89a.txt) 把编码限制在最多 12 位（最大值 4095），并另设一个把字典恢复到初始状态的 Clear code。根据 [ncompress 手册页](https://github.com/vapier/ncompress/blob/v5.0/compress.1)，`compress` 在编码长度达到 `-b` 上限（默认 16 位）之后会持续观察压缩率，一旦压缩率下降，就丢弃字典并从头重建。
+
+两篇论文各自在自己的模型下证明了渐近最优性。1977 年的论文证明了 LZ77 的压缩率会一致地逼近为事先已知信源而设计的编码所能达到的下界（"uniformly approaches the lower bounds"），1978 年的论文则以个体序列（individual sequence）为对象，证明了 LZ78 的 incremental parsing 是渐近最优的。由于模型不同，仅凭这些结果无法比较两者。
 
 <hr>
 
@@ -161,9 +167,9 @@ LZ78 最著名的变体是 **LZW**（Lempel-Ziv-Welch）。Terry Welch 在 1984 
 
 **DEFLATE** 由 Phil Katz 为 PKZIP 2 设计，1996 年其规范整理为 RFC 1951。RFC 1951 把 DEFLATE 描述为 LZ77 与**霍夫曼编码**（为高频符号分配更短比特串的熵编码）的组合。它的输出是字面量与（长度, 距离）对交错的序列，并把字面量和匹配长度合并进同一个字母表（0～285），用同一套霍夫曼编码来区分。大多数 ZIP 程序默认使用的压缩方式、GZIP 和 PNG 都使用这个 DEFLATE。也就是说，我们每天接触的 `.zip`、`.gz`、`.png` 文件大多是 LZ77 的直系后代。
 
-后来出现的 **LZMA**（7-Zip、XZ）、**LZ4** 和 **Zstd** 也都从 LZ77 的滑动窗口思想出发。LZMA 和 Zstd 同时发展了匹配搜索与熵编码，LZ4 则完全去掉熵编码，以字节为单位的格式换取速度。LZ78 一系则以 LZW 的形式留在 GIF 这类格式之中。
+LZ77 一系成为主流的原因无法归结为一个，但规范自己明确提出的一点是专利。RFC 1951 一方面指出 LZ77 的许多变体都有专利，另一方面明确写道 DEFLATE 格式可以很容易地以不受专利约束的方式实现。[PNG 规范](https://www.w3.org/TR/png-3/) 在开头就把 PNG 介绍为不受专利限制的 GIF 替代格式。GIF 正是使用前面提到的 LZW 的格式。
 
-两篇论文各自在自己的模型下证明了渐近最优性。1977 年的论文证明了 LZ77 的压缩率会一致地逼近为事先已知信源而设计的编码所能达到的下界（"uniformly approaches the lower bounds"），1978 年的论文则以个体序列（individual sequence）为对象，证明了 LZ78 的 incremental parsing 是渐近最优的。由于模型不同，仅凭这些结果无法比较两者。
+后来出现的 **LZMA**（7-Zip、XZ）、**LZ4** 和 **Zstd** 也都从 LZ77 的滑动窗口思想出发。LZMA 和 Zstd 同时发展了匹配搜索与熵编码，LZ4 则完全去掉熵编码，以字节为单位的格式换取速度。LZ78 一系则以 LZW 的形式留在 GIF 这类格式之中。
 
 <hr>
 
@@ -182,5 +188,4 @@ LZ77 与 LZ78 都源于“用简短引用替换重复模式”这一想法。两
 - [paper] [Storer, Szymanski, Data compression via textual substitution (1982)](https://doi.org/10.1145/322344.322346)
 - [paper] [Welch, A Technique for High-Performance Data Compression (1984)](https://doi.org/10.1109/MC.1984.1659158)
 - [docs] [PKWARE, APPNOTE.TXT: .ZIP File Format Specification](https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT)
-- [docs] [W3C, Portable Network Graphics (PNG) Specification (Third Edition)](https://www.w3.org/TR/png-3/)
 :::

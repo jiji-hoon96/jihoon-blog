@@ -9,7 +9,7 @@ description: "LZ77とLZ78が辞書をどう扱うのかの違いを整理する�
 keywords: "LZ77, LZ78, LZ77 LZ78 違い, LZ77 アルゴリズム, スライディングウィンドウ 圧縮, LZW, DEFLATE 仕組み, 辞書式圧縮"
 locale: ja
 translationOf: '240701'
-sourceHash: 29216d8e93d6fdaf86db46ce5a539dbbda0ebcb2b851d59aa3a5e384e313908f
+sourceHash: 426ffbfa58f5bda51c09d5cd03341869aaf698a60a927d896f19a52e723c7ed5
 ---
 
 今回は、**LZ77とLZ78がどう違うのか**について話してみたい。
@@ -147,9 +147,15 @@ LZ78 (0,b) (0,a) (0,n) (2,n) (2,_) (1,a) (3,a) (7,) true
 사전 1:b 2:a 3:n 4:an 5:a_ 6:ba 7:na
 ```
 
+<hr>
+
+## 二つの方式が分かれるところ
+
 コードの二つのデコーダーはトークンだけを受け取る。つまり、**LZ78も辞書を送らない**。デコーダーはトークンを読みながらエンコーダーと同じ順序で項目を追加するので、同じ辞書が再び積み上がる。辞書を送信しない点は二つのアルゴリズムの共通点であり、両者が分かれるのは**古い内容を忘れる方法**だ。LZ77のウィンドウは前へ進みながら古いデータを自然に忘れる。LZ78の辞書は放っておくと大きくなり続ける。元の論文は決まった長さのブロックが終わるたびに辞書を丸ごと空にし、実際の実装は辞書の大きさに上限を設けて、いっぱいになると凍結するか、空にするか、一部の項目を再利用する。
 
 LZ78で最も有名な派生が**LZW**（Lempel-Ziv-Welch）だ。Terry WelchがLZ78を改良して1984年に発表し、GIF画像形式とUnixの`compress`ユーティリティ（`.Z`拡張子）で使われた。どちらの実装も辞書に上限を設けた。[GIF89a仕様](https://www.w3.org/Graphics/GIF/spec-gif89a.txt)はコードを最大12ビット（最大値4095）に抑え、辞書を初期状態に戻すClear codeを別に用意している。[ncompressのmanページ](https://github.com/vapier/ncompress/blob/v5.0/compress.1)によれば、`compress`はコード長が`-b`の上限（既定値16ビット）に達した後は圧縮率を監視し、圧縮率が下がると辞書を捨てて最初から積み直す。
+
+二つの論文は、それぞれのモデルで漸近的最適性を示した。1977年の論文は、LZ77の圧縮率が情報源を事前に知って設計した符号の下限に一様に近づく（"uniformly approaches the lower bounds"）ことを示し、1978年の論文は個別系列（individual sequence）を対象に、LZ78のincremental parsingが漸近的に最適であることを示した。モデルが異なるので、この結果だけで両者を比べることはできない。
 
 <hr>
 
@@ -161,9 +167,9 @@ StorerとSzymanskiの1982年の論文から続く**LZSS**はLZ77の派生だ。�
 
 **DEFLATE**はPhil KatzがPKZIP 2のために設計し、1996年にRFC 1951として仕様がまとめられた。RFC 1951はDEFLATEを、LZ77と**ハフマン符号化**（頻度の高いシンボルへ短いビット列を割り当てるエントロピー符号）の組み合わせだと書いている。出力はリテラルと（長さ, 距離）の組が混ざった列で、リテラルと一致の長さを一つのアルファベット（0〜285）にまとめて、一つのハフマン符号で区別する。大半のZIPプログラムが既定で使う圧縮方式、GZIP、PNGはいずれもこのDEFLATEを使う。つまり、日常的に扱う`.zip`、`.gz`、`.png`ファイルの大半はLZ77の直系子孫だ。
 
-その後に登場した**LZMA**（7-Zip、XZ）、**LZ4**、**Zstd**も、LZ77のスライディングウィンドウの考え方から出発した。LZMAとZstdは一致検索とエントロピー符号化をともに発展させ、LZ4はエントロピー符号化をまったく使わず、バイト単位の形式で速度を選んだ。LZ78系は、LZWの形でGIFのような形式の中に残っている。
+LZ77側が主流になった理由を一つに絞ることはできないが、仕様自身が掲げた点の一つは特許だ。RFC 1951は、LZ77の変形にも特許が取られたものが多いと書きつつ、DEFLATE形式は特許にかからない方法で容易に実装できると明記している。[PNG仕様](https://www.w3.org/TR/png-3/)は冒頭でPNGを、特許のないGIFの代替形式として紹介する。GIFは先に見たLZWを使う形式だ。
 
-二つの論文は、それぞれのモデルで漸近的最適性を示した。1977年の論文は、LZ77の圧縮率が情報源を事前に知って設計した符号の下限に一様に近づく（"uniformly approaches the lower bounds"）ことを示し、1978年の論文は個別系列（individual sequence）を対象に、LZ78のincremental parsingが漸近的に最適であることを示した。モデルが異なるので、この結果だけで両者を比べることはできない。
+その後に登場した**LZMA**（7-Zip、XZ）、**LZ4**、**Zstd**も、LZ77のスライディングウィンドウの考え方から出発した。LZMAとZstdは一致検索とエントロピー符号化をともに発展させ、LZ4はエントロピー符号化をまったく使わず、バイト単位の形式で速度を選んだ。LZ78系は、LZWの形でGIFのような形式の中に残っている。
 
 <hr>
 
@@ -182,5 +188,4 @@ LZ77とLZ78は、繰り返されるパターンを短い参照に置き換える
 - [paper] [Storer, Szymanski, Data compression via textual substitution (1982)](https://doi.org/10.1145/322344.322346)
 - [paper] [Welch, A Technique for High-Performance Data Compression (1984)](https://doi.org/10.1109/MC.1984.1659158)
 - [docs] [PKWARE, APPNOTE.TXT: .ZIP File Format Specification](https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT)
-- [docs] [W3C, Portable Network Graphics (PNG) Specification (Third Edition)](https://www.w3.org/TR/png-3/)
 :::

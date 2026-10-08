@@ -9,7 +9,7 @@ description: "Why React's Scheduler uses MessageChannel over requestIdleCallback
 keywords: "requestIdleCallback, MessageChannel, React Scheduler, setTimeout 4ms clamp, how the React scheduler works, shouldYieldToHost, requestAnimationFrame, React Fiber"
 locale: en
 translationOf: '250515'
-sourceHash: c20d808fbc7fe90e85f472d92d3b24bb3f520c7351c0ceabf29c7b9af754822a
+sourceHash: f9e36a7b0a0e10bfe8dc30ec353c2703fbf8e586fb8ce86dccf0c23a712b3454
 ---
 
 In this post, I want to talk about **why React schedules its work with MessageChannel instead of requestIdleCallback**.
@@ -17,7 +17,7 @@ In this post, I want to talk about **why React schedules its work with MessageCh
 This is for frontend developers who studied Fiber, read that React "does a little work whenever the browser is idle," and were then confused to find `MessageChannel` in React's actual source code. To give the answer first: `requestIdleCallback` was not called as often as React needed, and `setTimeout` adds a delay of more than 4 ms once calls are nested. So React's Scheduler package uses `MessageChannel`, which in the browser can schedule the next macrotask without any artificial delay. How large that 4 ms really is, I check with numbers measured in headless Chrome.
 
 
-## Why React Abandoned requestIdleCallback
+## Scheduling approaches React dropped
 
 Explanations of Fiber's concept often use code that splits work up with `requestIdleCallback`. It is a model in which one unit of work is processed each time the browser has nothing else to do. React did actually use this API at first, and it went through several PRs before reaching its current shape.
 
@@ -61,11 +61,11 @@ if (typeof localSetImmediate === 'function') {
 }
 ```
 
-There are three branches. Today's browsers do not have `setImmediate`, so the second branch, `MessageChannel`, is taken. According to the source comment, the first branch exists for Node.js and old IE. The same comment says that `MessageChannel` keeps a Node.js process from exiting while `setImmediate` does not ([facebook/react#20756](https://github.com/facebook/react/issues/20756)). So if you trace the Scheduler in Jest's node environment, you end up not on the `MessageChannel` path but on the `setImmediate` path. The jsdom environment is different. Since Jest 27, `jest-environment-jsdom` has removed `setImmediate` from its globals ([jestjs/jest#11222](https://github.com/jestjs/jest/pull/11222)), and jsdom has no `MessageChannel` either, so it takes the third branch, the `setTimeout` path.
+There are three branches. Today's browsers do not have `setImmediate`, so the second branch, `MessageChannel`, is taken. According to the source comment, the first branch exists for Node.js and old IE, and `MessageChannel` keeps a Node.js process from exiting while `setImmediate` does not ([facebook/react#20756](https://github.com/facebook/react/issues/20756)). So Jest's node environment takes the `setImmediate` path. Since Jest 27, the jsdom environment has had `setImmediate` removed from its globals ([jestjs/jest#11222](https://github.com/jestjs/jest/pull/11222)) and has no `MessageChannel` either, so it takes the `setTimeout` path.
 
-The purpose of scheduling the next turn like this is to hand the main thread back to the browser. While JavaScript holds the main thread, the browser can neither handle input nor paint the screen. Not every render yields partway through, though. When the Reconciler in React v19.3.0 starts a render, it looks at that render's lanes and decides whether to time-slice ([line 1168 of ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L1168)). If the lanes include Sync, InputContinuous, or Default, it renders to the end without yielding ([line 684 of ReactFiberLane.js](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberLane.js#L684)). Lanes that have waited so long that they expired are also rendered without yielding, to prevent starvation. The renders that are time-sliced and yield partway through are ones like Transition and Retry.
+The purpose of scheduling the next turn like this is to hand the main thread back to the browser. While JavaScript holds the main thread, the browser can neither handle input nor paint the screen. Only time-sliced renders such as Transition and Retry yield partway through, though. The Reconciler in React v19.3.0 renders to the end without yielding when the render includes a blocking lane such as Sync, InputContinuous, or Default, includes a lane that waited so long it expired, or was called with `forceSync` ([line 1168 of ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L1168)).
 
-In those renders, the Reconciler asks `shouldYield()` after processing each Fiber ([lines 3073 to 3078 of ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L3073-L3078)). That function is exported by the Scheduler, and the actual decision is made by `shouldYieldToHost()` inside the Scheduler. The criterion is the time elapsed since the current message task started. Once that time reaches `frameInterval`, it yields. The initial value of `frameInterval` is the `SchedulerFeatureFlags.js` constant `frameYieldMs`, which is **5 ms** ([line 11](https://github.com/facebook/react/blob/v19.3.0/packages/scheduler/src/SchedulerFeatureFlags.js#L11)). 5 ms is not the size of a work slice but the time threshold for checking whether to yield. If rendering a single component takes 20 ms, those 20 ms are not split.
+In those renders, the Reconciler asks `shouldYield()` after processing each Fiber ([lines 3073 to 3078 of ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L3073-L3078)). That function is exported by the Scheduler, and the actual decision is made by `shouldYieldToHost()` inside the Scheduler. The criterion is the time elapsed since the current message task started. Once that time reaches `frameInterval`, it yields, and if `requestPaint()` was called after a commit, it yields regardless of time. The initial value of `frameInterval` is the `SchedulerFeatureFlags.js` constant `frameYieldMs`, which is **5 ms** ([line 11](https://github.com/facebook/react/blob/v19.3.0/packages/scheduler/src/SchedulerFeatureFlags.js#L11)). 5 ms is not the size of a work slice but the time threshold for checking whether to yield. If rendering a single component takes 20 ms, those 20 ms are not split. All of this describes the stable build. In experimental builds, `enableAlwaysYieldScheduler` in the same file is turned on, so the Scheduler yields to the browser as soon as it finishes one task, unless the next task has already expired, instead of filling 5 ms, and it ignores the `requestPaint()` signal.
 
 ## The 4 ms Delay of setTimeout
 
@@ -108,7 +108,7 @@ To summarize, what React needed was not an API that waits until the browser is i
 How the units of work this Scheduler runs, the Fiber nodes, are structured and how the Work Loop traverses them is covered in [Mastering React Fiber](/250520). The next time you come across `MessageChannel` in React's source code, I hope you will take a moment to recall why it is there.
 
 
-## Sources
+## References
 
 :::ref
 - [repo] [ReactDOMFrameScheduling.js in React 16.0.0](https://github.com/facebook/react/blob/v16.0.0/src/renderers/shared/ReactDOMFrameScheduling.js)
