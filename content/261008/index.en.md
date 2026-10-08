@@ -8,10 +8,10 @@ description: "How domains, domain models, domain objects, and domain object mode
 keywords: "domain model, domain object, domain object model, domain model vs data model, Entity Value Object, DDD terminology, frontend DDD, Eric Evans"
 locale: en
 translationOf: '261008'
-sourceHash: 211c677badd5b4aa86934ac51dd3a5716cda8991dcb5f7d3825be753a67e35d1
+sourceHash: 3afe226b523a5e987c1bd99df63c9d9b63955e9ee64e14fa11c8404948284762
 ---
 
-In this post, I want to talk about **how domains, domain models, and domain objects differ from one another**.
+In this post, I want to talk about **how domains, domain models, domain objects, and domain object models differ from one another**.
 
 This is for frontend developers who have read about DDD and wondered whether these words all point to the same thing. By the end, you will be able to place the four terms on a single line from abstract to concrete, and explain why an API response type is not a domain model.
 
@@ -102,7 +102,7 @@ In other words, if the domain model contains a concept called "comprehensive inc
 
 ### Entity and Value Object
 
-Evans classifies domain objects into three categories: **Entity**, **Value Object**, and **Service**. (Martin Fowler calls this the "Evans Classification.") A Service is a separate concept that represents "a domain operation that does not naturally belong to a particular object." Because the focus of this article is how data is identified, we will concentrate on Entities and Value Objects.
+Evans classifies domain objects into three categories: **Entity**, **Value Object**, and **Service**. (Martin Fowler calls this the "Evans Classification.") A Service is a separate concept that represents "a domain operation that does not naturally belong to a particular object." Because the focus of this section is how data is identified, we will concentrate on Entities and Value Objects.
 
 An **Entity** is an object with a unique identity that persists across time and different representations. A tax filing (TaxFiling), taxpayer (Taxpayer), or income record (IncomeRecord) is identified by a unique ID; even if its properties change, it remains the same Entity as long as its ID is the same. Even when the deductions on a filing are edited, it is still the same filing unless the filing ID changes.
 
@@ -151,7 +151,7 @@ Ultimately, **domain → domain model → domain object model → domain object*
 
 ## Conclusion
 
-To summarize, a **domain** is the problem space we are trying to solve; a **domain model** is a conceptual system that selectively abstracts that problem; a **domain object model** is the implementation of that conceptual system in code; and a **domain object** is an individual object within that implementation.
+To summarize, a **domain** is the problem space we are trying to solve; a **domain model** is a conceptual system that selectively abstracts that problem; a **domain object model** is, in the view I adopted here, the implementation of that conceptual system in code; and a **domain object** is an individual object within that implementation.
 
 How this distinction plays out in code, that is, where domain logic such as tax calculation should live outside components and how far to separate it, is the subject of [Domain Models](/260418).
 

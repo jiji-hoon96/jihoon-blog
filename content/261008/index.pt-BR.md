@@ -8,10 +8,10 @@ description: "Diferenças entre domínio, modelo de domínio, objeto de domínio
 keywords: "modelo de domínio, objeto de domínio, modelo de objetos de domínio, modelo de domínio vs modelo de dados, Entity Value Object, terminologia DDD, DDD no frontend, Eric Evans"
 locale: pt-BR
 translationOf: '261008'
-sourceHash: 211c677badd5b4aa86934ac51dd3a5716cda8991dcb5f7d3825be753a67e35d1
+sourceHash: 3afe226b523a5e987c1bd99df63c9d9b63955e9ee64e14fa11c8404948284762
 ---
 
-Neste post, quero falar sobre **como domínio, modelo de domínio e objeto de domínio se diferenciam**.
+Neste post, quero falar sobre **como domínio, modelo de domínio, objeto de domínio e modelo de objetos de domínio se diferenciam**.
 
 É para desenvolvedores frontend que, lendo sobre DDD, ficaram em dúvida se essas palavras apontam para a mesma coisa. Ao final, você conseguirá colocar os quatro termos em uma única linha que desce do abstrato ao concreto e explicar por que o tipo de uma resposta da API não é um modelo de domínio.
 
@@ -102,7 +102,7 @@ Ou seja, se existe o conceito de "renda global" no modelo de domínio e um tipo 
 
 ### Entity e Value Object
 
-Evans classifica os objetos de domínio em três categorias: **Entity**, **Value Object** e **Service**. (Martin Fowler chama essa divisão de "Evans Classification".) Service é um conceito separado que representa "uma operação de domínio que não pertence naturalmente a um objeto específico". Como o foco deste texto é a forma de identificar os dados, examinaremos principalmente Entity e Value Object.
+Evans classifica os objetos de domínio em três categorias: **Entity**, **Value Object** e **Service**. (Martin Fowler chama essa divisão de "Evans Classification".) Service é um conceito separado que representa "uma operação de domínio que não pertence naturalmente a um objeto específico". Como o foco desta seção é a forma de identificar os dados, examinaremos principalmente Entity e Value Object.
 
 Uma **Entity** é um objeto com identidade própria que persiste ao longo do tempo e entre diferentes representações. Uma declaração de impostos (TaxFiling), um contribuinte (Taxpayer) e um registro de renda (IncomeRecord) são identificados por um ID próprio; mesmo que seus atributos mudem, continuam sendo a mesma Entity se o ID for o mesmo. Ainda que os itens de dedução de uma declaração sejam alterados, ela continua sendo a mesma declaração enquanto seu ID não mudar.
 
@@ -151,7 +151,7 @@ No fim, **domínio → modelo de domínio → modelo de objetos de domínio → 
 
 ## Conclusão
 
-Em resumo, **domínio** é a área do problema que queremos resolver; **modelo de domínio** é o sistema conceitual que abstrai seletivamente esse problema; **modelo de objetos de domínio** é a implementação desse sistema conceitual em código; e **objeto de domínio** é cada objeto individual dentro dessa implementação.
+Em resumo, **domínio** é a área do problema que queremos resolver; **modelo de domínio** é o sistema conceitual que abstrai seletivamente esse problema; **modelo de objetos de domínio** é, na perspectiva que adotei aqui, a implementação desse sistema conceitual em código; e **objeto de domínio** é cada objeto individual dentro dessa implementação.
 
 Como essa distinção aparece no código, ou seja, onde a lógica de domínio, como o cálculo de impostos, deve ficar fora dos componentes e até onde separá-la, é o tema de [Modelo de domínio](/260418).
 

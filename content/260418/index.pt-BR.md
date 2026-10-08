@@ -5,11 +5,11 @@ seoTitle: "Guia de modelagem de domínio no frontend: aplicando DDD"
 date: "2026-04-18"
 updatedAt: "2026-10-08"
 categories: frontend arquitetura DDD
-description: "Onde a lógica de domínio deve ficar no frontend, com um exemplo de impostos: funções puras, modelo anêmico, mappers e ViewModel."
+description: "Onde a lógica de domínio deve ficar no frontend, com um exemplo de impostos: funções puras, modelo anêmico, mappers, ViewModel e onde parar."
 keywords: "modelo de domínio no frontend, design orientado a domínio, DDD no frontend, Frontend DDD, separação da lógica de domínio, Anemic Domain Model, modelo de domínio anêmico, Clean Architecture no frontend, Martin Fowler, padrões de design React, arquitetura frontend, separação de ViewModel, Bounded Context"
 locale: pt-BR
 translationOf: '260418'
-sourceHash: a98c558911e190542a4e68cfccad3b2642f3bd14e02d2d66399bfc3520fadb14
+sourceHash: 039f1e97e4489460d06d530778716de5e88fd6a6ad59594bcdb04f51366e2eed
 ---
 
 Neste post, quero falar sobre **onde a lógica de domínio deve ficar no frontend**.
@@ -23,7 +23,7 @@ Todos os exemplos usam o cálculo do imposto de renda, um domínio que me intere
 
 ## Onde a lógica de domínio deve ficar no frontend?
 
-Antes de responder, vamos alinhar um termo. Neste post, um **modelo de domínio** reúne os conceitos de negócio junto com as regras que operam sobre eles. Ele é diferente de um **modelo de dados**, como o tipo de uma resposta da API, que só define o formato em que os dados trafegam. Essa diferença também explica por que, quando os componentes dependem diretamente da estrutura da resposta, todo o frontend balança a cada mudança no schema do backend. Como domínio, modelo de domínio e objeto de domínio se diferenciam está explicado à parte em [Domínio e modelo de domínio](/261008).
+Antes de responder, vamos alinhar um termo. Neste post, um **modelo de domínio** reúne os conceitos de negócio junto com as regras que operam sobre eles. Ele é diferente de um **modelo de dados**, como o tipo de uma resposta da API, que só define o formato em que os dados trafegam. Essa diferença também explica por que, quando os componentes dependem diretamente da estrutura da resposta, todo o frontend balança a cada mudança no schema do backend. Como os quatro termos (domínio, modelo de domínio, objeto de domínio e modelo de objetos de domínio) se diferenciam está explicado à parte em [Domínio e modelo de domínio](/261008).
 
 [Khalil Stemmler](https://khalilstemmler.com/about/), que se interessa profundamente por design de software, primeiro defendeu que "a lógica de negócio não pertence ao frontend". Mais tarde, reviu sua posição e afirmou: "Podemos e devemos fazer no frontend quase tudo o que fazemos arquiteturalmente no backend."
 
