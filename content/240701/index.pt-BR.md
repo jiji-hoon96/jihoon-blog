@@ -9,7 +9,7 @@ description: "Como LZ77 e LZ78 diferem no uso do dicionário e na forma de esque
 keywords: "LZ77, LZ78, LZ77 vs LZ78, algoritmo LZ77, compressão com janela deslizante, LZW, como funciona o DEFLATE, compressão baseada em dicionário"
 locale: pt-BR
 translationOf: '240701'
-sourceHash: 426ffbfa58f5bda51c09d5cd03341869aaf698a60a927d896f19a52e723c7ed5
+sourceHash: adffb2f465dace79a47b172dc53877d2d34bbfaa46c14978fa16575a00ae19df
 ---
 
 Neste artigo, quero falar sobre **como LZ77 e LZ78 diferem**.
@@ -17,8 +17,6 @@ Neste artigo, quero falar sobre **como LZ77 e LZ78 diferem**.
 Este artigo é para desenvolvedores que usam ferramentas como zip, gzip e zstd e já se perguntaram como funciona a compressão baseada em dicionário dentro delas. Ao final, você conseguirá explicar como os dois algoritmos diferem no tratamento do dicionário e de qual dos dois descendem os compressores mais usados hoje.
 
 Ao comparar formatos para compactar artefatos de build, cedo ou tarde se acaba voltando a esses dois algoritmos.
-
-<hr>
 
 ## Compressão baseada em dicionário
 
@@ -31,8 +29,6 @@ Entre essas técnicas, os métodos **baseados em dicionário (Dictionary-Based)*
 Um exemplo simples ajuda. Se a palavra “Linux” se repetir cem vezes, a partir da segunda ocorrência o compressor escreve, no lugar do texto original, uma referência curta que aponta para “aquele trecho visto antes”. Se a referência for mais curta que o original, o tamanho total diminui.
 
 Então, qual é exatamente a diferença entre LZ77 e LZ78?
-
-<hr>
 
 ## LZ77: a abordagem da janela deslizante
 
@@ -62,8 +58,6 @@ A [RFC 1951](https://www.rfc-editor.org/rfc/rfc1951) especifica o mesmo comporta
 Nessa abordagem, **o dicionário não é armazenado nem transmitido separadamente.** O decodificador reconstrói sozinho o buffer de busca durante a descompressão, de modo que o dicionário fica implícito nos próprios dados. Como as referências apontam para dados anteriores, a descompressão, em princípio, avança em ordem desde o início. No entanto, as referências só alcançam até onde vai a janela. A RFC 1951 limita as referências do DEFLATE a no máximo 32K bytes para trás. O `Z_FULL_FLUSH` do zlib reinicia o estado de compressão para que a descompressão possa recomeçar a partir desse ponto se os dados comprimidos anteriores estiverem danificados ou se for preciso acesso aleatório. O [zlib.h](https://github.com/madler/zlib/blob/v1.3.1/zlib.h) avisa que usá-lo com muita frequência pode degradar seriamente a compressão.
 
 O tamanho da janela tem uma relação direta de compromisso com a taxa de compressão. Uma janela maior consegue referenciar padrões mais distantes e comprime melhor, mas usa mais memória e, com mais candidatos a verificar, a busca de correspondências costuma ficar mais lenta.
-
-<hr>
 
 ## LZ78: um dicionário explícito
 
@@ -147,8 +141,6 @@ LZ78 (0,b) (0,a) (0,n) (2,n) (2,_) (1,a) (3,a) (7,) true
 사전 1:b 2:a 3:n 4:an 5:a_ 6:ba 7:na
 ```
 
-<hr>
-
 ## Onde os dois se separam
 
 Os dois decodificadores do código recebem apenas tokens. Isso significa que **o LZ78 também não transmite o dicionário**. O decodificador lê os tokens e adiciona entradas na mesma ordem que o codificador, então o mesmo dicionário é reconstruído. Não transmitir o dicionário é algo que os dois algoritmos têm em comum; onde eles se separam é na **forma de esquecer o conteúdo antigo**. A janela do LZ77 avança e esquece os dados antigos por conta própria. O dicionário do LZ78 continua crescendo se for deixado como está. O artigo original o esvaziava por inteiro sempre que terminava um bloco de comprimento fixo, e as implementações reais limitam o tamanho do dicionário e, quando ele enche, o congelam, o esvaziam ou reutilizam parte das entradas.
@@ -156,8 +148,6 @@ Os dois decodificadores do código recebem apenas tokens. Isso significa que **o
 A variação mais conhecida do LZ78 é o **LZW** (Lempel-Ziv-Welch). Terry Welch publicou essa melhoria em 1984, e ela foi usada no formato GIF e no utilitário Unix `compress`, associado à extensão `.Z`. As duas implementações colocaram um limite no dicionário. A [especificação GIF89a](https://www.w3.org/Graphics/GIF/spec-gif89a.txt) limita os códigos a 12 bits (valor máximo 4095) e define à parte um Clear code que devolve o dicionário ao estado inicial. Segundo a [página de manual do ncompress](https://github.com/vapier/ncompress/blob/v5.0/compress.1), o `compress` acompanha a taxa de compressão depois que o comprimento do código atinge o limite de `-b` (16 bits por padrão) e, se a taxa cair, descarta o dicionário e o reconstrói do zero.
 
 Cada artigo demonstrou otimalidade assintótica dentro do próprio modelo. O artigo de 1977 mostrou que a taxa de compressão do LZ77 “uniformly approaches the lower bounds” (aproxima-se uniformemente dos limites inferiores) atingíveis por códigos projetados conhecendo a fonte de antemão, e o artigo de 1978 mostrou, para sequências individuais, que o incremental parsing do LZ78 é assintoticamente ótimo. Como os modelos são diferentes, esses resultados sozinhos não permitem comparar os dois.
-
-<hr>
 
 ## Descendentes do LZ77
 
@@ -170,8 +160,6 @@ O **DEFLATE** foi projetado por Phil Katz para o PKZIP 2, e sua especificação 
 Nenhuma razão isolada explica por que o lado do LZ77 se tornou predominante, mas um ponto que as próprias especificações destacam são as patentes. A RFC 1951 observa que muitas variações do LZ77 são patenteadas e afirma que o formato DEFLATE pode ser implementado facilmente de uma forma não coberta por patentes. A [especificação PNG](https://www.w3.org/TR/png-3/) apresenta o PNG logo no início como um substituto do GIF livre de patentes. O GIF é o formato que usa o LZW visto antes.
 
 Algoritmos posteriores como **LZMA** (usado pelo 7-Zip e pelo XZ), **LZ4** e **Zstd** também partiram da ideia da janela deslizante do LZ77. LZMA e Zstd desenvolveram juntas a busca de correspondências e a codificação de entropia, enquanto o LZ4 abriu mão por completo da codificação de entropia e escolheu a velocidade com um formato orientado a bytes. A família LZ78 continua presente, na forma do LZW, dentro de formatos como o GIF.
-
-<hr>
 
 ## Conclusão
 

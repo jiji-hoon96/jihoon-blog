@@ -8,7 +8,7 @@ description: "A source-code analysis of how Zustand manages state without a Prov
 keywords: "how Zustand works, why Zustand has no Provider, React state management library, Zustand source code analysis, useSyncExternalStore, React Context API"
 locale: en
 translationOf: '240818'
-sourceHash: 7265ecf6c3a01948368141403982cc212e6f42034158346c4eed4629c2dac8d6
+sourceHash: 7128866f5e5b91c42a8b11b5a62e46fec3ff6b39defa8ce185c304c755039851
 ---
 
 In this post, I want to explore how Zustand manages state without a Provider.
@@ -16,8 +16,6 @@ In this post, I want to explore how Zustand manages state without a Provider.
 While using Zustand, I had always taken it for granted that I could manage state without a Provider. Then a question suddenly occurred to me. In most libraries across the React ecosystem, wrapping the app in a Provider has become almost ritualistic. TanStack React Query requires a `QueryClientProvider` before you can use `useQuery`, and toss's overlay-kit requires an `OverlayProvider` before it can call `overlay.open()`. React's Context API likewise requires the component tree to be wrapped in a Provider. So what kind of magic lets Zustand avoid that entire process?
 
 Out of curiosity, I dug directly into Zustand's source code and found a more interesting structure than I had expected. This post organizes what I learned along the way.
-
-<hr>
 
 ## How Does State Flow in React?
 
@@ -28,8 +26,6 @@ In a typical React application, state works as shown below.
 State inside a component is managed with the state management hooks React provides (`useState`, `useReducer`). State is then passed to child components through props. So far, this is straightforward.
 
 The problem arises when state must be shared between components that are far apart. React's official solution is the Context API, which requires wrapping the subtree in a Provider component.
-
-<hr>
 
 ### Why Does the Context API Need a Provider?
 
@@ -42,8 +38,6 @@ The key is this: **Context value propagation depends on the structure of the Fib
 In other words, the Context API is tightly coupled to React's rendering system. State storage, propagation, and subscription all happen inside React's component tree.
 
 How, then, does Zustand bypass this structure?
-
-<hr>
 
 ## Zustand Lives Outside React
 
@@ -68,8 +62,6 @@ const useStore = create((set) => ({
 
 In this code, `create` is called when the module is loaded. In other words, the Store already exists in memory before React even begins rendering. This is the **module-level singleton pattern**.
 
-<hr>
-
 ### What Is a Module-Level Singleton?
 
 JavaScript's ES module system **evaluates a module only once and caches the result**. Any subsequent `import` of that module returns the same cached object instead of executing the module again. In other words, whether component A or component B uses `import { useStore } from './store'`, both refer to **the exact same Store instance**.
@@ -78,13 +70,9 @@ There is no need to implement a separate singleton class or attach anything to a
 
 At this point, one question naturally follows: what exactly does Zustand look like internally?
 
-<hr>
-
 ## Zustand's Internal Structure
 
 Looking through [Zustand's GitHub repository](https://github.com/pmndrs/zustand/tree/main/src), its core logic is surprisingly concise. Two files are central: `vanilla.ts` contains the Store itself, while `react.ts` provides the bridge to React.
-
-<hr>
 
 ### vanilla.ts
 
@@ -202,8 +190,6 @@ Breaking down this code line by line reveals Zustand's core mechanisms.
 
     In a server-side rendering (SSR) environment, browser APIs are unavailable and there is no user interaction, so `setState` is never called. The server therefore always uses `initialState` (= the original state) as its snapshot. When hydration begins on the client, React compares the HTML rendered on the server with the client's initial rendering result. Because both sides rendered from the same `initialState`, this **prevents a hydration mismatch**.
 
-<hr>
-
 ### react.ts
 
 [react.ts](https://github.com/pmndrs/zustand/blob/main/src/react.ts) connects the pure JavaScript Store created above to React's rendering system.
@@ -250,8 +236,6 @@ const createImpl = <T>(createState: StateCreator<T, [], []>) => {
 
 It creates a vanilla Store with `createStore`, wraps it in a custom hook called `useBoundStore`, and then uses `Object.assign` to attach the Store API methods (`setState`, `getState`, `subscribe`, and so on) directly to the hook function. The returned `useBoundStore` consequently has a dual nature: it is **both a React hook and the Store API**. (A function that also has methods is a distinctly JavaScript-like pattern.)
 
-<hr>
-
 ## What About Other State Management Libraries?
 
 Now that we understand this much, it is natural to compare Zustand with other libraries.
@@ -259,8 +243,6 @@ Now that we understand this much, it is natural to compare Zustand with other li
 There are many state management libraries, including Jotai, Recoil, MobX, Xstate, and Redux, but I will focus on the ones I have personally used.
 
 > For reference, **Recoil** (Meta), which was often compared with Jotai, was effectively discontinued when its repository was archived in January 2025. It also never received React 19 support. If you want an atomic state model, Jotai is arguably the only practical choice today.
-
-<hr>
 
 ### Redux
 
@@ -270,8 +252,6 @@ Redux's `<Provider store={store}>` **injects** the Store instance into the compo
 
 The benefits of this design are clear. Tests can be completely isolated by wrapping them in a Provider with a different Store instance, and a single app can use the `context` prop to construct multiple independent Store trees. As Mark Erikson, a Redux maintainer, emphasizes, "Context is a transport mechanism, not a state management tool."
 
-<hr>
-
 ### Jotai
 
 Jotai adopts an **atomic state model** that is fundamentally different from Redux or Zustand. Rather than collecting state in one large Store object, it **separates each piece of state into an independent atom**. (Jotai's official documentation likewise explains that "Zustand is similar to Redux, while Jotai is similar to Recoil.")
@@ -279,8 +259,6 @@ Jotai adopts an **atomic state model** that is fundamentally different from Redu
 The central difference in this structure is **how rendering is optimized**. Zustand takes a **top-down** approach, extracting only the required portion from a single Store through a selector. Developers must write selectors themselves, as in `useStore((state) => state.count)`, and memoization is sometimes necessary to preserve referential equality. Jotai, by contrast, automatically builds a **dependency graph** among atoms and performs **bottom-up** propagation: when a particular atom changes, only the components that depend on that atom rerender. This automatic dependency tracking is especially powerful when dozens of pieces of state are intertwined, as in a spreadsheet or canvas editor.
 
 From a Provider perspective, Jotai occupies an interesting middle ground. It uses a global Store by default and works without a Provider, but it can also be wrapped in `<Provider>` to create an isolated Store scope when needed. Borrowing the wording of Jotai's official documentation, Jotai is **"context first, module second,"** whereas Zustand is **"module first, context second."**
-
-<hr>
 
 ### Zustand's Choice
 
@@ -362,21 +340,15 @@ TkDodo described a real-world application of this pattern in a design system's m
 
 After v4 removed `zustand/context` and its `createContext` helper from v3, this pattern settled on **directly combining React's native `createContext` with Zustand's `createStore`/`useStore`**. The API remains unchanged in v5, and [Zustand's official documentation](https://github.com/pmndrs/zustand/blob/main/docs/previous-versions/zustand-v3-create-context.md) presents this pattern in its v4+ migration guide.
 
-<hr>
-
 ## The Shadow Side of ProviderLess
 
 Of course, having no Provider does not bring only advantages. Here are the points that I believe require caution.
-
-<hr>
 
 ### State Sharing Problems in SSR
 
 A module-level singleton can be dangerous in a server environment. A Node.js server handles multiple requests in a single process, while a module is loaded only once within that process. This means that requests from different users may **share the same Store instance**.
 
 This is why Zustand provides `getInitialState` and passes the server snapshot as the third argument to `useSyncExternalStore`. Even so, this alone may not fully isolate state between requests. In SSR environments, the recommended approach is therefore to use the Scoped Store pattern mentioned earlier (`createStore` + React Context) and create a new Store for each request.
-
-<hr>
 
 ### The Difficulty of Test Isolation
 
@@ -390,8 +362,6 @@ beforeEach(() => {
 ```
 
 The Scoped Store pattern is also a solution here. When using a Provider, each test can create and inject a new Store, providing complete isolation without reset logic.
-
-<hr>
 
 ### The Lack of Multiple Instances
 
@@ -414,8 +384,6 @@ Of course, this approach is not the best choice in every situation. A Provider-b
 
 I also encourage readers to open the source code of a library they use at least once. You may discover a depth that the official documentation does not reveal.
 
-<hr>
-
 ![A hand-drawn character saying "hold on a second!"](7.jpeg)
 
 ### One More Piece of News
@@ -431,8 +399,6 @@ Interestingly, v5 contains almost no new features. New features had already been
 - The **`shallow` function was improved** to support iterable objects.
 
 When migrating from v4 to v5, the recommended approach is to update to the latest v4 release first. The latest v4 release displays deprecation warnings, so addressing those warnings before upgrading to v5 makes the transition straightforward.
-
-<hr>
 
 ### References
 

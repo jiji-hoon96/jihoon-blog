@@ -8,7 +8,7 @@ description: "ZustandがProviderなしで状態管理を実現する仕組みを
 keywords: "Zustandの仕組み, ZustandにProviderがない理由, React状態管理ライブラリ, Zustandソースコード分析, useSyncExternalStore, React Context API"
 locale: ja
 translationOf: '240818'
-sourceHash: 7265ecf6c3a01948368141403982cc212e6f42034158346c4eed4629c2dac8d6
+sourceHash: 7128866f5e5b91c42a8b11b5a62e46fec3ff6b39defa8ce185c304c755039851
 ---
 
 今回の記事では、ZustandがどのようにProviderなしで状態管理を実現しているのかを取り上げる。
@@ -16,8 +16,6 @@ sourceHash: 7265ecf6c3a01948368141403982cc212e6f42034158346c4eed4629c2dac8d6
 筆者はZustandを使いながら、Providerなしで状態を管理することをずっと当たり前に感じていた。ところが、ふと疑問が浮かんだ。Reactエコシステムの大半のライブラリでは、Providerでアプリをラップすることが、ほとんど儀式のように定着している。TanStack React Queryは`QueryClientProvider`でラップしなければ`useQuery`を使えず、tossのoverlay-kitも`OverlayProvider`なしでは`overlay.open()`を呼び出せない。ReactのContext APIも、必ずProviderでコンポーネントツリーをラップする必要がある。それなのに、Zustandはいったいどんな魔法を使って、この手順を不要にしているのだろうか？
 
 気になってZustandのソースコードを直接読み解いてみると、思った以上に興味深い構造が隠れていた。その過程で分かったことを整理してみたい。
-
-<hr>
 
 ## Reactでは状態がどのように流れるのか
 
@@ -28,8 +26,6 @@ sourceHash: 7265ecf6c3a01948368141403982cc212e6f42034158346c4eed4629c2dac8d6
 コンポーネント内部の状態は、Reactが提供する状態管理フック（`useState`、`useReducer`）を使って管理する。そして、子コンポーネントへの状態の受け渡しはpropsを通じて行われる。ここまでは単純な話だ。
 
 問題は、離れたコンポーネント間で状態を共有しなければならないときに起きる。このときReactが提供する公式の解決策がContext APIだが、これは必ずProviderコンポーネントで配下のツリーをラップしなければならない。
-
-<hr>
 
 ### なぜContext APIにはProviderが必要なのか？
 
@@ -42,8 +38,6 @@ ReactはコンポーネントツリーをFiberという内部データ構造で�
 つまり、Context APIはReactのレンダリングシステムと密接に結合している。状態の保存、伝播、購読はすべてReactのコンポーネントツリー内部で行われる。
 
 では、Zustandはこの構造をどのように回避しているのだろうか？
-
-<hr>
 
 ## ZustandはReactの外側に存在する
 
@@ -68,8 +62,6 @@ const useStore = create((set) => ({
 
 このコードで`create`が呼び出されるのは、モジュールがロードされる時点だ。つまり、Reactがレンダリングを始める前に、ストアはすでにメモリ上に存在している。これが**モジュールレベルシングルトン（Module-level Singleton）パターン**だ。
 
-<hr>
-
 ### モジュールレベルシングルトンとは？
 
 JavaScriptのESモジュールシステムは、**モジュールを最初の一度だけ評価（evaluate）し、その結果をキャッシュ**する。その後、どこから同じモジュールを`import`しても、新たに実行するのではなく、キャッシュされた同一のオブジェクトを返す。つまり、コンポーネントAで`import { useStore } from './store'`を行っても、コンポーネントBで行っても、両方が**まったく同じストアインスタンス**を参照する。
@@ -78,13 +70,9 @@ JavaScriptのESモジュールシステムは、**モジュールを最初の一
 
 ここまで読むと、自然に1つの疑問が浮かぶ。それでは、Zustandの内部は具体的にどうなっているのだろうか？
 
-<hr>
-
 ## Zustandの内部構造
 
 [ZustandのGitHubリポジトリ](https://github.com/pmndrs/zustand/tree/main/src)を見ると、コアロジックは驚くほど簡潔だ。大きく2つのファイルが中核を担っており、`vanilla.ts`がストア本体を、`react.ts`がReactとの橋渡しを担当する。
-
-<hr>
 
 ### vanilla.ts
 
@@ -202,8 +190,6 @@ const createStoreImpl: CreateStoreImpl = (createState) => {
 
     サーバーサイドレンダリング（SSR）環境にはブラウザAPIがなく、ユーザーインタラクションもないため、`setState`が呼び出されることはない。そのため、サーバーでは常に`initialState`（= 初期状態）がスナップショットとして使われる。クライアントでhydrationが始まるとき、ReactはサーバーでレンダリングされたHTMLとクライアントの初回レンダリング結果を比較するが、両方が同じ`initialState`を基準にレンダリングしているため、**hydrationの不一致を防ぐ**ことができる。
 
-<hr>
-
 ### react.ts
 
 [react.ts](https://github.com/pmndrs/zustand/blob/main/src/react.ts)は、先ほど作成した純粋なJavaScriptストアをReactのレンダリングシステムへ接続する役割を担う。
@@ -250,8 +236,6 @@ const createImpl = <T>(createState: StateCreator<T, [], []>) => {
 
 `createStore`でvanillaストアを生成し、`useBoundStore`というカスタムフックでラップした後、`Object.assign`でストアAPIのメソッド（`setState`、`getState`、`subscribe`など）をフック関数そのものに取り付ける。その結果、返される`useBoundStore`は**Reactフックであると同時にストアAPIでもある**という二重の性格を持つ。（関数なのにメソッドもある、いかにもJavaScriptらしいパターンだ。）
 
-<hr>
-
 ## ほかの状態管理ライブラリはどうだろうか？
 
 ここまで理解すれば、自然とほかのライブラリとも比較したくなるだろう。
@@ -259,8 +243,6 @@ const createImpl = <T>(createState: StateCreator<T, [], []>) => {
 Jotai、Recoil、MobX、Xstate、Reduxなど、さまざまな状態管理ライブラリが存在するが、筆者が実際に使ったことのあるライブラリを中心に比較してみたい。
 
 > なお、Jotaiとよく比較されていた**Recoil**（Meta）は、2025年1月にリポジトリがアーカイブされ、事実上開発が停止した。React 19への対応も行われていない。アトミックな状態モデルを求めるなら、現時点ではJotaiが唯一の現実的な選択肢だと言える。
-
-<hr>
 
 ### Redux
 
@@ -270,8 +252,6 @@ Reduxの`<Provider store={store}>`は、React Contextを通じてストアイン
 
 この設計がもたらす利点は明確だ。テスト時に別のストアインスタンスをProviderでラップすれば完全に分離でき、1つのアプリ内で`context` propを使って複数の独立したストアツリーを構成することもできる。Mark Erikson（Reduxメンテナー）が強調するように、「Contextは転送メカニズム（transport mechanism）であり、状態管理ツールではない」。
 
-<hr>
-
 ### Jotai
 
 JotaiはReduxやZustandとは根本的に異なる**アトミック（atomic）状態モデル**を採用している。1つの大きなストアオブジェクトに状態を集めるのではなく、**各状態の断片を独立したatomに分割**するアプローチだ。（Jotaiの公式ドキュメントでも、「ZustandがReduxに似ているなら、JotaiはRecoilに似ている」と説明されている。）
@@ -279,8 +259,6 @@ JotaiはReduxやZustandとは根本的に異なる**アトミック（atomic）�
 この構造の重要な違いは、**レンダリングの最適化方法**にある。Zustandは、1つのストアからselectorを通じて必要な部分だけを抽出する**トップダウン（top-down）**のアプローチだ。開発者が`useStore((state) => state.count)`のようにselectorを直接記述する必要があり、参照同一性（referential equality）を維持するため、場合によってはメモ化が必要になる。一方Jotaiは、atom間の**依存関係グラフ（dependency graph）**を自動的に構築し、特定のatomが変わると、そのatomに依存するコンポーネントだけを正確に再レンダリングする**ボトムアップ（bottom-up）**の伝播を行う。スプレッドシートやキャンバスエディターのように、数十の状態が互いに絡み合う場合、この自動依存関係追跡が大きな力を発揮する。
 
 Providerの観点では、Jotaiは興味深い中間地点に位置する。デフォルトではグローバルストアを使ってProviderなしで動作するが、必要なら`<Provider>`でラップして分離されたストアスコープを作成できる。Jotaiの公式ドキュメントの表現を借りれば、Jotaiは**「context first, module second」**で、Zustandは**「module first, context second」**なのだ。
-
-<hr>
 
 ### Zustandの選択
 
@@ -362,21 +340,15 @@ TkDodoは、デザインシステムのマルチセレクトコンポーネン�
 
 このパターンは、v3で`zustand/context`として提供されていた`createContext`ヘルパーがv4で削除されて以降、**Reactネイティブの`createContext` + Zustandの`createStore`/`useStore`を直接組み合わせる方法**として定着した。v5でもこのAPIはそのまま維持されており、[Zustand公式ドキュメント](https://github.com/pmndrs/zustand/blob/main/docs/previous-versions/zustand-v3-create-context.md)でもv4+の移行ガイドとしてこのパターンが案内されている。
 
-<hr>
-
 ## ProviderLessの影
 
 もちろん、Providerがないことは利点ばかりではない。筆者が考える注意すべき点を整理してみよう。
-
-<hr>
 
 ### SSRでの状態共有問題
 
 モジュールレベルシングルトンは、サーバー環境では危険になり得る。Node.jsサーバーは複数のリクエストを1つのプロセスで処理するが、モジュールはプロセス内で一度しかロードされない。これは、異なるユーザーのリクエストが**同じストアインスタンスを共有**する可能性があるということだ。
 
 Zustandが`getInitialState`を提供し、`useSyncExternalStore`の第3引数にサーバースナップショットを渡す理由はここにある。ただし、これだけではリクエスト間の状態分離が完全ではない場合があるため、SSR環境では先に述べたスコープ付きストアパターン（`createStore` + React Context）を使い、リクエストごとに新しいストアを生成することが推奨される。
-
-<hr>
 
 ### テスト分離の難しさ
 
@@ -390,8 +362,6 @@ beforeEach(() => {
 ```
 
 ここでも、スコープ付きストアパターンが解決策になる。Providerでラップする方法なら、各テストで新しいストアを生成して注入できるため、リセットロジックなしで完全な分離が可能だ。
-
-<hr>
 
 ### 複数インスタンスの欠如
 
@@ -414,8 +384,6 @@ beforeEach(() => {
 
 この記事を読んだ方にも、一度は利用しているライブラリのソースコードを直接開いてみることを勧めたい。公式ドキュメントにはない深みを発見できるはずだ。
 
-<hr>
-
 ![「ちょっと待って!!」と言う手描きのキャラクター](7.jpeg)
 
 ### それから、新しい知らせ
@@ -431,8 +399,6 @@ beforeEach(() => {
 - iterableオブジェクトをサポートするように、**`shallow`関数が改善**された。
 
 v4からv5へ移行するときは、まずv4の最新バージョンへ更新することが推奨される。v4の最新バージョンではdeprecation警告が表示されるため、それらを先に解消してからv5へ上げれば、無理なく移行できる。
-
-<hr>
 
 ### 参考資料
 

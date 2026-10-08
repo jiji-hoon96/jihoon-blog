@@ -8,7 +8,7 @@ description: 'prompt engineeringからcontext engineeringへ、その次はど�
 keywords: 'context engineering, harness設計, AI agent eval, agent evaluation, containment, agent隔離, AIトレンド2026, prompt engineering, LLM agent, token節約の次'
 locale: ja
 translationOf: '260622'
-sourceHash: 06bdc8be3e1e0ff49702ada8265d88df2ffd88a750b85ab5e845bf748bac236e
+sourceHash: aa14385fc8ca2a3c0a5b713cc2b3c36f328877e6cdc181f184e2ac7936036ef4
 ---
 
 今回は、prompt engineeringとcontext engineering、そしてその次について考えてみたい。
@@ -18,8 +18,6 @@ sourceHash: 06bdc8be3e1e0ff49702ada8265d88df2ffd88a750b85ab5e845bf748bac236e
 ![prompt・context・harness engineeringで構成される、信頼できるAIシステムの3層構造](3.webp)
 
 「今後の方向」を語る文章には慎重さが必要だ。未来には数多くの選択肢があるはずなので、ここでは**すでに公開された一次資料から読み取れる重心の移動**を整理することに焦点を当てる。多少の推論は含まれるが、さまざまな観点から読んでもらえればと思う。
-
----
 
 ## promptからcontextへ
 

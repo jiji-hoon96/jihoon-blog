@@ -8,7 +8,7 @@ description: '从 prompt engineering 到 context engineering，下一步将走�
 keywords: 'context engineering, harness 设计, AI agent eval, agent evaluation, containment, agent 隔离, 2026 AI 趋势, prompt engineering, LLM agent, token 节省之后'
 locale: zh-CN
 translationOf: '260622'
-sourceHash: 06bdc8be3e1e0ff49702ada8265d88df2ffd88a750b85ab5e845bf748bac236e
+sourceHash: aa14385fc8ca2a3c0a5b713cc2b3c36f328877e6cdc181f184e2ac7936036ef4
 ---
 
 这篇文章想谈谈 prompt engineering、context engineering，以及再往后的方向。
@@ -18,8 +18,6 @@ sourceHash: 06bdc8be3e1e0ff49702ada8265d88df2ffd88a750b85ab5e845bf748bac236e
 ![由 prompt、context 与 harness engineering 构成的可靠 AI 系统 3 层结构](3.webp)
 
 讨论“未来方向”需要谨慎。未来可能有无数种选择，因此本文只专注于梳理**从已经公开的一手资料中能够读出的重心转移**。其中难免包含一些推论，也希望读者能从不同角度看待本文。
-
----
 
 ## 从 prompt 到 context
 

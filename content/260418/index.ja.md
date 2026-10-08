@@ -9,7 +9,7 @@ description: "フロントエンドのドメインロジックをどこに置く
 keywords: "フロントエンド ドメインモデル, ドメイン駆動設計, DDD フロントエンド, Frontend DDD, ドメインロジック分離, Anemic Domain Model, 貧血ドメインモデル, Clean Architecture フロントエンド, Martin Fowler, React 設計パターン, フロントエンドアーキテクチャ, ViewModel 分離, Bounded Context"
 locale: ja
 translationOf: '260418'
-sourceHash: 3710613d8d4eb4c17a551b41f7ccd5ef860b5df145a5b1b524f1ef0b80c8abd8
+sourceHash: 263cc7c7f9b3268ef9d5e341b869de5c782febdf64a07af5ec969eef54639d56
 ---
 
 今回の記事では、**フロントエンドのドメインロジックをどこに置くべきか**について話してみたい。
@@ -17,9 +17,6 @@ sourceHash: 3710613d8d4eb4c17a551b41f7ccd5ef860b5df145a5b1b524f1ef0b80c8abd8
 税金計算や申告ステータスの判定といったビジネスルールがコンポーネントやフック、utilsに散らばっていて、ルールが一つ変わるたびに複数のファイルを探して直しているフロントエンド開発者に向けた記事である。最後まで読めば、そのルールをReactに依存しない純粋関数へ移す方法と、その分離をどこで止めるかを判断する基準が得られる。
 
 例はすべて総合所得税の計算で説明する。筆者が関心を持っているドメインである。
-
----
-
 
 ## フロントエンドのドメインロジックはどこに置くべきか？
 

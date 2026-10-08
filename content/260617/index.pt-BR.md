@@ -9,7 +9,7 @@ description: 'Por que criei o Kalyx, DatePicker headless para React, e como dife
 keywords: 'Kalyx, DatePicker React, DatePicker headless React, DatePicker React fuso horário, ISO 8601 UTC, data com um dia a menos, bug de horário de verão JavaScript, teste de propriedades fast-check, alternativa ao react-day-picker'
 locale: pt-BR
 translationOf: '260617'
-sourceHash: '3ef642d1bca4f9c8c3029970e3fe56ac1bc3e6e3623f9dad7d017e7dcf9d292f'
+sourceHash: 80176614ac16b54692eaef49e0e57c5e4d771c737abd741e3e8905c5f4cdbe87
 ---
 
 Neste post, quero falar sobre o **Kalyx**, a biblioteca headless de DatePicker para React que eu criei.
@@ -17,8 +17,6 @@ Neste post, quero falar sobre o **Kalyx**, a biblioteca headless de DatePicker p
 Este texto é uma reescrita de uma retrospectiva que publiquei em junho de 2026. A frase que abria o post original, "sete pickers em uma única API, menores que um único calendário de uma biblioteca concorrente", ao ser verificada de novo, se mostrou metade errada e metade irrelevante como diferencial. Por isso reorganizo tudo nesta ordem: por que criei, em que difere das opções existentes e qual é a definição técnica.
 
 Adiantando a conclusão: o que diferencia o Kalyx não é a quantidade de componentes, e sim o **modelo de valor**. As versões de referência são `@kalyx/react` 1.4.7 e `@kalyx/core` 1.4.8 (MIT, apenas React 19), e os trechos de código vêm do [repositório no GitHub](https://github.com/jiji-hoon96/kalyx) na `main` de 2026-09-16 (`0bb302e`).
-
----
 
 ## Eu queria usar seletores de datas de forma declarativa
 
@@ -55,8 +53,6 @@ Os modos estavam espalhados em combinações de props, os valores em objetos `Da
 Um seletor de datas parece pequeno, mas contém aritmética de calendário, locales, fusos horários e horário de verão (DST), navegação por teclado e SSR. Por isso defini como objetivo que, do lado de quem usa, desse para entender o que está sendo construído só olhando o JSX, e que, do lado de quem constrói, o código fosse enxuto o bastante para eu conseguir explicar onde os valores são convertidos.
 
 Então, será que não existia mesmo nenhuma biblioteca que já resolvesse essas necessidades?
-
----
 
 ## Em que ele difere das opções existentes
 
@@ -102,8 +98,6 @@ Medição de 2026-09-16 com esbuild 0.28.2; KB são bytes divididos por 1024. No
 ![Nas mesmas condições de esbuild, o tamanho cresce nesta ordem: Kalyx DatePicker 18.9KB, react-day-picker 20.0KB, Kalyx completo 25.6KB, Ark UI 42.7KB, react-datepicker 45.4KB, React Aria Components 75.3KB (78.8KB com intervalo e hora), MUI X 113.1KB.](1.png?w=720)
 
 Nas mesmas condições, só uma afirmação é verdadeira. Um DatePicker (18.9KB) tem tamanho parecido com o de `DayPicker` (20.0KB), e os sete juntos (25.6KB) são maiores. (E mesmo assim, o DayPicker é só o calendário, enquanto o Kalyx DatePicker inclui também o campo de entrada e o popover.) O tamanho é sensível à combinação de imports e ao nível de gzip, então é melhor lê-lo como ordem de grandeza, e tamanho não é o motivo central para escolher o Kalyx.
-
----
 
 ## Uma definição técnica do Kalyx
 
@@ -252,8 +246,6 @@ O Root do MonthPicker apenas muda o formato de exibição padrão para `yyyy-MM`
 
 Por isso `DateTimePicker.Calendar` é o mesmo componente que `DatePicker.Calendar` e não sabe dentro de qual picker está. Uma correção em um lugar chega a todos os pickers que usam esse componente, e um defeito em um lugar também. Essa base compartilhada também explica por que um único DatePicker representava 74% do total no gráfico anterior.
 
----
-
 ## O que custou manter o contrato
 
 Os três meses desde a 1.0 foram mais para verificar esse contrato do que para criar funcionalidades, e surgiram três defeitos que testes baseados em exemplos teriam deixado passar. O primeiro foi encontrado por um teste de propriedades, o segundo por uma revisão cruzada do código e o terceiro pela checagem deste post.
@@ -294,8 +286,6 @@ O tamanho era um argumento de venda exibido no badge do README. Um seletor de da
 **Se eu tiver que escolher entre pequeno e correto, fico com o correto.**
 
 Hoje o teto está apertado. Segundo o documento de mapa de bytes do bundle do repositório, de 2026-09-11, `dist/index.cjs` medido com o gzip padrão do Node tem 20.259 B, contra um teto de 20.480 B, deixando 221 B de folga. (É o tamanho do próprio arquivo com as dependências externas, então é uma quantidade diferente da do gráfico anterior.) A próxima funcionalidade vai precisar recuperar bytes antes de entrar.
-
----
 
 ## Uma conclusão diferente da inicial
 

@@ -9,7 +9,7 @@ description: "梳理 TanStack Query 的 queryKey 管理方式如何从内联数�
 keywords: "queryKey, query key factory, TanStack Query queryKey, queryKey 编写规则, queryOptions, setQueryData, TkDodo query keys, query-key-factory, React Query v5, 查询失效"
 locale: zh-CN
 translationOf: '260104'
-sourceHash: 50857db5f010cd899635d01d412999ec0ecc8b8d295039fbaad49e0c10d51f58
+sourceHash: b801dce44f70d60f81790117fc82d189a0e094de05808ebffdb5c5e93fd7fb07
 ---
 
 这篇文章想聊一聊 **TanStack Query 的 queryKey**。
@@ -99,7 +99,7 @@ const { data } = useQuery({
 
 理解了 queryKey 既是缓存的标识符又是依赖数组之后，编写规则也就顺理成章了。官方文档推荐的规则可以归纳如下。
 
-**规则 1：queryKey 必须是数组。**
+### queryKey 必须是数组
 
 传入字符串也能工作（内部会转换成数组），但为了保持一致，最好从一开始就使用数组。
 
@@ -111,7 +111,7 @@ useQuery({ queryKey: 'todos', queryFn });
 useQuery({ queryKey: ['todos'], queryFn });
 ```
 
-**规则 2：把 queryFn 依赖的所有变量都放进 queryKey。**
+### 把 queryFn 依赖的所有变量都放进 queryKey
 
 ```tsx
 // 잘못된 예: userId가 쿼리키에 없다
@@ -129,7 +129,7 @@ useQuery({
 
 思路和 `useEffect` 的依赖完全一样：函数内部使用的所有变量，都必须进入键（也就是依赖）中。违反这条规则，就可能出现用户已经切换，界面上却仍显示前一个用户数据的隐蔽缺陷。
 
-**规则 3：按照从最 generic 到最 specific 的顺序排列。**
+### 按照从最 generic 到最 specific 的顺序排列
 
 ```tsx
 // 좋다
@@ -162,7 +162,7 @@ queryClient.invalidateQueries({ queryKey: ['todos', 'list'] });
 下面按时间顺序整理我在实际项目中经历过的阶段。
 
 
-### 1. 内联数组
+### 内联数组
 
 这是最简单的形式：在组件内部组合固定字符串和 props 值。
 
@@ -189,7 +189,7 @@ function PostList({ filter }: { filter: PostFilter }) {
 问题会随着代码库扩大而出现。在修改用户信息的 mutation 中需要做缓存失效时，每次都要搜索“用户相关的 query key 到底是什么来着？”有的地方写成 `['user', userId]`，另一些地方却写成 `['users', userId]`（复数）。它们是完全不同的缓存槽，因此失效只会作用于其中一边。
 
 
-### 2. 常量对象
+### 常量对象
 
 为了避免拼写错误，把 query key 集中到常量中。
 
@@ -211,7 +211,7 @@ useQuery({
 拼写错误消失了，但组装键的责任依然落在使用方。有人把它写成 `[QUERY_KEYS.USER, userId]`，有人写成 `[QUERY_KEYS.USER, userId, 'detail']`，还有人写成 `['user', 'detail', userId]`。到了这个阶段，还得额外记住究竟哪一种才符合约定。
 
 
-### 3. Query Key Factory
+### Query Key Factory
 
 这一模式在 TkDodo 的 [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys) 一文中得到了具体化：为每个领域定义一个创建键的对象，再用函数表达层级结构。
 
@@ -250,7 +250,7 @@ src/
 这样一来，就形成了一个简单的心智模型：“要修改 todos，只看 todos 文件夹就够了。”这正是“把共同变化的内容放在一起”这一原则的忠实实现。
 
 
-### 4. @lukemorales/query-key-factory
+### @lukemorales/query-key-factory
 
 如果每次都手写第三种模式，样板代码会逐渐堆积。而当我们想合并管理多个领域的键时，也会需要一个标准化接口。[@lukemorales/query-key-factory](https://github.com/lukemorales/query-key-factory) 正是把这一模式库化后的产物。
 
@@ -291,7 +291,7 @@ queryClient.invalidateQueries(queries.users.detail('abc'));   // 특정 항목
 这个库一度几乎被当作事实标准使用。（我自己也用了很长时间。）但 queryOptions 出现后，情况发生了变化。
 
 
-### 5. queryOptions（v5 官方）
+### queryOptions（v5 官方）
 
 TanStack Query v5 最重要的变化之一，就是引入 `queryOptions` API。从 v4 升级到 v5 后，所有 hook 的参数统一成了单个对象，而这一变化真正的目的，是让这个对象可以被抽取为**可复用单元**。
 
@@ -381,7 +381,7 @@ export const todoQueries = {
 
 下面逐一解释这个模式的优点。
 
-**1. 同时获得层级结构和类型推断。**
+### 同时获得层级结构和类型推断
 
 `todoQueries.all()` 和 `todoQueries.lists()` 只返回数组，而 `todoQueries.detail(1)` 返回通过 `queryOptions` 创建、带有 data tag 的对象。做缓存失效时使用数组，调用查询时则使用 options 对象。
 
@@ -390,7 +390,7 @@ useQuery(todoQueries.detail(1));                                // 옵션 객체
 queryClient.invalidateQueries({ queryKey: todoQueries.all() }); // 배열
 ```
 
-**2. 可以在组件中局部覆盖 options。**
+### 可以在组件中局部覆盖 options
 
 `queryOptions` 的结果归根结底是对象，因此可以在调用时组合一部分 options。
 
@@ -403,7 +403,7 @@ const { data: title } = useQuery({
 
 这个模式尤其强大的一点是，`select` 的返回类型会被自动推断，`data` 的类型也随之收窄为 `string`。对组件来说，可以只选择自己需要的部分，同时把 domain 定义完整保留在同一处。
 
-**3. 包装 `useQuery` 的自定义 hook 会逐渐消失。**
+### 包装 `useQuery` 的自定义 hook 会逐渐消失
 
 在 v4 时代，常见模式是为每个 domain 创建自定义 hook。
 
@@ -500,8 +500,6 @@ queryOptions({
 
 也希望读到这里的各位，能抽时间检查一下自己的项目：queryKey 如何散落在整个代码库中，缓存失效以什么方式进行，以及当前结构是否与团队规模和 domain 复杂度相匹配。
 
-
-## 参考资料
 
 :::ref
 - [docs] [TanStack Query, Query Keys](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)

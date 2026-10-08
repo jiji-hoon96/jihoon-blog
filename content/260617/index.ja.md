@@ -9,7 +9,7 @@ description: 'React headless DatePicker「Kalyx」を作った理由と、Ark UI
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React 日付 タイムゾーン, ISO 8601 UTC, 日付 1日ずれる, DST バグ, fast-check プロパティテスト, react-day-picker 比較'
 locale: ja
 translationOf: '260617'
-sourceHash: '3ef642d1bca4f9c8c3029970e3fe56ac1bc3e6e3623f9dad7d017e7dcf9d292f'
+sourceHash: 80176614ac16b54692eaef49e0e57c5e4d771c737abd741e3e8905c5f4cdbe87
 ---
 
 今回は、筆者が作ったReactのheadless DatePickerライブラリ **Kalyx** について書こうと思う。
@@ -17,8 +17,6 @@ sourceHash: '3ef642d1bca4f9c8c3029970e3fe56ac1bc3e6e3623f9dad7d017e7dcf9d292f'
 この記事は2026年6月に書いた振り返りを書き直したものだ。最初の記事が掲げた「7つのピッカーを1つのAPIで、競合ライブラリのカレンダー1つより小さく」は、改めて確かめてみると半分は誤りで、半分は差別化要因ではなかった。そこで、作った理由、既存の選択肢との違い、技術的な定義の順に整理し直す。
 
 結論から言うと、Kalyxの違いはコンポーネントの数ではなく **値モデル** にある。基準バージョンは `@kalyx/react` 1.4.7と `@kalyx/core` 1.4.8（MIT、React 19専用）で、コードの引用は[GitHubリポジトリ](https://github.com/jiji-hoon96/kalyx)の2026-09-16時点の `main`（`0bb302e`）に基づく。
-
----
 
 ## 日付ピッカーを宣言的に使いたかった
 
@@ -55,8 +53,6 @@ react-datepickerとreact-day-pickerはネイティブの `Date` をやり取り�
 日付ピッカーは小さく見えるが、カレンダー計算、ロケール、タイムゾーンとDST、キーボード操作、SSRがすべて詰まっている。そこで、使う側ではJSXを見るだけで何を作っているのかが読み取れるように、作る側では値がどこで変換されるのかを説明できるくらいに絞り込むことを目標にした。
 
 では、こうした要求をすでに解決しているライブラリは本当になかったのだろうか。
-
----
 
 ## 既存の選択肢と何が違うのか
 
@@ -102,8 +98,6 @@ esbuild 0.28.2、2026-09-16の測定で、KBはバイト数を1024で割った�
 ![同じesbuild条件で測ると、Kalyx DatePicker 18.9KB、react-day-picker 20.0KB、Kalyx全部 25.6KB、Ark UI 42.7KB、react-datepicker 45.4KB、React Aria Components 75.3KB（範囲・時刻込みで78.8KB）、MUI X 113.1KBの順に大きくなる。](1.png?w=720)
 
 同じ条件で正しい文は1つだ。DatePicker 1つ（18.9KB）は `DayPicker`（20.0KB）と同程度のサイズで、7種全部（25.6KB）はそれより大きい。（それすらDayPickerはカレンダーだけで、Kalyx DatePickerは入力欄とポップオーバーまで含む）サイズはimportの組み合わせとgzipレベルに敏感なので桁で読むのが妥当で、サイズはKalyxを選ぶ中心的な理由ではない。
-
----
 
 ## Kalyxを技術的に定義すると
 
@@ -252,8 +246,6 @@ MonthPickerのRootは、表示形式のデフォルト値を `yyyy-MM` に変え
 
 だから `DateTimePicker.Calendar` は `DatePicker.Calendar` と同じコンポーネントで、自分がどのピッカーの中にいるのかを知らない。1か所の修正が同じコンポーネントを使うピッカー全部に届き、1か所の欠陥も全部に届く。先の図でDatePicker 1つが全体の74%だった理由も、この共有基盤だ。
 
----
-
 ## 契約を守るためにかかったコスト
 
 1.0以降の3か月は新機能よりもこの契約の確認に使い、例示ベースのテストなら素通りしていたはずの欠陥が3回出てきた。1つ目はプロパティテストが、2つ目はコードのクロスレビューが、3つ目はこの記事の検証が見つけた。
@@ -294,8 +286,6 @@ MonthPickerのRootは、表示形式のデフォルト値を `yyyy-MM` に変え
 **小さいと正しいのどちらかを選ばなければならないなら、正しい方だ。**
 
 今の上限はぎりぎりだ。リポジトリの2026-09-11のバンドルバイトマップ文書によれば、`dist/index.cjs` をNodeのデフォルトgzipで測った値は20,259B、上限は20,480Bで、余裕は221Bだ。（依存関係を外部に残した自前ファイルのサイズなので、先の図とは別の量だ）次の機能は、まずバイトを回収しなければ入れられない。
-
----
 
 ## 最初の想定とは違う結論
 

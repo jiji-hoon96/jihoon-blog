@@ -9,7 +9,7 @@ description: "Compares the structure, speed, and ratio of ZIP, GZIP, ZSTD, BZIP2
 keywords: "compression algorithm comparison, GZIP vs ZSTD, tar.gz vs zip, tar.zst, Brotli, solid archive, frontend build optimization"
 locale: en
 translationOf: "240706"
-sourceHash: 132c3004808c90e13100237fdca4ad721e66d22703805a4c44767f41910fbb45
+sourceHash: b12e08c3033cab03e44164ef060426b26390a5a80430530fc191e20f70f7ca0e
 ---
 
 In this post, I want to talk about software compression algorithms.
@@ -26,8 +26,6 @@ Compression performance is usually evaluated on two axes: **compression ratio**,
 
 With that foundation, let us compare the major compression formats one by one.
 
-<hr>
-
 ## ZIP
 
 ZIP is a file format created by Phil Katz in 1989. Internally, it commonly compresses data with **DEFLATE**, the combination of LZ77 and Huffman coding. The important distinction is that ZIP is not itself a compression algorithm. It is a container format that can hold data compressed by an algorithm such as DEFLATE.
@@ -35,8 +33,6 @@ ZIP is a file format created by Phil Katz in 1989. Internally, it commonly compr
 ZIP **compresses each file independently**. This structure, in which every file is compressed separately, is called a non-solid archive. The opposite approach, which joins all files into one stream and compresses it at once, is a solid archive. Thanks to the non-solid structure, it is possible to extract a single file without decompressing the rest of the archive. On the other hand, it cannot exploit duplicate data across files, so its compression ratio may be lower than that of tar.gz, which we will examine later.
 
 Because Windows, macOS, Linux, and most other operating systems support ZIP without additional software, it is the safest general choice when cross-platform compatibility matters.
-
-<hr>
 
 ## GZIP (GNU Zip)
 
@@ -50,8 +46,6 @@ DEFLATE uses a sliding window of at most **32 KB**. This limit is important beca
 
 GZIP has long been a standard for distributing source code, compressing logs, and packaging software in Unix and Linux environments. It also remains a common default for HTTP compression through `Content-Encoding: gzip`, although Brotli has increasingly replaced it in that role.
 
-<hr>
-
 ## ZSTD (Zstandard)
 
 ZSTD is a compression algorithm developed by Yann Collet at Meta, formerly Facebook, and released as open source in 2016. Its main advantage is **dramatically faster compression and decompression while retaining a ratio comparable to GZIP**.
@@ -63,8 +57,6 @@ The match finder also changes strategy with the compression level. Lower levels,
 On the Silesia Corpus benchmark, ZSTD’s default level 3 compresses at around 300 MB/s and decompresses at around 1,200 MB/s. GZIP’s default level 6 reaches only around 34 MB/s for compression and 380 MB/s for decompression. **ZSTD is roughly eight times faster at compression and three times faster at decompression, while its compression ratio is even ahead at 3.17 versus GZIP’s 3.09.** These figures make ZSTD’s improved trade-off easy to see.
 
 Adoption has expanded quickly. ZSTD is used for Linux kernel module compression and transparent filesystem compression, and major distributions including Arch Linux, Fedora, Debian, and Ubuntu have adopted it as a default package format. Starting with v1.5.7, released in February 2025, **multithreaded compression is enabled by default** with up to four threads, further widening the practical speed gap with single-threaded GZIP. AWS has also reported reducing S3 storage by about 30% after switching internal services from gzip to zstd.
-
-<hr>
 
 ## BZIP2
 
@@ -80,8 +72,6 @@ BZIP2 offers a higher compression ratio than GZIP, but both compression and deco
 
 Its latest release was v1.0.8 in 2019, and it is not under active development. As benchmarks increasingly show ZSTD outperforming BZIP2 in both ratio and speed, new projects are more likely to choose ZSTD.
 
-<hr>
-
 ## XZ
 
 XZ is a compression format that uses **LZMA2**. LZMA, the Lempel-Ziv-Markov chain Algorithm developed by Igor Pavlov, combines LZ77-based dictionary compression with range encoding. Rather than simply being an “improved LZMA,” LZMA2 is closer to a **container format** around LZMA streams. Its key additions include multithreaded compression and decompression and efficient handling of incompressible data.
@@ -89,8 +79,6 @@ XZ is a compression format that uses **LZMA2**. LZMA, the Lempel-Ziv-Markov chai
 Among the formats discussed here, XZ provides **the highest compression ratio**. The cost is very slow compression and high memory consumption. It is well suited to archival work where minimizing storage is the top priority.
 
 In March 2024, however, a **backdoor was discovered in xz-utils, XZ’s core library, in the severe CVE-2024-3094 supply-chain incident**. A two-year social-engineering campaign had obtained maintainer privileges, and the vulnerability received the maximum CVSS score of 10.0. Major distributions immediately rolled back to safe versions, but the incident became a powerful warning about open-source supply-chain security. (XZ’s technical value remains, but this context is worth considering when choosing tools.)
-
-<hr>
 
 ## TAR
 
@@ -104,8 +92,6 @@ TAR does not make data smaller by itself. In fact, its headers and padding make 
 
 TAR is standard in Unix and Linux environments, while Windows may require additional software such as 7-Zip.
 
-<hr>
-
 ## A quick look at Brotli
 
 Frontend developers should also understand **Brotli**. Google developed Brotli, and it was standardized for HTTP stream compression as `Content-Encoding: br` in 2015.
@@ -113,8 +99,6 @@ Frontend developers should also understand **Brotli**. Google developed Brotli, 
 Every major browser supports it over HTTPS, with more than 96% global coverage, and it generally produces files **about 15 to 25% smaller than GZIP**. It is particularly effective for text-based static assets such as JavaScript, CSS, and HTML. Major CDNs including Cloudflare use it as a default compression method, and the modern web-optimization pattern is “Brotli first, GZIP fallback.”
 
 If build artifacts are uploaded to S3 and served through a CDN, precompressing static files with Brotli can substantially reduce network transfer. (There was not enough project-specific evidence for me to introduce it immediately, but it remains an option worth understanding and revisiting.)
-
-<hr>
 
 ## Why does tar.gz compress better than ZIP?
 
@@ -128,8 +112,6 @@ Solid archives also have clear disadvantages.
 
 - To extract one file, the decoder may need to **decompress all data that appears before it**. Because every file belongs to one stream, it cannot simply jump to an arbitrary point. ZIP supports random access to individual files and may be more suitable when specific files are extracted frequently.
 - Damage to part of the archive can make **all data after the damaged point unrecoverable**. A non-solid archive may lose only the damaged file while preserving the rest.
-
-<hr>
 
 ## The choice in 2024 was tar.gz. What would I choose now?
 
@@ -151,8 +133,6 @@ ZSTD also matches or surpasses GZIP’s compression ratio, so there is effective
 
 The receiving environment must still be able to decompress zstd. Major Linux distributions include it, and macOS users can install it easily with Homebrew using `brew install zstd`. Legacy or minimal environments may require a separate installation, so every environment used by the team should be checked in advance. When compatibility is the overriding concern, tar.gz remains the safest general choice.
 
-<hr>
-
 ## Comparison at a glance
 
 | Format     | Algorithm       | Ratio     | Speed     | Key characteristics              |
@@ -163,8 +143,6 @@ The receiving environment must still be able to decompress zstd. Major Linux dis
 | **BZIP2**  | BWT+MTF+Huffman | High      | Slow      | Largely inactive development     |
 | **XZ**     | LZMA2           | Very high | Very slow | Best ratio, security context     |
 | **Brotli** | Brotli          | High      | Medium    | Optimized for the web            |
-
-<hr>
 
 ## Conclusion
 

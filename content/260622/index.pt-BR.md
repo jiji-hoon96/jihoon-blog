@@ -8,7 +8,7 @@ description: "Do prompt ao context engineering, o que vem depois? O blog de enge
 keywords: 'context engineering, design de harness, eval de agentes de IA, agent evaluation, containment, isolamento de agentes, tendências de IA 2026, prompt engineering, agentes LLM, depois da economia de tokens'
 locale: pt-BR
 translationOf: '260622'
-sourceHash: 06bdc8be3e1e0ff49702ada8265d88df2ffd88a750b85ab5e845bf748bac236e
+sourceHash: aa14385fc8ca2a3c0a5b713cc2b3c36f328877e6cdc181f184e2ac7936036ef4
 ---
 
 Neste artigo, quero falar sobre prompt engineering, context engineering e o que pode vir depois.
@@ -18,8 +18,6 @@ Enquanto concluía o artigo anterior sobre [como economizar tokens](/260611), um
 ![Arquitetura de 3 camadas para sistemas de IA confiáveis, composta por prompt, context e harness engineering](3.webp)
 
 É preciso cautela ao falar sobre “a direção do futuro”. Há inúmeras possibilidades pela frente; por isso, o foco aqui é organizar **a mudança de ênfase que pode ser lida em fontes primárias já publicadas**. Embora haja inevitavelmente alguma inferência, espero que o texto seja considerado sob perspectivas diversas.
-
----
 
 ## Do prompt ao contexto
 

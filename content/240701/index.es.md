@@ -9,7 +9,7 @@ description: "Cómo difieren LZ77 y LZ78 al manejar su diccionario y al olvidar 
 keywords: "LZ77, LZ78, LZ77 vs LZ78, algoritmo LZ77, compresión con ventana deslizante, LZW, cómo funciona DEFLATE, compresión basada en diccionario"
 locale: es
 translationOf: '240701'
-sourceHash: 426ffbfa58f5bda51c09d5cd03341869aaf698a60a927d896f19a52e723c7ed5
+sourceHash: adffb2f465dace79a47b172dc53877d2d34bbfaa46c14978fa16575a00ae19df
 ---
 
 En este artículo quiero hablar de **en qué se diferencian LZ77 y LZ78**.
@@ -17,8 +17,6 @@ En este artículo quiero hablar de **en qué se diferencian LZ77 y LZ78**.
 Este artículo es para desarrolladores que usan herramientas como zip, gzip o zstd y se han preguntado cómo funciona la compresión basada en diccionario que llevan dentro. Al terminar, podrás explicar en qué se diferencian ambos algoritmos al manejar su diccionario y de cuál de los dos descienden los compresores dominantes actuales.
 
 Si se comparan formatos para comprimir artefactos de compilación, tarde o temprano se acaba remontando a estos dos algoritmos.
-
-<hr>
 
 ## Compresión basada en diccionarios
 
@@ -31,8 +29,6 @@ Entre estas técnicas, los métodos **basados en diccionarios (Dictionary-Based)
 Pensemos en un ejemplo sencillo. Si la palabra “Linux” se repite cien veces, a partir de la segunda aparición se escribe, en lugar del texto original, una referencia corta que apunta a “ese fragmento visto antes”. Si la referencia es más corta que el original, el tamaño total se reduce.
 
 Entonces, ¿en qué se diferencian exactamente LZ77 y LZ78?
-
-<hr>
 
 ## LZ77: el método de la ventana deslizante
 
@@ -62,8 +58,6 @@ En `(2,3,_)`, la longitud 3 es mayor que la distancia 2. Con `ban` ya escrito, e
 En este método **el diccionario no se guarda ni se transmite por separado.** El decodificador reconstruye por sí mismo el búfer de búsqueda mientras descomprime, de modo que el diccionario queda implícito en los propios datos. Como las referencias apuntan a datos anteriores, la descompresión avanza, en principio, en orden desde el comienzo. Sin embargo, las referencias solo alcanzan hasta donde llega la ventana. RFC 1951 limita las referencias de DEFLATE a un máximo de 32K bytes hacia atrás. El `Z_FULL_FLUSH` de zlib reinicia el estado de compresión para que la descompresión pueda reanudarse desde ese punto si los datos comprimidos anteriores se dañaron o si se necesita acceso aleatorio. [zlib.h](https://github.com/madler/zlib/blob/v1.3.1/zlib.h) advierte que usarlo con demasiada frecuencia puede degradar seriamente la compresión.
 
 El tamaño de la ventana mantiene una relación directa de compromiso con la tasa de compresión. Una ventana mayor puede referirse a patrones más lejanos y comprime mejor, pero usa más memoria y, como hay más candidatos que revisar, la búsqueda de coincidencias suele volverse más lenta.
-
-<hr>
 
 ## LZ78: un diccionario explícito
 
@@ -147,8 +141,6 @@ LZ78 (0,b) (0,a) (0,n) (2,n) (2,_) (1,a) (3,a) (7,) true
 사전 1:b 2:a 3:n 4:an 5:a_ 6:ba 7:na
 ```
 
-<hr>
-
 ## Dónde se separan los dos
 
 Los dos decodificadores del código reciben solo tokens. Eso significa que **LZ78 tampoco transmite su diccionario**. El decodificador lee los tokens y añade entradas en el mismo orden que el codificador, así que se reconstruye el mismo diccionario. No transmitir el diccionario es algo que comparten ambos algoritmos; donde se separan es en **cómo olvidan el contenido antiguo**. La ventana de LZ77 avanza y olvida los datos viejos por sí sola. El diccionario de LZ78 sigue creciendo si se deja como está. El artículo original lo vaciaba por completo cada vez que terminaba un bloque de longitud fija, y las implementaciones reales limitan su tamaño y, cuando se llena, lo congelan, lo vacían o reutilizan algunas entradas.
@@ -156,8 +148,6 @@ Los dos decodificadores del código reciben solo tokens. Eso significa que **LZ7
 La variante más conocida de LZ78 es **LZW** (Lempel-Ziv-Welch). Terry Welch publicó esta mejora en 1984, y se utilizó en el formato GIF y en la utilidad Unix `compress`, cuya extensión es `.Z`. Ambas implementaciones pusieron un límite al diccionario. La [especificación GIF89a](https://www.w3.org/Graphics/GIF/spec-gif89a.txt) limita los códigos a 12 bits (valor máximo 4095) y define aparte un Clear code que devuelve el diccionario a su estado inicial. Según la [página de manual de ncompress](https://github.com/vapier/ncompress/blob/v5.0/compress.1), `compress` vigila la tasa de compresión una vez que la longitud de código alcanza el límite de `-b` (16 bits por defecto) y, si la tasa baja, descarta el diccionario y lo reconstruye desde cero.
 
 Cada artículo demostró optimalidad asintótica dentro de su propio modelo. El artículo de 1977 mostró que la tasa de compresión de LZ77 “uniformly approaches the lower bounds” (se acerca uniformemente a las cotas inferiores) alcanzables por códigos diseñados conociendo la fuente de antemano, y el artículo de 1978 mostró, para secuencias individuales, que el incremental parsing de LZ78 es asintóticamente óptimo. Como los modelos son distintos, estos resultados por sí solos no permiten comparar ambos.
-
-<hr>
 
 ## Descendientes de LZ77
 
@@ -170,8 +160,6 @@ Cada artículo demostró optimalidad asintótica dentro de su propio modelo. El 
 No hay una sola razón que explique por qué el lado de LZ77 se volvió dominante, pero una que las propias especificaciones destacan son las patentes. RFC 1951 señala que muchas variantes de LZ77 están patentadas y afirma que el formato DEFLATE puede implementarse fácilmente de una manera no cubierta por patentes. La [especificación PNG](https://www.w3.org/TR/png-3/) presenta PNG desde su comienzo como un reemplazo de GIF libre de patentes. GIF es el formato que usa el LZW visto antes.
 
 Algoritmos posteriores como **LZMA** (7-Zip y XZ), **LZ4** y **Zstd** también partieron de la idea de la ventana deslizante de LZ77. LZMA y Zstd desarrollaron a la vez la búsqueda de coincidencias y la codificación entrópica, mientras que LZ4 prescindió por completo de la codificación entrópica y optó por la velocidad con un formato orientado a bytes. La familia LZ78 sigue presente, en forma de LZW, dentro de formatos como GIF.
-
-<hr>
 
 ## Conclusión
 

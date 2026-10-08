@@ -9,7 +9,7 @@ description: "以综合所得税为例，讨论前端的领域逻辑应该放在
 keywords: "前端领域模型, 领域驱动设计, DDD 前端, 前端 DDD, 领域逻辑分离, 贫血领域模型, Clean Architecture 前端, Martin Fowler, React 设计模式, 前端架构, ViewModel 分离, 限界上下文"
 locale: zh-CN
 translationOf: '260418'
-sourceHash: 3710613d8d4eb4c17a551b41f7ccd5ef860b5df145a5b1b524f1ef0b80c8abd8
+sourceHash: 263cc7c7f9b3268ef9d5e341b869de5c782febdf64a07af5ec969eef54639d56
 ---
 
 这篇文章想聊聊**前端的领域逻辑应该放在哪里**。
@@ -17,9 +17,6 @@ sourceHash: 3710613d8d4eb4c17a551b41f7ccd5ef860b5df145a5b1b524f1ef0b80c8abd8
 本文写给这样的前端开发者：税额计算、申报状态判断这类业务规则散落在组件、Hook 和 utils 里，每改一条规则都要四处寻找并修改好几个文件。读完之后，你会知道如何把这些规则移到不依赖 React 的纯函数中，以及判断这种拆分应在何处停止的标准。
 
 文中的例子全部使用综合所得税的计算，这是笔者一直关注的领域。
-
----
-
 
 ## 前端的领域逻辑应该放在哪里？
 

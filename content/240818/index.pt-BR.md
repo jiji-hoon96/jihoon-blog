@@ -8,7 +8,7 @@ description: "Uma análise do código-fonte do Zustand: como ele gerencia estado
 keywords: "como o Zustand funciona, por que o Zustand não precisa de Provider, biblioteca de gerenciamento de estado React, análise do código-fonte do Zustand, useSyncExternalStore, React Context API"
 locale: pt-BR
 translationOf: '240818'
-sourceHash: 7265ecf6c3a01948368141403982cc212e6f42034158346c4eed4629c2dac8d6
+sourceHash: 7128866f5e5b91c42a8b11b5a62e46fec3ff6b39defa8ce185c304c755039851
 ---
 
 Neste post, quero falar sobre como o Zustand consegue gerenciar estado sem um Provider.
@@ -16,8 +16,6 @@ Neste post, quero falar sobre como o Zustand consegue gerenciar estado sem um Pr
 Enquanto usava Zustand, eu sempre tratei como natural gerenciar estado sem um Provider. Até que, de repente, me veio uma dúvida. Na maioria das bibliotecas do ecossistema React, envolver o app com um Provider virou quase um ritual. O TanStack React Query exige um `QueryClientProvider` para usar `useQuery`, e o overlay-kit da toss também exige um `OverlayProvider` para chamar `overlay.open()`. A Context API do React também exige que a árvore de componentes seja envolvida por um Provider. Então que tipo de mágica o Zustand faz para não precisar de nada disso?
 
 Por curiosidade, fui examinar diretamente o código-fonte do Zustand e encontrei uma estrutura mais interessante do que esperava. Quero organizar aqui o que aprendi nesse processo.
-
-<hr>
 
 ## Como o estado flui no React
 
@@ -28,8 +26,6 @@ Em uma aplicação React comum, o estado funciona como mostra a imagem abaixo.
 O estado interno de um componente é gerenciado com os hooks de gerenciamento de estado fornecidos pelo React (`useState`, `useReducer`). Já o estado é passado aos componentes filhos por props. Até aqui, a história é simples.
 
 O problema surge quando precisamos compartilhar estado entre componentes distantes. A solução oficial oferecida pelo React nesse caso é a Context API, mas ela exige que a subárvore seja envolvida por um componente Provider.
-
-<hr>
 
 ### Por que a Context API precisa de um Provider?
 
@@ -42,8 +38,6 @@ O ponto central é este: **a propagação do valor de Context depende da estrutu
 Ou seja, a Context API é fortemente acoplada ao sistema de renderização do React. O armazenamento, a propagação e a inscrição do estado acontecem dentro da árvore de componentes do React.
 
 Então como o Zustand contorna essa estrutura?
-
-<hr>
 
 ## O Zustand vive fora do React
 
@@ -68,8 +62,6 @@ const useStore = create((set) => ({
 
 Nesse código, `create` é chamado no momento em que o módulo é carregado. Ou seja, o Store já existe na memória antes mesmo de o React começar a renderizar. Esse é o padrão **module-level singleton**.
 
-<hr>
-
 ### O que é um module-level singleton?
 
 O sistema de módulos ES do JavaScript **avalia (evaluate) um módulo apenas na primeira vez e armazena o resultado em cache**. Depois disso, qualquer `import` do mesmo módulo não o executa novamente: ele retorna exatamente o mesmo objeto armazenado. Portanto, não importa se o componente A ou o componente B faz `import { useStore } from './store'`: ambos apontam para **exatamente a mesma instância do Store**.
@@ -78,13 +70,9 @@ Não é preciso implementar uma classe singleton separada nem anexar nada a uma 
 
 Depois de chegar até aqui, uma pergunta surge naturalmente: como é, em detalhes, o interior do Zustand?
 
-<hr>
-
 ## Estrutura interna do Zustand
 
 Ao examinar o [repositório do Zustand no GitHub](https://github.com/pmndrs/zustand/tree/main/src), vemos que a lógica central é surpreendentemente concisa. Dois arquivos são fundamentais: `vanilla.ts` contém o Store propriamente dito, enquanto `react.ts` cuida da ligação com o React.
-
-<hr>
 
 ### vanilla.ts
 
@@ -202,8 +190,6 @@ Ao analisar esse código linha por linha, o mecanismo central do Zustand se reve
 
     Em um ambiente de server-side rendering (SSR), não existem APIs do navegador nem interação do usuário, então `setState` nunca é chamado. Por isso, o servidor sempre usa `initialState` (= o estado inicial) como snapshot. Quando a hydration começa no cliente, o React compara o HTML renderizado no servidor com o resultado da primeira renderização do cliente. Como os dois foram renderizados com base no mesmo `initialState`, é possível **evitar uma divergência de hydration**.
 
-<hr>
-
 ### react.ts
 
 [react.ts](https://github.com/pmndrs/zustand/blob/main/src/react.ts) tem o papel de conectar o Store JavaScript puro criado acima ao sistema de renderização do React.
@@ -250,8 +236,6 @@ const createImpl = <T>(createState: StateCreator<T, [], []>) => {
 
 Ela cria um Store vanilla com `createStore`, o envolve em um hook personalizado chamado `useBoundStore` e, com `Object.assign`, anexa os métodos da API do Store (`setState`, `getState`, `subscribe` etc.) à própria função hook. Como resultado, o `useBoundStore` retornado tem uma natureza dupla: **é um hook do React e, ao mesmo tempo, a API do Store**. (Uma função que também tem métodos: um padrão bastante característico do JavaScript.)
 
-<hr>
-
 ## E as outras bibliotecas de gerenciamento de estado?
 
 Depois de entender tudo isso, é natural querer comparar com outras bibliotecas.
@@ -259,8 +243,6 @@ Depois de entender tudo isso, é natural querer comparar com outras bibliotecas.
 Existem várias bibliotecas de gerenciamento de estado, como Jotai, Recoil, MobX, Xstate e Redux, mas vou me concentrar naquelas que já usei pessoalmente.
 
 > Como referência, o **Recoil** (Meta), frequentemente comparado ao Jotai, teve seu repositório arquivado em janeiro de 2025 e, na prática, seu desenvolvimento foi interrompido. Também não houve suporte ao React 19. Para quem quer um modelo de estado atômico, hoje o Jotai pode ser considerado a única opção realista.
-
-<hr>
 
 ### Redux
 
@@ -270,8 +252,6 @@ O `<Provider store={store}>` do Redux **injeta (inject)** a instância do Store 
 
 Os benefícios desse design são claros. Em testes, envolver uma instância diferente do Store com um Provider oferece isolamento perfeito; além disso, é possível construir várias árvores de Store independentes em um único app por meio da prop `context`. Como enfatiza Mark Erikson, mantenedor do Redux, “Context é um mecanismo de transporte (transport mechanism), não uma ferramenta de gerenciamento de estado”.
 
-<hr>
-
 ### Jotai
 
 O Jotai adota um **modelo de estado atômico (atomic)** fundamentalmente diferente do Redux ou do Zustand. Em vez de reunir todo o estado em um grande objeto Store, a abordagem consiste em **separar cada fragmento de estado em um atom independente**. (A própria documentação oficial do Jotai explica que “se Zustand é parecido com Redux, Jotai é parecido com Recoil”.)
@@ -279,8 +259,6 @@ O Jotai adota um **modelo de estado atômico (atomic)** fundamentalmente diferen
 A diferença central dessa estrutura está na **forma de otimizar a renderização**. O Zustand segue uma abordagem **de cima para baixo (top-down)**, extraindo por meio de um selector apenas a parte necessária de um único Store. O desenvolvedor precisa escrever diretamente um selector como `useStore((state) => state.count)` e, às vezes, usar memoização para manter a igualdade referencial (referential equality). Já o Jotai constrói automaticamente um **grafo de dependências (dependency graph)** entre atoms. Quando um atom muda, ele faz uma propagação **de baixo para cima (bottom-up)** e renderiza novamente apenas os componentes que dependem daquele atom. Esse rastreamento automático de dependências é muito poderoso quando dezenas de estados estão interligados, como em uma planilha ou um editor de canvas.
 
 Do ponto de vista do Provider, o Jotai ocupa um meio-termo interessante. Por padrão, usa um Store global e funciona sem Provider, mas, se necessário, pode ser envolvido por `<Provider>` para criar um escopo de Store isolado. Usando a expressão da documentação oficial do Jotai, o Jotai é **“context first, module second”**, enquanto o Zustand é **“module first, context second”**.
-
-<hr>
 
 ### A escolha do Zustand
 
@@ -362,21 +340,15 @@ TkDodo apresentou um caso real em que aplicou esse padrão a um componente multi
 
 Depois que o helper oferecido na v3 por `zustand/context`, chamado `createContext`, foi removido na v4, esse padrão se consolidou como a **combinação direta do `createContext` nativo do React com `createStore`/`useStore` do Zustand**. A API permanece igual na v5, e a [documentação oficial do Zustand](https://github.com/pmndrs/zustand/blob/main/docs/previous-versions/zustand-v3-create-context.md) também apresenta esse padrão no guia de migração para v4+.
 
-<hr>
-
 ## A sombra do ProviderLess
 
 É claro que não ter um Provider não traz apenas vantagens. Vou organizar os pontos que, na minha opinião, exigem atenção.
-
-<hr>
 
 ### O problema de compartilhamento de estado em SSR
 
 Um singleton no nível do módulo pode ser perigoso em um ambiente de servidor. Um servidor Node.js processa várias requisições em um único processo, enquanto cada módulo é carregado apenas uma vez dentro desse processo. Isso significa que requisições de usuários diferentes podem **compartilhar a mesma instância do Store**.
 
 É por isso que o Zustand oferece `getInitialState` e passa um snapshot do servidor como terceiro argumento de `useSyncExternalStore`. No entanto, isso sozinho pode não isolar completamente o estado entre requisições. Em ambientes SSR, recomenda-se usar o padrão Scoped Store mencionado antes (`createStore` + React Context) para criar um novo Store a cada requisição.
-
-<hr>
 
 ### A dificuldade de isolar testes
 
@@ -390,8 +362,6 @@ beforeEach(() => {
 ```
 
 Aqui também o padrão Scoped Store é a solução. Quando usamos um Provider, cada teste pode criar e injetar um Store novo, permitindo isolamento perfeito sem lógica de redefinição.
-
-<hr>
 
 ### A ausência de múltiplas instâncias
 
@@ -414,8 +384,6 @@ No fim, a pergunta que o Zustand faz é esta: “O estado precisa mesmo viver de
 
 Recomendo também que os leitores abram ao menos uma vez o código-fonte de alguma biblioteca que usam. Talvez encontrem uma profundidade que não aparece na documentação oficial.
 
-<hr>
-
 ![Um personagem desenhado à mão dizendo "espera aí!"](7.jpeg)
 
 ### Ah, e uma novidade
@@ -431,8 +399,6 @@ O interessante é que a v5 quase não traz funcionalidades novas. Durante a v4.x
 - A função **`shallow` foi aprimorada para oferecer suporte a objetos iteráveis**.
 
 Ao migrar da v4 para a v5, recomenda-se primeiro atualizar para a versão mais recente da v4. Como essa versão exibe avisos de deprecation, resolvê-los antes de subir para a v5 permite fazer a transição sem dificuldades.
-
-<hr>
 
 ### Referências
 
