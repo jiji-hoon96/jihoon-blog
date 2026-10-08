@@ -3,21 +3,20 @@ emoji: ⚛️
 title: 'React Fiber完全攻略'
 seoTitle: 'React Fiber完全攻略: アーキテクチャとConcurrent Renderingの仕組みを徹底分析'
 date: '2025-05-20'
+updatedAt: "2026-10-08"
 categories: フロントエンド React
-description: "React Fiberアーキテクチャを、Stack ReconcilerからLane優先度、ダブルバッファリング、MessageChannel Scheduler、Concurrent Featuresまで、Reactのソースコードを基に深く分析する。フロントエンド面接の頻出テーマ。"
+description: "React Fiberアーキテクチャを、Stack ReconcilerからFiberノードの構造、ダブルバッファリング、Lane優先度、Work Loop、レンダーフェーズとコミットフェーズ、Concurrent Featuresまで、Reactのソースコードを基に深く分析する。"
 keywords: "React Fiber, React Fiberアーキテクチャ, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, Reactレンダリングの仕組み, Reactソースコード解析, Virtual DOM, Reconciliation, Lane優先度, フロントエンド面接"
 locale: ja
 translationOf: '250520'
-sourceHash: 5f4d292c9e9b26fce26a9220b9d9d706f2ae418e385b27133899d86216a9d3bd
+sourceHash: 3377c18b0ba4131a4cd9e2f09d904e200a6f09b2abe55a812ca1caa70ff5239e
 ---
 
 今回は、Reactの心臓部ともいえる**Fiberアーキテクチャ**について話したい。
 
+「作業単位に分けて処理する」という一行の定義は知っていても、それがReactの内部でどう実装されているのかを説明するのは難しいフロントエンド開発者に向けた記事である。最後まで読めば、Fiberがなぜ登場し、Fiberノードがどんな形をしていて、ダブルバッファリングとLane、Work Loopがどう噛み合ってConcurrent Featuresを可能にしているのかを、Reactのソースコードを根拠に説明できるようになる。
+
 筆者が初めてReactに触れた頃、**「Fiber」**という言葉は、面接の定番質問くらいにしか認識していなかった。「Reactのレンダリング処理を作業単位に分割して実行する」という一行の定義を覚え、それがすべてだと思っていた。しかし実際にReactのソースコードを読み始めると、Fiberは単なる概念ではなく、Reactレンダリングの**すべて**を司る実行アーキテクチャだと気づいた。
-
-> 初めてReactのソースコードを開いたときの衝撃は、今でも忘れられない。「これは……いったい何なんだ？」と思った。
-
-この記事では、「Fiberとは何ですか？」という質問に「作業単位に分けて処理するものです」と答えるレベルを超えて、Fiberが**なぜ**誕生し、**どのように**設計され、その構造がReactのConcurrent Featuresを**どのように**可能にしているのかまで、深く掘り下げていく。
 
 
 ## なぜFiberは登場したのか？
@@ -77,7 +76,7 @@ function performWork(deadline) {
 
 上のコードは、Fiber初期の概念モデルを示している。重要なのは、`while` ループ内で一度に一つの作業単位だけを処理し、時間が足りなくなればループを抜けてブラウザーに制御を返す点だ。
 
-（初期には`requestIdleCallback`を使う方式だったが、実際のReactはこれを使っていない。その理由は後で詳しく扱う。）
+上のコードは概念を示すために`requestIdleCallback`を使ったが、実際のReactはこれを使っていない。このAPIはブラウザーが本当に暇なときにしか呼ばれないため、忙しいページではReactの作業がいつまでも後回しになりうる。ブラウザーごとのサポートや動作も異なっていた。そこでReactのSchedulerパッケージは、`MessageChannel`で次のマクロタスクを予約して作業を続け、その合間にメインスレッドへ制御を返す。`setTimeout`ではなく`MessageChannel`を選んだ理由は、[ReactがMessageChannelを使う理由](/250515)に別途まとめておいた。
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">
@@ -492,33 +491,7 @@ function completeUnitOfWork(unitOfWork) {
 走査をまとめると、次のようになる。**childに沿って下り（beginWork）→ 葉で完了した後siblingへ移動 → 兄弟がなければreturnに沿って上る（completeWork）**。これがFiberの深さ優先探索の順序である。
 
 
-### requestIdleCallbackを捨てた理由
-
-先ほどFiberの概念モデルでは`requestIdleCallback`を使うコードを示したが、実際のReactはこれを使っていない。その理由は明確だ。
-
-- **呼び出し頻度が低すぎる**：本当に「アイドル時間（ブラウザーにすることがない時間）」にしか呼ばれないため、負荷の高いページではReactの作業がいつまでも遅延する可能性がある。Dan Abramovも「requestIdleCallback is called too infrequently to be useful for scheduling React work」と述べている。
-- **ブラウザー互換性の問題**：Safariは長い間これを実装しておらず、ブラウザーごとに動作も異なっていた。
-- **20msの上限**：アイドル時間の期限には上限があり、Reactが求めるレベルの予測可能なタイミング制御ができなかった。
-
-次に`requestAnimationFrame`とフレーム予算の推定を組み合わせる方式も試したが、Reactの作業を垂直同期（モニターが垂直走査を完了する時点に合わせてフレーム出力を同期する技術）の周期に合わせる必要はないとの判断から、これも廃止された。
-
-### MessageChannel
-
-最終的にReactは**MessageChannel**を選んだ。
-
-```js
-if (typeof MessageChannel !== 'undefined') {
-  const channel = new MessageChannel();
-  channel.port1.onmessage = performWorkUntilDeadline;
-  schedulePerformWorkUntilDeadline = () => channel.port2.postMessage(null);
-} else {
-  schedulePerformWorkUntilDeadline = () => setTimeout(performWorkUntilDeadline, 0);
-}
-```
-
-なぜ`setTimeout`ではなく`MessageChannel`なのか。HTML仕様により、`setTimeout`は5回以上ネストすると**最低4msの遅延**が強制される。一方、`MessageChannel`はこの制限なしに、イベントループの次のティックで即座にマクロタスクとして実行される。5ms単位で作業を分割するFiberにとって、4msの人為的な遅延は致命的だからだ。
-
-（5msのうち4msが待ち時間なら、実際に働く時間は1msしかない。これはワークライフバランスではなく、ただのライフだ。）
+### Schedulerのタスクキュー
 
 ReactのSchedulerパッケージは、内部で**二つの最小ヒープ**を管理する。
 
@@ -551,7 +524,6 @@ Idle             ~1,073,741,823ms  ~12.4일      오프스크린 렌더링
 
 これらのタイムアウト値は、同時に**飢餓状態を防ぐ**仕組みでもある。どれほど優先度が低くても、タイムアウトを過ぎれば期限切れ状態となり、強制的に実行される。高優先度の作業が絶えず入ってきても、低優先度の作業が永遠に無視されることはない。
 
-Schedulerの`shouldYieldToHost()`は、作業開始後の経過時間が`frameInterval`（既定値は**5ms**、`SchedulerFeatureFlags.js`で定義）を超えたか確認し、メインスレッドへ制御を返すかどうかを判断する。
 
 
 ## レンダーフェーズとコミットフェーズ
@@ -561,7 +533,6 @@ Schedulerの`shouldYieldToHost()`は、作業開始後の経過時間が`frameIn
 Fiberは内部で、**レンダーフェーズ**と**コミットフェーズ**という二つの段階を経る。この分離は、Reactの並行処理モデルを可能にする中心的な設計だ。Fiberの動作フローを直接確認したければ、下の画像をクリックしてほしい。
 
 [![React Fiber の動作順序を段階的に見せる可視化デモ。レンダー段階からレイアウト段階までをコンポーネントツリーと作業スタックで追う](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
-
 
 
 ### レンダーフェーズ

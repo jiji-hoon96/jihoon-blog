@@ -3,21 +3,20 @@ emoji: ⚛️
 title: '彻底掌握 React Fiber'
 seoTitle: '彻底掌握 React Fiber: 架构与并发渲染原理分析'
 date: '2025-05-20'
+updatedAt: "2026-10-08"
 categories: 前端 React
-description: "基于 React 源码，深入分析 React Fiber 架构，从 Stack Reconciler、Lane 优先级、双缓冲、MessageChannel 调度器到 Concurrent Features。前端面试中的高频主题。"
+description: "基于 React 源码，深入分析 React Fiber 架构，从 Stack Reconciler、Fiber 节点结构、双缓冲、Lane 优先级、Work Loop、Render 与 Commit Phase 到 Concurrent Features。"
 keywords: "React Fiber, React Fiber 架构, Stack Reconciler, Concurrent Mode, React 18 并发, useTransition, useDeferredValue, Suspense, React 渲染原理, React 源码分析, Virtual DOM, Reconciliation, Lane 优先级, 前端面试"
 locale: zh-CN
 translationOf: '250520'
-sourceHash: 5f4d292c9e9b26fce26a9220b9d9d706f2ae418e385b27133899d86216a9d3bd
+sourceHash: 3377c18b0ba4131a4cd9e2f09d904e200a6f09b2abe55a812ca1caa70ff5239e
 ---
 
 这篇文章想聊聊堪称 React 心脏的 **Fiber 架构**。
 
+本文写给这样的前端开发者：知道“把工作拆成单元来处理”这一句定义，却很难说明 React 内部究竟如何实现它。读完之后，你可以以 React 源码为依据，说明 Fiber 为什么出现、Fiber 节点长什么样，以及双缓冲、Lane 和 Work Loop 如何配合，让 Concurrent Features 成为可能。
+
 笔者刚接触 React 时，只把 **“Fiber”** 当作面试中的高频问题。背下“把 React 的渲染工作拆分成工作单元来处理”这一句话，就以为那是全部。但真正开始阅读 React 源码后，我才意识到 Fiber 并非一个简单概念，而是一套掌管 React 渲染**一切环节**的运行时架构。
-
-> 至今仍忘不了第一次打开 React 源码时受到的冲击。当时脑海里只有一句：“这些……都是什么？”
-
-本文不会停留在面对“Fiber 是什么？”时只回答“把工作拆成单元来处理”的层面，而会深入探究 Fiber **为什么**诞生、它是**如何**设计的，以及这种结构又**如何**让 React 的 Concurrent Features 成为可能。
 
 
 ## Fiber 为什么会出现？
@@ -77,7 +76,7 @@ function performWork(deadline) {
 
 上面的代码展示了 Fiber 早期的概念模型。关键在于，`while` 循环每次只处理一个工作单元（unit of work）；时间不足时就退出循环，把控制权交还给浏览器。
 
-（早期采用过 `requestIdleCallback`，但实际的 React 并不使用它。原因会在后文详细说明。）
+上面的代码为了说明概念使用了 `requestIdleCallback`，但实际的 React 并不使用它。这个 API 只在浏览器真正空闲时才会被调用，在繁忙的页面上 React 的工作可能被无限期推迟，而且各浏览器的支持与行为也不一致。因此 React 的 Scheduler 包用 `MessageChannel` 调度下一个 macrotask 来继续工作，并在间隙把控制权交还给主线程。为什么不用 `setTimeout` 而选择 `MessageChannel`，另外整理在[React 为什么使用 MessageChannel](/250515)中。
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">
@@ -492,33 +491,7 @@ function completeUnitOfWork(unitOfWork) {
 遍历过程可以总结为：**沿 child 向下（beginWork）-> 在叶节点完成后移向 sibling -> 没有兄弟节点时沿 return 向上（completeWork）**。这就是 Fiber 的深度优先搜索顺序。
 
 
-### 放弃 requestIdleCallback 的原因
-
-前面展示 Fiber 概念模型时使用了 `requestIdleCallback`，但实际的 React 并不使用它，原因很明确。
-
-- **调用频率太低**：只会在真正的“空闲时间（浏览器无事可做的时间）”被调用，因此在繁忙页面上，React 工作可能被无限期推迟。Dan Abramov 也曾提到，“requestIdleCallback is called too infrequently to be useful for scheduling React work”。
-- **浏览器兼容性问题**：Safari 长期没有实现它，而且不同浏览器的行为并不一致。
-- **20ms 上限**：idle deadline 存在上限，React 无法按自身需求对时间进行可预测的控制。
-
-之后，React 又尝试过 `requestAnimationFrame` + 帧预算估算的方式，但由于 React 的工作并不需要与 vsync（让帧输出与显示器完成垂直扫描的时点同步的技术）周期对齐，这种方案最终也被弃用。
-
-### MessageChannel
-
-最终，React 选择了 **MessageChannel**。
-
-```js
-if (typeof MessageChannel !== 'undefined') {
-  const channel = new MessageChannel();
-  channel.port1.onmessage = performWorkUntilDeadline;
-  schedulePerformWorkUntilDeadline = () => channel.port2.postMessage(null);
-} else {
-  schedulePerformWorkUntilDeadline = () => setTimeout(performWorkUntilDeadline, 0);
-}
-```
-
-为什么不使用 `setTimeout`，而要使用 `MessageChannel`？根据 HTML 规范，`setTimeout` 嵌套 5 次以上时，会被强制施加**至少 4ms 的延迟**。而 `MessageChannel` 没有这一限制，可以在下一个事件循环 tick 中立即作为 macrotask 执行。对于以 5ms 为单位拆分工作的 Fiber 来说，人为增加 4ms 延迟是致命的。
-
-（5ms 中有 4ms 都在等待，真正工作的时间就只剩 1ms。这已经不是 work-life balance，只剩 life 了。）
+### Scheduler 的任务队列
 
 React 的 Scheduler 包在内部维护**两个 min-heap（最小堆）**。
 
@@ -551,7 +524,6 @@ Idle             ~1,073,741,823ms  ~12.4일      오프스크린 렌더링
 
 这些 timeout 值同时也是**防止饥饿（starvation）**的机制。无论优先级多低，只要超过 timeout，任务就会进入过期状态并被强制执行。即使高优先级工作不断进入，低优先级工作也不会永远遭到忽略。
 
-Scheduler 的 `shouldYieldToHost()` 会检查工作开始后的经过时间是否超过 `frameInterval`（默认 **5ms**，定义在 `SchedulerFeatureFlags.js` 中），并据此决定是否将控制权交还给主线程。
 
 
 ## Render Phase 与 Commit Phase
@@ -561,7 +533,6 @@ Scheduler 的 `shouldYieldToHost()` 会检查工作开始后的经过时间是�
 Fiber 在内部会经历 **Render Phase** 和 **Commit Phase** 两个阶段。这种分离正是让 React 并发模型成为可能的核心设计。如果想亲自查看 Fiber 的工作流程，可以点击下面的图片。
 
 [![逐步展示 React Fiber 运行过程的可视化演示，从渲染阶段到布局阶段，配合组件树与工作栈](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
-
 
 
 ### Render Phase

@@ -3,18 +3,17 @@ emoji: ⚛️
 title: 'React Fiber 완전 정복'
 seoTitle: 'React Fiber 완전 정복: 아키텍처와 동시성 렌더링 원리 분석'
 date: '2025-05-20'
+updatedAt: "2026-10-08"
 categories: 프론트엔드 React
-description: "React Fiber 아키텍처를 Stack Reconciler부터 Lane 우선순위, 더블 버퍼링, MessageChannel 스케줄러, Concurrent Features까지 React 소스코드 기반으로 깊이 분석한다. 프론트엔드 면접 단골 주제."
+description: "React Fiber 아키텍처를 Stack Reconciler부터 Fiber 노드 구조, 더블 버퍼링, Lane 우선순위, Work Loop, Render Phase와 Commit Phase, Concurrent Features까지 React 소스코드 기반으로 깊이 분석한다."
 keywords: "React Fiber, 리액트 파이버, React Fiber 아키텍처, Stack Reconciler, Concurrent Mode, React 18 동시성, useTransition, useDeferredValue, Suspense, React 렌더링 원리, React 소스코드 분석, Virtual DOM, Reconciliation, Lane 우선순위, 프론트엔드 면접"
 ---
 
 이번 포스팅에서는 React의 심장이라 할 수 있는 **Fiber 아키텍처**에 대한 이야기를 해보려고 한다.
 
+"작업 단위를 나눠서 처리한다"는 한 줄 정의는 알지만, 그것이 React 내부에서 어떻게 구현되는지 설명하기는 어려운 프론트엔드 개발자를 위한 글이다. 끝까지 읽으면 Fiber가 왜 등장했고 Fiber 노드가 어떻게 생겼으며, 더블 버퍼링과 Lane, Work Loop가 어떻게 맞물려 Concurrent Features를 가능하게 하는지 React 소스코드를 근거로 설명할 수 있다.
+
 필자가 React를 처음 접했을 때, **"Fiber"** 라는 단어는 면접 단골 질문 정도로만 인식되었다. "React의 렌더를 위해 작업 단위를 나눠서 처리"라는 한 줄짜리 정의를 외우고, 그게 전부인 줄 알았다. 하지만 실제로 React의 소스코드를 들여다보기 시작하면서, Fiber가 단순한 개념이 아니라 React 렌더링의 **모든 것**을 관장하는 런타임 아키텍처라는 사실을 깨닫게 되었다.
-
-> 그때 React 소스코드를 처음 열었을 때의 충격은 아직도 잊을 수 없다. "이게... 다 뭐지?" 싶었다.
-
-이 글에서는 "Fiber가 뭐예요?"라는 질문에 "작업 단위를 나눠서 처리하는 거요"라고 대답하는 수준을 넘어, Fiber가 **왜** 탄생했고, **어떻게** 설계되었으며, 그 구조가 React의 Concurrent Features를 **어떻게** 가능하게 만드는지까지 깊이 있게 파헤쳐 보려 한다.
 
 
 ## 왜 Fiber가 등장했을까?
@@ -74,7 +73,7 @@ function performWork(deadline) {
 
 위 코드는 Fiber의 초기 개념 모델을 보여준다. 핵심은 `while` 루프 안에서 한 번에 하나의 작업 단위(unit of work)만 처리하고, 시간이 부족하면 루프를 빠져나와 브라우저에게 제어권을 돌려준다는 것이다.
 
-(초기에는 `requestIdleCallback`을 활용하는 방식이었지만, 실제 React는 이를 사용하지 않는다. 이유는 뒤에서 자세히 다룬다.)
+위 코드는 개념을 보여주려고 `requestIdleCallback`을 썼지만, 실제 React는 이를 사용하지 않는다. 이 API는 브라우저가 정말 한가할 때만 호출되어 바쁜 페이지에서는 React 작업이 한없이 밀릴 수 있고, 브라우저마다 지원과 동작도 달랐다. 그래서 React의 Scheduler 패키지는 `MessageChannel`로 다음 매크로태스크를 예약해 작업을 이어 가고, 그 사이사이 메인 스레드에 제어권을 돌려준다. `setTimeout`이 아니라 `MessageChannel`을 고른 이유는 [React가 MessageChannel을 쓰는 이유](/250515)에 따로 정리해 두었다.
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">
@@ -489,33 +488,7 @@ function completeUnitOfWork(unitOfWork) {
 순회를 정리하면 이렇다. **child를 따라 내려가고(beginWork) -> 리프에서 완료 후 sibling으로 이동 -> 형제가 없으면 return을 따라 올라감(completeWork)**. 이것이 Fiber의 깊이 우선 탐색 순서인 것이다.
 
 
-### requestIdleCallback을 버린 이유
-
-앞서 Fiber의 개념 모델에서 `requestIdleCallback`을 사용하는 코드를 보여줬는데, 실제 React는 이를 사용하지 않는다. 그 이유는 명확하다.
-
-- **호출 빈도가 너무 낮다** : 진정한 "유휴 시간(브라우저가 할 일이 없는 시간)"에만 호출되어, 바쁜 페이지에서는 React 작업이 무한정 지연될 수 있다. Dan Abramov도 "requestIdleCallback is called too infrequently to be useful for scheduling React work"라고 언급한 바 있다.
-- **브라우저 호환성 문제** : Safari는 오랫동안 이를 구현하지 않았고, 브라우저마다 동작이 달랐다.
-- **20ms 상한** : idle deadline의 상한이 있어 React가 원하는 수준의 예측 가능한 타이밍 제어가 불가능했다.
-
-그 다음으로 `requestAnimationFrame` + 프레임 예산 추정 방식을 시도했지만, React의 작업이 vsync(모니터가 수직 귀선을 완료한 시점에 맞춰 프레임 출력을 동기화하는 기술) 주기에 맞출 필요가 없다는 판단하에 이 역시 폐기되었다.
-
-### MessageChannel
-
-최종적으로 React는 **MessageChannel**을 선택했다.
-
-```js
-if (typeof MessageChannel !== 'undefined') {
-  const channel = new MessageChannel();
-  channel.port1.onmessage = performWorkUntilDeadline;
-  schedulePerformWorkUntilDeadline = () => channel.port2.postMessage(null);
-} else {
-  schedulePerformWorkUntilDeadline = () => setTimeout(performWorkUntilDeadline, 0);
-}
-```
-
-왜 `setTimeout`이 아닌 `MessageChannel`일까? `setTimeout`은 HTML 스펙에 따라 5회 이상 중첩되면 **최소 4ms의 지연**이 강제된다. 반면 `MessageChannel`은 이런 제한 없이 다음 이벤트 루프 틱에서 즉시 매크로태스크로 실행된다. 5ms 단위로 작업을 쪼개는 Fiber에게 4ms의 인위적 지연은 치명적이기 때문이다.
-
-(5ms 중 4ms가 대기 시간이라면, 실질적으로 일하는 시간은 1ms뿐이다. 이건 워라밸이 아니라 그냥 밸이다.)
+### Scheduler의 태스크 큐
 
 React의 Scheduler 패키지는 내부적으로 **두 개의 min-heap(최소 힙)** 을 관리한다.
 
@@ -548,7 +521,6 @@ Idle             ~1,073,741,823ms  ~12.4일      오프스크린 렌더링
 
 이 timeout 값들은 동시에 **기아 상태(starvation) 방지** 메커니즘이기도 하다. 아무리 우선순위가 낮아도 timeout이 지나면 만료 상태가 되어 강제 실행된다. 높은 우선순위 작업이 계속 들어온다고 해서 낮은 우선순위 작업이 영원히 무시당하는 일은 없는 것이다.
 
-Scheduler의 `shouldYieldToHost()`는 작업 시작 이후 경과 시간이 `frameInterval`(기본 **5ms**, `SchedulerFeatureFlags.js`에서 정의)을 초과했는지를 확인하여 메인 스레드에 제어권을 돌려줄지 결정한다.
 
 
 ## Render Phase와 Commit Phase
@@ -558,7 +530,6 @@ Scheduler의 `shouldYieldToHost()`는 작업 시작 이후 경과 시간이 `fra
 Fiber는 내부적으로 **Render Phase**와 **Commit Phase**라는 두 단계를 거친다. 이 분리는 React의 동시성 모델을 가능하게 만드는 핵심 설계인 것이다. Fiber의 작동 흐름을 직접 확인하고 싶다면 아래 이미지를 클릭하면 된다.
 
 [![React Fiber 작동 순서를 단계별로 보여주는 시각화 데모. 렌더 단계부터 레이아웃 단계까지를 컴포넌트 트리와 작업 스택으로 따라간다](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
-
 
 
 ### Render Phase

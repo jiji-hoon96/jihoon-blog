@@ -3,21 +3,20 @@ emoji: ⚛️
 title: 'React Fiber al completo'
 seoTitle: "React Fiber: arquitectura y renderizado concurrente"
 date: '2025-05-20'
+updatedAt: "2026-10-08"
 categories: frontend React
 locale: es
 translationOf: '250520'
-sourceHash: 5f4d292c9e9b26fce26a9220b9d9d706f2ae418e385b27133899d86216a9d3bd
-description: "Análisis de React Fiber desde el código fuente: Stack Reconciler, prioridades por Lanes, doble búfer, scheduler con MessageChannel y Concurrent Features."
+sourceHash: 3377c18b0ba4131a4cd9e2f09d904e200a6f09b2abe55a812ca1caa70ff5239e
+description: "Análisis de React Fiber desde el código fuente: Stack Reconciler, nodos Fiber, doble búfer, Lanes, Work Loop, render y commit, y Concurrent Features."
 keywords: "React Fiber, arquitectura de React Fiber, Stack Reconciler, Concurrent Mode, concurrencia en React 18, useTransition, useDeferredValue, Suspense, renderizado de React, análisis del código fuente de React, Virtual DOM, Reconciliation, prioridad por Lanes, entrevista de frontend"
 ---
 
 En este artículo quiero hablar de la **arquitectura Fiber**, que podría considerarse el corazón de React.
 
+Está pensada para desarrolladores frontend que conocen la definición de una línea, «divide el trabajo en unidades», pero a quienes les cuesta explicar cómo lo implementa React por dentro. Al terminar, podrás explicar, con el código fuente de React como base, por qué apareció Fiber, cómo es un nodo Fiber y cómo el doble búfer, los Lanes y el Work Loop encajan para hacer posibles las Concurrent Features.
+
 Cuando conocí React, la palabra **"Fiber"** me sonaba poco más que a una pregunta habitual de entrevista. Memorizar una definición de una línea —«dividir el renderizado en unidades de trabajo y procesarlas por separado»— me parecía suficiente. Sin embargo, al empezar a examinar el código fuente de React, comprendí que Fiber no era un simple concepto, sino una arquitectura de runtime que gobierna **todo** el renderizado de React.
-
-> Todavía recuerdo el impacto de abrir por primera vez el código fuente de React. Pensé: «Pero... ¿qué es todo esto?».
-
-En este artículo iré más allá de responder «divide el trabajo en unidades y las procesa» a la pregunta «¿qué es Fiber?». Analizaré en profundidad **por qué** nació, **cómo** está diseñado y **cómo** esa estructura hace posibles las Concurrent Features de React.
 
 
 ## ¿Por qué apareció Fiber?
@@ -77,7 +76,7 @@ function performWork(deadline) {
 
 Este código muestra el modelo conceptual inicial de Fiber. La clave consiste en procesar una sola unidad de trabajo (unit of work) cada vez dentro del bucle `while` y, si queda poco tiempo, salir del bucle para devolver el control al navegador.
 
-(Al principio se planteó un enfoque basado en `requestIdleCallback`, pero React no lo utiliza en la práctica. Más adelante veremos el motivo en detalle).
+El código anterior usa `requestIdleCallback` para ilustrar el concepto, pero React no lo usa en la práctica. Esta API solo se llama cuando el navegador está realmente ocioso, así que en una página ocupada el trabajo de React podía retrasarse indefinidamente, y además el soporte y el comportamiento variaban entre navegadores. Por eso el paquete Scheduler de React programa la siguiente macrotask con `MessageChannel` para continuar el trabajo y, entre una y otra, devuelve el control al hilo principal. Por qué descartó `setTimeout` en favor de `MessageChannel` lo explico aparte en [Por qué React usa MessageChannel](/250515).
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">
@@ -492,33 +491,7 @@ Las principales tareas realizadas en `completeWork` son las siguientes.
 En resumen, el recorrido funciona así: **desciende siguiendo child (beginWork) -> al completar un nodo hoja avanza a sibling -> si no hay hermanos, asciende siguiendo return (completeWork)**. Este es el orden de búsqueda en profundidad de Fiber.
 
 
-### Por qué se descartó requestIdleCallback
-
-Antes mostré un modelo conceptual de Fiber que utilizaba `requestIdleCallback`, pero React no lo usa en la práctica. Los motivos son claros.
-
-- **Frecuencia de llamada demasiado baja**: solo se invoca durante auténticos «periodos de inactividad —cuando el navegador no tiene nada que hacer—», por lo que en una página ocupada el trabajo de React podría posponerse indefinidamente. Dan Abramov también señaló que «requestIdleCallback is called too infrequently to be useful for scheduling React work».
-- **Problemas de compatibilidad entre navegadores**: Safari tardó mucho en implementarlo y su comportamiento variaba entre navegadores.
-- **Límite superior de 20 ms**: el idle deadline tiene un límite máximo que impide a React controlar los tiempos con la previsibilidad que necesita.
-
-Después se probó un enfoque basado en `requestAnimationFrame` y la estimación del presupuesto de cada frame. Sin embargo, también se abandonó al concluir que el trabajo de React no necesitaba ajustarse al ciclo de vsync —la técnica que sincroniza la salida de frames con el momento en que el monitor completa el barrido vertical—.
-
-### MessageChannel
-
-Finalmente, React eligió **MessageChannel**.
-
-```js
-if (typeof MessageChannel !== 'undefined') {
-  const channel = new MessageChannel();
-  channel.port1.onmessage = performWorkUntilDeadline;
-  schedulePerformWorkUntilDeadline = () => channel.port2.postMessage(null);
-} else {
-  schedulePerformWorkUntilDeadline = () => setTimeout(performWorkUntilDeadline, 0);
-}
-```
-
-¿Por qué no `setTimeout`, sino `MessageChannel`? Según la especificación HTML, cuando `setTimeout` se anida cinco veces o más se impone un **retraso mínimo de 4 ms**. `MessageChannel`, en cambio, se ejecuta inmediatamente como macrotask en el siguiente tick del event loop sin esta limitación. Para Fiber, que divide el trabajo en unidades de 5 ms, una demora artificial de 4 ms sería fatal.
-
-(Si de 5 ms se dedican 4 a esperar, solo queda 1 ms de trabajo real. Eso no es conciliación entre vida y trabajo: es solo vida).
+### Las colas de tareas del Scheduler
 
 El paquete Scheduler de React mantiene internamente **dos min-heaps (montículos mínimos)**.
 
@@ -551,7 +524,6 @@ Idle             ~1,073,741,823ms  ~12.4일      오프스크린 렌더링
 
 Estos timeouts también funcionan como mecanismo para evitar la **inanición (starvation)**. Por baja que sea la prioridad, cuando transcurre el timeout el trabajo expira y se fuerza su ejecución. Aunque sigan llegando tareas de alta prioridad, las de baja prioridad nunca quedan ignoradas para siempre.
 
-`shouldYieldToHost()` del Scheduler comprueba si el tiempo transcurrido desde el inicio del trabajo supera `frameInterval` —**5 ms** por defecto, definido en `SchedulerFeatureFlags.js`— y decide si debe devolver el control al hilo principal.
 
 
 ## Render Phase y Commit Phase
@@ -561,7 +533,6 @@ Hasta ahora hemos visto la estructura y la planificación de Fiber. Organicemos 
 Internamente, Fiber atraviesa dos etapas: la **Render Phase** y la **Commit Phase**. Esta separación es el diseño esencial que hace posible el modelo de concurrencia de React. Si quieres observar directamente el flujo de funcionamiento de Fiber, haz clic en la imagen siguiente.
 
 [![Demo interactiva que recorre React Fiber paso a paso, de la fase de render a la de layout, junto al árbol de componentes y la pila de trabajo](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
-
 
 
 ### Render Phase

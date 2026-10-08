@@ -9,7 +9,7 @@ description: '把同一个错误从七个位置抛出去，只有四个能到达
 keywords: "前端错误处理, 错误传播, React ErrorBoundary, ErrorBoundary 接不住的东西, startTransition 错误, unhandledrejection, window onerror, React 19 onCaughtError, TanStack Query throwOnError, useSuspenseQuery 错误, react-router loader ErrorBoundary, React.lazy 分块加载失败, fetch 不会因为 404 而 reject"
 locale: zh-CN
 translationOf: '251117'
-sourceHash: 3f6e8fa00d3cc487b5caedfdc24f91ad33196ab0eb9c55899c052ad83bdee38c
+sourceHash: 5f61dbb4a2670657b49427ed194d9408f1d9765a6889dc0a770414c816b9f50b
 ---
 
 这篇文章想聊聊**前端里的错误能往上走到哪里**。
@@ -322,7 +322,7 @@ React 19 在树这一侧也多加了一个接住的位置，就是 `createRoot` 
 
 不妨看看现在你的页面上可能失败的位置有几个，其中几个能到达 `ErrorBoundary`，到不了的那些又去了哪里。
 
-[下一篇](/251203)讲每个到达点用什么来接。要分成几层，一个失败要怎么处理它占掉的画面范围，以及要让 fallback 上的重试按钮真的能重试，还得一起解开什么。
+[下一篇](/251203)讲每个到达点用什么来接。要分成几层，一个失败要怎么处理它占掉的画面范围。要让 fallback 上的重试按钮真的能重试还得一起解开什么，另外放在[重试按钮为什么不起作用](/251128)里讲。
 
 
 :::ref

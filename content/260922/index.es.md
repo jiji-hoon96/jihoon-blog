@@ -3,15 +3,16 @@ emoji: 🎲
 title: 'Modelos de decisión, Jev y Kev'
 seoTitle: 'Jev y Kev: umbral de confidence y calibración a prueba'
 date: '2026-09-22'
+updatedAt: '2026-10-08'
 categories: IA Calibración
 description: 'Jev devuelve probabilidades en vez de texto. Su confidence no se aprende: se calcula. Lo compruebo con 5,743 casos públicos y con Kev sobre mi compuerta.'
-keywords: 'Jev, TypeSafe AI, modelo System One, RLCD, calibración de modelos, ECE, exceso de confianza en RLHF, umbral de confidence, modelos de decisión, Kev open source, casos de uso de Jev'
+keywords: 'Jev, TypeSafe AI, modelo System One, RLCD, calibración de modelos, ECE, umbral de confidence, modelos de decisión, Kev open source, casos de uso de Jev'
 locale: es
 translationOf: '260922'
-sourceHash: 6cee92c77bd8cd7cc8b115142f94b9880919a1c4d8ae265bd8a0e4738421703a
+sourceHash: 4e0faef6298c2abbc6fa4c9570b25c57aece40bdb704a3af617e5d5d945ea721
 ---
 
-En este artículo quiero hablar de un modelo que no genera texto. La semana pasada TypeSafe AI presentó Jev.
+En este artículo quiero hablar de Jev, un modelo que TypeSafe AI presentó la semana pasada y que devuelve probabilidades en vez de texto. Está pensado para desarrolladores que quieren poner un umbral a la probabilidad que devuelve un modelo y procesar casos automáticamente sin revisión humana. Al terminar sabrás cómo se calcula el `confidence` de Jev, cuánto se mueve la calibración según la distribución y un procedimiento para fijar el umbral con tus propios datos.
 
 El primer uso que me llamó la atención fue la automatización del navegador. Browserbase abrió un [PR](https://github.com/browserbase/stagehand/pull/2953) que conecta Jev al `act()` de Stagehand. La estructura era enviar el :term[árbol de accesibilidad]{key="accessibility-tree"} de la página como `state` y preguntar, con opciones cerradas, «cuál es el siguiente elemento que hay que pulsar». En 40 tareas, la mediana de `act()` bajó de 1,97 segundos a 0,46, y de 147 acciones solo 4 volvieron a un LLM. El punto donde un script de Playwright se rompe en cuanto cambia un selector quedó cubierto por una llamada que devuelve una sola probabilidad. Mientras escribo esto, el PR todavía no se ha fusionado.
 
@@ -53,23 +54,7 @@ Ya hice una distinción parecida al ordenar [el diseño de harness](/260622). De
 
 Pero ¿por qué hacía falta un método de entrenamiento nuevo? ¿No basta con pedirle solo sí/no a un modelo de los de siempre?
 
-La respuesta está en la genealogía de :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback). El esqueleto de levantar un modelo de recompensa a partir de comparaciones de preferencia humana salió del [artículo de Christiano et al. de 2017](https://arxiv.org/abs/1706.03741); [Stiennon et al. lo aplicaron en 2020](https://arxiv.org/abs/2009.01325) a los modelos de lenguaje, e InstructGPT lo extendió al seguimiento de instrucciones. Los tres artículos comparten una única función objetivo: **producir la salida que el evaluador humano prefiere más.**
-
-Aquí hay que separar exactitud y :term[calibración]{key="calibration"}. La exactitud es qué porcentaje aciertas; la calibración es si sabes qué porcentaje vas a acertar. Si reúnes solo los días en los que se anunció un 70% de probabilidad de lluvia y resulta que de cada diez llovió siete veces, esa previsión está bien calibrada. No significa que su exactitud sea alta. Significa que conoce sus propios límites. **Un modelo que solo acierta el 60% saca la nota máxima en calibración si dice de sí mismo que acierta el 60%.**
-
-La métrica que mide ese desajuste es el :term[ECE]{key="ece"} (expected calibration error). Es la media, ponderada por la proporción de muestras de cada tramo, de la diferencia entre «la probabilidad declarada» y «la tasa real de acierto» en cada tramo de probabilidad, y 0 es la perfección.
-
-Para un chatbot, la preferencia humana es el objetivo correcto. El problema es que las personas prefieren una respuesta segura antes que una que titubea. Así el modelo adquiere la costumbre de hablar de forma tajante incluso cuando la cosa es ambigua. La documentación de TypeSafe llama a esto [mode dropping](https://docs.typesafe.ai/introduction/machine-learning-primer): optimizar la preferencia empuja al modelo a favorecer un estilo concreto y aplasta la probabilidad de las demás salidas posibles.
-
-OpenAI también dejó escrito lo mismo en su propio informe. La Figure 8 del [informe técnico de GPT-4](https://arxiv.org/abs/2303.08774) pone una al lado de otra las curvas de calibración del modelo preentrenado y del modelo tras el post-training, y su pie dice así.
-
-![Figura 8 del informe técnico de GPT-4. El modelo preentrenado de la izquierda sigue la diagonal con ECE 0,007; el modelo tras PPO de la derecha cae muy por debajo con ECE 0,074](2.png?w=720)
-
-Fuente: OpenAI, GPT-4 Technical Report (arXiv:2303.08774), Figure 8.
-
-> Right: Calibration plot of the post-trained GPT-4 model on the same subset of MMLU. The post-training hurts calibration significantly.
-
-Según las cifras impresas en la figura, el ECE del modelo preentrenado es **0.007** y el del modelo que pasó por PPO es **0.074**. Empeoró más de diez veces. En el proceso de pulirlo para que satisficiera a las personas se recortó su capacidad de saber qué porcentaje iba a acertar.
+La pista está en la :term[calibración]{key="calibration"}. Si la exactitud es qué porcentaje aciertas, la calibración es si sabes qué porcentaje vas a acertar, y la métrica que mide ese desajuste es el :term[ECE]{key="ece"} (expected calibration error). Es la media de la diferencia entre la probabilidad declarada y la tasa real de acierto en cada tramo de probabilidad, ponderada por la proporción de muestras, así que 0 es la perfección. Pero :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback), que optimiza la preferencia humana, desgasta esa capacidad. Como las personas prefieren una respuesta segura antes que una que titubea, el modelo adquiere la costumbre de hablar de forma tajante incluso cuando la cosa es ambigua. En la Figure 8 del [informe técnico de GPT-4](https://arxiv.org/abs/2303.08774), el ECE del modelo preentrenado era **0.007**, y el del modelo tras el post-training, **0.074**, más de diez veces peor. La definición y ese proceso los dejé explicados aparte en [Calibración y exceso de confianza de RLHF](/260917).
 
 **Aun así, el ECE por sí solo no basta.** Un predictor constante que estampa 0.6 en todas las entradas también tiene ECE 0 si su tasa real de acierto es del 60%. Si la probabilidad solo es honesta pero no se separa caso por caso, no hay sitio donde trazar la línea. Por eso, al margen de la calibración, hay que mirar también **si la probabilidad de verdad se separa**, y «la proporción que se puede automatizar dentro de un presupuesto de error», que usaré más adelante, es la métrica que reúne esas dos cosas en una sola cifra.
 

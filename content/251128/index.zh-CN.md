@@ -1,0 +1,134 @@
+---
+emoji: 🔁
+title: "重试按钮为什么不起作用"
+seoTitle: "ErrorBoundary 重试不起作用时：QueryErrorResetBoundary、queryFn 与 lazy"
+date: '2025-11-28'
+categories: 前端 React TanStack-Query 错误处理
+description: "用已安装的源码核对在 react-error-boundary 的 fallback 上按重试却回到同一个 fallback 的三种情况：查询错误用 QueryErrorResetBoundary，渲染错误用 queryFn 里的检查，React.lazy 分块失败用刷新来解开。"
+keywords: "ErrorBoundary 重试不起作用, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy 分块加载失败, useSuspenseQuery 错误, react-error-boundary"
+locale: zh-CN
+translationOf: '251128'
+sourceHash: bf21fc8f515898fa79deb6500860e1b524bee121476422600343e6ffa3febdcf
+---
+
+这篇文章想聊聊 **`ErrorBoundary` 的重试按钮为什么不起作用**。
+
+本文写给在 `react-error-boundary` 的 fallback 上挂了重试按钮，却怎么按都回到同一个画面的前端开发者。简单地说，`ErrorBoundary` 只撤回自己的状态，造成失败的状态还原样留在抛出的一方。读完之后，你会知道这种状态留下来的三种情况，以及每种情况该怎么解开。
+
+例子采用 TanStack Query 与 `react-error-boundary` 一起使用的配置，库的行为是打开已安装的源码确认的。
+
+
+## 重试不起作用的三种情况
+
+我在 fallback 上加了重试按钮。就是用户为了撤回失败而按下的那个按钮。按一下试试。**不起作用。** 同样的画面原样又出来了。
+
+它由三个原因造成，解法也各不相同。共同点只有一个。**`ErrorBoundary` 只撤回自己的状态。** 抛出的一方手里握着的状态，必须由抛出的一方来解。
+
+### reset 能解的查询错误
+
+`resetErrorBoundary()` 做的事只是把 `ErrorBoundary` 的内部标志翻回去。children 重新挂载，查询重新订阅。可是那个查询在缓存里**以错误状态扎着**。于是它立刻又抛出同一个错误，`ErrorBoundary` 又画出 fallback。
+
+为什么不重新请求而是用旧的错误，源码里也有。`errorBoundaryUtils.js` 是这样上锁的。
+
+```js
+if (options.suspense || throwOnError) {
+  if (!errorResetBoundary.isReset()) options.retryOnMount = false;
+}
+```
+
+得先读外层的守卫。**这把锁只作用在会抛出的查询上。** 开了 `suspense` 或者开了 `throwOnError` 的查询，在没有 reset 标记的情况下挂载，重试就被关掉了。不抛出的 `useQuery` 不在此列，重新挂载后就照常重新请求。
+
+![上面是没有接上 onReset 时的流程，重试点击、EB 解除、重新挂载、再次抛出缓存里的错误依次相连，最后一格有一条红色箭头折回第一格，标注为同一个 fallback。下面是接上 onReset 时的流程，重试点击、onReset 与解锁、EB 解除与重新挂载、重新请求，用蓝色箭头朝一个方向依次相连](1.png?w=720)
+
+**被锁住的只有抬到 `ErrorBoundary` 上的查询，所以两个状态必须一起解。** 立起那个标记的是 `QueryErrorResetBoundary`。打开源码，状态只是一个布尔值。
+
+```js
+reset: () => {
+	isReset = true;
+},
+```
+
+把这个 `reset` 接到 `ErrorBoundary` 的 `onReset` 上就行。TanStack Query 的文档和源码注释也把这样连接的代码放成了例子。
+
+```tsx
+export function QueryAsyncBoundary({ children, pendingFallback }: Props) {
+  return (
+    <QueryErrorResetBoundary>
+      {({ reset }) => (
+        <ErrorBoundary
+          onReset={reset}
+          fallbackRender={({ error, resetErrorBoundary }) => (
+            <ErrorFallback error={error} onRetry={resetErrorBoundary} />
+          )}
+        >
+          <Suspense fallback={pendingFallback}>{children}</Suspense>
+        </ErrorBoundary>
+      )}
+    </QueryErrorResetBoundary>
+  )
+}
+```
+
+顺序很重要。而这个顺序由 `react-error-boundary` 保证。这是打包后的文件，名字缩成了一个字母，但结构照样读得出来。
+
+```js
+resetErrorBoundary(...e) {
+  const { didCatch: t } = this.state;
+  t && (this.props.onReset?.({ args: e, reason: "imperative-api" }), this.setState(d));
+}
+```
+
+它们用逗号运算符连在一起，所以**`onReset` 先跑，`setState` 在后**。`d` 是 `didCatch` 为 `false` 的初始状态。所以 children 是在缓存的锁解开之后才重新挂载的。**一行之差，重试才成了真正的重试。**
+
+名字里加上 `Query` 也是有意的。叫 `AsyncBoundary` 的话，读起来像是任何异步都能用，其实不是，因为里面装着 `QueryErrorResetBoundary`。出于同样的理由，我没有给 `pendingFallback` 设默认值。有了默认值，只看调用处那一行就不知道垫在下面的是什么。
+
+### reset 解不开的渲染错误
+
+第二种是服务器用 200 返回了与预期不同的形状，读它的渲染抛出 `TypeError` 的情况。同一个 `ErrorBoundary` 接住了，`onReset` 也接上了，可重试就是不起作用。
+
+`reset` 能解的是**处于错误状态的查询**。可是这个查询成功了。服务器给了 200，缓存里把那个值当作正常数据存着。出错的是读了那个值的渲染。所以 `reset` 没有可解的东西，重新挂载的组件拿到 `staleTime` 还没过的同一份缓存，又在同一行抛出。
+
+要改的位置是 **`queryFn`**。
+
+```ts
+queryFn: async () => {
+  const data = await getComments(postId)
+  if (!Array.isArray(data.comments)) {
+    throw new TypeError('comments 가 배열이 아니다')
+  }
+  return data.comments
+},
+```
+
+`fetch` 响应的 `json()` 返回的是 `Promise<any>`，所以之后加上的类型是声明而不是检查，确认服务器所给值的运行时检查得自己放。**那个地方就是这里。** 把那个检查抬到 `queryFn` 里，同样的失败就变成了**查询的错误**。它以错误状态留在缓存里，`reset` 把它解开，重试就重新请求。
+
+想着反正 `ErrorBoundary` 会接住就把运行时检查往后拖，就会做出一个接得住却撤不回的 fallback。
+
+### 只有刷新能解的 lazy
+
+第三种是分块加载失败。这一次 `reset` 和 `queryFn` 都不相干。握着状态的是 `lazy` 本身。
+
+React 的 `lazyInitializer` 把拒绝记在 `payload` 里，之后每次都抛出同一个东西。
+
+```js
+throw payload._result;
+```
+
+它不会再 `import()` 一次。`lazy()` 的调用在模块顶层只发生过一次，那个 `payload` 在应用活着的期间就一直保持原样。解开 `ErrorBoundary` 重新挂载，同样的错误还是会来。
+
+所以这种失败的恢复方式是把页面重新取一遍。这也意味着有新版本发布了，所以不如就这样告诉用户。
+
+把三种情况摆在一起看，一个重试按钮得做三件不同的事。查询的错误用 `reset` 解，渲染错误在 `queryFn` 里预先变成查询的错误，分块失败用刷新解。**这三件 `ErrorBoundary` 一件也不会替你做。**
+
+
+## 结尾
+
+如果重试按钮不起作用，希望你在看按钮或 `ErrorBoundary` 之前，先确认 **是什么抛出的、那个状态留在哪里**。是查询缓存、读了服务器所给值的渲染，还是 `lazy`，解开的地方各不相同。
+
+`ErrorBoundary` 在页面上放在哪里、放几个，以及哪些失败根本不该挂重试按钮，在[ErrorBoundary 放在哪里](/251203)中讨论。
+
+:::ref
+- [docs] [TanStack Query, QueryErrorResetBoundary](https://tanstack.com/query/latest/docs/framework/react/reference/QueryErrorResetBoundary)
+- [docs] [TanStack Query, Suspense](https://tanstack.com/query/latest/docs/framework/react/guides/suspense)
+- [repo] [bvaughn/react-error-boundary](https://github.com/bvaughn/react-error-boundary)
+:::

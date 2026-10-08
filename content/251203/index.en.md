@@ -1,21 +1,20 @@
 ---
 emoji: 🧱
 title: 'Placing ErrorBoundary'
-seoTitle: 'Where to Place ErrorBoundary: Layers and Blast Radius'
+seoTitle: "Where to Place ErrorBoundary: Route, Screen, and Region"
 date: '2025-12-03'
+updatedAt: "2026-10-08"
 categories: frontend React TanStack-Query error-handling
-description: 'How many ErrorBoundary layers to use, how much screen one failure costs, and what else a retry button has to unlock before it actually retries.'
-keywords: 'React ErrorBoundary placement, nested route ErrorBoundary, QueryErrorResetBoundary, retry button does nothing, retryOnMount, fallbackRender, useRouteError, revalidate, React.lazy chunk load error, TanStack Query retry condition, ErrorBoundary design'
+description: "How many ErrorBoundaries to use and where, checked in source: what route, screen, and region each receive, one shared fallback, and retry conditions."
+keywords: "React ErrorBoundary placement, nested route ErrorBoundary, ErrorBoundary design, fallbackRender, useRouteError, revalidate, useSuspenseQuery error handling, TanStack Query retry condition"
 locale: en
 translationOf: '251203'
-sourceHash: 3494eb97de287571e9a6a2a7003d815dddb21da5a3a048746bef38b8bb6101c4
+sourceHash: 67ce7b3aa827b0db5a574e0b77296d9b06e5d25b01b56c3627979b1a008eee79
 ---
 
-In this post, I want to talk about **where you catch the errors you receive**. In [Error propagation](/251117) I threw the same error from seven places and counted where each one landed. This post is about putting a catcher at each of those destinations.
+In this post, I want to talk about **how many `ErrorBoundary` components to have and where to put them**. This is for frontend developers building screens with React Router and TanStack Query who keep weighing whether a failure should be received by the route's `ErrorBoundary`, by `react-error-boundary`, or by `useQuery`'s `isError`. By the end, you will have a criterion for deciding where `ErrorBoundary` goes, and a way to match the fallback and the retry condition to each place.
 
-Once you know the propagation paths, the next question follows on its own. **How many `ErrorBoundary` should you have, and where do they go?** Whether one is enough, whether every screen needs one, and whether the library's version overlaps with the one you wrote yourself, all get decided here.
-
-Let me state the conclusion first. The number of `ErrorBoundary` is not a matter of taste; two things decide it. **What throws**, and **what has to remain on screen when that thing dies**. The first was covered in part 1, so this post starts with the second.
+To give the conclusion first, the number of `ErrorBoundary` components is set not by taste but by two things: **what throws**, and **what has to remain on screen when it dies**. This post starts with the latter and covers the former where it is needed.
 
 
 ## The blast radius you can afford
@@ -50,7 +49,7 @@ Once you install `react-error-boundary`, the router's side starts to look deleta
 
 ### The loader lives outside ErrorBoundary
 
-This is exactly what part 1 showed. An `ErrorBoundary` is a class built from `getDerivedStateFromError` and `componentDidCatch`, so only **what React caught inside the tree** reaches it. A loader is a function that runs outside the tree, before rendering even starts. What it throws never passes through React, so no amount of wrapping makes it visible.
+An `ErrorBoundary` is a class built from `getDerivedStateFromError` and `componentDidCatch`, so only **what React caught inside the tree** reaches it. A loader is a function that runs outside the tree, before rendering even starts. What it throws never passes through React, so no amount of wrapping makes it visible. How I confirmed the destinations by throwing the same error from several places is written up in [Error propagation](/251117).
 
 That means if even one route uses a loader, **you cannot delete the route `ErrorBoundary`.** The moment you do, that failure has nowhere to go.
 
@@ -88,7 +87,7 @@ Once the layers are split four ways, one last fork remains. For a region the scr
 
 Either way you lose only that region and keep the rest. What differs is not how much you lose but **what you draw there instead**.
 
-Lifting it into an `ErrorBoundary` shrinks the code. Call `useSuspenseQuery` inside and that component has neither `isPending` nor `isError`. The outer `Suspense` takes the waiting, the outer `ErrorBoundary` takes the failure. The component only draws the case where data exists.
+Lifting it into an `ErrorBoundary` shrinks the code. Call `useSuspenseQuery` inside and that component has neither `isPending` nor `isError`. The outer `Suspense` takes the waiting, the outer `ErrorBoundary` takes the failure. The component only draws the case where data exists. The `QueryAsyncBoundary` below is a component that bundles that `Suspense` and `ErrorBoundary` together.
 
 ```tsx
 <section>
@@ -184,114 +183,11 @@ I picked this one. The reason is **that you can swap the name right there**. Abo
 **Two layers whose screens do not drift apart is what this choice buys.** Split the layers four ways and the failure screens the user sees risk becoming four as well, and swapping one name makes them one.
 
 
-## Three cases where retry does nothing
-
-I attached a retry button to the fallback. That is the button the user presses to undo a failure. Let us press it. **Nothing happens.** The same screen comes back unchanged.
-
-It arises for three reasons and each is undone differently. They have one thing in common. **An `ErrorBoundary` only undoes its own state.** State held by whatever threw has to be cleared by whatever threw.
-
-### The query error reset clears
-
-All `resetErrorBoundary()` does is flip the `ErrorBoundary`'s internal flag back. The children remount and the query resubscribes. But that query is **stuck in the cache in an error state.** So it immediately throws the same error again and the `ErrorBoundary` draws the fallback again.
-
-Why it uses the old error instead of refetching is in the source too. `errorBoundaryUtils.js` locks it like this.
-
-```js
-if (options.suspense || throwOnError) {
-  if (!errorResetBoundary.isReset()) options.retryOnMount = false;
-}
-```
-
-Read the outer guard first. **This lock only applies to queries that throw.** A query with `suspense` on, or with `throwOnError` on, that mounts without a reset marker has its retry turned off. A `useQuery` that does not throw is unaffected and simply refetches when it remounts.
-
-![On top, the flow when onReset is not wired: retry click, EB released, remount, throws the cached error again, and from the last box a red arrow loops back to the first labelled as the same fallback. Below, the flow when onReset is wired: retry click, onReset and lock released, EB released and remount, refetch, connected in one direction by blue arrows](2.png?w=720)
-
-**What gets locked is only a query lifted into an `ErrorBoundary`, and that is why you have to clear both states together.** What raises that marker is `QueryErrorResetBoundary`. Open the source and the state is a single boolean.
-
-```js
-reset: () => {
-	isReset = true;
-},
-```
-
-You wire this `reset` to the `ErrorBoundary`'s `onReset`. TanStack Query's docs and source comments carry the same wiring as an example.
-
-```tsx
-export function QueryAsyncBoundary({ children, pendingFallback }: Props) {
-  return (
-    <QueryErrorResetBoundary>
-      {({ reset }) => (
-        <ErrorBoundary
-          onReset={reset}
-          fallbackRender={({ error, resetErrorBoundary }) => (
-            <ErrorFallback error={error} onRetry={resetErrorBoundary} />
-          )}
-        >
-          <Suspense fallback={pendingFallback}>{children}</Suspense>
-        </ErrorBoundary>
-      )}
-    </QueryErrorResetBoundary>
-  )
-}
-```
-
-Order matters. And `react-error-boundary` guarantees that order. It is a built file so the names are down to one letter, but the structure still reads.
-
-```js
-resetErrorBoundary(...e) {
-  const { didCatch: t } = this.state;
-  t && (this.props.onReset?.({ args: e, reason: "imperative-api" }), this.setState(d));
-}
-```
-
-They are joined by a comma operator, so **`onReset` runs first and `setState` comes after**. `d` is the initial state where `didCatch` is `false`. So the children remount after the cache lock has been released. **One line of difference is what turns retry into an actual retry.**
-
-Putting `Query` in the name is deliberate too. Call it `AsyncBoundary` and it reads as usable for any async work, which it is not, because `QueryErrorResetBoundary` sits inside it. For the same reason I gave `pendingFallback` no default value. With a default, a single line at the call site does not tell you what gets laid down.
-
-### The render error reset cannot clear
-
-The second one is the case from part 1. The server returns a 200 with a shape other than the one you expected, and the render that reads it throws a `TypeError`. The same `ErrorBoundary` received it and `onReset` is wired, yet retry does nothing.
-
-What `reset` clears is **a query in an error state**. But this query succeeded. The server gave a 200 and the cache holds that value as normal data. What produced the error is the render that read it. So `reset` has nothing to clear, and the remounted component gets the same cache, still within `staleTime`, and throws again on the same line.
-
-The place to fix it is **`queryFn`**.
-
-```ts
-queryFn: async () => {
-  const data = await getComments(postId)
-  if (!Array.isArray(data.comments)) {
-    throw new TypeError('comments 가 배열이 아니다')
-  }
-  return data.comments
-},
-```
-
-Part 1 said the place where types end is the place to put a runtime check. **That place is here.** Lift that check up into `queryFn` and the same failure becomes **the query's error**. It stays in the cache in an error state, `reset` clears it, and retry refetches.
-
-If you put the runtime check off because the `ErrorBoundary` catches it anyway, you get a fallback that receives but cannot undo.
-
-### The lazy only a reload clears
-
-The third is a chunk load failure. This time neither `reset` nor `queryFn` is involved. What holds the state is `lazy` itself.
-
-As part 1 showed, React's `lazyInitializer` writes the rejection into `payload` and from then on throws the same thing every time.
-
-```js
-throw payload._result;
-```
-
-It does not `import()` again. The `lazy()` call happened once at module top level, and that `payload` stays as it is for the life of the app. Release the `ErrorBoundary` and remount, and the same error comes back.
-
-So recovering from this failure means fetching the page again. It also means a new version has been deployed, so it is better to tell the user exactly that.
-
-Put the three cases together and one retry button has to do three different jobs. A query error is cleared with `reset`, a render error by turning it into a query error up in `queryFn` beforehand, a chunk failure by reloading. **The `ErrorBoundary` does none of them for you.**
-
-
 ## Failures you do not attach retry to
 
-Now that recoverable and unrecoverable failures are separated, the button has to be separated too.
+Putting a retry button in the fallback does not clear every failure, because an `ErrorBoundary` only resets its own state. A query's error is refetched only once `QueryErrorResetBoundary`'s `reset` is connected to `onReset`; a render error from reading an unexpected value the server sent with a 200 clears only once `queryFn` checks it first and turns it into the query's error; and a chunk load failure of `React.lazy` clears only with a reload. How I checked the three cases in the source is written up separately in [Why the Retry Button Does Nothing](/251128). Since failures split into recoverable and unrecoverable this way, the button has to be split too.
 
-Showing the same button on every failure means **guiding the user toward an action they cannot take**. Press retry on a 404 and you get the same 404. A 403 from missing permissions is the same. A chunk load failure does nothing at all, for the reason in the previous section.
+Showing the same button on every failure means **guiding the user toward an action they cannot take**. Press retry on a 404 and you get the same 404. A 403 from missing permissions is the same. A chunk load failure does nothing at all, as shown above.
 
 Splitting it once inside the shared fallback is enough.
 
@@ -368,7 +264,7 @@ There is one premise to confirm before turning retries on. Is that request **ide
 
 ## Wrapping up
 
-Part 1 covered where errors go, and this post decided what to put in those places. To summarize:
+In this post I decided what to put in each place that receives a failure. To summarize:
 
 - The position of an `ErrorBoundary` is decided by the blast radius you can afford. You ask not what to wrap, but what has to remain when this dies.
 - You cannot delete any of the three layers of `ErrorBoundary`. What the loader threw cannot reach the `ErrorBoundary` in the tree, `revalidate` cannot clear the query cache, and adding one more below narrows the radius.

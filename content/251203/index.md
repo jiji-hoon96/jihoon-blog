@@ -1,21 +1,20 @@
 ---
 emoji: 🧱
 title: 'ErrorBoundary 배치'
-seoTitle: "프론트엔드 ErrorBoundary 배치, 층과 넓이와 QueryErrorResetBoundary"
+seoTitle: "프론트엔드 ErrorBoundary 배치, 라우트와 화면과 영역으로 나누는 기준"
 date: '2025-12-03'
+updatedAt: "2026-10-08"
 categories: 프론트엔드 React TanStack-Query 에러핸들링
-description: '에러가 어디로 가는지 알았다면 받을 자리를 놓을 차례다. ErrorBoundary 를 몇 층으로 나눌지, 실패 하나에 화면을 얼마나 내줄지, 그리고 재시도 버튼이 실제로 재시도하게 만들려면 무엇을 같이 풀어야 하는지를 설치본 소스로 확인한다.'
-keywords: "React ErrorBoundary 위치, 중첩 라우트 ErrorBoundary, QueryErrorResetBoundary, 재시도 안 됨, retryOnMount, fallbackRender, useRouteError, revalidate, React.lazy 새로고침, TanStack Query retry 조건, ErrorBoundary 설계"
+description: "React Router 와 TanStack Query 를 쓰는 화면에서 ErrorBoundary 를 몇 개, 어디에 둘지 정하는 기준을 설치본 소스로 확인한다. 라우트, 화면, 영역마다 받는 에러와 되돌리는 방법, fallback 을 하나로 맞추는 법, 재시도 조건까지 다룬다."
+keywords: "React ErrorBoundary 위치, 중첩 라우트 ErrorBoundary, ErrorBoundary 설계, fallbackRender, useRouteError, revalidate, useSuspenseQuery 에러 처리, TanStack Query retry 조건"
 ---
 
-이번 포스팅에서는 **받은 에러를 어디서 받을 것인가**에 대한 이야기를 해보려고 한다. [에러 전이](/251117)에서 같은 에러를 일곱 자리에서 던져 보고 도착지를 셌다. 이 글은 그 도착지마다 받을 자리를 놓는 이야기다.
+이번 포스팅에서는 **`ErrorBoundary` 를 몇 개 두고 어디에 둘 것인가**에 대한 이야기를 해보려고 한다. React Router 와 TanStack Query 로 화면을 만들면서 실패를 라우트의 `ErrorBoundary`, `react-error-boundary`, `useQuery` 의 `isError` 중 어디서 받을지 고민하는 프론트엔드 개발자를 위한 글이다. 끝까지 읽으면 `ErrorBoundary` 를 둘 자리를 정하는 기준과, 자리마다 fallback 과 재시도 조건을 맞추는 방법을 얻을 수 있다.
 
-전이 경로를 알고 나면 다음 질문이 저절로 따라온다. **`ErrorBoundary` 를 몇 개 두고 어디에 둘 것인가.** 하나만 두면 되는지, 화면마다 둬야 하는지, 라이브러리가 주는 것과 직접 만든 것이 겹치는지가 여기서 갈린다.
-
-먼저 결론부터 적으면, `ErrorBoundary` 의 개수는 취향이 아니라 두 가지가 정한다. **무엇이 던지느냐**와 **그것이 죽었을 때 화면에 무엇이 남아야 하느냐**다. 앞의 것은 1편에서 다루었으니 이 글은 뒤의 것으로 시작한다.
+먼저 결론부터 적으면, `ErrorBoundary` 의 개수는 취향이 아니라 두 가지가 정한다. **무엇이 던지느냐**와 **그것이 죽었을 때 화면에 무엇이 남아야 하느냐**다. 이 글은 뒤의 것으로 시작하고, 앞의 것은 필요한 자리에서 짚는다.
 
 
-## 내줘도 되는 넓이
+## 내줘도 되는 범위
 
 `ErrorBoundary` 를 어디에 둘지 물으면 보통 어느 컴포넌트를 감쌀지를 생각한다. 그 질문으로는 답이 안 나온다. 감쌀 수 있는 컴포넌트는 언제나 여러 개고 어느 것을 골라도 코드는 돌아가기 때문이다.
 
@@ -23,9 +22,9 @@ keywords: "React ErrorBoundary 위치, 중첩 라우트 ErrorBoundary, QueryErro
 
 이 질문에는 자리마다 답이 다르다. 화면의 뼈대가 되는 데이터가 없으면 그 화면은 성립하지 않는다. 이름도 상태도 없는데 동작 버튼만 덩그러니 두는 것은 의미가 없다. 반대로 곁가지 목록 하나가 실패했다고 화면 전체를 가리면, 사용자는 멀쩡히 볼 수 있었던 나머지를 전부 잃는다. 되돌리기 어려운 동작은 또 다르다. 실패했다는 사실을 누른 그 자리에서 알려야 한다.
 
-**`ErrorBoundary` 가 하는 일은 실패를 잡는 것이 아니라 fallback 이 그려지는 범위를 정하는 것이다.** fallback 은 실패했을 때 원래 화면 대신 그리는 것이다. 감싼 만큼이 사라진다. 그러니 `ErrorBoundary` 의 위치는 잡고 싶은 것이 아니라 **내줘도 되는 넓이**로 정해진다.
+**`ErrorBoundary` 가 하는 일은 실패를 잡는 것이 아니라 fallback 이 그려지는 범위를 정하는 것이다.** fallback 은 실패했을 때 원래 화면 대신 그리는 것이다. 감싼 만큼이 사라진다. 그러니 `ErrorBoundary` 의 위치는 잡고 싶은 것이 아니라 **내줘도 되는 범위**로 정해진다.
 
-그 넓이가 네 단계로 갈린다.
+그 범위가 네 단계로 갈린다.
 
 | 층 이름 | 무엇을 받나 | 무엇으로 되돌리나 |
 |---|---|---|
@@ -47,7 +46,7 @@ keywords: "React ErrorBoundary 위치, 중첩 라우트 ErrorBoundary, QueryErro
 
 ### ErrorBoundary 밖의 loader
 
-1편에서 본 그대로다. `ErrorBoundary` 는 `getDerivedStateFromError` 와 `componentDidCatch` 로 만들어진 클래스라 **React 트리 안에서 잡힌 것**만 온다. loader 는 렌더가 시작되기 전에 트리 밖에서 도는 함수다. 거기서 던진 것은 React 를 거치지 않으므로 아무리 감싸도 보이지 않는다.
+`ErrorBoundary` 는 `getDerivedStateFromError` 와 `componentDidCatch` 로 만들어진 클래스라 **React 트리 안에서 잡힌 것**만 온다. loader 는 렌더가 시작되기 전에 트리 밖에서 도는 함수다. 거기서 던진 것은 React 를 거치지 않으므로 아무리 감싸도 보이지 않는다. 같은 에러를 여러 자리에서 던져 보며 도착지를 확인한 과정은 [에러 전이](/251117)에 정리해 두었다.
 
 그래서 loader 를 쓰는 라우트가 하나라도 있으면 **라우트 `ErrorBoundary` 를 지울 수 없다.** 지우는 순간 그 실패는 갈 곳이 없어진다.
 
@@ -59,7 +58,7 @@ loader 가 없는 라우트를 생각해 보자. 화면 안에서 `useSuspenseQu
 
 **받는 것과 되돌리는 것은 다른 일이다.** `ErrorBoundary` 를 배치할 때 이 둘을 같이 보지 않으면, 받기는 하는데 아무도 못 푸는 fallback 이 생긴다.
 
-### 넓이를 좁히는 아래 ErrorBoundary
+### 범위를 좁히는 아래 ErrorBoundary
 
 셋째는 막히는 것이 아니라 너무 많이 잃는 것이다.
 
@@ -76,7 +75,7 @@ function findNearestBoundary(matches, routeId) {
 
 루트가 맡으면 화면이 통째로 사라진다. 실패한 것은 안쪽 영역 하나뿐인데 헤더도 내비게이션도 같이 없어진다. 자식 라우트에 `ErrorBoundary` 를 붙이면 fallback 이 `<Outlet />` 자리에만 그려진다.
 
-**그래서 아래에 `ErrorBoundary` 를 하나 더 두는 것은 겹치는 일이 아니다.** 같은 실패를 두 번 잡는 게 아니라 **어디까지 지울지를 바꾸는 것**이다. 셋을 겹쳐 두는 것처럼 보이는 배치는, 실은 서로 다른 것을 서로 다른 넓이로 받게 두는 것이다.
+**그래서 아래에 `ErrorBoundary` 를 하나 더 두는 것은 겹치는 일이 아니다.** 같은 실패를 두 번 잡는 게 아니라 **어디까지 지울지를 바꾸는 것**이다. 셋을 겹쳐 두는 것처럼 보이는 배치는, 실은 서로 다른 것을 서로 다른 범위로 받게 두는 것이다.
 
 
 ## 영역 ErrorBoundary 와 컴포넌트 안 사이
@@ -85,7 +84,7 @@ function findNearestBoundary(matches, routeId) {
 
 어느 쪽이든 그 영역만 잃고 나머지는 지킨다. 갈리는 것은 잃는 범위가 아니라 **그 자리에 무엇을 대신 그리느냐**다.
 
-`ErrorBoundary` 로 올리면 코드가 줄어든다. 안에서 `useSuspenseQuery` 를 부르면 그 컴포넌트에는 `isPending` 도 `isError` 도 없다. 대기는 바깥 `Suspense` 가, 실패는 바깥 `ErrorBoundary` 가 받는다. 컴포넌트는 데이터가 있는 경우만 그린다.
+`ErrorBoundary` 로 올리면 코드가 줄어든다. 안에서 `useSuspenseQuery` 를 부르면 그 컴포넌트에는 `isPending` 도 `isError` 도 없다. 대기는 바깥 `Suspense` 가, 실패는 바깥 `ErrorBoundary` 가 받는다. 컴포넌트는 데이터가 있는 경우만 그린다. 아래의 `QueryAsyncBoundary` 는 그 `Suspense` 와 `ErrorBoundary` 를 한데 묶은 컴포넌트다.
 
 ```tsx
 <section>
@@ -143,7 +142,7 @@ export function RootErrorBoundary() {
 }
 ```
 
-그래서 라우트에는 컴포넌트만 꽂으면 된다. 자식 라우트의 `ErrorBoundary` 도 같은 모양이고 같은 훅을 쓴다. 둘을 가르는 것은 코드가 아니라 **붙어 있는 라우트**다. 어느 라우트에 붙었느냐가 곧 fallback 이 그려지는 넓이다.
+그래서 라우트에는 컴포넌트만 꽂으면 된다. 자식 라우트의 `ErrorBoundary` 도 같은 모양이고 같은 훅을 쓴다. 둘을 가르는 것은 코드가 아니라 **붙어 있는 라우트**다. 어느 라우트에 붙었느냐가 곧 fallback 이 그려지는 범위다.
 
 ### 넘겨받는 ErrorBoundary
 
@@ -181,114 +180,11 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
 **두 층의 화면이 어긋나지 않는 것이 이 선택의 값이다.** 층을 넷으로 나누면 사용자가 보는 실패 화면도 넷이 될 위험이 있는데, 이름을 한 번 갈아 끼우는 것으로 하나가 된다.
 
 
-## 재시도가 듣지 않는 세 경우
-
-fallback 에 재시도 버튼을 달았다. 사용자가 실패를 되돌리려고 누르는 그 버튼이다. 눌러 보자. **안 듣는다.** 같은 화면이 그대로 다시 나온다.
-
-세 가지 이유로 생기고 푸는 방법도 저마다 다르다. 공통점은 하나다. **`ErrorBoundary` 는 자기 상태만 되돌린다.** 던진 쪽이 들고 있는 상태는 던진 쪽에서 풀어야 한다.
-
-### reset 이 푸는 쿼리 에러
-
-`resetErrorBoundary()` 가 하는 일은 `ErrorBoundary` 의 내부 플래그를 되돌리는 것뿐이다. children 이 다시 마운트되고 쿼리가 다시 구독된다. 그런데 그 쿼리는 캐시에 **에러 상태로 박혀 있다.** 그래서 즉시 같은 에러를 다시 던지고 `ErrorBoundary` 는 다시 fallback 을 그린다.
-
-왜 재요청하지 않고 옛 에러를 쓰는지도 소스에 있다. `errorBoundaryUtils.js` 가 이렇게 잠근다.
-
-```js
-if (options.suspense || throwOnError) {
-  if (!errorResetBoundary.isReset()) options.retryOnMount = false;
-}
-```
-
-바깥의 가드부터 읽어야 한다. **이 잠금은 던지는 쿼리에만 걸린다.** `suspense` 이거나 `throwOnError` 를 켠 쿼리가 reset 표시 없이 마운트되면 재시도가 꺼진다. 던지지 않는 `useQuery` 는 해당이 없어 재마운트하면 그냥 다시 요청한다.
-
-![위쪽은 onReset 을 잇지 않았을 때의 흐름으로 재시도 클릭, EB 해제, 재마운트, 캐시의 에러를 다시 던짐이 이어지고 마지막에서 첫 칸으로 빨간 화살표가 되돌아와 같은 fallback 이라고 적혀 있다. 아래쪽은 onReset 을 이었을 때로 재시도 클릭, onReset 과 잠금 해제, EB 해제와 재마운트, 다시 요청이 파란 화살표로 한 방향으로 이어진다](2.png?w=720)
-
-**잠기는 것은 `ErrorBoundary` 로 올린 쿼리뿐이고, 그래서 두 상태를 같이 풀어야 한다.** 그 표시를 세우는 것이 `QueryErrorResetBoundary` 다. 소스를 열면 상태가 boolean 하나다.
-
-```js
-reset: () => {
-	isReset = true;
-},
-```
-
-이 `reset` 을 `ErrorBoundary` 의 `onReset` 에 이어 주면 된다. TanStack Query 의 문서와 소스 주석이 같은 배선을 예제로 싣고 있다.
-
-```tsx
-export function QueryAsyncBoundary({ children, pendingFallback }: Props) {
-  return (
-    <QueryErrorResetBoundary>
-      {({ reset }) => (
-        <ErrorBoundary
-          onReset={reset}
-          fallbackRender={({ error, resetErrorBoundary }) => (
-            <ErrorFallback error={error} onRetry={resetErrorBoundary} />
-          )}
-        >
-          <Suspense fallback={pendingFallback}>{children}</Suspense>
-        </ErrorBoundary>
-      )}
-    </QueryErrorResetBoundary>
-  )
-}
-```
-
-순서가 중요하다. 그리고 그 순서는 `react-error-boundary` 가 보장한다. 빌드된 파일이라 이름이 한 글자로 줄어 있지만 구조는 그대로 읽힌다.
-
-```js
-resetErrorBoundary(...e) {
-  const { didCatch: t } = this.state;
-  t && (this.props.onReset?.({ args: e, reason: "imperative-api" }), this.setState(d));
-}
-```
-
-쉼표 연산자로 묶여 있어 **`onReset` 이 먼저 돌고 `setState` 가 뒤**다. `d` 는 `didCatch` 가 `false` 인 초기 상태다. 그러니 캐시의 잠금이 풀린 뒤에 children 이 다시 마운트된다. **한 줄 차이로 재시도가 진짜 재시도가 된다.**
-
-이름에 `Query` 를 붙인 것도 의도다. `AsyncBoundary` 라고 부르면 어떤 비동기에나 쓸 수 있을 것처럼 읽히는데, 안에 `QueryErrorResetBoundary` 가 들어 있어서 그렇지 않다. 같은 이유로 `pendingFallback` 에 기본값을 두지 않았다. 기본값이 있으면 호출 지점 한 줄만 봐서는 무엇이 깔리는지 알 수 없다.
-
-### reset 이 풀 수 없는 렌더 에러
-
-둘째는 1편에서 본 경우다. 서버가 200 으로 예상과 다른 모양을 주고 그것을 읽는 렌더가 `TypeError` 를 던진다. 같은 `ErrorBoundary` 가 받았고 `onReset` 도 이어져 있는데 재시도가 안 듣는다.
-
-`reset` 이 푸는 것은 **에러 상태인 쿼리**다. 그런데 이 쿼리는 성공했다. 서버가 200 을 줬고 캐시에는 그 값이 정상 데이터로 들어 있다. 에러를 낸 것은 그 값을 읽은 렌더다. 그래서 `reset` 은 풀 것이 없고, 재마운트된 컴포넌트는 `staleTime` 이 남은 같은 캐시를 받아 같은 줄에서 다시 던진다.
-
-고치는 자리는 **`queryFn`** 이다.
-
-```ts
-queryFn: async () => {
-  const data = await getComments(postId)
-  if (!Array.isArray(data.comments)) {
-    throw new TypeError('comments 가 배열이 아니다')
-  }
-  return data.comments
-},
-```
-
-1편에서 타입이 끝나는 자리가 런타임 검사를 놓을 자리라고 했다. **그 자리가 여기다.** 그 검사를 `queryFn` 으로 올리면 같은 실패가 **쿼리의 에러**가 된다. 캐시에는 에러 상태로 남고, `reset` 이 그것을 풀고, 재시도가 다시 요청한다.
-
-`ErrorBoundary` 가 받아 주니 런타임 검사는 나중에 하자고 미루면, 받기는 하는데 되돌릴 수 없는 fallback 이 생긴다.
-
-### 새로 고침만 푸는 lazy
-
-셋째는 청크 로드 실패다. 이번에는 `reset` 도 `queryFn` 도 관계가 없다. 상태를 들고 있는 것이 `lazy` 자체다.
-
-1편에서 본 대로 React 의 `lazyInitializer` 는 거부를 `payload` 에 적어 두고 그 뒤로는 매번 같은 것을 다시 던진다.
-
-```js
-throw payload._result;
-```
-
-다시 `import()` 하지 않는다. `lazy()` 호출은 모듈 최상위에서 한 번 일어났고 그 `payload` 는 앱이 사는 동안 그대로다. `ErrorBoundary` 를 풀어 재마운트해도 같은 에러가 다시 온다.
-
-그래서 이 실패의 복구는 페이지를 다시 받는 것이다. 새 버전이 배포됐다는 뜻이기도 하니 사용자에게 그렇게 말해 주는 편이 낫다.
-
-세 경우를 놓고 보면 재시도 버튼 하나가 세 가지 다른 일을 해야 한다. 쿼리의 에러는 `reset` 으로, 렌더 에러는 `queryFn` 에서 미리 쿼리의 에러로 바꿔서, 청크 실패는 새로 고침으로 푼다. **`ErrorBoundary` 는 그중 어느 것도 대신 해 주지 않는다.**
-
-
 ## 재시도를 붙이지 않을 실패
 
-복구가 되는 실패와 안 되는 실패를 갈랐으니 버튼도 갈라야 한다.
+fallback 에 재시도 버튼을 달아도 모든 실패가 풀리지는 않는다. `ErrorBoundary` 는 자기 상태만 되돌리기 때문이다. 쿼리의 에러는 `QueryErrorResetBoundary` 의 `reset` 을 `onReset` 에 이어야 다시 요청되고, 서버가 200 으로 준 예상 밖의 값을 읽다 난 렌더 에러는 `queryFn` 에서 미리 검사해 쿼리의 에러로 바꿔야 풀리며, `React.lazy` 의 청크 로드 실패는 새로 고침으로만 풀린다. 세 경우를 소스로 확인한 과정은 [재시도 버튼이 안 듣는 이유](/251128)에 따로 정리해 두었다. 이렇게 복구가 되는 실패와 안 되는 실패가 갈리니 버튼도 갈라야 한다.
 
-모든 실패에 같은 버튼을 보여주면 사용자에게 **할 수 없는 행동을 안내하는 셈**이 된다. 404 에서 재시도를 눌러 봐야 같은 404 가 온다. 권한이 없어서 받은 403 도 같다. 청크 로드 실패는 앞 절에서 본 이유로 아예 안 듣는다.
+모든 실패에 같은 버튼을 보여주면 사용자에게 **할 수 없는 행동을 안내하는 셈**이 된다. 404 에서 재시도를 눌러 봐야 같은 404 가 온다. 권한이 없어서 받은 403 도 같다. 청크 로드 실패는 위에서 본 대로 아예 안 듣는다.
 
 공유하는 fallback 안에서 한 번만 갈라 두면 된다.
 
@@ -365,16 +261,16 @@ function defaultRetryDelay(failureCount) {
 
 ## 마무리
 
-1편에서 에러가 어디로 가는지를 다루어보았고, 이 글에서 그 자리에 무엇을 놓을지를 정해보았다. 내용을 정리해보면 아래와 같다.
+이 글에서는 실패를 받을 자리마다 무엇을 놓을지를 정해보았다. 내용을 정리해보면 아래와 같다.
 
-- `ErrorBoundary` 의 위치는 내줘도 되는 넓이로 정해진다. 무엇을 감쌀지가 아니라 이게 죽으면 무엇이 남아야 하는지로 묻는다.
-- 세 층의 `ErrorBoundary` 는 어느 하나도 지울 수 없다. loader 가 던진 것은 트리의 `ErrorBoundary` 가 못 받고, `revalidate` 는 쿼리 캐시를 못 풀고, 아래에 하나 더 두는 것은 넓이를 좁히는 일이다.
+- `ErrorBoundary` 의 위치는 내줘도 되는 범위로 정해진다. 무엇을 감쌀지가 아니라 이게 죽으면 무엇이 남아야 하는지로 묻는다.
+- 세 층의 `ErrorBoundary` 는 어느 하나도 지울 수 없다. loader 가 던진 것은 트리의 `ErrorBoundary` 가 못 받고, `revalidate` 는 쿼리 캐시를 못 풀고, 아래에 하나 더 두는 것은 범위를 좁히는 일이다.
 - 영역을 통째로 버려도 되면 `ErrorBoundary`, 그 자리의 문구가 필요하면 `useQuery` 다. 후자를 고르면 네 가지 상태를 전부 다뤄야 한다.
 - `fallbackRender` 로 이름을 갈아 끼우면 층이 달라도 fallback 이 하나가 된다.
 - 재시도는 던진 쪽의 상태를 풀어야 듣는다. 쿼리는 `reset`, 렌더 에러는 `queryFn` 으로 올려서, 청크는 새로 고침이다.
 - `ErrorBoundary` 가 실패를 보는 시각은 재시도 조건이 정한다. 4xx 를 거르지 않으면 고칠 수 없는 실패를 몇 초 숨긴다.
 
-`ErrorBoundary` 하나와 토스트면 충분하지 않냐고 물을 수 있다. 화면이 두세 개인 제품이라면 그럴듯한 말이고, 사실 **층의 개수는 제품이 정한다.** 화면이 한 장이면 내줄 것도 한 장뿐이라 넓이의 차이가 안 보인다. 화면 안에 독립적인 영역이 늘어날수록 그 차이가 커진다.
+`ErrorBoundary` 하나와 토스트면 충분하지 않냐고 물을 수 있다. 화면이 두세 개인 제품이라면 그럴듯한 말이고, 사실 **층의 개수는 제품이 정한다.** 화면이 한 장이면 내줄 것도 한 장뿐이라 범위의 차이가 안 보인다. 화면 안에 독립적인 영역이 늘어날수록 그 차이가 커진다.
 
 다만 개수와 무관하게 남는 것이 있다. 트리에 `ErrorBoundary` 를 몇 개 두든 `loader` 가 던진 것은 거기로 가지 않고, 재시도는 던진 쪽의 상태를 풀지 않으면 듣지 않는다. **줄일 수 있는 것은 층이지 이 사실들이 아니다.**
 

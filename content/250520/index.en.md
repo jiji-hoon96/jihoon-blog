@@ -3,21 +3,20 @@ emoji: ⚛️
 title: 'Mastering React Fiber'
 seoTitle: 'React Fiber: Architecture and Concurrent Rendering'
 date: '2025-05-20'
+updatedAt: "2026-10-08"
 categories: frontend React
-description: "A source-based analysis of React Fiber: Stack Reconciler, Lane priorities, double buffering, the MessageChannel scheduler, and Concurrent Features."
+description: "A source-based look at React Fiber: Stack Reconciler, Fiber nodes, double buffering, Lanes, the Work Loop, render and commit, and Concurrent Features."
 keywords: "React Fiber, React Fiber architecture, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, React rendering, React source code analysis, Virtual DOM, Reconciliation, Lane priority, frontend interview"
 locale: en
 translationOf: '250520'
-sourceHash: 5f4d292c9e9b26fce26a9220b9d9d706f2ae418e385b27133899d86216a9d3bd
+sourceHash: 3377c18b0ba4131a4cd9e2f09d904e200a6f09b2abe55a812ca1caa70ff5239e
 ---
 
 In this post, I want to talk about the **Fiber architecture**, which could be called the heart of React.
 
+This is for frontend developers who know the one-line definition, "it divides work into units," but find it hard to explain how React actually implements it. By the end, you will be able to explain, with React's source code as evidence, why Fiber appeared, what a Fiber node looks like, and how double buffering, Lanes, and the Work Loop fit together to make Concurrent Features possible.
+
 When I first encountered React, I thought of the word **"Fiber"** as little more than a common interview question. I memorized a one-line definition—"it divides rendering into units of work and processes them"—and assumed that was the whole story. But once I began looking through React's actual source code, I realized that Fiber is not merely a concept. It is the runtime architecture that governs **everything** about React rendering.
-
-> I still cannot forget the shock of opening the React source code for the first time. I remember thinking, "What... is all of this?"
-
-This article goes beyond answering "What is Fiber?" with "It divides work into units." We will dig deeply into **why** Fiber was created, **how** it was designed, and **how** that structure enables React's Concurrent Features.
 
 
 ## Why Was Fiber Introduced?
@@ -77,7 +76,7 @@ function performWork(deadline) {
 
 The code above illustrates Fiber's early conceptual model. The key is that the `while` loop processes only one unit of work at a time and, when time runs short, exits the loop and returns control to the browser.
 
-(The initial approach used `requestIdleCallback`, but React does not actually use it. We will examine why later.)
+The code above uses `requestIdleCallback` to illustrate the concept, but React does not actually use it. This API is called only when the browser is truly idle, so on a busy page React's work could be delayed indefinitely, and support and behavior also differed across browsers. React's Scheduler package therefore schedules the next macrotask with `MessageChannel` to continue its work, returning control to the main thread in between. Why it passed over `setTimeout` in favor of `MessageChannel` is covered separately in [Why React Uses MessageChannel](/250515).
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">
@@ -492,33 +491,7 @@ The main work performed in `completeWork` is as follows.
 To summarize the traversal: **descend along child (beginWork) -> after completing a leaf, move to sibling -> if there is no sibling, ascend along return (completeWork)**. This is Fiber's depth-first traversal order.
 
 
-### Why React Abandoned requestIdleCallback
-
-Earlier, the Fiber conceptual model showed code using `requestIdleCallback`, but React does not actually use it. The reasons are clear.
-
-- **It is called too infrequently**: It runs only during truly "idle time" when the browser has nothing else to do, so React work could be delayed indefinitely on a busy page. Dan Abramov has also said, "requestIdleCallback is called too infrequently to be useful for scheduling React work."
-- **Browser compatibility issues**: Safari did not implement it for a long time, and behavior varied between browsers.
-- **A 20 ms cap**: The idle deadline has an upper bound, preventing the predictable degree of timing control React needs.
-
-React next tried `requestAnimationFrame` plus frame-budget estimation, but abandoned that approach as well after deciding that React's work did not need to align with the vsync cycle (the technology that synchronizes frame output to the point at which a monitor completes its vertical refresh).
-
-### MessageChannel
-
-React ultimately chose **MessageChannel**.
-
-```js
-if (typeof MessageChannel !== 'undefined') {
-  const channel = new MessageChannel();
-  channel.port1.onmessage = performWorkUntilDeadline;
-  schedulePerformWorkUntilDeadline = () => channel.port2.postMessage(null);
-} else {
-  schedulePerformWorkUntilDeadline = () => setTimeout(performWorkUntilDeadline, 0);
-}
-```
-
-Why not `setTimeout`, but `MessageChannel`? Under the HTML specification, `setTimeout` is forced to wait at least **4 ms** after five or more nested calls. `MessageChannel`, on the other hand, runs immediately as a macrotask on the next event-loop tick without that restriction. For Fiber, which divides work into 5 ms slices, an artificial 4 ms delay would be devastating.
-
-(If 4 ms out of 5 ms is spent waiting, there is only 1 ms left for actual work. That is not work-life balance; it is just life.)
+### The Scheduler's Task Queues
 
 React's Scheduler package internally manages **two min-heaps**.
 
@@ -551,7 +524,6 @@ Idle             ~1,073,741,823ms  ~12.4일      오프스크린 렌더링
 
 These timeout values also serve as a mechanism for preventing **starvation**. No matter how low the priority, once the timeout passes, the task expires and is forced to run. A constant stream of high-priority work therefore cannot cause low-priority work to be ignored forever.
 
-The Scheduler's `shouldYieldToHost()` checks whether the time elapsed since work began exceeds `frameInterval` (by default **5 ms**, defined in `SchedulerFeatureFlags.js`) and decides whether to return control to the main thread.
 
 
 ## Render Phase and Commit Phase
@@ -561,7 +533,6 @@ We have now examined Fiber's structure and scheduling. Let us put the full flow 
 Fiber internally passes through two stages: the **Render Phase** and the **Commit Phase**. This separation is the core design that makes React's concurrency model possible. Click the image below to see Fiber's execution flow for yourself.
 
 [![An interactive demo that walks through React Fiber step by step, from the render phase to the layout phase, alongside the component tree and work stack](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
-
 
 
 ### Render Phase

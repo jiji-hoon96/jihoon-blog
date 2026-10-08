@@ -3,15 +3,16 @@ emoji: 🎲
 title: 'Decision Models, Jev and Kev'
 seoTitle: 'Jev and Kev Decision Models: Thresholding on Confidence'
 date: '2026-09-22'
+updatedAt: '2026-10-08'
 categories: AI Calibration
 description: "Jev returns probabilities instead of text. Its confidence is arithmetic, not learned, and calibration belongs to the distribution, not the model."
-keywords: 'Jev, TypeSafe AI, System One model, RLCD, model calibration, ECE, RLHF overconfidence, confidence threshold, decision model, Kev open source, Jev use cases'
+keywords: 'Jev, TypeSafe AI, System One model, RLCD, model calibration, ECE, confidence threshold, decision model, Kev open source, Jev use cases'
 locale: en
 translationOf: '260922'
-sourceHash: 6cee92c77bd8cd7cc8b115142f94b9880919a1c4d8ae265bd8a0e4738421703a
+sourceHash: 4e0faef6298c2abbc6fa4c9570b25c57aece40bdb704a3af617e5d5d945ea721
 ---
 
-In this post, I want to talk about a model that produces no text. Last week TypeSafe AI released Jev.
+In this post, I want to talk about Jev, a model TypeSafe AI released last week that returns probabilities instead of text. This is for developers who want to put a threshold on a model's returned probability and handle cases automatically without a human check. By the end, you will know how Jev's `confidence` is calculated, how much calibration moves with the distribution, and a procedure for setting the threshold on your own data.
 
 The first use that caught my eye was browser automation. Browserbase opened a [PR](https://github.com/browserbase/stagehand/pull/2953) that wires Jev into Stagehand's `act()`. The page's :term[accessibility tree]{key="accessibility-tree"} goes in as `state`, and the question "which element should be clicked next" is asked as a set of options. Across 40 tasks the median `act()` latency dropped from 1.97 seconds to 0.46, and of 147 actions only 4 fell back to an LLM. The spot where a Playwright script breaks the moment one selector changes was filled with a call that returns a single probability. As I write this, the PR has not been merged.
 
@@ -53,23 +54,7 @@ I drew a similar distinction while writing up [harness design](/260622). An agen
 
 But why did this call for a new training method? Could you not simply make an existing model answer yes or no?
 
-The answer is in the lineage of :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback). The skeleton of building a reward model out of human preference comparisons came from [Christiano et al.'s 2017 paper](https://arxiv.org/abs/1706.03741), [Stiennon et al. applied it to language models in 2020](https://arxiv.org/abs/2009.01325), and InstructGPT extended it to instruction following. The three papers share a single objective function. **Produce the output a human rater prefers.**
-
-Here you have to separate accuracy from :term[calibration]{key="calibration"}. Accuracy is what percentage you get right; calibration is whether you know what percentage you will get right. If you gather only the days a forecast said a 70% chance of rain and it actually rained seven times out of ten, that forecast is well calibrated. That does not mean it is accurate. It means it knows its own limits. **A model that gets only 60% right scores full marks on calibration if it says 60% about itself.**
-
-The metric for that gap is :term[ECE]{key="ece"} (expected calibration error). For each probability bin it takes the difference between the "stated probability" and the "actual hit rate," weights it by that bin's share of the samples, and averages; 0 is perfect.
-
-For a chatbot, human preference is the right objective. The trouble is that people prefer a confident answer to a hedging one. So the model picks up the habit of speaking decisively even when things are ambiguous. The TypeSafe documentation calls this [mode dropping](https://docs.typesafe.ai/introduction/machine-learning-primer): preference optimization pushes the model toward favoring a particular style and suppresses the probability of the other possible outputs.
-
-OpenAI wrote the same thing in its own report. Figure 8 of the [GPT-4 technical report](https://arxiv.org/abs/2303.08774) places the calibration curves of the pre-trained model and the post-trained model side by side, and the caption reads:
-
-![Figure 8 of the GPT-4 Technical Report. The pre-trained model on the left hugs the diagonal with ECE 0.007; the post-PPO model on the right falls well below it with ECE 0.074](2.png?w=720)
-
-Source: OpenAI, GPT-4 Technical Report (arXiv:2303.08774), Figure 8.
-
-> Right: Calibration plot of the post-trained GPT-4 model on the same subset of MMLU. The post-training hurts calibration significantly.
-
-By the numbers printed on the figure, the pre-trained model's ECE is **0.007** and the PPO-tuned model's is **0.074**. More than ten times worse. The ability to know what percentage it would get right was shaved off in the course of being polished to satisfy people.
+The clue lies in :term[calibration]{key="calibration"}. If accuracy is what percentage you get right, calibration is whether you know what percentage you will get right, and the metric for that gap is :term[ECE]{key="ece"} (expected calibration error). It averages the difference between the stated probability and the actual hit rate in each probability bin, weighted by sample share, so 0 is perfect. Yet :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback), which optimizes human preference, wears this ability down. People prefer a confident answer to a hedging one, so the model picks up the habit of speaking decisively even when things are ambiguous. In Figure 8 of the [GPT-4 technical report](https://arxiv.org/abs/2303.08774), the pre-trained model's ECE was **0.007**, while the post-trained model's was **0.074**, more than ten times worse. I wrote up the definitions and that process separately in [Calibration and RLHF Overconfidence](/260917).
 
 **ECE alone is not enough, though.** A constant predictor that stamps 0.6 on every input also has an ECE of 0 as long as its real hit rate is 60%. If the probabilities are merely honest and do not separate from case to case, there is nowhere to draw a line. So alongside calibration you have to watch **whether the probabilities actually separate**, and the "share that can be automated inside an error budget" I use later on is the metric that folds those two into one number.
 

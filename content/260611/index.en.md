@@ -8,14 +8,14 @@ description: 'Measure AI coding token costs with a React POC and cut them using 
 keywords: 'save AI tokens, Claude Code cost, reduce token costs, prompt caching, context engineering, subagent, MCP tokens, Cursor Composer, model routing, context rot, LLM cost optimization'
 locale: en
 translationOf: '260611'
-sourceHash: a31b4bb872403d70f4f524ad76327633a6dcf6c8343ff09741f403a58e59a467
+sourceHash: de92ff0b90b556dfb9b569101b9d07abbe119e7ed6377c9e890b9e5e42059aa8
 ---
 
 In this post, I want to talk about how to save AI tokens.
 
 In the early days, I focused on results and process rather than performance and cost. AI-generated output had plenty of gaps, so it needed verification, and the pressure to produce results quickly led many people, myself included, to pay for more tokens or move to a higher subscription tier whenever they ran short. I did the same. (For the first few months, I did not even pay attention to how much tokens were costing me.)
 
-After a while, however, I became increasingly conscious of token usage. Individuals felt the burden of monthly subscriptions, while companies grew more concerned about labor and operating costs. As I wrote in [The AI Agent Tool Landscape](/260529), my other articles have focused less on what AI is or how it works and more on how to use it well, what help it can provide, which tools exist, what is currently popular, and why those trends emerged. I still think those topics matter, but as time passes, cost will ultimately become the question people care about most.
+After a while, however, I became increasingly conscious of token usage. Individuals felt the burden of monthly subscriptions, while companies grew more concerned about labor and operating costs. As I wrote in [AI Agent Tools](/260529), my other articles have focused less on what AI is or how it works and more on how to use it well, what help it can provide, which tools exist, what is currently popular, and why those trends emerged. I still think those topics matter, but as time passes, cost will ultimately become the question people care about most.
 
 I covered the mechanics of tokens—what exactly they are, how BPE creates them, and what happens inside a transformer when prompt caching lowers the unit price—in a separate article, [How Tokens Work](/260610). Building on that foundation, this article first examines how costs are billed and where inefficiencies arise, then organizes proven cost-saving patterns. For the main patterns, I attached token usage I measured myself by running the same task under different strategies.
 

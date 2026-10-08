@@ -3,21 +3,20 @@ emoji: 🔑
 title: "queryKey"
 seoTitle: "Mastering TanStack Query queryKey and queryOptions"
 date: "2026-01-04"
+updatedAt: "2026-10-08"
 categories: frontend React TanStack-Query queryKey
-description: "How queryKey works in TanStack Query and why it evolved from inline arrays to query key factories and queryOptions, with the TkDodo pattern."
-keywords: "queryKey, query key factory, TanStack Query queryKey, React Query cache key, queryOptions, setQueryData, TkDodo query keys, query-key-factory, React Query v5, query invalidation"
+description: "How TanStack Query queryKey management evolved from inline arrays and constants to key factories and v5 queryOptions, with DataTag and invalidation."
+keywords: "queryKey, query key factory, TanStack Query queryKey, queryKey best practices, queryOptions, setQueryData, TkDodo query keys, query-key-factory, React Query v5, query invalidation"
 locale: en
 translationOf: '260104'
-sourceHash: 09b422a19a1b5f232d512d0904f671d9d3f82d1bb8a9e0136db630e369a60e76
+sourceHash: 9a36bf314bac28176dfc2e56aa119d80db0e87fe66e6df7a83ca4350fb6d2a19
 ---
 
 In this post, I want to explore **TanStack Query's queryKey**.
 
+This is for frontend developers using TanStack Query who are deciding whether to keep queryKeys as inline arrays, gather them into a constant object or a query key factory, or move them to v5's `queryOptions`. By the end, you will know what problem each approach was introduced to solve, and you will have a basis for judging which stage fits your codebase now.
+
 While using TanStack Query in production, I have **completely overhauled how I manage queryKeys several times**. At first, I simply wrote arrays like `['user', userId]` inline inside components. Then I started making typos because I had to repeat the same keys in multiple places whenever I invalidated queries, so I moved them into a constant object such as `QUERY_KEYS`. After reading TkDodo's article, I switched to the query key factory pattern. Much later, I adopted the `@lukemorales/query-key-factory` library. Then v5 arrived, and I overhauled everything once more using `queryOptions`.
-
-I started wondering why so many patterns had emerged around a tiny array that was merely a cache identifier. **Why does a single queryKey bear the marks of so much evolution?** And what exact problem was each stage trying to solve?
-
-In this article, I will trace TanStack Query's official documentation, TkDodo's blog series, and even the internal implementation of `queryOptions` introduced in v5 to explain how queryKey works and why it evolved into its current form.
 
 
 ## Before queryKey
@@ -93,102 +92,12 @@ const { data } = useQuery({
 
 The queryKeys for a `userId` of `'A'` and one of `'B'` are different. A different key means a cache miss, and a cache miss triggers a fetch. It is automatic. Thanks to this simplicity, we do not need to write logic that says, "The userId changed, so fetch again."
 
-This raises a question: how does TanStack Query determine whether two queryKeys are "the same key"? A simple `===` comparison would find different object references and cause a cache miss every time.
-
-
-## Inside QueryCache
-
-According to TkDodo's [Inside React Query](https://tkdodo.eu/blog/inside-react-query), `QueryCache` is ultimately just **an in-memory data structure**. More precisely, in the v5 [official implementation](https://github.com/TanStack/query/blob/main/packages/query-core/src/queryCache.ts), that data structure is not a plain object but a `Map<string, Query>`. It is declared inside the class as `#queries = new Map<string, Query>()`, and every write and read goes through `#queries.set(query.queryHash, query)` and `#queries.get(queryHash)`. The key is the serialized form of the queryKey (`queryHash`), and the value is an instance of the `Query` class.
-
-Older versions did use a plain object, but by v5 the implementation had settled on the native `Map`. (`Map` has no risk of key collisions or prototype pollution, preserves insertion order, and offers average O(1) string-key lookup, making it an almost textbook choice for a cache data structure.)
-
-What happens each time `useQuery` is called is straightforward. **The queryKey is converted into a hash, and that hash is used to look it up in the Map.** If an entry exists, TanStack Query retrieves the cached `Query` instance. Otherwise, it creates a new one and calls `set`.
-
-This naturally leads to another question: **why serialize the queryKey into a string at all?** Why not use the array itself as the key, as in `Map<QueryKey, Query>`?
-
-The answer lies in JavaScript's equality model. A native `Map` compares keys using **reference equality**. Even when their contents are identical, objects at different locations in memory are treated as different keys.
-
-```js
-const m = new Map();
-m.set(['user', 1], 'alice');
-m.get(['user', 1]); // undefined — 새로 만든 배열은 다른 참조다
-```
-
-But in a React component, `useQuery({ queryKey: ['user', userId] })` **creates a new array instance on every render.** The queryKey arrays from the first and second renders are separate objects in memory even if their contents match. If the cache depended on reference equality, a component displaying the same data would tragically miss the cache on every render.
-
-The solution to the problem caused by reference equality is simple: **convert reference equality into structural equality**. Create a deterministic string using only the contents of the queryKey, then use that string as the Map key. This restores the semantics we want: "equal contents mean the same key." `JSON.stringify` is simply the most straightforward tool for that conversion. (It is also why TanStack Query, after experimenting with several serialization strategies during the v3 era, ultimately settled on a stable variation of `JSON.stringify`.)
-
-The key here is the function that produces the hash: `hashKey`. Its official implementation in [`packages/query-core/src/utils.ts`](https://github.com/TanStack/query/blob/main/packages/query-core/src/utils.ts) looks exactly like this.
-
-```typescript
-export function hashKey(queryKey: QueryKey | MutationKey): string {
-  return JSON.stringify(queryKey, (_, val) =>
-    isPlainObject(val)
-      ? Object.keys(val)
-          .sort()
-          .reduce((result, key) => {
-            result[key] = val[key]
-            return result
-          }, {} as any)
-      : val,
-  )
-}
-```
-
-It does use `JSON.stringify`, but instead of stringifying directly, it supplies a [replacer callback](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter) that **sorts the keys of plain objects alphabetically** before serialization.
-
-This sorting is fundamental because string serialization carries an additional, stronger requirement: **semantically equivalent inputs must always produce the same string.** Ordinary `JSON.stringify`, however, preserves key order. `{ a: 1, b: 2 }` and `{ b: 2, a: 1 }` are semantically equivalent objects, but they serialize into different strings and therefore occupy different cache slots. That would bring back duplicate requests for the same data.
-
-The technique that consistently prevents this is a **canonical form**. It forces semantically equivalent inputs to map to exactly one representation. This is precisely why the `hashKey` replacer sorts the keys of plain objects. By producing the same output regardless of input order, it creates a one-to-one relationship between the serialized result and the meaning of the object. In mathematical terms, it selects the sorted form as the representative element of the equivalence class formed by objects whose keys appear in different orders.
-
-The fact that arrays are not sorted is the other side of the same principle. An array is a data structure in which order itself carries meaning, so sorting it would destroy information. Object key order is incidental; array element order is intentional. `hashKey` treats the two accordingly. This is why the official guide recommends arranging a queryKey from "generic → specific." As long as array order carries meaning, the author must define that meaning directly.
-
-There is one more detail worth highlighting: key sorting applies only to **plain objects**. In the same file, `isPlainObject` does not merely check `typeof === 'object'`; it goes as far as checking `Object.getPrototypeOf(o) === Object.prototype` to distinguish **plain object literals** from **class instances**. As a result, a literal such as `{ foo: 1 }` is sorted, while an instance created with `class User { ... }` passes through unsorted. (This is where a subtle trap arises: if you put a class instance directly into a queryKey, its interaction with `JSON.stringify`, which outputs only enumerable properties, may produce a hash different from what you intended.)
-
-This behavior has two important consequences.
-
-**1. Object key order does not matter.**
-
-```tsx
-useQuery({ queryKey: ['todos', { status: 'done', page: 1 }], queryFn });
-useQuery({ queryKey: ['todos', { page: 1, status: 'done' }], queryFn });
-// 두 쿼리는 같은 캐시 슬롯을 공유한다
-```
-
-That is because the keys are sorted before serialization. Without this behavior, you would have to remember the key order every time you used an object literal.
-
-**2. Array element order matters.**
-
-```tsx
-useQuery({ queryKey: ['todos', status, page], queryFn });
-useQuery({ queryKey: ['todos', page, status], queryFn });
-// 두 쿼리는 다른 캐시이다
-```
-
-That is because an array is a data structure where order itself carries meaning. `JSON.stringify` also preserves array order.
-
-It is also useful to know that `undefined` values disappear during serialization. `{ a: 1, b: undefined }` and `{ a: 1 }` produce the same hash. (I once made the mistake of thinking, "I explicitly included undefined, so this must be a different cache!")
-
-Another constraint is that a queryKey cannot contain **circular references or functions**, because `JSON.stringify` cannot handle them. Objects such as `Date`, `Map/Set`, and `BigInt` are likewise not recommended under the default behavior. A queryKey should be a serializable, plain data structure.
-
-Interestingly, this constraint is not absolute. TanStack Query provides an escape hatch through the `queryKeyHashFn` option, allowing you to **replace the hash function itself**. Internally, `hashQueryKeyByOptions(queryKey, options)` branches: if `queryKeyHashFn` exists in the options, it calls that; otherwise, it calls the default `hashKey`.
-
-```tsx
-useQuery({
-  queryKey: [{ id: userId, fetchedAt: new Date() }],
-  queryFn,
-  // Date를 ISO 문자열로 바꿔서 해싱
-  queryKeyHashFn: (key) =>
-    JSON.stringify(key, (_, v) => (v instanceof Date ? v.toISOString() : v)),
-});
-```
-
-However, this option must be specified separately for each query, and it does not apply to imperative APIs invoked without knowledge of those options, such as `queryClient.setQueryData` ([Issue #1343](https://github.com/TanStack/query/issues/1343)). In production, it is therefore much safer to avoid the escape hatch and **convert values into a serializable form when constructing the queryKey**. (I once placed a `Date` directly in a key and spent a long time wondering, "Why isn't the cache updating even though it represents the same instant?" The answer turned out to be, "That `Date` represents the same instant, but it is a different object instance, so it produces a different hash every time.")
+So how does TanStack Query recognize an array that is created anew on every render as the same key? It does not compare array references; it uses the string produced by serializing the queryKey with `hashKey` (`queryHash`) as the cache key. This function sorts plain object keys while serializing with `JSON.stringify`, so key order inside an object does not affect the hash, while element order in an array does. A property whose value is `undefined` disappears during serialization, so `{ a: 1, b: undefined }` and `{ a: 1 }` become the same key. I have written up this behavior, following the implementation code, separately in [hashKey](/251230).
 
 
 ## Rules for writing queryKeys
 
-Once you understand the internals above, the rules for writing queryKeys follow naturally. The official recommendations can be summarized as follows.
+Once you understand that a queryKey is both the cache identifier and a dependency array, the rules for writing queryKeys follow naturally. The official recommendations can be summarized as follows.
 
 **Rule 1. A queryKey must be an array.**
 

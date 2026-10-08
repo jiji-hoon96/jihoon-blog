@@ -3,12 +3,13 @@ emoji: 🎲
 title: '결정 모델, Jev와 Kev'
 seoTitle: 'TypeSafe Jev 결정 모델 검증, confidence 임계값과 캘리브레이션을 Kev 실측으로 확인'
 date: '2026-09-22'
+updatedAt: '2026-10-08'
 categories: AI 캘리브레이션
 description: '텍스트 대신 확률을 돌려주는 모델 Jev가 나왔다. confidence는 학습된 값이 아니라 산술이고, 캘리브레이션은 모델이 아니라 분포의 성질이다. 공개된 Jev 실측 5,743건과, 재현 구현 Kev를 이 블로그의 음차 게이트에 직접 돌린 결과로 확인한다.'
-keywords: 'Jev, TypeSafe AI, System One 모델, RLCD, 모델 캘리브레이션, ECE, RLHF 과신, confidence 임계값, 결정 모델, Kev 오픈소스, Jev 활용 사례'
+keywords: 'Jev, TypeSafe AI, System One 모델, RLCD, 모델 캘리브레이션, ECE, confidence 임계값, 결정 모델, Kev 오픈소스, Jev 활용 사례'
 ---
 
-이번 포스팅에서는 텍스트를 만들지 않는 모델에 대한 이야기를 해보려고 한다. 지난주에 TypeSafe AI가 Jev를 공개했다.
+이번 포스팅에서는 지난주 TypeSafe AI가 공개한, 텍스트 대신 확률을 돌려주는 모델 Jev에 대한 이야기를 해보려고 한다. 모델이 돌려준 확률에 임계값을 걸어 사람 확인 없이 자동 처리하려는 개발자를 위한 글이다. 끝까지 읽으면 Jev의 `confidence`가 어떻게 계산되는지, 캘리브레이션이 분포에 따라 얼마나 움직이는지, 그리고 임계값을 자기 데이터로 정하는 절차를 얻을 수 있다.
 
 가장 먼저 눈에 들어온 사용처는 브라우저 자동화였다. Browserbase가 Stagehand의 `act()`에 Jev를 붙이는 [PR](https://github.com/browserbase/stagehand/pull/2953)을 올렸다. 페이지의 :term[접근성 트리]{key="accessibility-tree"}를 `state`로 보내고 "다음에 클릭할 요소는 어느 것인가"를 선택지로 묻는 구조였다. 40개 과제에서 `act()` 중앙값이 1.97초에서 0.46초로 줄었고, 147번의 동작 중 LLM으로 되돌아간 것은 4번이었다. Playwright 스크립트가 selector 하나 바뀌면 깨지는 자리를, 확률 하나 돌려받는 호출로 메운 것이다. 이 글을 쓰는 시점에 PR은 아직 머지되지 않았다.
 
@@ -50,23 +51,7 @@ Archer Hume이라는 개발자가 API를 약 1만 번 호출해 바깥에서 동
 
 그런데 왜 새 학습법이 필요했을까. 기존 모델에게 예/아니오만 시키면 안 되는 걸까.
 
-:term[RLHF]{key="rlhf"}(reinforcement learning from human feedback)의 계보에 답이 있다. 사람의 선호 비교로 보상 모델을 세우는 골격은 [Deep reinforcement learning from human preferences](https://arxiv.org/abs/1706.03741)에서 나왔고, [Learning to summarize from human feedback](https://arxiv.org/abs/2009.01325)에 언어 모델에 적용했으며, InstructGPT가 지시 따르기로 확장했다. 세 논문이 공유하는 목표 함수는 하나다. **평가자인 사람이 더 선호하는 출력을 내는 것.**
-
-여기서 정확도와 :term[캘리브레이션]{key="calibration"}을 구분해야 한다. 정확도는 몇 퍼센트 맞히느냐이고, 캘리브레이션은 자기가 몇 퍼센트 맞힐지를 아느냐다. 강수 확률 70%라고 한 날들만 모았을 때 실제로 열 번 중 일곱 번 비가 왔다면 그 예보는 캘리브레이션이 잘 된 것이다. 정확도가 높다는 뜻이 아니다. 자기 한계를 안다는 뜻이다. **60%만 맞히는 모델도 스스로 60%라고 말하면 캘리브레이션은 만점이다.**
-
-그 어긋남을 재는 지표가 :term[ECE]{key="ece"}(expected calibration error)다. 확률 구간마다 "말한 확률"과 "실제 적중률"의 차이를 그 구간의 표본 비율로 가중해 평균한 값이고, 0이 완벽이다.
-
-챗봇에는 사람의 선호가 맞는 목표다. 문제는 사람이 우물쭈물하는 답보다 자신 있는 답을 선호한다는 데 있다. 그래서 모델은 애매할 때도 단정적으로 말하는 버릇을 들인다. TypeSafe 문서는 이것을 [mode dropping](https://docs.typesafe.ai/introduction/machine-learning-primer)이라고 부른다. 선호 최적화가 특정 스타일을 편애하도록 모델을 밀면서 다른 가능한 출력의 확률을 눌러 버린다는 것이다.
-
-OpenAI도 같은 것을 보고서에 적었다. [GPT-4 기술 보고서](https://arxiv.org/abs/2303.08774)의 Figure 8은 사전학습 모델과 post-training 모델의 캘리브레이션 곡선을 나란히 놓는데, 캡션이 이렇다.
-
-![GPT-4 기술 보고서 Figure 8. 왼쪽 사전학습 모델의 캘리브레이션 곡선은 대각선에 붙어 ECE 0.007 이고, 오른쪽 PPO 이후 모델은 대각선 아래로 크게 벌어져 ECE 0.074 다](2.png?w=720)
-
-출처: OpenAI, GPT-4 Technical Report (arXiv:2303.08774), Figure 8.
-
-> Right: Calibration plot of the post-trained GPT-4 model on the same subset of MMLU. The post-training hurts calibration significantly.
-
-그림에 찍힌 숫자로는 사전학습 모델의 ECE가 **0.007**이고 PPO를 거친 모델이 **0.074**다. 열 배 넘게 나빠졌다. 사람을 만족시키도록 다듬는 과정에서 자기가 몇 퍼센트 맞힐지 아는 능력이 깎인 것이다.
+답의 실마리는 :term[캘리브레이션]{key="calibration"}에 있다. 정확도가 몇 퍼센트 맞히느냐라면 캘리브레이션은 자기가 몇 퍼센트 맞힐지를 아느냐이고, 그 어긋남을 재는 지표가 :term[ECE]{key="ece"}(expected calibration error)다. 확률 구간마다 말한 확률과 실제 적중률의 차이를 표본 비율로 가중해 평균한 값이라 0이 완벽이다. 그런데 사람의 선호를 최적화하는 :term[RLHF]{key="rlhf"}(reinforcement learning from human feedback)는 이 능력을 깎는다. 사람이 우물쭈물하는 답보다 자신 있는 답을 선호하므로 모델이 애매할 때도 단정하는 버릇을 들이기 때문이다. [GPT-4 기술 보고서](https://arxiv.org/abs/2303.08774)의 Figure 8에서는 사전학습 모델의 ECE가 **0.007**이었는데 post-training을 거친 모델은 **0.074**로 열 배 넘게 나빠졌다. 정의와 그 과정은 [캘리브레이션과 RLHF의 과신](/260917)에 따로 정리해 두었다.
 
 **다만 ECE 하나로는 부족하다.** 모든 입력에 0.6을 찍는 상수 예측기도 실제 적중률이 60%면 ECE가 0이다. 확률이 정직하기만 하고 사안마다 갈리지 않으면 선을 그을 자리가 없다. 그래서 캘리브레이션과 별개로 **확률이 실제로 갈라지는지**를 같이 봐야 하고, 뒤에서 쓸 "오차 예산 안에서 자동 처리할 수 있는 비율"이 그 둘을 한 숫자로 묶은 지표다.
 

@@ -3,21 +3,20 @@ emoji: 🔑
 title: "queryKey"
 seoTitle: "TanStack Query queryKey 完全攻略: queryOptions まで"
 date: "2026-01-04"
+updatedAt: "2026-10-08"
 categories: フロントエンド React TanStack-Query queryKey
-description: 'TanStack Query の queryKey がどのような仕組みで動作し、なぜインライン配列からクエリキーファクトリー、queryOptions へと進化してきたのかを整理する。TkDodo のパターンや v5 の queryOptions、setQueryData、無効化まで実務観点で解説する。'
-keywords: "queryKey, クエリキーファクトリー, TanStack Query queryKey, React Query キャッシュキー, queryOptions, setQueryData, TkDodo クエリキー, query-key-factory, React Query v5, クエリの無効化"
+description: "TanStack Query の queryKey の管理方法が、インライン配列、定数オブジェクト、クエリキーファクトリーを経て v5 の queryOptions までどう進化したかを整理する。記述規則、DataTag による型推論、無効化のパターンを実務の観点で扱う。"
+keywords: "queryKey, クエリキーファクトリー, TanStack Query queryKey, queryKey 記述規則, queryOptions, setQueryData, TkDodo クエリキー, query-key-factory, React Query v5, クエリの無効化"
 locale: ja
 translationOf: '260104'
-sourceHash: 09b422a19a1b5f232d512d0904f671d9d3f82d1bb8a9e0136db630e369a60e76
+sourceHash: 9a36bf314bac28176dfc2e56aa119d80db0e87fe66e6df7a83ca4350fb6d2a19
 ---
 
 今回は、**TanStack Query の queryKey**について掘り下げてみたい。
 
+TanStack Query を使いながら、queryKey をインライン配列のままにするか、定数オブジェクトやクエリキーファクトリーにまとめるか、v5 の `queryOptions` に移すかで悩んでいるフロントエンド開発者に向けた記事だ。最後まで読めば、それぞれの管理方法がどんな問題を解くために登場したのかがわかり、今のコードベースにどの段階が合うのかを判断する基準が得られる。
+
 筆者は実務で TanStack Query を使う中で、**queryKey の管理方法を何度も作り直してきた**。最初はコンポーネント内に `['user', userId]` のような配列を直接書いていたが、無効化のたびに同じキーを複数箇所へ記述するうちにタイプミスが増え、`QUERY_KEYS` のような定数オブジェクトへ移行した。その後、TkDodo の記事を読んでクエリキーファクトリーパターンを採用し、しばらくして `@lukemorales/query-key-factory` ライブラリを導入した。そして v5 の登場を機に、今度は `queryOptions` を使う形へと再び作り直した。
-
-単なるキャッシュの識別子にすぎない小さな配列をめぐって、なぜこれほど多くのパターンが生まれたのだろう。**なぜ一つの queryKey に、これほど多くの進化の痕跡が残っているのか。** そして、それぞれの段階は具体的にどの問題を解決しようとしていたのか。
-
-本記事では、TanStack Query の公式ドキュメント、TkDodo のブログシリーズ、さらに v5 で導入された `queryOptions` の内部実装までたどりながら、queryKey がどのような仕組みで動作し、なぜ現在の形へ進化してきたのかを整理する。
 
 
 ## queryKey がなかった時代
@@ -93,102 +92,12 @@ const { data } = useQuery({
 
 `userId` が `'A'` の場合と `'B'` の場合では、queryKey が異なる。異なればキャッシュミスとなり、キャッシュミスならフェッチする。これは自動で行われる。この単純さのおかげで、「userId が変わったので再度フェッチする」というロジックを自分で書く必要がない。
 
-ここで一つ疑問が生じる。queryKey が「同じキー」であることを、どのように判定しているのだろうか。単純に `===` で比較すればオブジェクトの参照は異なるため、毎回キャッシュミスになるはずだ。
-
-
-## QueryCache の内部
-
-TkDodo の [React Query の内部](https://tkdodo.eu/blog/inside-react-query)によれば、`QueryCache` は結局のところ、**メモリ上に保持される一つのデータ構造**にすぎない。より正確には、v5 の[公式実装](https://github.com/TanStack/query/blob/main/packages/query-core/src/queryCache.ts)で使われているデータ構造は、プレーンオブジェクトではなく `Map<string, Query>` だ。クラス内で `#queries = new Map<string, Query>()` と宣言され、すべての書き込みと読み込みは `#queries.set(query.queryHash, query)` と `#queries.get(queryHash)` を通じて行われる。キーは queryKey をシリアライズした形式（`queryHash`）、値は `Query` クラスのインスタンスである。
-
-古いバージョンではプレーンオブジェクトが使われていた時期もあったが、v5 ではネイティブの `Map` へ移行した。（`Map` はキーの衝突やプロトタイプ汚染のリスクがなく、挿入順を保持し、文字列キーの検索が平均 O(1) であるため、キャッシュのデータ構造としては定石に近い選択だ。）
-
-`useQuery` が呼ばれるたびに起こることは単純だ。**queryKey をハッシュ値へ変換し、そのハッシュ値を使って Map を検索する。** 存在すればキャッシュ済みの `Query` インスタンスを取得し、なければ新しく作成して `set` する。
-
-ここで自然に次の疑問が生まれる。**なぜわざわざ queryKey を文字列へシリアライズするのか。** `Map<QueryKey, Query>` のように配列自体をキーとして使えばよいのではないか。
-
-その答えは、JavaScript の等価性モデルにある。ネイティブの `Map` はキーを**参照等価性**で比較する。内容が同じでも、メモリ上で別のオブジェクトなら異なるキーとして扱われる。
-
-```js
-const m = new Map();
-m.set(['user', 1], 'alice');
-m.get(['user', 1]); // undefined — 새로 만든 배열은 다른 참조다
-```
-
-ところが、React コンポーネントで `useQuery({ queryKey: ['user', userId] })` と記述すると、**レンダリングのたびに新しい配列インスタンスが作られる。** 最初のレンダリングと二度目のレンダリングで使われる queryKey 配列は、内容が同じでもメモリ上では別のオブジェクトだ。もしキャッシュが参照等価性に依存していたら、同じデータを参照するコンポーネントがレンダリングのたびにキャッシュミスを起こすという悲惨な事態になっていただろう。
-
-参照等価性によって生じる問題の解決策は単純だ。**参照等価性を構造的等価性へ変換すること**である。queryKey の内容だけから決定論的な文字列を作り、その文字列を Map のキーとして使う。そうすれば、「内容が同じなら同じキー」という期待どおりの意味論を取り戻せる。`JSON.stringify` は、その変換を行う最も単純な手段にすぎない。（TanStack Query が v3 の時代に複数のシリアライズ方式を試した末、安定した `JSON.stringify` の変種へ落ち着いた理由でもある。）
-
-ここで中心となるのが、ハッシュ値を作る関数 `hashKey` だ。[`packages/query-core/src/utils.ts`](https://github.com/TanStack/query/blob/main/packages/query-core/src/utils.ts) に定義された公式実装は、正確には次のようになっている。
-
-```typescript
-export function hashKey(queryKey: QueryKey | MutationKey): string {
-  return JSON.stringify(queryKey, (_, val) =>
-    isPlainObject(val)
-      ? Object.keys(val)
-          .sort()
-          .reduce((result, key) => {
-            result[key] = val[key]
-            return result
-          }, {} as any)
-      : val,
-  )
-}
-```
-
-`JSON.stringify` ではあるが、単純に文字列化しているわけではない。[置換関数のコールバック](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter)を挟み、**プレーンオブジェクトのキーをアルファベット順に並べ替えて**からシリアライズしている。
-
-この並べ替えが本質的なのは、文字列へのシリアライズには、さらに厳しい条件が伴うためだ。**意味が同じ入力は、常に同じ文字列へ変換されなければならない。** しかし、通常の `JSON.stringify` はキーの順序をそのまま維持する。`{ a: 1, b: 2 }` と `{ b: 2, a: 1 }` は意味上は同じオブジェクトなのに、異なる文字列へシリアライズされ、最終的に別々のキャッシュスロットとなる。その結果、同じデータを二度リクエストする事態が再び起きてしまう。
-
-これを一貫して防ぐ手法が、**正準形**だ。意味上同じ入力が、常に一意な一つの表現に対応するよう強制する。`hashKey` の置換関数がプレーンオブジェクトのキーを並べ替える理由は、まさにこれだ。どの順序で入力されても出力が同じになるようにし、シリアライズの結果とオブジェクトの意味を一対一で結びつける。数学的に言えば、キーの順序が異なるオブジェクト群によって作られる同値類から、並べ替え済みの形式を代表元として選び出す操作である。
-
-配列を並べ替えないのも、同じ原理の裏返しだ。配列は順序そのものに意味があるデータ構造なので、並べ替えると情報が失われる。オブジェクトのキー順は偶然だが、配列の要素順は意図である。`hashKey` は両者を明確に区別して扱う。公式ガイドが queryKey を「汎用的なものから具体的なものの順に配置する」よう推奨しているのは、このためだ。配列の順序が意味を担う以上、その意味は作成者が自ら定める必要がある。
-
-ここでもう一つ確認しておくべき点がある。キーの並べ替えが適用されるのは、**プレーンオブジェクト**だけだ。同じファイル内の `isPlainObject` は単に `typeof === 'object'` を見るのではなく、`Object.getPrototypeOf(o) === Object.prototype` まで検査し、**純粋なオブジェクトリテラル**と**クラスのインスタンス**を区別する。そのため、`{ foo: 1 }` のようなリテラルは並べ替えられる一方、`class User { ... }` で作成したインスタンスは並べ替えられず、そのまま処理される。（クラスのインスタンスをそのまま queryKey に含めると、`JSON.stringify` が列挙可能なプロパティだけを出力する挙動と相まって、意図しないハッシュが生成されることがある。）
-
-この仕組みから、二つの重要な結果が導かれる。
-
-**1. オブジェクトのキー順は問わない。**
-
-```tsx
-useQuery({ queryKey: ['todos', { status: 'done', page: 1 }], queryFn });
-useQuery({ queryKey: ['todos', { page: 1, status: 'done' }], queryFn });
-// 두 쿼리는 같은 캐시 슬롯을 공유한다
-```
-
-キーを並べ替えてからシリアライズするためだ。この仕組みがなければ、オブジェクトリテラルを使うたびにキーの順序を覚えておかなければならなかっただろう。
-
-**2. 配列の要素順は重要である。**
-
-```tsx
-useQuery({ queryKey: ['todos', status, page], queryFn });
-useQuery({ queryKey: ['todos', page, status], queryFn });
-// 두 쿼리는 다른 캐시이다
-```
-
-配列は順序そのものに意味があるデータ構造だからだ。`JSON.stringify` も配列の順序は維持する。
-
-また、`undefined` 値はシリアライズの過程で消えることも覚えておくとよい。`{ a: 1, b: undefined }` と `{ a: 1 }` は同じハッシュ値になる。（筆者はこのことを知らず、「undefined を明示的に入れたのだから別のキャッシュだ」と考えてしまったことがある。）
-
-もう一つ、queryKey に**循環参照や関数**を含めることはできない。`JSON.stringify` では処理できないためだ。`Date` オブジェクトや `Map/Set`、`BigInt` なども同様に、標準の挙動では推奨されない。シリアライズ可能な純粋なデータ構造である必要がある。
-
-興味深いのは、この制約が完全に強制されているわけではない点だ。TanStack Query は `queryKeyHashFn` というオプションを通じて、**ハッシュ関数自体を差し替えられる逃げ道**を用意している。内部では `hashQueryKeyByOptions(queryKey, options)` が、オプションに `queryKeyHashFn` があればそれを呼び、なければ既定の `hashKey` を呼ぶように分岐する。
-
-```tsx
-useQuery({
-  queryKey: [{ id: userId, fetchedAt: new Date() }],
-  queryFn,
-  // Date를 ISO 문자열로 바꿔서 해싱
-  queryKeyHashFn: (key) =>
-    JSON.stringify(key, (_, v) => (v instanceof Date ? v.toISOString() : v)),
-});
-```
-
-ただし、このオプションはクエリごとに個別に指定する必要があり、`queryClient.setQueryData` のようにオプションを知らないまま呼び出される命令型 API には適用されないという制約がある（[課題 #1343](https://github.com/TanStack/query/issues/1343)）。そのため実務では、回避手段を使うよりも、**queryKey を作る時点でシリアライズ可能な形式へ変換してから渡す方**がはるかに安全だ。（筆者も一度 `Date` をそのまま入れ、「同じ時刻なのに、なぜキャッシュが更新されないのか」と長時間悩んだことがある。結局、答えは「その `Date` は同じ時刻を表していても別のオブジェクトインスタンスなので、毎回異なるハッシュになっていた」だった。）
+では、レンダリングのたびに新しく作られる配列を、TanStack Query はどうやって同じキーだと見分けるのだろうか。配列の参照を比較するのではなく、queryKey を `hashKey` でシリアライズした文字列（`queryHash`）をキャッシュのキーとして使う。この関数はプレーンオブジェクトのキーを並べ替えながら `JSON.stringify` でシリアライズするので、オブジェクト内のキー順はハッシュに影響せず、配列の要素の順序は影響する。値が `undefined` のプロパティはシリアライズの過程で消えるため、`{ a: 1, b: undefined }` と `{ a: 1 }` は同じキーになる。この動作を実装コードとともに追った内容は [hashKey](/251230) に別途まとめておいた。
 
 
 ## queryKey の記述規則
 
-ここまでの複雑な内部動作を理解すれば、記述規則も自然に見えてくる。公式ドキュメントが推奨する規則を整理すると、次のようになる。
+queryKey がキャッシュの識別子であり依存配列でもあることを理解すれば、記述規則も自然に見えてくる。公式ドキュメントが推奨する規則を整理すると、次のようになる。
 
 **規則1. queryKey は必ず配列にする。**
 

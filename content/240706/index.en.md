@@ -3,78 +3,24 @@ emoji: 🗜️
 title: "Understanding Compression Algorithms"
 seoTitle: "Compression Algorithms Compared: GZIP, Zstandard, Brotli"
 date: "2024-07-06"
+updatedAt: "2026-10-08"
 categories: curiosities software
-description: "A practical comparison of ZIP, GZIP, ZSTD, and Brotli, from LZ77 fundamentals to choosing the right format for build artifacts."
-keywords: "compression algorithm comparison, GZIP vs ZSTD, tar.gz vs zip, Brotli, LZ77, frontend build optimization, lossless compression"
+description: "Compares the structure, speed, and ratio of ZIP, GZIP, ZSTD, BZIP2, XZ, and Brotli, why tar.gz beats zip, and when to pick tar.zst for build artifacts."
+keywords: "compression algorithm comparison, GZIP vs ZSTD, tar.gz vs zip, tar.zst, Brotli, solid archive, frontend build optimization"
 locale: en
 translationOf: "240706"
-sourceHash: b0f4cf10e7cb4a7b3147fd1db92aa156f536f0d3b22d0e83fc051ccd96cf3542
+sourceHash: ebe4a5cec44b9a704ece670a7d431fd4c10595651c1e8938f9720589406237de
 ---
 
 In this post, I want to talk about software compression algorithms.
+
+This post is for developers who upload large build artifacts to a server or storage and are deciding between zip, tar.gz, and tar.zst. By the end, you will know where the major compression formats differ in speed and compression ratio, and you will have criteria for choosing between tar.gz and tar.zst.
 
 I was asked to improve the deployment process for an internal project. Its large build artifacts had to be uploaded to S3, and I quickly felt how directly the size of the build directory affected both upload time and storage costs. That naturally led to a question: how could we compress and upload these artifacts more efficiently?
 
 Once I started researching compression, I found far more options than I expected: zip, gzip, zstd, bzip2, xz, and others. Their names looked similar, but it was surprisingly difficult to find a clear explanation of how they differed and when each one should be used. (I had assumed compression was more or less all the same, but the world is large and so is the number of ways to make files smaller.)
 
-This seemed like a good opportunity to compare the principles and characteristics of the major formats and explain why I ultimately chose one of them.
-
-<hr>
-
-## What is lossless compression?
-
-Lossless compression is a method that lets us restore the original data perfectly. Unlike lossy compression, which is common for images and audio, decompressed data does not differ from the original by even a single bit. Source code and build artifacts require lossless compression because their integrity must be preserved.
-
-The central idea behind lossless compression is **taking advantage of statistical redundancy in data**. Replacing repeated patterns with shorter representations reduces the total size.
-
-Among these techniques, **dictionary-based compression** is one of the most widely used families of lossless algorithms. Here, a dictionary is not a book of word definitions. It is a lookup table that maps previously seen pieces of data to short codes. **LZ77**, introduced by Abraham Lempel and Jacob Ziv in their 1977 paper **"A Universal Algorithm for Sequential Data Compression"** in IEEE Transactions on Information Theory, and **LZ78**, published the following year, are the ancestors of this family. The letters “LZ” come from the researchers’ surnames. Nearly every dictionary-based compression algorithm that followed, including DEFLATE, LZMA, LZ4, and Zstd, can trace its roots back to these two. (It is not much of an exaggeration to say that most compression family trees converge on Lempel and Ziv.)
-
-Here is a simple example. If the word “Linux” appears 100 times in a text, the compressor can register it in a dictionary the first time and replace later occurrences with a short pointer meaning “dictionary entry number 1.” “Linux” takes five bytes, while the pointer can often be represented with fewer bytes, making the whole document smaller.
-
-So how exactly do LZ77 and LZ78 differ?
-
-<hr>
-
-### LZ77: the sliding-window approach
-
-LZ77 does **not build a separate explicit dictionary**. Instead, it treats a region of the input stream itself as a dictionary. This region is called a **sliding window** because it moves forward as the input is processed. (It is the same term that appears so often in algorithm exercises.)
-
-The window has two regions.
-
-- **Search buffer**: data that has already been processed. It acts as the dictionary.
-- **Look-ahead buffer**: data that has not yet been processed and is about to be compressed.
-
-The algorithm checks whether the beginning of the look-ahead buffer has appeared somewhere in the search buffer. When it finds the same pattern, it encodes the match as a **(distance, length, next character)** tuple. Distance tells the decoder how far back to find the start of the match, while length says how many characters the match contains.
-
-Suppose we compress the string `"banana_banana"` with LZ77. When the algorithm reaches the second `"banana"`, it is effectively saying, **“Go back seven characters and copy the next six.”** A six-byte string can therefore be represented by only two numbers.
-
-The key advantage is that **the dictionary does not need to be stored or transmitted separately**. The decoder naturally reconstructs the search buffer while decompressing, so the dictionary is implicitly embedded in the data itself. The trade-off is that decompression must proceed sequentially from the beginning. In principle, it cannot start at an arbitrary point in the middle.
-
-Window size has a direct trade-off with compression ratio. A larger window can refer to patterns farther away and therefore often compress better, but it also increases the computation required for match searching and uses more memory.
-
-<hr>
-
-### LZ78: an explicit dictionary
-
-Unlike LZ77, LZ78 **constructs an explicit dictionary** as it compresses the input. There is no sliding window. Previously observed patterns are stored as indexed dictionary entries, and later occurrences are replaced by their indexes.
-
-LZ78 outputs tags in the form **(dictionary index, next character)**. The encoder finds the longest matching dictionary entry, outputs its index together with the next character that breaks the match, and then adds **“the matched entry plus the new character”** to the dictionary. The dictionary grows incrementally as the input is processed.
-
-The best-known variation of LZ78 is **LZW** (Lempel-Ziv-Welch). Terry Welch published the improvement in 1984, and it was used by the GIF image format and the Unix `compress` utility with its `.Z` extension. (LZW was once at the center of a patent dispute, an episode that helped motivate the creation of PNG.)
-
-<hr>
-
-### Which family do modern compression algorithms belong to?
-
-Interestingly, nearly every mainstream compression algorithm we use today is a **descendant of LZ77**.
-
-**LZSS**, published by Storer and Szymanski in 1982, improved on LZ77 by adding a one-bit flag to distinguish a literal original character from a length-distance pair. If a match was so short that referencing it would cost more, the encoder could simply output the original character.
-
-In 1993, Phil Katz combined LZSS with **Huffman coding**, an entropy-coding technique that gives shorter bit sequences to more frequent symbols, to create **DEFLATE**. ZIP, GZIP, and PNG all use DEFLATE. In other words, the `.zip`, `.gz`, and `.png` files we handle every day are direct descendants of LZ77.
-
-Later algorithms such as **LZMA** (used by 7-Zip and XZ), **LZ4**, and **Zstd** also begin with LZ77’s sliding-window idea and evolve the data structures for match searching and the methods used for entropy coding. The LZ78 family, by contrast, largely left the mainstream stage after LZW.
-
-The two algorithms have been proven theoretically equivalent in capability **when the entire dataset is decompressed**. LZ77 nevertheless survived because **embedding the dictionary in the data made the design more flexible to implement and extend**. Window size, match-search algorithms, and entropy coders could be combined freely, giving the family room to evolve as requirements changed.
+Before the comparison, it is worth noting one shared root. Nearly every mainstream compressor today descends from LZ77, published in 1977. LZ77 treats a fixed range of already processed data, the sliding window, as its dictionary and replaces repeated patterns with a short reference meaning “go back this many characters and copy this many.” A larger window catches repetitions that are farther apart but costs more computation and memory. DEFLATE, used by ZIP and GZIP, adds Huffman coding (entropy coding that gives shorter bit sequences to more frequent symbols) on top of this. How it parted ways with its sibling LZ78 is covered separately in [The Difference Between LZ77 and LZ78](/240701).
 
 Compression performance is usually evaluated on two axes: **compression ratio**, or how small the result becomes, and **compression speed**, or how quickly the operation completes. Seeking a higher ratio generally requires more computation and therefore more time. A practical compression strategy is about finding the right point between the two.
 
@@ -86,7 +32,7 @@ With that foundation, let us compare the major compression formats one by one.
 
 ZIP is a file format created by Phil Katz in 1989. Internally, it commonly compresses data with **DEFLATE**, the combination of LZ77 and Huffman coding. The important distinction is that ZIP is not itself a compression algorithm. It is a container format that can hold data compressed by an algorithm such as DEFLATE.
 
-ZIP **compresses each file independently**. This is known as a non-solid archive. It makes it possible to extract a single file without decompressing the rest of the archive. On the other hand, it cannot exploit duplicate data across files, so its compression ratio may be lower than that of tar.gz, which we will examine later.
+ZIP **compresses each file independently**. This structure, in which every file is compressed separately, is called a non-solid archive. The opposite approach, which joins all files into one stream and compresses it at once, is a solid archive. Thanks to the non-solid structure, it is possible to extract a single file without decompressing the rest of the archive. On the other hand, it cannot exploit duplicate data across files, so its compression ratio may be lower than that of tar.gz, which we will examine later.
 
 Because Windows, macOS, Linux, and most other operating systems support ZIP without additional software, it is the safest general choice when cross-platform compatibility matters.
 
@@ -110,7 +56,7 @@ GZIP has long been a standard for distributing source code, compressing logs, an
 
 ZSTD is a compression algorithm developed by Yann Collet at Meta, formerly Facebook, and released as open source in 2016. Its main advantage is **dramatically faster compression and decompression while retaining a ratio comparable to GZIP**.
 
-ZSTD has three broad stages. First, an LZ77-family **match finder** detects repeated patterns in the input. It then encodes the results, including literals, match lengths, and offsets, as **sequences**. Finally, it compresses those sequences with **entropy coding**. Instead of relying only on GZIP-style Huffman coding, ZSTD uses **FSE (Finite State Entropy)**. FSE is an entropy coder based on ANS (Asymmetric Numeral Systems), combining useful properties of Huffman and arithmetic coding. Huffman coding can assign only an integer number of bits per symbol, while FSE can represent fractional-bit probabilities and get closer to the theoretical optimum. (Despite the grand name, the key idea is simply a smarter way to express the same data with fewer bits.)
+ZSTD has three broad stages. First, an LZ77-family **match finder** detects repeated patterns in the input. It then encodes the results, including literals, match lengths, and offsets, as **sequences**. Finally, it compresses those sequences with **entropy coding**. Instead of relying only on GZIP-style Huffman coding, ZSTD uses **FSE (Finite State Entropy)**. FSE is an entropy coder based on ANS (Asymmetric Numeral Systems). ANS updates a single integer state each time it processes a symbol and emits fewer bits for more frequent symbols. Its goal is a compression ratio close to arithmetic coding at a speed close to Huffman coding. Huffman coding can assign only an integer number of bits per symbol, while FSE can represent fractional-bit probabilities and get closer to the theoretical optimum. (Despite the grand name, the key idea is simply a smarter way to express the same data with fewer bits.)
 
 The match finder also changes strategy with the compression level. Lower levels, from 1 to 4, use simple hash tables for speed. Middle levels, from 5 to 12, compare multiple candidates and lazily choose a better match. Higher levels, from 13 to 22, use binary trees and dynamic programming to find near-optimal matches. This broad range makes it possible to choose a low level for real-time transfer and a high level for archival work.
 
@@ -185,11 +131,9 @@ Solid archives also have clear disadvantages.
 
 <hr>
 
-**Added in 2026**
-
 ## The choice in 2024 was tar.gz. What would I choose now?
 
-I chose tar.gz at the time because of its compatibility and stability. The artifact had to be decompressed in several environments after being uploaded to S3, so the format supported almost everywhere was the safest option.
+I added this section in 2026. I chose tar.gz at the time because of its compatibility and stability. The artifact had to be decompressed in several environments after being uploaded to S3, so the format supported almost everywhere was the safest option.
 
 If I faced the same situation today, however, I would seriously consider **tar.zst (TAR + ZSTD)**. Recall the benchmark figures above.
 

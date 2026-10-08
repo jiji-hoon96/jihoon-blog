@@ -9,7 +9,7 @@ description: 'Lance o mesmo erro de sete lugares e só quatro chegam ao ErrorBou
 keywords: "tratamento de erros frontend, propagação de erros, React ErrorBoundary, o que ErrorBoundary não captura, erro no startTransition, unhandledrejection, window onerror, React 19 onCaughtError, TanStack Query throwOnError, erro no useSuspenseQuery, react-router loader ErrorBoundary, React.lazy falha ao carregar chunk, fetch não rejeita com 404"
 locale: pt-BR
 translationOf: '251117'
-sourceHash: 3f6e8fa00d3cc487b5caedfdc24f91ad33196ab0eb9c55899c052ad83bdee38c
+sourceHash: 5f61dbb4a2670657b49427ed194d9408f1d9765a6889dc0a770414c816b9f50b
 ---
 
 Neste post quero falar sobre **até onde um erro sobe no frontend**.
@@ -322,7 +322,7 @@ Então o que fazer antes de desenhar um `ErrorBoundary` não é escolher o compo
 
 Seria bom você descobrir quantos lugares podem falhar na sua tela agora, quantos deles chegam ao `ErrorBoundary` e para onde estão indo os que não chegam.
 
-[O próximo post](/251203) trata com o que receber cada destino: em quantas camadas dividir, como tratar a área de tela que uma falha leva e o que mais precisa ser solto para o botão de tentar de novo do fallback realmente tentar de novo.
+[O próximo post](/251203) trata com o que receber cada destino: em quantas camadas dividir e como tratar a área de tela que uma falha leva. O que mais precisa ser solto para o botão de tentar de novo do fallback realmente tentar de novo fica para [Por que o botão de tentar de novo não funciona](/251128).
 
 
 :::ref

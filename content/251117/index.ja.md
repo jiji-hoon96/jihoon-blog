@@ -9,7 +9,7 @@ description: '同じエラーを七か所から投げてみると、ErrorBoundar
 keywords: "フロントエンド エラーハンドリング, エラー伝播, React ErrorBoundary, ErrorBoundary が捕まえないもの, startTransition エラー, unhandledrejection, window onerror, React 19 onCaughtError, TanStack Query throwOnError, useSuspenseQuery エラー, react-router loader ErrorBoundary, React.lazy チャンク読み込み失敗, fetch は 404 で reject しない"
 locale: ja
 translationOf: '251117'
-sourceHash: 3f6e8fa00d3cc487b5caedfdc24f91ad33196ab0eb9c55899c052ad83bdee38c
+sourceHash: 5f61dbb4a2670657b49427ed194d9408f1d9765a6889dc0a770414c816b9f50b
 ---
 
 今回の記事では、**フロントエンドでエラーがどこまで登るのか**について話してみたい。
@@ -322,7 +322,7 @@ React 19 はツリー側にも受け取る場所を一つ増やした。`createR
 
 いま読者の画面で失敗しうる場所がいくつあり、そのうちいくつが `ErrorBoundary` に届き、届かないものはどこへ行っているのかを調べてみてほしい。
 
-[次の記事](/251203)では、到達先ごとに何で受け取るのかを扱う。層をいくつに分けるのか、一つの失敗に画面の範囲をどう扱うのか、そして fallback の再試行ボタンが実際に再試行するようにするには何を一緒に解かなければならないのかだ。
+[次の記事](/251203)では、到達先ごとに何で受け取るのかを扱う。層をいくつに分けるのか、一つの失敗に画面の範囲をどう扱うのかだ。fallback の再試行ボタンが実際に再試行するようにするには何を一緒に解かなければならないのかは、[再試行ボタンが効かない理由](/251128)で別に扱う。
 
 
 :::ref

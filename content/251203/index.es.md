@@ -1,21 +1,20 @@
 ---
 emoji: 🧱
 title: 'Dónde colocar ErrorBoundary'
-seoTitle: 'Dónde colocar ErrorBoundary: capas y alcance del fallo'
+seoTitle: "Dónde colocar ErrorBoundary: ruta, pantalla y región"
 date: '2025-12-03'
+updatedAt: "2026-10-08"
 categories: frontend React TanStack-Query manejo-de-errores
-description: 'Cuántas capas de ErrorBoundary usar, cuánta pantalla cuesta un solo fallo y qué más tiene que desbloquear el botón de reintentar para funcionar.'
-keywords: 'dónde colocar ErrorBoundary, ErrorBoundary rutas anidadas, QueryErrorResetBoundary, el botón reintentar no hace nada, retryOnMount, fallbackRender, useRouteError, revalidate, React.lazy error al cargar chunk, condición de retry en TanStack Query, diseño de ErrorBoundary'
+description: "Cuántos ErrorBoundary usar y dónde, comprobado en el código: qué recibe cada ruta, pantalla y región, un fallback compartido y las condiciones de retry."
+keywords: "dónde colocar ErrorBoundary, ErrorBoundary rutas anidadas, diseño de ErrorBoundary, fallbackRender, useRouteError, revalidate, manejo de errores con useSuspenseQuery, condición de retry en TanStack Query"
 locale: es
 translationOf: '251203'
-sourceHash: 3494eb97de287571e9a6a2a7003d815dddb21da5a3a048746bef38b8bb6101c4
+sourceHash: 67ce7b3aa827b0db5a574e0b77296d9b06e5d25b01b56c3627979b1a008eee79
 ---
 
-En esta entrada quiero hablar de **dónde se reciben los errores que llegan**. En [Propagación de errores](/251117) lancé el mismo error desde siete sitios y conté dónde aterrizaba cada uno. Esta entrada trata de colocar un receptor en cada uno de esos destinos.
+En esta entrada quiero hablar de **cuántos `ErrorBoundary` tener y dónde ponerlos**. Está pensada para desarrolladores frontend que construyen pantallas con React Router y TanStack Query y no terminan de decidir si un fallo debe recibirlo el `ErrorBoundary` de la ruta, `react-error-boundary` o `useQuery` con su `isError`. Al terminar, tendrás un criterio para decidir dónde va cada `ErrorBoundary` y una forma de ajustar el fallback y la condición de retry a cada sitio.
 
-Cuando conoces las rutas de propagación, la siguiente pregunta llega sola. **¿Cuántos `ErrorBoundary` poner y dónde?** Si basta con uno, si hace falta uno por pantalla, y si lo que da la librería se solapa con lo que escribiste tú, se decide aquí.
-
-Empiezo por la conclusión: el número de `ErrorBoundary` no es cuestión de gusto, lo deciden dos cosas. **Qué lanza** y **qué tiene que quedar en pantalla cuando eso muere**. Lo primero se trató en la parte 1, así que esta entrada arranca por lo segundo.
+Por adelantar la conclusión, el número de `ErrorBoundary` no lo decide el gusto sino dos cosas: **qué lanza** y **qué tiene que quedar en pantalla cuando eso muere**. Esta entrada empieza por lo segundo y trata lo primero donde haga falta.
 
 
 ## El alcance que puedes permitirte
@@ -50,7 +49,7 @@ Cuando instalas `react-error-boundary`, el lado del router parece borrable. Como
 
 ### El loader vive fuera de ErrorBoundary
 
-Es exactamente lo que vimos en la parte 1. Un `ErrorBoundary` es una clase construida con `getDerivedStateFromError` y `componentDidCatch`, así que solo le llega **lo que React atrapó dentro del árbol**. El loader es una función que corre fuera del árbol, antes de que empiece el render. Lo que lanza ahí no pasa por React, así que por mucho que lo envuelvas no se ve.
+Un `ErrorBoundary` es una clase construida con `getDerivedStateFromError` y `componentDidCatch`, así que solo le llega **lo que React atrapó dentro del árbol**. El loader es una función que corre fuera del árbol, antes de que empiece el render. Lo que lanza ahí no pasa por React, así que por mucho que lo envuelvas no se ve. Cómo comprobé los destinos lanzando el mismo error desde varios sitios está recogido en [Propagación de errores](/251117).
 
 Por eso, si aunque sea una ruta usa loader, **no puedes borrar el `ErrorBoundary` de ruta.** En cuanto lo borras, ese fallo se queda sin sitio adonde ir.
 
@@ -88,7 +87,7 @@ Una vez dividida la cosa en cuatro capas, queda una última bifurcación. Para u
 
 De cualquiera de las dos maneras pierdes solo esa región y conservas el resto. Lo que cambia no es cuánto pierdes, sino **qué dibujas ahí en su lugar**.
 
-Subirlo a un `ErrorBoundary` reduce el código. Si llamas a `useSuspenseQuery` dentro, ese componente no tiene ni `isPending` ni `isError`. La espera la recibe el `Suspense` de fuera y el fallo, el `ErrorBoundary` de fuera. El componente solo dibuja el caso en que hay datos.
+Subirlo a un `ErrorBoundary` reduce el código. Si llamas a `useSuspenseQuery` dentro, ese componente no tiene ni `isPending` ni `isError`. La espera la recibe el `Suspense` de fuera y el fallo, el `ErrorBoundary` de fuera. El componente solo dibuja el caso en que hay datos. El `QueryAsyncBoundary` de abajo es un componente que junta ese `Suspense` y ese `ErrorBoundary`.
 
 ```tsx
 <section>
@@ -184,114 +183,11 @@ Yo elegí este. La razón es **que puedes cambiar el nombre ahí mismo**. Arriba
 **Que las pantallas de dos capas no se desalineen es lo que compra esta elección.** Si divides en cuatro capas, las pantallas de fallo que ve el usuario corren el riesgo de ser también cuatro, y cambiar un nombre una vez las convierte en una.
 
 
-## Tres casos en los que reintentar no hace nada
-
-Le puse al fallback un botón de reintentar. Es ese botón que pulsa el usuario para deshacer un fallo. Vamos a pulsarlo. **No hace nada.** Vuelve a salir la misma pantalla.
-
-Aparece por tres razones y cada una se resuelve de otra manera. Tienen una cosa en común. **Un `ErrorBoundary` solo deshace su propio estado.** El estado que tiene quien lanzó hay que limpiarlo en quien lanzó.
-
-### El error de query que reset limpia
-
-Lo único que hace `resetErrorBoundary()` es devolver la bandera interna del `ErrorBoundary`. Los children se vuelven a montar y la query se vuelve a suscribir. Pero esa query está **clavada en la caché en estado de error.** Así que lanza de inmediato el mismo error otra vez y el `ErrorBoundary` vuelve a dibujar el fallback.
-
-Por qué usa el error viejo en lugar de volver a pedir también está en el código. `errorBoundaryUtils.js` lo bloquea así.
-
-```js
-if (options.suspense || throwOnError) {
-  if (!errorResetBoundary.isReset()) options.retryOnMount = false;
-}
-```
-
-Hay que leer primero la guarda de fuera. **Este bloqueo solo afecta a las queries que lanzan.** Una query con `suspense`, o con `throwOnError` activado, que se monte sin la marca de reset se queda con el reintento apagado. Un `useQuery` que no lanza no entra ahí y, al volver a montarse, simplemente vuelve a pedir.
-
-![Arriba, el flujo cuando onReset no está conectado: clic en reintentar, EB liberado, remontaje, vuelve a lanzar el error de la caché, y desde la última casilla una flecha roja vuelve a la primera con la etiqueta el mismo fallback. Abajo, el flujo cuando onReset sí está conectado: clic en reintentar, onReset y desbloqueo, EB liberado y remontaje, nueva petición, encadenados en una sola dirección con flechas azules](2.png?w=720)
-
-**Lo que se bloquea es solo la query subida a un `ErrorBoundary`, y por eso hay que limpiar los dos estados a la vez.** Quien levanta esa marca es `QueryErrorResetBoundary`. Si abres el código, el estado es un solo booleano.
-
-```js
-reset: () => {
-	isReset = true;
-},
-```
-
-Basta con conectar este `reset` al `ErrorBoundary`, en su `onReset`. La documentación de TanStack Query y los comentarios del código traen el mismo cableado como ejemplo.
-
-```tsx
-export function QueryAsyncBoundary({ children, pendingFallback }: Props) {
-  return (
-    <QueryErrorResetBoundary>
-      {({ reset }) => (
-        <ErrorBoundary
-          onReset={reset}
-          fallbackRender={({ error, resetErrorBoundary }) => (
-            <ErrorFallback error={error} onRetry={resetErrorBoundary} />
-          )}
-        >
-          <Suspense fallback={pendingFallback}>{children}</Suspense>
-        </ErrorBoundary>
-      )}
-    </QueryErrorResetBoundary>
-  )
-}
-```
-
-El orden importa. Y ese orden lo garantiza `react-error-boundary`. Es un archivo compilado, así que los nombres se han quedado en una letra, pero la estructura se lee igual.
-
-```js
-resetErrorBoundary(...e) {
-  const { didCatch: t } = this.state;
-  t && (this.props.onReset?.({ args: e, reason: "imperative-api" }), this.setState(d));
-}
-```
-
-Están unidos por el operador coma, así que **`onReset` corre primero y `setState` va después**. `d` es el estado inicial con `didCatch` en `false`. Por eso los children se vuelven a montar después de haberse soltado el bloqueo de la caché. **Una línea de diferencia es lo que convierte el reintento en un reintento de verdad.**
-
-Ponerle `Query` en el nombre también es intencionado. Si lo llamas `AsyncBoundary` se lee como si sirviera para cualquier asincronía, y no es así, porque dentro lleva `QueryErrorResetBoundary`. Por la misma razón no le puse valor por defecto a `pendingFallback`. Con un valor por defecto, mirando solo la línea de la llamada no sabes qué se está poniendo debajo.
-
-### El error de render que reset no puede limpiar
-
-El segundo es el caso que vimos en la parte 1. El servidor devuelve un 200 con una forma distinta de la esperada y el render que la lee lanza un `TypeError`. Lo recibió el mismo `ErrorBoundary` y `onReset` está conectado, pero reintentar no hace nada.
-
-Lo que `reset` limpia es **una query en estado de error**. Pero esta query tuvo éxito. El servidor dio un 200 y la caché guarda ese valor como dato normal. Quien produjo el error fue el render que lo leyó. Así que `reset` no tiene nada que limpiar, y el componente remontado recibe la misma caché, con el `staleTime` todavía vigente, y vuelve a lanzar en la misma línea.
-
-El sitio donde se arregla es **`queryFn`**.
-
-```ts
-queryFn: async () => {
-  const data = await getComments(postId)
-  if (!Array.isArray(data.comments)) {
-    throw new TypeError('comments 가 배열이 아니다')
-  }
-  return data.comments
-},
-```
-
-En la parte 1 dije que el sitio donde acaban los tipos es el sitio donde poner una comprobación en tiempo de ejecución. **Ese sitio es este.** Si subes esa comprobación a `queryFn`, el mismo fallo se convierte en **el error de la query**. Se queda en la caché en estado de error, `reset` lo limpia y el reintento vuelve a pedir.
-
-Si aplazas la comprobación en tiempo de ejecución porque total ya la recibe el `ErrorBoundary`, acabas con un fallback que recibe pero no puede deshacer.
-
-### El lazy que solo arregla una recarga
-
-El tercero es un fallo al cargar un chunk. Esta vez no tienen nada que ver ni `reset` ni `queryFn`. Quien guarda el estado es el propio `lazy`.
-
-Como vimos en la parte 1, el `lazyInitializer` de React apunta el rechazo en `payload` y a partir de ahí lanza siempre lo mismo.
-
-```js
-throw payload._result;
-```
-
-No vuelve a hacer `import()`. La llamada a `lazy()` ocurrió una vez en el nivel superior del módulo y ese `payload` se queda igual mientras viva la aplicación. Aunque sueltes el `ErrorBoundary` y se vuelva a montar, vuelve el mismo error.
-
-Por eso recuperarse de este fallo es volver a descargar la página. También significa que se ha desplegado una versión nueva, así que es mejor decírselo así al usuario.
-
-Puestos los tres casos uno al lado del otro, un solo botón de reintentar tiene que hacer tres trabajos distintos. El error de query se resuelve con `reset`, el error de render convirtiéndolo antes en error de query en `queryFn`, y el fallo de chunk con una recarga. **El `ErrorBoundary` no hace ninguno de los tres por ti.**
-
-
 ## Fallos a los que no poner reintentar
 
-Separados los fallos recuperables de los que no lo son, hay que separar también el botón.
+Poner un botón de reintentar en el fallback no resuelve todos los fallos, porque un `ErrorBoundary` solo restablece su propio estado. El error de una query solo se vuelve a pedir cuando `QueryErrorResetBoundary` conecta su `reset` a `onReset`; el error de render que surge al leer un valor inesperado que el servidor envió con un 200 solo se resuelve si `queryFn` lo comprueba antes y lo convierte en el error de la query; y el fallo al cargar un chunk de `React.lazy` solo se resuelve recargando. Cómo comprobé los tres casos en el código lo recojo aparte en [Por qué el botón de reintentar no hace nada](/251128). Como los fallos se dividen así entre recuperables y no recuperables, hay que separar también el botón.
 
-Enseñar el mismo botón en todos los fallos es **guiar al usuario hacia una acción que no puede hacer**. Si pulsas reintentar en un 404 vuelve el mismo 404. Un 403 por falta de permisos es igual. El fallo al cargar un chunk directamente no hace nada, por lo que vimos en la sección anterior.
+Enseñar el mismo botón en todos los fallos es **guiar al usuario hacia una acción que no puede hacer**. Si pulsas reintentar en un 404 vuelve el mismo 404. Un 403 por falta de permisos es igual. El fallo al cargar un chunk directamente no hace nada, como vimos arriba.
 
 Basta con separarlo una vez dentro del fallback compartido.
 
@@ -368,7 +264,7 @@ Hay una premisa que comprobar antes de activar los reintentos. ¿Esa petición e
 
 ## Para terminar
 
-En la parte 1 traté adónde van los errores, y en esta entrada decidí qué poner en esos sitios. Resumiendo:
+En esta entrada decidí qué poner en cada sitio que recibe un fallo. Resumiendo:
 
 - La posición de un `ErrorBoundary` la decide el alcance que puedes permitirte. No preguntas qué envolver, sino qué tiene que quedar cuando esto muere.
 - No puedes borrar ninguna de las tres capas de `ErrorBoundary`. Lo que lanzó el loader no lo recibe el `ErrorBoundary` del árbol, `revalidate` no limpia la caché de queries, y poner uno más abajo es estrechar el alcance.
