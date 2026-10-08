@@ -4,11 +4,11 @@ title: "React 为什么使用 MessageChannel"
 seoTitle: "React Scheduler 为什么用 MessageChannel 而不是 requestIdleCallback"
 date: "2025-05-15"
 categories: 前端 React
-description: "梳理 React Scheduler 为何从 requestIdleCallback、requestAnimationFrame、setTimeout 一路走到用 MessageChannel 调度工作，并通过 React 源码确认调用频率、浏览器兼容性与 setTimeout 的 4ms 延迟。"
+description: "从调用频率、浏览器兼容性与 setTimeout 的 4ms 延迟三方面，梳理 React Scheduler 为何不用 requestIdleCallback、requestAnimationFrame、setTimeout，而用 MessageChannel 调度工作。"
 keywords: "requestIdleCallback, MessageChannel, React Scheduler, setTimeout 4ms, React 调度器原理, shouldYieldToHost, requestAnimationFrame, React Fiber"
 locale: zh-CN
 translationOf: '250515'
-sourceHash: bfb181318a2adf0a9dd6422a287895eff5a1b654aab1a204bbdc1eba1ec1808c
+sourceHash: bfaa67abcb8f66de08aab49d2098ef5c87175fada85358ac546691c7c36a2619
 ---
 
 这篇文章想聊聊 **React 为什么用 MessageChannel 而不是 requestIdleCallback 来调度工作**。
@@ -40,9 +40,9 @@ if (typeof MessageChannel !== 'undefined') {
 }
 ```
 
-为什么不使用 `setTimeout`，而要使用 `MessageChannel`？根据 HTML 规范，`setTimeout` 嵌套 5 次以上时，会被强制施加**至少 4ms 的延迟**。而 `MessageChannel` 没有这一限制，可以在下一个事件循环 tick 中立即作为 macrotask 执行。对于以 5ms 为单位拆分工作的 Fiber 来说，人为增加 4ms 延迟是致命的。
-
 Scheduler 的 `shouldYieldToHost()` 会检查工作开始后的经过时间是否超过 `frameInterval`（默认 **5ms**，定义在 `SchedulerFeatureFlags.js` 中），并据此决定是否将控制权交还给主线程。
+
+为什么不使用 `setTimeout`，而要使用 `MessageChannel`？根据 HTML 规范，`setTimeout` 嵌套 5 次以上时，会被强制施加**至少 4ms 的延迟**。而 `MessageChannel` 没有这一限制，可以在下一个事件循环 tick 中立即作为 macrotask 执行。对于以 5ms 为单位拆分工作的 Fiber 来说，人为增加 4ms 延迟是致命的。
 
 
 ## 结语

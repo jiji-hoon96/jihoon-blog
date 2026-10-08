@@ -5,7 +5,7 @@ seoTitle: "MCP 与 function calling 有何不同: 协议结构与调用流程"
 date: "2026-05-24"
 locale: zh-CN
 translationOf: '260524'
-sourceHash: c8c4c1ecc1bcc3dec03f51f86523bff1a97cfb134b8b21433ff155fcea071b34
+sourceHash: f5c56031068e65cfbee19861ae45e0809590a1961be8364a856a0caa02ffedcb
 categories: AI 开发工具 Claude MCP CodeGraph
 description: "从协议结构梳理 MCP（Model Context Protocol）与 function calling 的区别：六种 primitive、stdio 与 Streamable HTTP、从 tools/list 到 tool_use 循环的调用流程，以及 Tool Poisoning 等安全问题。"
 keywords: "MCP, Model Context Protocol, MCP 与 function calling 区别, MCP primitive, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP 安全"
@@ -13,7 +13,7 @@ keywords: "MCP, Model Context Protocol, MCP 与 function calling 区别, MCP pri
 
 本文想聊一聊 **MCP（Model Context Protocol）与 function calling 有什么不同**。
 
-本文写给这样的开发者：在 Claude Code 或 Cursor 中接入了 MCP server，却很难说清它与 LLM API 的 function calling 在哪里分道扬镳。先说答案，区别有四点：在运行时获取工具列表的动态发现、定义了生命周期的 stateful session、Tool 以外的 primitive，以及 server 可以反过来调用 client 端 LLM 的双向性。读完之后，你会知道这四点分别来自协议的哪个部分，以及这种结构会引出哪些安全问题。
+本文写给这样的开发者：在 Claude Code 或 Cursor 中接入了 MCP server，却很难说清它与 LLM API 的 function calling 在哪里分道扬镳。读完之后，你会知道区分两者的四点差异分别来自协议的哪个部分，以及这种结构会引出哪些安全问题。这四点是：在运行时获取工具列表的动态发现、定义了生命周期的 stateful session、Tool 以外的 primitive，以及 server 可以反过来调用 client 端 LLM 的双向性。
 
 笔者作为前端开发者，日常都会使用 Claude，但每次新增一个 MCP server 时，对于这些工具究竟如何进入模型的视野，总是有些模糊。
 
@@ -113,7 +113,7 @@ client 会把通过 `tools/list` 获取的列表转换成 **Anthropic Messages A
 
 总而言之，MCP 并不是要取代 function calling，而是建立在它之上的标准。模型调用工具的方式仍然是 `tools` 参数和 `tool_use` 循环，MCP 增加的是在运行时交换工具列表的方法、session 的生命周期、Tool 以外的 primitive，以及从 server 发往 client 的调用。正因为工具定义在运行时传递，污染这些定义或悄悄修改它们的攻击也从同一个地方产生。
 
-如果说 MCP 关乎该让智能体能做什么，那么该告诉它什么，就是 `CLAUDE.md`、`AGENTS.md` 这类上下文文件的问题。这些文件如何被智能体读取、其中的指令能被遵守到什么程度，在[AI 智能体工具](/260529)中讨论。
+如果说 MCP 关乎该让智能体能做什么，那么该告诉它什么，就是 `CLAUDE.md`、`AGENTS.md` 这类上下文文件的问题。这些文件如何被智能体读取、其中的指令能被遵守到什么程度，在[上下文文件](/260529)中讨论。
 
 
 ## 参考资料

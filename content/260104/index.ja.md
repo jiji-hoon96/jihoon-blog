@@ -9,7 +9,7 @@ description: "TanStack Query の queryKey の管理方法が、インライン�
 keywords: "queryKey, クエリキーファクトリー, TanStack Query queryKey, queryKey 記述規則, queryOptions, setQueryData, TkDodo クエリキー, query-key-factory, React Query v5, クエリの無効化"
 locale: ja
 translationOf: '260104'
-sourceHash: 9a36bf314bac28176dfc2e56aa119d80db0e87fe66e6df7a83ca4350fb6d2a19
+sourceHash: 50857db5f010cd899635d01d412999ec0ecc8b8d295039fbaad49e0c10d51f58
 ---
 
 今回は、**TanStack Query の queryKey**について掘り下げてみたい。
@@ -92,7 +92,7 @@ const { data } = useQuery({
 
 `userId` が `'A'` の場合と `'B'` の場合では、queryKey が異なる。異なればキャッシュミスとなり、キャッシュミスならフェッチする。これは自動で行われる。この単純さのおかげで、「userId が変わったので再度フェッチする」というロジックを自分で書く必要がない。
 
-では、レンダリングのたびに新しく作られる配列を、TanStack Query はどうやって同じキーだと見分けるのだろうか。配列の参照を比較するのではなく、queryKey を `hashKey` でシリアライズした文字列（`queryHash`）をキャッシュのキーとして使う。この関数はプレーンオブジェクトのキーを並べ替えながら `JSON.stringify` でシリアライズするので、オブジェクト内のキー順はハッシュに影響せず、配列の要素の順序は影響する。値が `undefined` のプロパティはシリアライズの過程で消えるため、`{ a: 1, b: undefined }` と `{ a: 1 }` は同じキーになる。この動作を実装コードとともに追った内容は [hashKey](/251230) に別途まとめておいた。
+では、レンダリングのたびに新しく作られる配列を、TanStack Query はどうやって同じキーだと見分けるのだろうか。配列の参照を比較するのではなく、queryKey を `hashKey` でシリアライズした文字列（`queryHash`）をキャッシュのキーとして使う。この関数はプレーンオブジェクトのキーを並べ替えながら `JSON.stringify` でシリアライズするので、オブジェクト内のキー順はハッシュに影響せず、配列の要素の順序は影響する。値が `undefined` のプロパティはシリアライズの過程で消えるため、`{ a: 1, b: undefined }` と `{ a: 1 }` は同じキーになる。この動作を実装コードとともに追った内容は [queryKey比較の仕組み](/251230) に別途まとめておいた。
 
 
 ## queryKey の記述規則

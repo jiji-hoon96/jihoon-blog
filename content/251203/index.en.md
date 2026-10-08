@@ -9,7 +9,7 @@ description: "How many ErrorBoundaries to use and where, checked in source: what
 keywords: "React ErrorBoundary placement, nested route ErrorBoundary, ErrorBoundary design, fallbackRender, useRouteError, revalidate, useSuspenseQuery error handling, TanStack Query retry condition"
 locale: en
 translationOf: '251203'
-sourceHash: 67ce7b3aa827b0db5a574e0b77296d9b06e5d25b01b56c3627979b1a008eee79
+sourceHash: 3352c5f5606bee4380b6309b6e8eb02fc35be733311492c3d45f8a89dd57fbda
 ---
 
 In this post, I want to talk about **how many `ErrorBoundary` components to have and where to put them**. This is for frontend developers building screens with React Router and TanStack Query who keep weighing whether a failure should be received by the route's `ErrorBoundary`, by `react-error-boundary`, or by `useQuery`'s `isError`. By the end, you will have a criterion for deciding where `ErrorBoundary` goes, and a way to match the fallback and the retry condition to each place.
@@ -164,6 +164,8 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
   <CommentList postId={postId} />
 </ErrorBoundary>
 ```
+
+The `reset` in this code is the function TanStack Query's `QueryErrorResetBoundary` passes down. It clears queries left in an error state so that a retry actually refetches; why that is needed is covered in the retry section below.
 
 `ErrorFallback` takes `onRetry`, so the names do not line up. That costs one more component whose only job is to move the name across.
 

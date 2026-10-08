@@ -1,6 +1,6 @@
 ---
 emoji: 🧮
-title: "hashKey"
+title: "Como as queryKey são comparadas"
 seoTitle: "Como o TanStack Query compara queryKeys: hashKey explicado"
 date: "2025-12-30"
 categories: frontend React TanStack-Query queryKey
@@ -8,12 +8,12 @@ description: "Como o TanStack Query trata novos vetores queryKey como a mesma ch
 keywords: "comparação de queryKey, hashKey, queryHash, chave de cache do TanStack Query, ordem da queryKey no React Query, queryKeyHashFn, JSON.stringify chaves ordenadas, QueryCache"
 locale: pt-BR
 translationOf: '251230'
-sourceHash: 7560f02e4d0eed43c223d135356ae58f4451e1b7b0805a2b6baf0caa0f67573d
+sourceHash: 7e26877fcdd3f1c85b67751a911900b36ff424cb43b408fb640fb8aa3075e22a
 ---
 
 Neste artigo, quero falar sobre **como o TanStack Query decide que duas queryKeys são a mesma chave**.
 
-É para quem usa TanStack Query e já se perguntou por que uma queryKey, criada como um vetor novo a cada renderização, não causa um cache miss toda vez, e se a ordem das chaves de um objeto ou valores `undefined` afetam o cache. Adiantando a conclusão: o TanStack Query usa como chave de cache a string obtida ao serializar a queryKey com `hashKey`, e nesse processo a ordem das chaves dos objetos é ignorada, enquanto a ordem dos elementos dos vetores é preservada.
+É para quem usa TanStack Query e já se perguntou por que uma queryKey, criada como um vetor novo a cada renderização, não causa um cache miss toda vez, e se a ordem das chaves de um objeto ou valores `undefined` afetam o cache; ao final, você saberá qual regra faz duas chaves serem iguais e como essa regra afeta o cache. Adiantando a conclusão: o TanStack Query usa como chave de cache a string obtida ao serializar a queryKey com `hashKey`, e nesse processo a ordem das chaves dos objetos é ignorada, enquanto a ordem dos elementos dos vetores é preservada.
 
 A queryKey é o vetor que o TanStack Query usa como base para gerenciar o cache de consultas. A mesma chave significa os mesmos dados, e quando `['user', userId]` muda porque o seu `userId` mudou, ocorre um cache miss e os dados são buscados novamente com fetch.
 

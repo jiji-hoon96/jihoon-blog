@@ -1,6 +1,6 @@
 ---
 emoji: 🧮
-title: "hashKey"
+title: "How queryKey Comparison Works"
 seoTitle: "How TanStack Query Compares queryKeys: hashKey Explained"
 date: "2025-12-30"
 categories: frontend React TanStack-Query queryKey
@@ -8,12 +8,12 @@ description: "How TanStack Query treats new queryKey arrays as the same key via 
 keywords: "queryKey comparison, hashKey, queryHash, TanStack Query cache key, React Query queryKey order, queryKeyHashFn, JSON.stringify sorted keys, QueryCache"
 locale: en
 translationOf: '251230'
-sourceHash: 7560f02e4d0eed43c223d135356ae58f4451e1b7b0805a2b6baf0caa0f67573d
+sourceHash: 7e26877fcdd3f1c85b67751a911900b36ff424cb43b408fb640fb8aa3075e22a
 ---
 
 In this post, I want to talk about **how TanStack Query decides that two queryKeys are the same key**.
 
-This is for TanStack Query users who have wondered why a queryKey, which is created as a new array on every render, does not cause a cache miss every time, and whether object key order or `undefined` values affect the cache. To give the conclusion first, TanStack Query uses the string produced by serializing the queryKey with `hashKey` as the cache key, and in that process object key order is ignored while array element order is preserved.
+This is for TanStack Query users who have wondered why a queryKey, which is created as a new array on every render, does not cause a cache miss every time, and whether object key order or `undefined` values affect the cache, and by the end you will know the rule that makes two keys equal and how that rule affects the cache. To give the conclusion first, TanStack Query uses the string produced by serializing the queryKey with `hashKey` as the cache key, and in that process object key order is ignored while array element order is preserved.
 
 A queryKey is the array TanStack Query uses as the basis for managing the query cache. The same key means the same data, and when the key `['user', userId]` changes because `userId` changed, a cache miss occurs and the data is fetched again.
 

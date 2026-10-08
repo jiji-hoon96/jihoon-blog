@@ -8,12 +8,12 @@ description: "Cuatro niveles de herramientas que abaratan la búsqueda de códig
 keywords: "inteligencia de código, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider repo map, ahorro de tokens agente de IA"
 locale: es
 translationOf: '260526'
-sourceHash: bc95fa9a1eea99621bdce773adb71ff0545702b869b35e911fc65e97307a5faf
+sourceHash: 2efbc6c2bee1d73d457d75006378b5a689f2098be54a67edc2da20b38b07a9d0
 ---
 
 En esta publicación quiero hablar sobre **en qué se diferencian entre sí las herramientas que reducen el coste de que un agente de codificación con IA encuentre el código pertinente**.
 
-Este artículo está pensado para quienes han visto a un agente gastar tokens repitiendo grep y lecturas de archivos en una base de código grande, y dudan qué herramienta añadir, como Repomix, CodeGraph o Serena. Yo divido estas herramientas en cuatro niveles según la profundidad con que entienden el código: el empaquetado de contexto, que mete el código entero como texto; los mapas de repositorio con tree-sitter, que saben que un símbolo existe; los grafos de conocimiento, que guardan de antemano las relaciones entre símbolos; y LSP, que sabe qué es ese símbolo.
+Este artículo está pensado para quienes han visto a un agente gastar tokens repitiendo grep y lecturas de archivos en una base de código grande, y dudan qué herramienta añadir, como Repomix, CodeGraph o Serena. Al terminar, sabrás distinguir cómo se diferencian estas herramientas según la profundidad con que entienden el código y dónde reduce cada enfoque el coste de búsqueda. Esa profundidad se divide en cuatro: el empaquetado de contexto, que mete el código entero como texto; los mapas de repositorio con tree-sitter, que saben que un símbolo existe; los grafos de conocimiento, que guardan de antemano las relaciones entre símbolos; y LSP, que sabe qué es ese símbolo.
 
 Desde que vi `codegraph` en GitHub Trending y lo instalé, cada vez que encuentro una herramienta nueva me pregunto por qué principio ahorra tokens.
 
@@ -101,7 +101,7 @@ Aider no utiliza LSP, sino su propio análisis de archivos, por lo que solo pued
 
 ## GitHub Trending
 
-![Flujo de las herramientas para agentes de codificación con IA y de la inteligencia de código](1.webp)
+![Repositorios de GitHub Trending de este mes, con colbymchenry/codegraph en primer lugar](1.webp)
 
 Para terminar, descubrí por primera vez muchas de las herramientas anteriores a través de **GitHub Trending**. Es un lugar donde se puede ver de un vistazo quién está creando qué herramientas y cuáles están ganando popularidad de repente.
 
@@ -110,9 +110,9 @@ En `github.com/trending` se puede consultar por tres intervalos: today, this wee
 
 ## Conclusión
 
-En resumen, los cuatro niveles resuelven un mismo problema, el coste de encontrar el código pertinente, de forma distinta según la profundidad con que entienden el código. El empaquetado de contexto solo pasa el código como texto, los mapas de repositorio con tree-sitter saben que un símbolo existe, los grafos de conocimiento guardan esas relaciones de antemano y LSP sabe qué es el símbolo. Cuanto más se baja de nivel, más hay que preparar, como un índice o un language server, pero, como muestra el benchmark de CodeGraph, cuanto mayor es la base de código, más se reduce el coste de búsqueda.
+En resumen, los cuatro niveles resuelven un mismo problema, el coste de encontrar el código pertinente, de forma distinta según la profundidad con que entienden el código. El empaquetado de contexto solo pasa el código como texto, los mapas de repositorio con tree-sitter saben que un símbolo existe, los grafos de conocimiento guardan esas relaciones de antemano y LSP sabe qué es el símbolo. Cuanto más se baja de nivel, más hay que preparar, como un índice o un language server. Sin embargo, lo que muestra el benchmark de CodeGraph es una comparación del nivel de grafo de conocimiento frente a buscar sin herramienta. En esa comparación, el ahorro crecía con el tamaño de la base de código, pero el benchmark no permite saber si los demás niveles reducen el coste en la misma medida.
 
-Si estas herramientas reducen lo que le cuesta al agente encontrar código, decidir en qué archivo y con qué extensión escribir las reglas del proyecto que el agente debe conocer desde el principio es otra cuestión. Eso se trata en [Herramientas para agentes de IA](/260529).
+Si estas herramientas reducen lo que le cuesta al agente encontrar código, decidir en qué archivo y con qué extensión escribir las reglas del proyecto que el agente debe conocer desde el principio es otra cuestión. Eso se trata en [Archivos de contexto](/260529).
 
 
 ## Referencias

@@ -9,7 +9,7 @@ description: "How TanStack Query queryKey management evolved from inline arrays 
 keywords: "queryKey, query key factory, TanStack Query queryKey, queryKey best practices, queryOptions, setQueryData, TkDodo query keys, query-key-factory, React Query v5, query invalidation"
 locale: en
 translationOf: '260104'
-sourceHash: 9a36bf314bac28176dfc2e56aa119d80db0e87fe66e6df7a83ca4350fb6d2a19
+sourceHash: 50857db5f010cd899635d01d412999ec0ecc8b8d295039fbaad49e0c10d51f58
 ---
 
 In this post, I want to explore **TanStack Query's queryKey**.
@@ -92,7 +92,7 @@ const { data } = useQuery({
 
 The queryKeys for a `userId` of `'A'` and one of `'B'` are different. A different key means a cache miss, and a cache miss triggers a fetch. It is automatic. Thanks to this simplicity, we do not need to write logic that says, "The userId changed, so fetch again."
 
-So how does TanStack Query recognize an array that is created anew on every render as the same key? It does not compare array references; it uses the string produced by serializing the queryKey with `hashKey` (`queryHash`) as the cache key. This function sorts plain object keys while serializing with `JSON.stringify`, so key order inside an object does not affect the hash, while element order in an array does. A property whose value is `undefined` disappears during serialization, so `{ a: 1, b: undefined }` and `{ a: 1 }` become the same key. I have written up this behavior, following the implementation code, separately in [hashKey](/251230).
+So how does TanStack Query recognize an array that is created anew on every render as the same key? It does not compare array references; it uses the string produced by serializing the queryKey with `hashKey` (`queryHash`) as the cache key. This function sorts plain object keys while serializing with `JSON.stringify`, so key order inside an object does not affect the hash, while element order in an array does. A property whose value is `undefined` disappears during serialization, so `{ a: 1, b: undefined }` and `{ a: 1 }` become the same key. I have written up this behavior, following the implementation code, separately in [How queryKey Comparison Works](/251230).
 
 
 ## Rules for writing queryKeys

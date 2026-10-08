@@ -8,12 +8,12 @@ description: "react-error-boundary の再試行ボタンを押しても同じ fa
 keywords: "ErrorBoundary 再試行が効かない, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy チャンク読み込み失敗, useSuspenseQuery エラー, react-error-boundary"
 locale: ja
 translationOf: '251128'
-sourceHash: bf21fc8f515898fa79deb6500860e1b524bee121476422600343e6ffa3febdcf
+sourceHash: 9b7369d4cc04cce44463bae3484aac4cfc28f8721890c7216a90b1df3612021d
 ---
 
 今回の記事では、**`ErrorBoundary` の再試行ボタンがなぜ効かないのか**について話してみたい。
 
-`react-error-boundary` の fallback に再試行ボタンを付けたのに、押しても同じ画面がまた出てくるフロントエンド開発者に向けた記事である。短く答えると、`ErrorBoundary` は自分の状態しか戻さず、失敗を生んだ状態は投げた側にそのまま残るからだ。最後まで読めば、その状態が残る三つの場合と、場合ごとの解き方が分かる。
+`react-error-boundary` の fallback に再試行ボタンを付けたのに、押しても同じ画面がまた出てくるフロントエンド開発者に向けて、失敗の状態が残る三つの場合と、場合ごとの解き方をまとめた記事である。短く答えると、`ErrorBoundary` は自分の状態しか戻さず、失敗を生んだ状態は投げた側にそのまま残るからだ。
 
 例は TanStack Query と `react-error-boundary` を一緒に使う構成で、ライブラリの動作はインストール済みのソースを開いて確かめた。
 
@@ -100,7 +100,7 @@ queryFn: async () => {
 },
 ```
 
-`fetch` のレスポンスの `json()` は `Promise<any>` を返すので、その後に付けた型は検査ではなく宣言であり、サーバーが返した値を確かめるランタイム検査は自分で置かなければならない。**その場所がここだ。** その検査を `queryFn` へ引き上げると、同じ失敗が **クエリのエラー**になる。キャッシュにはエラー状態で残り、`reset` がそれを解き、再試行が再リクエストする。
+`fetch` のレスポンスの `json()` は `Promise<any>` を返すので、その後に付けた型は検査ではなく宣言であり、サーバーが返した値を確かめるランタイム検査は自分で置かなければならない。**その検査を `queryFn` へ引き上げると**、同じ失敗が **クエリのエラー**になる。キャッシュにはエラー状態で残り、`reset` がそれを解き、再試行が再リクエストする。
 
 `ErrorBoundary` が受けてくれるからランタイム検査は後回しにしよう、と先送りすると、受けはするが戻せない fallback ができる。
 

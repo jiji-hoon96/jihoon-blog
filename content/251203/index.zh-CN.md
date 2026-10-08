@@ -9,7 +9,7 @@ description: "在使用 React Router 与 TanStack Query 的页面里，用已安
 keywords: "ErrorBoundary 放在哪里, 嵌套路由 ErrorBoundary, ErrorBoundary 设计, fallbackRender, useRouteError, revalidate, useSuspenseQuery 错误处理, TanStack Query retry 条件"
 locale: zh-CN
 translationOf: '251203'
-sourceHash: 67ce7b3aa827b0db5a574e0b77296d9b06e5d25b01b56c3627979b1a008eee79
+sourceHash: 3352c5f5606bee4380b6309b6e8eb02fc35be733311492c3d45f8a89dd57fbda
 ---
 
 这篇文章想聊聊 **`ErrorBoundary` 要放几个、放在哪里**。本文写给用 React Router 和 TanStack Query 搭页面、总在纠结失败该由路由的 `ErrorBoundary`、`react-error-boundary` 还是 `useQuery` 的 `isError` 来接的前端开发者。读完之后，你会得到决定 `ErrorBoundary` 放在哪里的标准，以及让每个位置的 fallback 和重试条件对得上的方法。
@@ -164,6 +164,8 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
   <CommentList postId={postId} />
 </ErrorBoundary>
 ```
+
+代码里的 `reset` 是 TanStack Query 的 `QueryErrorResetBoundary` 传下来的函数。它解开停留在错误状态的查询，让重试真正重新请求；为什么需要它，放在下面讲重试的一节。
 
 `ErrorFallback` 接收的是 `onRetry`，名字对不上。于是就多出一个只负责搬名字的组件。
 

@@ -1,6 +1,6 @@
 ---
 emoji: 🧮
-title: "hashKey"
+title: "queryKey 비교 원리"
 seoTitle: "TanStack Query queryKey 비교 원리: hashKey와 직렬화"
 date: "2025-12-30"
 categories: 프론트엔드 React TanStack-Query queryKey
@@ -10,7 +10,7 @@ keywords: "queryKey 비교, hashKey, queryHash, TanStack Query 캐시 키, React
 
 이번 포스팅에서는 **TanStack Query가 두 queryKey를 같은 키로 판단하는 방식**에 대한 이야기를 해보려고 한다.
 
-렌더링마다 새 배열로 만들어지는 queryKey가 왜 매번 캐시 미스를 내지 않는지, 객체의 키 순서나 `undefined` 값이 캐시에 영향을 주는지 궁금했던 TanStack Query 사용자를 위한 글이다. 결론부터 말하면 TanStack Query는 queryKey를 `hashKey`로 직렬화한 문자열을 캐시의 키로 쓰고, 이 과정에서 객체의 키 순서는 무시되고 배열의 요소 순서는 그대로 남는다.
+렌더링마다 새 배열로 만들어지는 queryKey가 왜 매번 캐시 미스를 내지 않는지, 객체의 키 순서나 `undefined` 값이 캐시에 영향을 주는지 궁금했던 TanStack Query 사용자를 위한 글로, 읽고 나면 키를 같다고 보는 규칙과 그 규칙이 캐시에 주는 영향을 알 수 있다. 결론부터 말하면 TanStack Query는 queryKey를 `hashKey`로 직렬화한 문자열을 캐시의 키로 쓰고, 이 과정에서 객체의 키 순서는 무시되고 배열의 요소 순서는 그대로 남는다.
 
 queryKey는 TanStack Query가 쿼리 캐시를 관리하는 기준이 되는 배열이다. 같은 키는 같은 데이터를 뜻하고, `['user', userId]`의 `userId`가 바뀌어 키가 달라지면 캐시 미스가 나서 새로 fetch한다.
 

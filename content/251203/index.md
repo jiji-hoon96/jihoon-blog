@@ -162,6 +162,8 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
 </ErrorBoundary>
 ```
 
+코드의 `reset` 은 TanStack Query 의 `QueryErrorResetBoundary` 가 내려주는 함수다. 에러 상태로 남은 쿼리를 풀어 재시도가 다시 요청하게 만들고, 왜 필요한지는 아래 재시도 절에서 다룬다.
+
 `ErrorFallback` 은 `onRetry` 를 받으므로 이름이 안 맞는다. 그래서 이름을 옮기는 컴포넌트가 하나 더 든다.
 
 **`fallbackRender`** 는 함수를 받아 그 자리에서 렌더한다.

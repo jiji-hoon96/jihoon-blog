@@ -1,12 +1,12 @@
 ---
 emoji: 🧭
-title: 'AI Agent Tools'
+title: 'Context Files'
 seoTitle: "CLAUDE.md, AGENTS.md, SKILL.md: AI Agent Context Files"
 date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: en
 translationOf: '260529'
-sourceHash: 576f9a09086bc4f6444b6e39ded3b6204214a004b2497c595989116307daebab
+sourceHash: bb7924b155b99b2e2f0c86c6ab970989ae0c36a6e40193617be6dd29adb326d3
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "How agents load CLAUDE.md, AGENTS.md, SKILL.md, and Cursor rules, why instructions get lost, and what an ETH Zurich study says to put in context files."
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, context files, AI coding agents, Claude Code, ETH Zurich AGENTS.md study"
@@ -19,7 +19,7 @@ This is for developers whose projects have piled up `CLAUDE.md`, `AGENTS.md`, `S
 As a frontend developer, I use Claude in my day-to-day work. At some point, that meant a `CLAUDE.md` appeared at the project root, an `AGENTS.md` created by someone else sat beside it, a `.cursorrules` file lingered elsewhere, and I even created a `.claude/skills/` directory after following an article I had come across. (By the time I stopped to take stock, I had about five files containing roughly the same information.)
 
 
-## Context Files
+## Agents Without Persistent Memory
 
 AI coding agents have a fundamental limitation: **they have no persistent memory**. Every session starts from a blank slate. In the next conversation, they cannot remember a convention you agreed on yesterday or a directory structure you explained an hour ago. Context files are the simplest mechanism for addressing this problem. If a project contains a file that is read automatically whenever a session starts, you no longer need to repeat the same explanation every time.
 
@@ -41,7 +41,7 @@ There is one frequently overlooked detail here: Claude **reads every `CLAUDE.md`
 
 ### AGENTS.md
 
-`AGENTS.md` is a standard created to address the proliferation of tool-specific files described above. In December 2025, Anthropic, Block, and OpenAI donated it to the Linux Foundation’s **Agentic AI Foundation (AAIF)** alongside MCP, making it a de facto industry standard. The official site (`agents.md`) states that **more than 60,000 open-source repositories have adopted the file**.
+`AGENTS.md` is a standard created to address the proliferation of tool-specific files described above. In December 2025, Anthropic, Block, and OpenAI donated it to the Linux Foundation’s **Agentic AI Foundation (AAIF)** alongside MCP (the protocol that connects agents to external systems), making it a de facto industry standard. The official site (`agents.md`) states that **more than 60,000 open-source repositories have adopted the file**.
 
 The list of supported tools makes the picture even clearer. It includes OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf, and Augment Code, among many others. GitHub Copilot began supporting `AGENTS.md` natively in August 2025. One interesting detail is that **native `AGENTS.md` support in Claude Code is still an active feature request**. Claude Code continues to treat `CLAUDE.md` as its primary file.
 
@@ -181,13 +181,13 @@ Aider’s “200-line recommendation”—keep the file short because it enters 
 
 ## So, What Does This Mean?
 
-The thought that occurred to me most often while writing this article was that **the number of tools is growing extraordinarily fast**. Even as I wrote, new MCP servers appeared on GitHub Trending, the status of AGENTS.md support changed, and new security CVEs were issued. Half-finished paragraphs quickly becoming outdated is a familiar fate of technical writing, but the pace of the AI agent ecosystem is unusually steep.
+Context files differ from tool to tool in name, location, and when they are read. This article alone covered CLAUDE.md, AGENTS.md, SKILL.md, Cursor rules, copilot-instructions.md, and MEMORY.md, and which tool supports which file keeps changing. Memorizing a list of files goes stale quickly.
 
 That is why my goal here was not to recommend a particular file format, but to develop **an eye for how agents actually read these files**. Once you understand why CLAUDE.md is injected as a user message, why different tools read the same AGENTS.md differently, and why instructions weaken in the middle of the context, a new context file format becomes much easier to read: “This is when it gets loaded, and this is how strongly it acts.”
 
-What remains, ultimately, is one intuition from the ETH Zurich study: **the model already knows a great deal**. Stuffing a context file with everything you can think of does not make the agent follow it more faithfully. It is better to keep only what the model is unlikely to know—project-specific conventions, nonstandard tools, and past mistakes—and remove the rest. Installing more tools and using tools well are different problems.
+What remains, ultimately, is one intuition from the ETH Zurich study: **the model already knows a great deal**. Stuffing a context file with everything you can think of does not make the agent follow it more faithfully. It is better to keep only what the model is unlikely to know—project-specific conventions, nonstandard tools, and past mistakes—and remove the rest. Writing a long context file and writing a good one are different problems.
 
-Rather than immediately adding ten MCP servers or expanding CLAUDE.md to hundreds of lines, I encourage readers to spend some time investigating how the tools they already use actually work. I believe that understanding provides a stable foundation, no matter which direction the ecosystem takes next.
+Rather than expanding CLAUDE.md to hundreds of lines right away, I encourage readers to dig, at least once, into when, where, and how strongly the tools they already use read that file. I believe that understanding provides a stable foundation, however file formats change.
 
 
 ## References

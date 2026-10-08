@@ -1,6 +1,6 @@
 ---
 emoji: 🧮
-title: "hashKey"
+title: "queryKey比較の仕組み"
 seoTitle: "TanStack Query の queryKey 比較の仕組み: hashKey とシリアライズ"
 date: "2025-12-30"
 categories: フロントエンド React TanStack-Query queryKey
@@ -8,12 +8,12 @@ description: "TanStack Query がレンダリングのたびに新しく作られ
 keywords: "queryKey 比較, hashKey, queryHash, TanStack Query キャッシュキー, React Query queryKey 順序, queryKeyHashFn, JSON.stringify キーのソート, QueryCache"
 locale: ja
 translationOf: '251230'
-sourceHash: 7560f02e4d0eed43c223d135356ae58f4451e1b7b0805a2b6baf0caa0f67573d
+sourceHash: 7e26877fcdd3f1c85b67751a911900b36ff424cb43b408fb640fb8aa3075e22a
 ---
 
 今回は、**TanStack Query が二つの queryKey を同じキーと判定する仕組み**について話してみたい。
 
-レンダリングのたびに新しい配列として作られる queryKey がなぜ毎回キャッシュミスにならないのか、オブジェクトのキー順や `undefined` の値がキャッシュに影響するのかが気になっていた TanStack Query ユーザーに向けた記事だ。結論から言うと、TanStack Query は queryKey を `hashKey` でシリアライズした文字列をキャッシュのキーとして使い、その過程でオブジェクトのキー順は無視され、配列の要素の順序はそのまま残る。
+レンダリングのたびに新しい配列として作られる queryKey がなぜ毎回キャッシュミスにならないのか、オブジェクトのキー順や `undefined` の値がキャッシュに影響するのかが気になっていた TanStack Query ユーザーに向けた記事で、読み終えればキーを同じと見なす規則と、その規則がキャッシュに与える影響が分かる。結論から言うと、TanStack Query は queryKey を `hashKey` でシリアライズした文字列をキャッシュのキーとして使い、その過程でオブジェクトのキー順は無視され、配列の要素の順序はそのまま残る。
 
 queryKey は、TanStack Query がクエリキャッシュを管理する基準となる配列だ。同じキーは同じデータを意味し、`['user', userId]` の `userId` が変わってキーが変わるとキャッシュミスが起き、改めて fetch する。
 

@@ -7,7 +7,7 @@ updatedAt: "2026-10-08"
 categories: frontend React
 locale: es
 translationOf: '250520'
-sourceHash: 3377c18b0ba4131a4cd9e2f09d904e200a6f09b2abe55a812ca1caa70ff5239e
+sourceHash: a7f912dab6e219c0f6a0434354cd27179f0020fd867d2f22fad5d7f6f6391393
 description: "Análisis de React Fiber desde el código fuente: Stack Reconciler, nodos Fiber, doble búfer, Lanes, Work Loop, render y commit, y Concurrent Features."
 keywords: "React Fiber, arquitectura de React Fiber, Stack Reconciler, Concurrent Mode, concurrencia en React 18, useTransition, useDeferredValue, Suspense, renderizado de React, análisis del código fuente de React, Virtual DOM, Reconciliation, prioridad por Lanes, entrevista de frontend"
 ---
@@ -76,7 +76,7 @@ function performWork(deadline) {
 
 Este código muestra el modelo conceptual inicial de Fiber. La clave consiste en procesar una sola unidad de trabajo (unit of work) cada vez dentro del bucle `while` y, si queda poco tiempo, salir del bucle para devolver el control al navegador.
 
-El código anterior usa `requestIdleCallback` para ilustrar el concepto, pero React no lo usa en la práctica. Esta API solo se llama cuando el navegador está realmente ocioso, así que en una página ocupada el trabajo de React podía retrasarse indefinidamente, y además el soporte y el comportamiento variaban entre navegadores. Por eso el paquete Scheduler de React programa la siguiente macrotask con `MessageChannel` para continuar el trabajo y, entre una y otra, devuelve el control al hilo principal. Por qué descartó `setTimeout` en favor de `MessageChannel` lo explico aparte en [Por qué React usa MessageChannel](/250515).
+Ese ejemplo, sin embargo, usa `requestIdleCallback` solo para ilustrar el concepto; React no lo usa en la práctica. Esta API solo se llama cuando el navegador está realmente ocioso, así que en una página ocupada el trabajo de React podía retrasarse indefinidamente, y además el soporte y el comportamiento variaban entre navegadores. Por eso el paquete Scheduler de React programa la siguiente macrotask con `MessageChannel` para continuar el trabajo y, entre una y otra, devuelve el control al hilo principal. Por qué descartó `setTimeout` en favor de `MessageChannel` lo explico aparte en [Por qué React usa MessageChannel](/250515).
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">

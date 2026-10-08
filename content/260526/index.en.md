@@ -5,7 +5,7 @@ seoTitle: "AI Agent Code Search: Repomix, Aider, CodeGraph, Serena"
 date: "2026-05-26"
 locale: en
 translationOf: '260526'
-sourceHash: bc95fa9a1eea99621bdce773adb71ff0545702b869b35e911fc65e97307a5faf
+sourceHash: 2efbc6c2bee1d73d457d75006378b5a689f2098be54a67edc2da20b38b07a9d0
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "Four tiers of tools that cut an AI agent's code search cost: context packing like Repomix, tree-sitter repo maps, CodeGraph's graph, and LSP-based Serena."
 keywords: "code intelligence, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider repo map, AI coding agent token savings"
@@ -13,7 +13,7 @@ keywords: "code intelligence, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, 
 
 In this post, I want to talk about **how the tools that cut an AI coding agent's cost of finding relevant code differ from one another**.
 
-This is for developers who have watched an agent burn tokens by repeating grep and file reads in a large codebase, and who are wondering which tool to add, such as Repomix, CodeGraph, or Serena. I divide these tools into four tiers according to how deeply they understand code: context packing, which puts the code in whole as text; tree-sitter repository maps, which know that a symbol exists; knowledge graphs, which store symbol relationships in advance; and LSP, which knows what that symbol is.
+This is for developers who have watched an agent burn tokens by repeating grep and file reads in a large codebase, and who are wondering which tool to add, such as Repomix, CodeGraph, or Serena. By the end, you will be able to tell how these tools differ by how deeply they understand code, and where each approach cuts the search cost. That depth falls into four levels: context packing, which puts the code in whole as text; tree-sitter repository maps, which know that a symbol exists; knowledge graphs, which store symbol relationships in advance; and LSP, which knows what that symbol is.
 
 Ever since I saw `codegraph` on GitHub Trending and installed it myself, I have wondered, every time I come across a new tool, how exactly it saves tokens.
 
@@ -101,7 +101,7 @@ Because Aider does not use LSP and performs its own file analysis, its recogniti
 
 ## GitHub Trending
 
-![AI coding agent tools and code intelligence flow](1.webp)
+![GitHub Trending repositories for this month, with colbymchenry/codegraph at the top](1.webp)
 
 Finally, **GitHub Trending** is where I first discovered many of the tools discussed above. It offers an at-a-glance view of who is building what and which projects are suddenly gaining traction.
 
@@ -110,9 +110,9 @@ At `github.com/trending`, you can browse three time ranges: today, this week, an
 
 ## Wrapping Up
 
-In short, the four tiers solve the same problem, the cost of finding relevant code, differently depending on how deeply they understand code. Context packing passes code only as text, tree-sitter repository maps know that a symbol exists, knowledge graphs store those relationships in advance, and LSP knows what the symbol is. The further down the tiers you go, the more you need to prepare, such as an index or a language server, but as the CodeGraph benchmark shows, the larger the codebase, the more the search cost drops.
+In short, the four tiers solve the same problem, the cost of finding relevant code, differently depending on how deeply they understand code. Context packing passes code only as text, tree-sitter repository maps know that a symbol exists, knowledge graphs store those relationships in advance, and LSP knows what the symbol is. The further down the tiers you go, the more you need to prepare, such as an index or a language server. What the CodeGraph benchmark shows, however, is a comparison of the knowledge graph tier against searching with no tool. In that comparison the savings grew with the size of the codebase, but the benchmark cannot tell us whether the other tiers cut costs by the same margin.
 
-If these tools reduce what it costs an agent to find code, deciding which file should hold the project rules the agent needs to know from the start, and how much to write there, is a separate question. That is covered in [AI Agent Tools](/260529).
+If these tools reduce what it costs an agent to find code, deciding which file should hold the project rules the agent needs to know from the start, and how much to write there, is a separate question. That is covered in [Context Files](/260529).
 
 
 ## References

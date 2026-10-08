@@ -8,7 +8,7 @@ description: "Calibração é saber quantos por cento você vai acertar. Como o 
 keywords: "calibração de modelos, ECE, expected calibration error, excesso de confiança do RLHF, LLM confiantes demais, calibração vs acurácia, calibração do GPT-4, mode dropping"
 locale: pt-BR
 translationOf: '260917'
-sourceHash: eb59e41f5cd98a6e2a1858a2dc53c9c860e30f9c25e4c4f59557f184b05b26d1
+sourceHash: 18340456d15a5027169635513c42295af2aef16b38d6ff40e7038bf7b023886c
 ---
 
 Neste post quero falar sobre a calibração de modelos e o excesso de confiança que o RLHF cria. É para desenvolvedores que querem usar no código, como critério de decisão, a probabilidade ou a confiança que um modelo devolve. Ao final, você vai conseguir explicar como acurácia e calibração diferem, o que o ECE mede e por que um modelo lapidado com preferência humana fala com mais segurança do que deveria.
@@ -43,6 +43,6 @@ Pelos números impressos no gráfico, o ECE do modelo pré-treinado é **0.007**
 
 Resumindo, calibração não é sobre quantos por cento você acerta, e sim sobre saber quantos por cento vai acertar, e o ECE é o número que mede esse descompasso. O RLHF mira a saída que as pessoas preferem, e como as pessoas preferem respostas confiantes, o modelo passa a falar em tom categórico mesmo quando a situação é ambígua. No GPT-4, esse custo ficou registrado como um ECE que foi de 0.007 para 0.074.
 
-Se as probabilidades do Jev, um modelo de decisão que apresenta a calibração como objetivo de treino, são de fato honestas, eu verifiquei com medições públicas e com meus próprios dados em [Modelos de decisão, Jev e Kev](/260922).
+Se as probabilidades do Jev, um modelo de decisão que apresenta a calibração como objetivo de treino, são de fato honestas é o tema de [Modelos de decisão, Jev e Kev](/260922).
 
 Espero que você também, antes de cravar no código como limiar a probabilidade que um modelo devolve, verifique ao menos uma vez com que objetivo esse modelo foi treinado e se a escala dele se sustenta nos seus próprios dados.

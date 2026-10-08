@@ -5,7 +5,7 @@ seoTitle: "AI 编程智能体的代码检索成本: Repomix、Aider、CodeGraph�
 date: "2026-05-26"
 locale: zh-CN
 translationOf: '260526'
-sourceHash: bc95fa9a1eea99621bdce773adb71ff0545702b869b35e911fc65e97307a5faf
+sourceHash: 2efbc6c2bee1d73d457d75006378b5a689f2098be54a67edc2da20b38b07a9d0
 categories: AI 开发工具 Claude MCP CodeGraph
 description: "将降低 AI 编程智能体查找相关代码成本的工具分为四个层级进行比较，梳理 Repomix 等上下文打包、Aider 的 tree-sitter 仓库地图、CodeGraph 知识图谱，以及 Serena 等基于 LSP 的工具分别能理解代码到什么程度。"
 keywords: "代码智能, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider repo map, AI 编程智能体 节省 token"
@@ -13,7 +13,7 @@ keywords: "代码智能, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider
 
 本文想聊一聊**那些降低 AI 编程智能体查找相关代码成本的工具，彼此之间有什么不同**。
 
-本文写给这样的开发者：看到智能体在大型代码库中反复 grep 和读取文件、不断消耗 token，正在犹豫该接入 Repomix、CodeGraph、Serena 中的哪一种。笔者按照对代码理解的深度，把这些工具分为四个层级：把代码作为文本整体放入的上下文打包、知道 symbol 存在的 tree-sitter 仓库地图、预先保存 symbol 关系的知识图谱，以及连 symbol 是什么都知道的 LSP。
+本文写给这样的开发者：看到智能体在大型代码库中反复 grep 和读取文件、不断消耗 token，正在犹豫该接入 Repomix、CodeGraph、Serena 中的哪一种。读完之后，你能分辨这些工具如何按照对代码理解的深度区分开来，以及每种方式在哪里降低检索成本。理解的深度分为四种：把代码作为文本整体放入的上下文打包、知道 symbol 存在的 tree-sitter 仓库地图、预先保存 symbol 关系的知识图谱，以及连 symbol 是什么都知道的 LSP。
 
 自从看到 `codegraph` 登上 GitHub Trending 并跟着安装之后，笔者每次看到新工具，都会好奇它究竟靠什么原理节省 token。
 
@@ -101,7 +101,7 @@ Aider 不使用 LSP，而是自行分析文件，因此识别能力只到函数�
 
 ## GitHub Trending
 
-![AI 编程智能体工具与代码智能流程](1.webp)
+![本月 GitHub Trending 仓库列表，最上方是 colbymchenry/codegraph](1.webp)
 
 最后再补充一点：上文介绍的许多工具，我最初都是通过 **GitHub Trending** 了解到的。这里可以一眼看出谁在开发什么，以及哪些工具突然开始流行。
 
@@ -110,9 +110,9 @@ Aider 不使用 LSP，而是自行分析文件，因此识别能力只到函数�
 
 ## 总结
 
-总而言之，这四个层级按照对代码理解的深度，用不同方式解决同一个问题，即查找相关代码的成本。上下文打包只把代码作为文本传递，tree-sitter 仓库地图知道 symbol 存在，知识图谱预先保存这些关系，LSP 则连 symbol 是什么都知道。越往下层，需要准备的东西越多，比如索引或 language server，但正如 CodeGraph 的 benchmark 所示，代码库越大，检索成本下降得越多。
+总而言之，这四个层级按照对代码理解的深度，用不同方式解决同一个问题，即查找相关代码的成本。上下文打包只把代码作为文本传递，tree-sitter 仓库地图知道 symbol 存在，知识图谱预先保存这些关系，LSP 则连 symbol 是什么都知道。越往下层，需要准备的东西越多，比如索引或 language server。不过，CodeGraph 的 benchmark 展示的，是知识图谱这一层与不使用工具检索时的对比结果。在这项对比中，代码库越大，节省的幅度越大，但其他层级能否以同样幅度降低成本，这个 benchmark 无法说明。
 
-如果说这些工具降低的是智能体查找代码的成本，那么智能体一开始就该知道的项目规则要写在哪个文件、写多少，则是另一个问题。这部分在[AI 智能体工具](/260529)中讨论。
+如果说这些工具降低的是智能体查找代码的成本，那么智能体一开始就该知道的项目规则要写在哪个文件、写多少，则是另一个问题。这部分在[上下文文件](/260529)中讨论。
 
 
 ## 参考资料

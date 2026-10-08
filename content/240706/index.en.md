@@ -9,7 +9,7 @@ description: "Compares the structure, speed, and ratio of ZIP, GZIP, ZSTD, BZIP2
 keywords: "compression algorithm comparison, GZIP vs ZSTD, tar.gz vs zip, tar.zst, Brotli, solid archive, frontend build optimization"
 locale: en
 translationOf: "240706"
-sourceHash: ebe4a5cec44b9a704ece670a7d431fd4c10595651c1e8938f9720589406237de
+sourceHash: a779d871c60d83ac6c0b491f6e9d62a220def86005773dca744f99031cc7d1c7
 ---
 
 In this post, I want to talk about software compression algorithms.
@@ -20,7 +20,7 @@ I was asked to improve the deployment process for an internal project. Its large
 
 Once I started researching compression, I found far more options than I expected: zip, gzip, zstd, bzip2, xz, and others. Their names looked similar, but it was surprisingly difficult to find a clear explanation of how they differed and when each one should be used. (I had assumed compression was more or less all the same, but the world is large and so is the number of ways to make files smaller.)
 
-Before the comparison, it is worth noting one shared root. Nearly every mainstream compressor today descends from LZ77, published in 1977. LZ77 treats a fixed range of already processed data, the sliding window, as its dictionary and replaces repeated patterns with a short reference meaning “go back this many characters and copy this many.” A larger window catches repetitions that are farther apart but costs more computation and memory. DEFLATE, used by ZIP and GZIP, adds Huffman coding (entropy coding that gives shorter bit sequences to more frequent symbols) on top of this. How it parted ways with its sibling LZ78 is covered separately in [The Difference Between LZ77 and LZ78](/240701).
+Before the comparison, it is worth noting one shared root. Nearly every mainstream compressor today descends from LZ77, published in 1977. LZ77 treats a fixed range of already processed data, the sliding window, as its dictionary and replaces repeated patterns with a short reference meaning “go back this many characters and copy this many.” A larger window catches repetitions that are farther apart but costs more computation and memory. DEFLATE, used by ZIP and GZIP, adds Huffman coding (entropy coding that gives shorter bit sequences to more frequent symbols) on top of this. How LZ77 parted ways with its sibling LZ78 is covered separately in [The Difference Between LZ77 and LZ78](/240701).
 
 Compression performance is usually evaluated on two axes: **compression ratio**, or how small the result becomes, and **compression speed**, or how quickly the operation completes. Seeking a higher ratio generally requires more computation and therefore more time. A practical compression strategy is about finding the right point between the two.
 

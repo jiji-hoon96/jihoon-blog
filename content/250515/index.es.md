@@ -6,7 +6,7 @@ date: "2025-05-15"
 categories: frontend React
 locale: es
 translationOf: '250515'
-sourceHash: bfb181318a2adf0a9dd6422a287895eff5a1b654aab1a204bbdc1eba1ec1808c
+sourceHash: bfaa67abcb8f66de08aab49d2098ef5c87175fada85358ac546691c7c36a2619
 description: "Por qué el Scheduler de React pasó de requestIdleCallback, requestAnimationFrame y setTimeout a MessageChannel: frecuencia, soporte y el retraso de 4 ms."
 keywords: "requestIdleCallback, MessageChannel, React Scheduler, setTimeout 4 ms, cómo funciona el scheduler de React, shouldYieldToHost, requestAnimationFrame, React Fiber"
 ---
@@ -40,9 +40,9 @@ if (typeof MessageChannel !== 'undefined') {
 }
 ```
 
-¿Por qué no `setTimeout`, sino `MessageChannel`? Según la especificación HTML, cuando `setTimeout` se anida cinco veces o más se impone un **retraso mínimo de 4 ms**. `MessageChannel`, en cambio, se ejecuta inmediatamente como macrotask en el siguiente tick del event loop sin esta limitación. Para Fiber, que divide el trabajo en unidades de 5 ms, una demora artificial de 4 ms sería fatal.
-
 `shouldYieldToHost()` del Scheduler comprueba si el tiempo transcurrido desde el inicio del trabajo supera `frameInterval` —**5 ms** por defecto, definido en `SchedulerFeatureFlags.js`— y decide si debe devolver el control al hilo principal.
+
+¿Por qué no `setTimeout`, sino `MessageChannel`? Según la especificación HTML, cuando `setTimeout` se anida cinco veces o más se impone un **retraso mínimo de 4 ms**. `MessageChannel`, en cambio, se ejecuta inmediatamente como macrotask en el siguiente tick del event loop sin esta limitación. Para Fiber, que divide el trabajo en unidades de 5 ms, una demora artificial de 4 ms sería fatal.
 
 
 ## Conclusión

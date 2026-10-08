@@ -8,12 +8,12 @@ description: "Tres casos en que reintentar en un fallback de react-error-boundar
 keywords: "ErrorBoundary no reintenta, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy error al cargar chunk, error en useSuspenseQuery, react-error-boundary"
 locale: es
 translationOf: '251128'
-sourceHash: bf21fc8f515898fa79deb6500860e1b524bee121476422600343e6ffa3febdcf
+sourceHash: 9b7369d4cc04cce44463bae3484aac4cfc28f8721890c7216a90b1df3612021d
 ---
 
 En esta entrada quiero hablar de **por qué el botón de reintentar de un `ErrorBoundary` no hace nada**.
 
-Está pensada para desarrolladores frontend que pusieron un botón de reintentar en el fallback de `react-error-boundary` y, al pulsarlo, vuelven a ver la misma pantalla. La respuesta corta: un `ErrorBoundary` solo restablece su propio estado, y el estado que provocó el fallo se queda en quien lanzó. Al terminar, sabrás cuáles son los tres casos en que ese estado se queda y cómo resolver cada uno.
+Está pensada para desarrolladores frontend que pusieron un botón de reintentar en el fallback de `react-error-boundary` y, al pulsarlo, vuelven a ver la misma pantalla, y recoge los tres casos en que el estado del fallo se queda y cómo resolver cada uno. La respuesta corta: un `ErrorBoundary` solo restablece su propio estado, y el estado que provocó el fallo se queda en quien lanzó.
 
 Los ejemplos usan TanStack Query junto con `react-error-boundary`, y comprobé el comportamiento de las librerías abriendo su código instalado.
 
@@ -100,7 +100,7 @@ queryFn: async () => {
 },
 ```
 
-En una respuesta de `fetch`, `json()` devuelve `Promise<any>`, así que el tipo que pongas después es una declaración, no una comprobación, y la comprobación en tiempo de ejecución que verifica lo que envió el servidor tienes que ponerla tú. **Ese sitio es este.** Si subes esa comprobación a `queryFn`, el mismo fallo se convierte en **el error de la query**. Se queda en la caché en estado de error, `reset` lo limpia y el reintento vuelve a pedir.
+En una respuesta de `fetch`, `json()` devuelve `Promise<any>`, así que el tipo que pongas después es una declaración, no una comprobación, y la comprobación en tiempo de ejecución que verifica lo que envió el servidor tienes que ponerla tú. **Si subes esa comprobación a `queryFn`**, el mismo fallo se convierte en **el error de la query**. Se queda en la caché en estado de error, `reset` lo limpia y el reintento vuelve a pedir.
 
 Si aplazas la comprobación en tiempo de ejecución porque total ya la recibe el `ErrorBoundary`, acabas con un fallback que recibe pero no puede deshacer.
 

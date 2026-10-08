@@ -8,12 +8,12 @@ description: "用已安装的源码核对在 react-error-boundary 的 fallback �
 keywords: "ErrorBoundary 重试不起作用, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy 分块加载失败, useSuspenseQuery 错误, react-error-boundary"
 locale: zh-CN
 translationOf: '251128'
-sourceHash: bf21fc8f515898fa79deb6500860e1b524bee121476422600343e6ffa3febdcf
+sourceHash: 9b7369d4cc04cce44463bae3484aac4cfc28f8721890c7216a90b1df3612021d
 ---
 
 这篇文章想聊聊 **`ErrorBoundary` 的重试按钮为什么不起作用**。
 
-本文写给在 `react-error-boundary` 的 fallback 上挂了重试按钮，却怎么按都回到同一个画面的前端开发者。简单地说，`ErrorBoundary` 只撤回自己的状态，造成失败的状态还原样留在抛出的一方。读完之后，你会知道这种状态留下来的三种情况，以及每种情况该怎么解开。
+本文写给在 `react-error-boundary` 的 fallback 上挂了重试按钮，却怎么按都回到同一个画面的前端开发者，整理了失败状态留下来的三种情况，以及每种情况该怎么解开。简单地说，`ErrorBoundary` 只撤回自己的状态，造成失败的状态还原样留在抛出的一方。
 
 例子采用 TanStack Query 与 `react-error-boundary` 一起使用的配置，库的行为是打开已安装的源码确认的。
 
@@ -100,7 +100,7 @@ queryFn: async () => {
 },
 ```
 
-`fetch` 响应的 `json()` 返回的是 `Promise<any>`，所以之后加上的类型是声明而不是检查，确认服务器所给值的运行时检查得自己放。**那个地方就是这里。** 把那个检查抬到 `queryFn` 里，同样的失败就变成了**查询的错误**。它以错误状态留在缓存里，`reset` 把它解开，重试就重新请求。
+`fetch` 响应的 `json()` 返回的是 `Promise<any>`，所以之后加上的类型是声明而不是检查，确认服务器所给值的运行时检查得自己放。**把那个检查抬到 `queryFn` 里**，同样的失败就变成了**查询的错误**。它以错误状态留在缓存里，`reset` 把它解开，重试就重新请求。
 
 想着反正 `ErrorBoundary` 会接住就把运行时检查往后拖，就会做出一个接得住却撤不回的 fallback。
 

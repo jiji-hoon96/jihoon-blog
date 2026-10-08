@@ -9,7 +9,7 @@ description: "Comparamos estrutura, velocidade e taxa de ZIP, GZIP, ZSTD, BZIP2,
 keywords: "comparação de algoritmos de compressão, GZIP vs ZSTD, tar.gz vs zip, tar.zst, Brotli, arquivo sólido, otimização de build frontend"
 locale: pt-BR
 translationOf: "240706"
-sourceHash: ebe4a5cec44b9a704ece670a7d431fd4c10595651c1e8938f9720589406237de
+sourceHash: a779d871c60d83ac6c0b491f6e9d62a220def86005773dca744f99031cc7d1c7
 ---
 
 Neste artigo, quero falar sobre algoritmos de compressão de software.
@@ -20,7 +20,7 @@ Fiquei responsável por melhorar o processo de deploy de um projeto interno. A a
 
 Quando comecei a pesquisar, encontrei muito mais opções do que esperava: zip, gzip, zstd, bzip2, xz e outras. Os nomes eram parecidos, mas não foi fácil achar uma explicação que deixasse claras as diferenças e os casos de uso de cada uma. (Eu achava que compressão era tudo mais ou menos igual, mas o mundo é grande e há muitas maneiras de diminuir arquivos.)
 
-Antes da comparação, vale destacar uma raiz comum. Quase todos os compressores mais usados hoje descendem do LZ77, publicado em 1977. O LZ77 usa como dicionário um trecho dos dados já processados, a janela deslizante, e substitui padrões repetidos por uma referência curta que significa “volte tantos caracteres e copie tantos”. Uma janela maior captura repetições mais distantes, mas exige mais processamento e memória. O DEFLATE, usado por ZIP e GZIP, acrescenta a isso a codificação de Huffman (uma codificação de entropia que atribui sequências de bits mais curtas aos símbolos mais frequentes). Como ele se separou do irmão LZ78 está explicado à parte em [A diferença entre LZ77 e LZ78](/240701).
+Antes da comparação, vale destacar uma raiz comum. Quase todos os compressores mais usados hoje descendem do LZ77, publicado em 1977. O LZ77 usa como dicionário um trecho dos dados já processados, a janela deslizante, e substitui padrões repetidos por uma referência curta que significa “volte tantos caracteres e copie tantos”. Uma janela maior captura repetições mais distantes, mas exige mais processamento e memória. O DEFLATE, usado por ZIP e GZIP, acrescenta a isso a codificação de Huffman (uma codificação de entropia que atribui sequências de bits mais curtas aos símbolos mais frequentes). Como o LZ77 se separou do irmão LZ78 está explicado à parte em [A diferença entre LZ77 e LZ78](/240701).
 
 O desempenho de compressão costuma ser avaliado em dois eixos: a **taxa de compressão**, ou quanto o arquivo diminui, e a **velocidade de compressão**, ou quanto tempo o processo leva. Buscar uma taxa maior geralmente exige mais processamento e, portanto, mais tempo. Uma estratégia prática consiste em encontrar o ponto certo entre os dois.
 

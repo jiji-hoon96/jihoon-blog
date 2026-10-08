@@ -5,7 +5,7 @@ seoTitle: "MCPはfunction callingと何が違うのか: プロトコル構造と
 date: "2026-05-24"
 locale: ja
 translationOf: '260524'
-sourceHash: c8c4c1ecc1bcc3dec03f51f86523bff1a97cfb134b8b21433ff155fcea071b34
+sourceHash: f5c56031068e65cfbee19861ae45e0809590a1961be8364a856a0caa02ffedcb
 categories: AI 開発ツール Claude MCP CodeGraph
 description: "MCPがfunction callingとどう違うのかをプロトコル構造から整理する。6つのプリミティブ、stdioとStreamable HTTP、tools/listからtool_useループまでの流れ、Tool Poisoningなどのセキュリティ問題を扱う。"
 keywords: "MCP, Model Context Protocol, MCP function calling 違い, MCP プリミティブ, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP セキュリティ"
@@ -13,7 +13,7 @@ keywords: "MCP, Model Context Protocol, MCP function calling 違い, MCP プリ�
 
 今回の記事では、**MCP（Model Context Protocol）がfunction callingと何が違うのか**について話してみたい。
 
-Claude CodeやCursorにMCPサーバーをつないで使ってはいるものの、それがLLM APIのfunction callingとどこで分かれるのかを説明しにくかった開発者に向けた記事だ。先に答えを書くと、違いは4つある。ツール一覧を実行時に取得する動的な発見、ライフサイクルが定義されたstateful session、Tool以外のプリミティブ、そしてサーバーがクライアントのLLMを逆に呼び出せる双方向性だ。最後まで読めば、この4つがプロトコルのどの部分から来ているのか、そしてその構造がどのようなセキュリティ問題につながるのかがわかる。
+Claude CodeやCursorにMCPサーバーをつないで使ってはいるものの、それがLLM APIのfunction callingとどこで分かれるのかを説明しにくかった開発者に向けた記事だ。最後まで読めば、両者を分ける4つの違いがプロトコルのどの部分から来ているのか、そしてその構造がどのようなセキュリティ問題につながるのかがわかる。4つとは、ツール一覧を実行時に取得する動的な発見、ライフサイクルが定義されたstateful session、Tool以外のプリミティブ、そしてサーバーがクライアントのLLMを逆に呼び出せる双方向性だ。
 
 筆者はフロントエンド開発者として日常的にClaudeを活用しているが、MCPサーバーを一つ追加するたびに、これらのツールがどのような仕組みでモデルの視野に入るのかが毎回あやふやだった。
 
@@ -113,7 +113,7 @@ LLMがツールを呼び出す必要があると判断すると、レスポン�
 
 まとめると、MCPはfunction callingを置き換えるものではなく、その上に載った標準だ。モデルがツールを呼び出す方法は依然として`tools`パラメータと`tool_use`ループであり、MCPが加えるのは、ツール一覧を実行時にやり取りする方法、セッションのライフサイクル、Tool以外のプリミティブ、そしてサーバーからクライアントへ向かう呼び出しだ。ツール定義が実行時にやり取りされるからこそ、その定義を汚染したり、こっそり書き換えたりする攻撃も同じところから生まれる。
 
-MCPがエージェントに何をできるようにするかの問題なら、何を知らせるかは`CLAUDE.md`や`AGENTS.md`のようなコンテキストファイルの問題だ。それらのファイルがエージェントにどのように読まれ、どこまで守られるのかは[AIエージェントツール](/260529)で扱う。
+MCPがエージェントに何をできるようにするかの問題なら、何を知らせるかは`CLAUDE.md`や`AGENTS.md`のようなコンテキストファイルの問題だ。それらのファイルがエージェントにどのように読まれ、どこまで守られるのかは[コンテキストファイル](/260529)で扱う。
 
 
 ## 参考資料

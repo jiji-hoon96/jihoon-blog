@@ -37,9 +37,9 @@ if (typeof MessageChannel !== 'undefined') {
 }
 ```
 
-왜 `setTimeout`이 아닌 `MessageChannel`일까? `setTimeout`은 HTML 스펙에 따라 5회 이상 중첩되면 **최소 4ms의 지연**이 강제된다. 반면 `MessageChannel`은 이런 제한 없이 다음 이벤트 루프 틱에서 즉시 매크로태스크로 실행된다. 5ms 단위로 작업을 쪼개는 Fiber에게 4ms의 인위적 지연은 치명적이기 때문이다.
-
 Scheduler의 `shouldYieldToHost()`는 작업 시작 이후 경과 시간이 `frameInterval`(기본 **5ms**, `SchedulerFeatureFlags.js`에서 정의)을 초과했는지를 확인하여 메인 스레드에 제어권을 돌려줄지 결정한다.
+
+왜 `setTimeout`이 아닌 `MessageChannel`일까? `setTimeout`은 HTML 스펙에 따라 5회 이상 중첩되면 **최소 4ms의 지연**이 강제된다. 반면 `MessageChannel`은 이런 제한 없이 다음 이벤트 루프 틱에서 즉시 매크로태스크로 실행된다. 5ms 단위로 작업을 쪼개는 Fiber에게 4ms의 인위적 지연은 치명적이기 때문이다.
 
 
 ## 마치며

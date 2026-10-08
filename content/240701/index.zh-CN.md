@@ -8,14 +8,14 @@ description: "整理 LZ77 与 LZ78 处理字典的方式有何不同：滑动窗
 keywords: "LZ77, LZ78, LZ77 LZ78 区别, LZ77 算法, 滑动窗口压缩, LZW, DEFLATE 原理, 基于字典的压缩"
 locale: zh-CN
 translationOf: '240701'
-sourceHash: 35e37cad93277833db1bd5edddc87e35fc2e4b706c42e88a6016a9ea2ec62b12
+sourceHash: 52903051284734eb36f6b7918ae6ca4a2ff9c02f62fa2fa53411ac70e9539a71
 ---
 
 这篇文章想聊聊 **LZ77 与 LZ78 有何不同**。
 
 本文写给使用 zip、gzip、zstd 这类压缩工具、好奇其中基于字典的压缩如何运作的开发者。读完之后，你能说明这两种算法在处理字典上的区别，以及为什么如今的主流压缩工具几乎都是 LZ77 一系的后代。
 
-我在为公司内部部署流程挑选构建产物的压缩格式时，一路追溯到了这两种算法。
+比较构建产物该用哪种压缩格式时，最终都会一路追溯到这两种算法。
 
 <hr>
 

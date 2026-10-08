@@ -73,7 +73,7 @@ function performWork(deadline) {
 
 위 코드는 Fiber의 초기 개념 모델을 보여준다. 핵심은 `while` 루프 안에서 한 번에 하나의 작업 단위(unit of work)만 처리하고, 시간이 부족하면 루프를 빠져나와 브라우저에게 제어권을 돌려준다는 것이다.
 
-위 코드는 개념을 보여주려고 `requestIdleCallback`을 썼지만, 실제 React는 이를 사용하지 않는다. 이 API는 브라우저가 정말 한가할 때만 호출되어 바쁜 페이지에서는 React 작업이 한없이 밀릴 수 있고, 브라우저마다 지원과 동작도 달랐다. 그래서 React의 Scheduler 패키지는 `MessageChannel`로 다음 매크로태스크를 예약해 작업을 이어 가고, 그 사이사이 메인 스레드에 제어권을 돌려준다. `setTimeout`이 아니라 `MessageChannel`을 고른 이유는 [React가 MessageChannel을 쓰는 이유](/250515)에 따로 정리해 두었다.
+다만 이 예시는 개념을 보여주려고 `requestIdleCallback`을 쓴 것이고, 실제 React는 이를 사용하지 않는다. 이 API는 브라우저가 정말 한가할 때만 호출되어 바쁜 페이지에서는 React 작업이 한없이 밀릴 수 있고, 브라우저마다 지원과 동작도 달랐다. 그래서 React의 Scheduler 패키지는 `MessageChannel`로 다음 매크로태스크를 예약해 작업을 이어 가고, 그 사이사이 메인 스레드에 제어권을 돌려준다. `setTimeout`이 아니라 `MessageChannel`을 고른 이유는 [React가 MessageChannel을 쓰는 이유](/250515)에 따로 정리해 두었다.
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">

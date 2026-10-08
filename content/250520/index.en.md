@@ -9,7 +9,7 @@ description: "A source-based look at React Fiber: Stack Reconciler, Fiber nodes,
 keywords: "React Fiber, React Fiber architecture, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, React rendering, React source code analysis, Virtual DOM, Reconciliation, Lane priority, frontend interview"
 locale: en
 translationOf: '250520'
-sourceHash: 3377c18b0ba4131a4cd9e2f09d904e200a6f09b2abe55a812ca1caa70ff5239e
+sourceHash: a7f912dab6e219c0f6a0434354cd27179f0020fd867d2f22fad5d7f6f6391393
 ---
 
 In this post, I want to talk about the **Fiber architecture**, which could be called the heart of React.
@@ -76,7 +76,7 @@ function performWork(deadline) {
 
 The code above illustrates Fiber's early conceptual model. The key is that the `while` loop processes only one unit of work at a time and, when time runs short, exits the loop and returns control to the browser.
 
-The code above uses `requestIdleCallback` to illustrate the concept, but React does not actually use it. This API is called only when the browser is truly idle, so on a busy page React's work could be delayed indefinitely, and support and behavior also differed across browsers. React's Scheduler package therefore schedules the next macrotask with `MessageChannel` to continue its work, returning control to the main thread in between. Why it passed over `setTimeout` in favor of `MessageChannel` is covered separately in [Why React Uses MessageChannel](/250515).
+That example, however, uses `requestIdleCallback` only to illustrate the concept; React does not actually use it. This API is called only when the browser is truly idle, so on a busy page React's work could be delayed indefinitely, and support and behavior also differed across browsers. React's Scheduler package therefore schedules the next macrotask with `MessageChannel` to continue its work, returning control to the main thread in between. Why it passed over `setTimeout` in favor of `MessageChannel` is covered separately in [Why React Uses MessageChannel](/250515).
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">

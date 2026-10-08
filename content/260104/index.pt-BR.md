@@ -9,7 +9,7 @@ description: "Como a gestão de queryKey no TanStack Query evoluiu de vetores in
 keywords: "queryKey, fábrica de chaves de consulta, queryKey do TanStack Query, regras para escrever queryKey, queryOptions, setQueryData, chaves de consulta de TkDodo, query-key-factory, React Query v5, invalidação de consultas"
 locale: pt-BR
 translationOf: '260104'
-sourceHash: 9a36bf314bac28176dfc2e56aa119d80db0e87fe66e6df7a83ca4350fb6d2a19
+sourceHash: 50857db5f010cd899635d01d412999ec0ecc8b8d295039fbaad49e0c10d51f58
 ---
 
 Neste artigo, quero falar sobre a **queryKey do TanStack Query**.
@@ -92,7 +92,7 @@ const { data } = useQuery({
 
 Quando `userId` é `'A'` e quando é `'B'`, as chaves de consulta são diferentes. Se são diferentes, ocorre uma falha de cache; se há uma falha de cache, os dados são buscados. Tudo automaticamente. Graças a essa simplicidade, não precisamos escrever por conta própria uma lógica que diga: "userId mudou, então é preciso buscar os dados novamente".
 
-Então, como o TanStack Query reconhece como a mesma chave um vetor criado de novo a cada renderização? Ele não compara as referências dos vetores; usa como chave de cache a string obtida ao serializar a queryKey com `hashKey` (`queryHash`). Essa função ordena as chaves dos objetos simples enquanto serializa com `JSON.stringify`, de modo que a ordem das chaves dentro de um objeto não afeta o hash, mas a ordem dos elementos de um vetor afeta. Uma propriedade cujo valor é `undefined` desaparece durante a serialização, então `{ a: 1, b: undefined }` e `{ a: 1 }` viram a mesma chave. Reuni esse comportamento, acompanhando o código da implementação, separadamente em [hashKey](/251230).
+Então, como o TanStack Query reconhece como a mesma chave um vetor criado de novo a cada renderização? Ele não compara as referências dos vetores; usa como chave de cache a string obtida ao serializar a queryKey com `hashKey` (`queryHash`). Essa função ordena as chaves dos objetos simples enquanto serializa com `JSON.stringify`, de modo que a ordem das chaves dentro de um objeto não afeta o hash, mas a ordem dos elementos de um vetor afeta. Uma propriedade cujo valor é `undefined` desaparece durante a serialização, então `{ a: 1, b: undefined }` e `{ a: 1 }` viram a mesma chave. Reuni esse comportamento, acompanhando o código da implementação, separadamente em [Como as queryKey são comparadas](/251230).
 
 
 ## Regras para escrever queryKey

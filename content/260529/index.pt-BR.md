@@ -1,6 +1,6 @@
 ---
 emoji: 🧭
-title: 'Ferramentas para agentes de IA'
+title: 'Arquivos de contexto'
 seoTitle: "CLAUDE.md, AGENTS.md e SKILL.md: arquivos de contexto"
 date: '2026-05-29'
 updatedAt: "2026-10-08"
@@ -9,7 +9,7 @@ description: "Como agentes carregam CLAUDE.md, AGENTS.md, SKILL.md e regras do C
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, regras do Cursor, copilot-instructions.md, arquivos de contexto, agente de programação com IA, Claude Code, estudo ETH Zurich AGENTS.md"
 locale: pt-BR
 translationOf: '260529'
-sourceHash: 576f9a09086bc4f6444b6e39ded3b6204214a004b2497c595989116307daebab
+sourceHash: bb7924b155b99b2e2f0c86c6ab970989ae0c36a6e40193617be6dd29adb326d3
 ---
 
 Neste post, quero falar sobre **os arquivos de contexto que os agentes de programação com IA leem**.
@@ -19,7 +19,7 @@ Este texto é para quem tem `CLAUDE.md`, `AGENTS.md`, `SKILL.md` e `.cursor/rule
 Trabalho como desenvolvedor frontend e uso Claude no dia a dia. Com isso, em algum momento surgiu um `CLAUDE.md` na raiz do projeto, ao lado havia um `AGENTS.md` criado por alguém, um `.cursorrules` continuava esquecido em algum canto e eu cheguei até a criar uma pasta `.claude/skills/` seguindo um artigo que encontrei por aí. (Quando me dei conta, havia uns cinco arquivos com conteúdos parecidos.)
 
 
-## Arquivos de contexto
+## Agentes sem memória persistente
 
 Os agentes de programação com IA têm uma limitação fundamental: **não possuem memória persistente**. Toda sessão começa do zero, e na conversa seguinte eles não se lembram de convenções combinadas ontem nem da estrutura de pastas explicada uma hora antes. Os arquivos de contexto são o mecanismo mais simples para resolver esse problema. Se o projeto tiver um arquivo lido automaticamente no início de cada sessão, não será necessário repetir sempre as mesmas explicações.
 
@@ -41,7 +41,7 @@ Há um detalhe frequentemente ignorado: **todos os arquivos `CLAUDE.md` encontra
 
 ### AGENTS.md
 
-`AGENTS.md` é um padrão criado para resolver a proliferação de arquivos específicos de cada ferramenta descrita acima. Em dezembro de 2025, Anthropic, Block e OpenAI o doaram, junto com o MCP, à **Agentic AI Foundation (AAIF)**, vinculada à Linux Foundation, e ele se tornou o padrão de fato do setor. O site oficial (`agents.md`) afirma que **mais de 60 mil repositórios open source já adotam esse arquivo**.
+`AGENTS.md` é um padrão criado para resolver a proliferação de arquivos específicos de cada ferramenta descrita acima. Em dezembro de 2025, Anthropic, Block e OpenAI o doaram, junto com o MCP (o protocolo que conecta agentes a sistemas externos), à **Agentic AI Foundation (AAIF)**, vinculada à Linux Foundation, e ele se tornou o padrão de fato do setor. O site oficial (`agents.md`) afirma que **mais de 60 mil repositórios open source já adotam esse arquivo**.
 
 A lista de ferramentas compatíveis deixa isso ainda mais claro. OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf e Augment Code estão entre as muitas ferramentas com suporte. O GitHub Copilot passou a oferecer suporte nativo a `AGENTS.md` em agosto de 2025. Um detalhe interessante é que **o suporte nativo do Claude Code a `AGENTS.md` ainda está no estado de active feature request**. Para o Claude Code, `CLAUDE.md` continua sendo o arquivo principal.
 
@@ -181,13 +181,13 @@ A recomendação do Aider mencionada antes — “200 linhas”, “como entra s
 
 ## E então?
 
-Ao escrever este texto, o pensamento que mais me ocorreu foi: **as ferramentas estão se multiplicando rápido demais**. Enquanto eu escrevia, novos servidores MCP apareciam no GitHub Trending, o estado do suporte a AGENTS.md mudava e novas CVEs de segurança eram publicadas. A sensação de que um parágrafo ainda pela metade já ficou obsoleto faz parte do destino de quem escreve sobre tecnologia, mas o ritmo do ecossistema de agentes de IA é especialmente intenso.
+Os arquivos de contexto mudam de uma ferramenta para outra no nome, no local e no momento em que são lidos. Só neste artigo vimos CLAUDE.md, AGENTS.md, SKILL.md, regras do Cursor, copilot-instructions.md e MEMORY.md, e qual ferramenta oferece suporte a qual arquivo continua mudando. Decorar uma lista de arquivos fica obsoleto rapidamente.
 
 Por isso, meu objetivo neste artigo não foi recomendar um formato de arquivo específico, mas desenvolver **um olhar capaz de enxergar como os agentes leem esses arquivos**. Depois de entender por que CLAUDE.md é injetado como user message, por que cada ferramenta lê o mesmo AGENTS.md de um jeito diferente e por que as instruções se enfraquecem no meio do contexto, fica mais fácil olhar para um novo formato de arquivo de contexto e perceber rapidamente “quando ele é carregado e com que força atua”.
 
-No fim, o que permanece é uma intuição transmitida pelo estudo da ETH Zurich: **o modelo já sabe muitas coisas.** Encher um arquivo de contexto com todo tipo de informação não faz o agente segui-lo melhor. É preferível manter apenas o que o modelo provavelmente não conhece — convenções específicas do projeto, ferramentas não convencionais e erros do passado — e remover o restante. Instalar mais ferramentas e saber usá-las bem são problemas diferentes.
+No fim, o que permanece é uma intuição transmitida pelo estudo da ETH Zurich: **o modelo já sabe muitas coisas.** Encher um arquivo de contexto com todo tipo de informação não faz o agente segui-lo melhor. É preferível manter apenas o que o modelo provavelmente não conhece — convenções específicas do projeto, ferramentas não convencionais e erros do passado — e remover o restante. Escrever um arquivo de contexto longo e escrevê-lo bem são problemas diferentes.
 
-Em vez de adicionar dez MCPs agora mesmo ou ampliar CLAUDE.md para centenas de linhas, recomendo que quem leu este artigo procure entender ao menos uma vez os princípios por trás das ferramentas que já usa. Acredito que essa compreensão cria uma base estável, independentemente da direção que o ecossistema tomar.
+Em vez de ampliar CLAUDE.md para centenas de linhas agora mesmo, recomendo que quem leu este artigo investigue ao menos uma vez quando, onde e com que força as ferramentas que já usa leem esse arquivo. Acredito que essa compreensão cria uma base estável, independentemente de como os formatos de arquivo mudarem.
 
 
 ## Referências

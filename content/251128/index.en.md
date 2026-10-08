@@ -8,12 +8,12 @@ description: "Three cases where retry in a react-error-boundary fallback brings 
 keywords: "ErrorBoundary retry not working, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy chunk load error, useSuspenseQuery error, react-error-boundary"
 locale: en
 translationOf: '251128'
-sourceHash: bf21fc8f515898fa79deb6500860e1b524bee121476422600343e6ffa3febdcf
+sourceHash: 9b7369d4cc04cce44463bae3484aac4cfc28f8721890c7216a90b1df3612021d
 ---
 
 In this post, I want to talk about **why the retry button on an `ErrorBoundary` does nothing**.
 
-This is for frontend developers who put a retry button in a `react-error-boundary` fallback, only to see the same screen come back when they press it. The short answer: an `ErrorBoundary` only resets its own state, and the state that caused the failure stays with whatever threw. By the end, you will know the three cases where that state remains and how to clear each one.
+This is for frontend developers who put a retry button in a `react-error-boundary` fallback, only to see the same screen come back when they press it, and it lays out the three cases where the failed state remains and how to clear each one. The short answer: an `ErrorBoundary` only resets its own state, and the state that caused the failure stays with whatever threw.
 
 The examples use TanStack Query together with `react-error-boundary`, and I checked the libraries' behavior by opening their installed source.
 
@@ -100,7 +100,7 @@ queryFn: async () => {
 },
 ```
 
-On a `fetch` response, `json()` returns `Promise<any>`, so a type you attach after it is a declaration, not a check, and the runtime check that verifies what the server sent has to be put in yourself. **That place is here.** Lift that check up into `queryFn` and the same failure becomes **the query's error**. It stays in the cache in an error state, `reset` clears it, and retry refetches.
+On a `fetch` response, `json()` returns `Promise<any>`, so a type you attach after it is a declaration, not a check, and the runtime check that verifies what the server sent has to be put in yourself. **Lift that check up into `queryFn`** and the same failure becomes **the query's error**. It stays in the cache in an error state, `reset` clears it, and retry refetches.
 
 If you put the runtime check off because the `ErrorBoundary` catches it anyway, you get a fallback that receives but cannot undo.
 

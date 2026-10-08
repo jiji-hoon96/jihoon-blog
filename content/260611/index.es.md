@@ -8,14 +8,14 @@ description: 'Mide costos de tokens con un React POC y redúcelos con prompt cac
 keywords: 'ahorrar tokens de IA, costo de Claude Code, Cursor Composer, React POC, prompt caching, context engineering, subagent, MCP, model routing, context rot'
 locale: es
 translationOf: '260611'
-sourceHash: de92ff0b90b556dfb9b569101b9d07abbe119e7ed6377c9e890b9e5e42059aa8
+sourceHash: 7ba5260860c9dbe77bef75ea47f33c6194058e67c70ccdaaf65ff06e824874e6
 ---
 
 En este artículo quiero hablar de cómo ahorrar tokens de IA.
 
 Al principio me centraba más en los resultados y el proceso que en el rendimiento y el costo. Como los resultados generados por la IA tenían bastantes fallos, había que verificarlos; y como necesitábamos obtenerlos rápido, muchas personas, incluido yo, comprábamos más tokens o pasábamos a una suscripción superior cuando se agotaban. Yo también lo hice. (De hecho, durante los primeros meses ni siquiera presté atención a cuánto estaba gastando en tokens.)
 
-Sin embargo, con el tiempo empecé a ser cada vez más consciente del uso de tokens. Para las personas, la cuota mensual pesaba; para las empresas, crecían las dudas sobre los costos laborales y operativos. Como expliqué en [Herramientas para agentes de IA](/260529), mis otros artículos se han centrado menos en qué es la IA o cómo funciona y más en cómo aprovecharla bien, qué ayuda puede ofrecer, qué herramientas existen, qué está de moda y por qué surgieron esas tendencias. Sigo pensando que esos temas importan, pero con el tiempo el costo terminará siendo la pregunta que más interese.
+Sin embargo, con el tiempo empecé a ser cada vez más consciente del uso de tokens. Para las personas, la cuota mensual pesaba; para las empresas, crecían las dudas sobre los costos laborales y operativos. En [MCP y function calling](/260524) expliqué el protocolo que conecta a los agentes con sistemas externos; en [Cuatro niveles de inteligencia de código](/260526), las herramientas de búsqueda de código y GitHub Trending; y en [Archivos de contexto](/260529), los archivos de reglas que leen los agentes. Así, mis artículos hasta ahora se han centrado más en qué herramientas existen y cómo aprovecharlas bien. Sigo pensando que esos temas importan, pero con el tiempo el costo terminará siendo la pregunta que más interese.
 
 En otro artículo, [Cómo funcionan los tokens](/260610), expliqué qué son exactamente, cómo los crea BPE y qué ocurre dentro de un transformador cuando prompt caching reduce el precio unitario. Sobre esa base, aquí veremos primero cómo se factura el costo y dónde nacen las ineficiencias, después ordenaremos patrones de ahorro comprobados. Los patrones principales van acompañados del uso de tokens que medí yo mismo ejecutando la misma tarea con distintas estrategias.
 

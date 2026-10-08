@@ -8,7 +8,7 @@ description: "La calibración es saber qué porcentaje vas a acertar. Cómo la m
 keywords: "calibración de modelos, ECE, expected calibration error, exceso de confianza en RLHF, LLM sobreconfiados, calibración vs exactitud, calibración de GPT-4, mode dropping"
 locale: es
 translationOf: '260917'
-sourceHash: eb59e41f5cd98a6e2a1858a2dc53c9c860e30f9c25e4c4f59557f184b05b26d1
+sourceHash: 18340456d15a5027169635513c42295af2aef16b38d6ff40e7038bf7b023886c
 ---
 
 En este artículo quiero hablar de la calibración de los modelos y del exceso de confianza que genera RLHF. Está pensado para desarrolladores que quieren usar en su código, como criterio de decisión, la probabilidad o la confianza que devuelve un modelo. Al terminar podrás explicar en qué se diferencian la exactitud y la calibración, qué mide el ECE y por qué un modelo pulido con preferencias humanas habla con más seguridad de la que le corresponde.
@@ -43,6 +43,6 @@ Según las cifras impresas en la figura, el ECE del modelo preentrenado es **0.0
 
 En resumen, la calibración no trata de qué porcentaje aciertas, sino de si sabes qué porcentaje vas a acertar, y el ECE es la cifra que mide ese desajuste. RLHF apunta a la salida que las personas prefieren, y como las personas prefieren respuestas seguras, el modelo acaba hablando de forma tajante incluso cuando la cosa es ambigua. En GPT-4, ese precio quedó registrado como un ECE que pasó de 0.007 a 0.074.
 
-Si las probabilidades de Jev, un modelo de decisión que presenta la calibración como objetivo de entrenamiento, son de verdad honestas, lo comprobé con mediciones públicas y con mis propios datos en [Modelos de decisión, Jev y Kev](/260922).
+Si las probabilidades de Jev, un modelo de decisión que presenta la calibración como objetivo de entrenamiento, son de verdad honestas se trata en [Modelos de decisión, Jev y Kev](/260922).
 
 Ojalá que tú también, antes de fijar en el código como umbral la probabilidad que devuelve un modelo, compruebes al menos una vez para qué se entrenó ese modelo y si su escala se sostiene con tus propios datos.

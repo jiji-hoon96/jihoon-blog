@@ -1,12 +1,12 @@
 ---
 emoji: 🧭
-title: 'AIエージェントツール'
+title: 'コンテキストファイル'
 seoTitle: "CLAUDE.md・AGENTS.md・SKILL.mdの違い: AIコーディングエージェントのコンテキストファイル"
 date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: ja
 translationOf: '260529'
-sourceHash: 576f9a09086bc4f6444b6e39ded3b6204214a004b2497c595989116307daebab
+sourceHash: bb7924b155b99b2e2f0c86c6ab970989ae0c36a6e40193617be6dd29adb326d3
 categories: AI 開発ツール Claude MCP CodeGraph
 description: "CLAUDE.md・AGENTS.md・SKILL.md・Cursor rulesがいつ、どのようにエージェントに読み込まれるのかを整理する。CLAUDE.mdがuser messageとして注入される仕組みとコンテキストの忘却、ETH Zurichの研究をもとに、何を書くべきかの基準を示す。"
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, コンテキストファイル, AIコーディングエージェント, Claude Code, ETH Zurich AGENTS.md 研究"
@@ -19,7 +19,7 @@ keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-inst
 筆者はフロントエンド開発者として働きながら、日常的にClaudeを活用している。そうしているうちに、いつの間にかプロジェクトルートに`CLAUDE.md`ができ、その隣には誰かが作った`AGENTS.md`があり、`.cursorrules`も片隅に残り、どこかで読んだ記事に倣って`.claude/skills/`フォルダまで作るようになった。（気がつけば、似たような内容を書いたファイルが5つほどできていた。）
 
 
-## コンテキストファイル
+## 永続メモリを持たないエージェント
 
 AIコーディングエージェントには、**永続的な記憶がない**という根本的な制約がある。すべてのセッションは空の状態から始まり、昨日合意した規約や1時間前に伝えたフォルダ構成を、次の会話では覚えていない。コンテキストファイルは、この問題を解決する最も単純な仕組みだ。セッションの開始時に毎回自動で読み込まれるファイルをプロジェクトに置けば、同じ説明を何度も繰り返さずに済む。
 
@@ -41,7 +41,7 @@ AIコーディングエージェントには、**永続的な記憶がない**�
 
 ### AGENTS.md
 
-`AGENTS.md`は、前述したツール別ファイルの乱立を解消するために作られた標準だ。2025年12月、Anthropic・Block・OpenAIの3社がMCPとともにLinux Foundation傘下の**Agentic AI Foundation（AAIF）**へ寄贈し、事実上の業界標準となった。公式サイト（`agents.md`）では、**6万以上のオープンソースリポジトリがこのファイルを採用している**と明記されている。
+`AGENTS.md`は、前述したツール別ファイルの乱立を解消するために作られた標準だ。2025年12月、Anthropic・Block・OpenAIの3社がMCP（エージェントを外部システムにつなぐプロトコル）とともにLinux Foundation傘下の**Agentic AI Foundation（AAIF）**へ寄贈し、事実上の業界標準となった。公式サイト（`agents.md`）では、**6万以上のオープンソースリポジトリがこのファイルを採用している**と明記されている。
 
 対応ツールの一覧を見れば、さらに明確だ。OpenAI Codex、Google Jules、VS Code、GitHub Copilot、Cursor、JetBrains Junie、Aider、Devin、Zed、Factory、Warp、goose、opencode、Amp、RooCode、Gemini CLI、Kilo Code、Phoenix、Semgrep、Ona、Windsurf、Augment Codeなど、数多くのツールが対応している。GitHub Copilotは2025年8月から`AGENTS.md`をネイティブサポートし始めた。興味深いのは、**Claude Codeによる`AGENTS.md`のネイティブサポートは、いまだactive feature requestの状態**だという点だ。Claude Codeは今も`CLAUDE.md`を第一のファイルとして扱う。
 
@@ -181,13 +181,13 @@ ETH Zurichの研究チームが2026年2月に発表した論文「Evaluating AGE
 
 ## まとめ
 
-この記事を書きながら筆者が最も強く感じたのは、**ツールがあまりにも速いペースで増えている**ことだった。執筆中にも新しいMCPサーバーがGitHub Trendingに上がり、AGENTS.mdの対応状況が変わり、新たなセキュリティCVEが発行された。書きかけの段落がすぐ古くなる感覚は技術記事の宿命だが、AIエージェントのエコシステムでは、その速度がとりわけ急だ。
+コンテキストファイルは、ツールごとに名前も、置き場所も、読み込まれるタイミングも異なる。この記事で見たものだけでも、CLAUDE.md、AGENTS.md、SKILL.md、Cursor rules、copilot-instructions.md、MEMORY.mdがあり、どのツールがどのファイルに対応しているかも変わり続けている。ファイルの一覧を覚えておくだけでは、すぐに古くなる。
 
 そこで筆者がこの記事で目指したのは、特定のファイル形式を薦めることではなく、**ファイルがエージェントにどう読まれるのかを見る目**を養うことだった。CLAUDE.mdがなぜuser messageとして注入されるのか、同じAGENTS.mdをツールごとになぜ異なる形で読むのか、指示がなぜコンテキストの中間で弱まるのかを理解すれば、新しいコンテキストファイルの形式が登場したときにも、「これはいつロードされ、どれくらい強く作用するのか」を素早く読み解ける。
 
-最後に残るのは、ETH Zurichの研究が示した一つの直感だ。**モデルはすでに多くのことを知っている。** コンテキストファイルへ何もかも詰め込んだからといって、エージェントがよりよく従うわけではない。モデルが知らない可能性の高いもの、つまりプロジェクト固有の規約、非標準ツール、過去の失敗だけを残し、それ以外を取り除くほうがよい。ツールを数多くインストールすることと、ツールを使いこなすことは別の問題なのだ。
+最後に残るのは、ETH Zurichの研究が示した一つの直感だ。**モデルはすでに多くのことを知っている。** コンテキストファイルへ何もかも詰め込んだからといって、エージェントがよりよく従うわけではない。モデルが知らない可能性の高いもの、つまりプロジェクト固有の規約、非標準ツール、過去の失敗だけを残し、それ以外を取り除くほうがよい。コンテキストファイルを長く書くことと、うまく書くことは別の問題なのだ。
 
-この記事を読んだ方にも、今すぐMCPを10個追加したり、CLAUDE.mdを数百行へ増やしたりするのではなく、現在使っているツールがどのような仕組みで動いているのか、一度掘り下げてみることを勧めたい。それが、エコシステムがどの方向へ進んでも揺らがない土台になると考えている。
+この記事を読んだ方にも、今すぐCLAUDE.mdを数百行へ増やすのではなく、いま使っているツールがそのファイルをいつ、どこに、どれくらい強く読み込むのか、一度掘り下げてみることを勧めたい。それが、ファイル形式がどう変わっても揺らがない土台になると考えている。
 
 
 ## 参考資料

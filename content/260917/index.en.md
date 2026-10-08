@@ -8,7 +8,7 @@ description: "Calibration means knowing how often you will be right. How ECE mea
 keywords: "model calibration, ECE, expected calibration error, RLHF overconfidence, LLM overconfidence, calibration vs accuracy, GPT-4 calibration, mode dropping"
 locale: en
 translationOf: '260917'
-sourceHash: eb59e41f5cd98a6e2a1858a2dc53c9c860e30f9c25e4c4f59557f184b05b26d1
+sourceHash: 18340456d15a5027169635513c42295af2aef16b38d6ff40e7038bf7b023886c
 ---
 
 In this post, I want to talk about model calibration and the overconfidence RLHF creates. This is for developers who want to use the probability or confidence a model returns as a decision criterion in code. By the end, you will be able to explain how accuracy and calibration differ, what ECE measures, and why a model polished on human preference speaks more confidently than it should.
@@ -43,6 +43,6 @@ By the numbers printed on the figure, the pre-trained model's ECE is **0.007** a
 
 To sum up, calibration is not about what percentage you get right but whether you know what percentage you will get right, and ECE is the number that measures the gap. RLHF aims at the output people prefer, and because people prefer confident answers, the model ends up speaking decisively even when things are ambiguous. In GPT-4, the cost showed up as ECE going from 0.007 to 0.074.
 
-Whether the probabilities of Jev, a decision model that puts calibration forward as its training objective, are actually honest is something I checked with published measurements and my own data in [Decision Models, Jev and Kev](/260922).
+Whether the probabilities of Jev, a decision model that puts calibration forward as its training objective, are actually honest is covered in [Decision Models, Jev and Kev](/260922).
 
 Before you hard-code a model's probability as a threshold, I hope you will check at least once what that model was trained to aim for, and measure whether its scale holds on your own data.

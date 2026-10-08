@@ -1,6 +1,6 @@
 ---
 emoji: 🧮
-title: "hashKey"
+title: "queryKey 比较原理"
 seoTitle: "TanStack Query 如何比较 queryKey：hashKey 与序列化"
 date: "2025-12-30"
 categories: 前端 React TanStack-Query queryKey
@@ -8,12 +8,12 @@ description: "通过 hashKey 的实现，梳理 TanStack Query 如何把每次�
 keywords: "queryKey 比较, hashKey, queryHash, TanStack Query 缓存键, React Query queryKey 顺序, queryKeyHashFn, JSON.stringify 键排序, QueryCache"
 locale: zh-CN
 translationOf: '251230'
-sourceHash: 7560f02e4d0eed43c223d135356ae58f4451e1b7b0805a2b6baf0caa0f67573d
+sourceHash: 7e26877fcdd3f1c85b67751a911900b36ff424cb43b408fb640fb8aa3075e22a
 ---
 
 这篇文章想聊一聊 **TanStack Query 如何判断两个 queryKey 是同一个键**。
 
-本文写给曾经好奇这些问题的 TanStack Query 用户：每次渲染都会新建为数组的 queryKey，为什么不会每次都缓存未命中；对象的键顺序或 `undefined` 值会不会影响缓存。先说结论：TanStack Query 把用 `hashKey` 序列化 queryKey 得到的字符串作为缓存的键，在这个过程中对象的键顺序会被忽略，而数组元素的顺序会原样保留。
+本文写给曾经好奇这些问题的 TanStack Query 用户：每次渲染都会新建为数组的 queryKey，为什么不会每次都缓存未命中；对象的键顺序或 `undefined` 值会不会影响缓存。读完后，你会知道把两个键视为相同的规则，以及这条规则对缓存的影响。先说结论：TanStack Query 把用 `hashKey` 序列化 queryKey 得到的字符串作为缓存的键，在这个过程中对象的键顺序会被忽略，而数组元素的顺序会原样保留。
 
 queryKey 是 TanStack Query 管理查询缓存时所依据的数组。相同的键意味着相同的数据；当 `['user', userId]` 因为其中的 `userId` 变化而改变时，就会缓存未命中并重新 fetch。
 

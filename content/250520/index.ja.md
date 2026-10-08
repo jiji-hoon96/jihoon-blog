@@ -9,7 +9,7 @@ description: "React Fiberアーキテクチャを、Stack ReconcilerからFiber�
 keywords: "React Fiber, React Fiberアーキテクチャ, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, Reactレンダリングの仕組み, Reactソースコード解析, Virtual DOM, Reconciliation, Lane優先度, フロントエンド面接"
 locale: ja
 translationOf: '250520'
-sourceHash: 3377c18b0ba4131a4cd9e2f09d904e200a6f09b2abe55a812ca1caa70ff5239e
+sourceHash: a7f912dab6e219c0f6a0434354cd27179f0020fd867d2f22fad5d7f6f6391393
 ---
 
 今回は、Reactの心臓部ともいえる**Fiberアーキテクチャ**について話したい。
@@ -76,7 +76,7 @@ function performWork(deadline) {
 
 上のコードは、Fiber初期の概念モデルを示している。重要なのは、`while` ループ内で一度に一つの作業単位だけを処理し、時間が足りなくなればループを抜けてブラウザーに制御を返す点だ。
 
-上のコードは概念を示すために`requestIdleCallback`を使ったが、実際のReactはこれを使っていない。このAPIはブラウザーが本当に暇なときにしか呼ばれないため、忙しいページではReactの作業がいつまでも後回しになりうる。ブラウザーごとのサポートや動作も異なっていた。そこでReactのSchedulerパッケージは、`MessageChannel`で次のマクロタスクを予約して作業を続け、その合間にメインスレッドへ制御を返す。`setTimeout`ではなく`MessageChannel`を選んだ理由は、[ReactがMessageChannelを使う理由](/250515)に別途まとめておいた。
+ただし、この例は概念を示すために`requestIdleCallback`を使ったにすぎず、実際のReactはこれを使っていない。このAPIはブラウザーが本当に暇なときにしか呼ばれないため、忙しいページではReactの作業がいつまでも後回しになりうる。ブラウザーごとのサポートや動作も異なっていた。そこでReactのSchedulerパッケージは、`MessageChannel`で次のマクロタスクを予約して作業を続け、その合間にメインスレッドへ制御を返す。`setTimeout`ではなく`MessageChannel`を選んだ理由は、[ReactがMessageChannelを使う理由](/250515)に別途まとめておいた。
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">

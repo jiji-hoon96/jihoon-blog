@@ -8,12 +8,12 @@ description: "Como o MCP difere de function calling: seis primitivas, stdio e St
 keywords: "MCP, Model Context Protocol, MCP vs function calling, primitivas MCP, tools/list, Streamable HTTP, Tool Poisoning Attack, segurança MCP"
 locale: pt-BR
 translationOf: '260524'
-sourceHash: c8c4c1ecc1bcc3dec03f51f86523bff1a97cfb134b8b21433ff155fcea071b34
+sourceHash: f5c56031068e65cfbee19861ae45e0809590a1961be8364a856a0caa02ffedcb
 ---
 
 Neste post, quero falar sobre **como o MCP (Model Context Protocol) difere de function calling**.
 
-Este texto é para quem usa servidores MCP com Claude Code ou Cursor, mas tem dificuldade em explicar onde o MCP se separa do function calling das APIs de LLM. Adiantando a resposta, são quatro diferenças: descoberta dinâmica, que obtém a lista de ferramentas em tempo de execução; uma stateful session com ciclo de vida definido; primitivas além de Tool; e bidirecionalidade, que permite ao servidor chamar o LLM do cliente no sentido inverso. Ao final, você saberá de que parte do protocolo vem cada uma dessas quatro diferenças e a que problemas de segurança essa estrutura leva.
+Este texto é para quem usa servidores MCP com Claude Code ou Cursor, mas tem dificuldade em explicar onde o MCP se separa do function calling das APIs de LLM. Ao final, você saberá de que parte do protocolo vem cada uma das quatro diferenças entre os dois e a que problemas de segurança essa estrutura leva. As quatro são a descoberta dinâmica, que obtém a lista de ferramentas em tempo de execução; uma stateful session com ciclo de vida definido; primitivas além de Tool; e a bidirecionalidade, que permite ao servidor chamar o LLM do cliente no sentido inverso.
 
 Trabalho como desenvolvedor frontend e uso o Claude no dia a dia, mas, a cada servidor MCP que eu adicionava, nunca ficava muito claro para mim como essas ferramentas entravam no campo de visão do modelo.
 
@@ -113,7 +113,7 @@ E o que aconteceu depois? A Anthropic **não alterou a arquitetura do protocolo*
 
 Em resumo, o MCP não substitui o function calling; é um padrão construído sobre ele. O modelo continua chamando ferramentas pelo parâmetro `tools` e pelo loop `tool_use`; o que o MCP acrescenta é uma forma de trocar a lista de ferramentas em tempo de execução, um ciclo de vida de sessão, primitivas além de Tool e chamadas que vão do servidor para o cliente. Como as definições de ferramentas trafegam em tempo de execução, é nesse mesmo ponto que surgem os ataques que as envenenam ou as alteram silenciosamente.
 
-Se o MCP trata do que permitir que o agente faça, o que informar a ele é papel de arquivos de contexto como `CLAUDE.md` e `AGENTS.md`. Como o agente lê esses arquivos e até que ponto suas instruções são seguidas é o tema de [Ferramentas para agentes de IA](/260529).
+Se o MCP trata do que permitir que o agente faça, o que informar a ele é papel de arquivos de contexto como `CLAUDE.md` e `AGENTS.md`. Como o agente lê esses arquivos e até que ponto suas instruções são seguidas é o tema de [Arquivos de contexto](/260529).
 
 
 ## Referências

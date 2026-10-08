@@ -89,7 +89,7 @@ const { data } = useQuery({
 
 `userId`가 `'A'`일 때와 `'B'`일 때 queryKey는 서로 다르다. 다르면 캐시 미스이고, 캐시 미스이면 fetch한다. 자동이다. 이 단순함 덕분에 우리가 직접 "userId가 바뀌었으니 다시 fetch해야 한다"는 로직을 짤 필요가 없다.
 
-그렇다면 렌더링마다 새로 만들어지는 배열을 TanStack Query는 어떻게 같은 키로 알아볼까? 배열의 참조를 비교하지 않고, queryKey를 `hashKey`로 직렬화한 문자열(`queryHash`)을 캐시의 키로 쓴다. 이 함수는 plain object의 키를 정렬하면서 `JSON.stringify`로 직렬화하므로, 객체 안의 키 순서는 해시에 영향을 주지 않고 배열의 요소 순서는 영향을 준다. 값이 `undefined`인 속성은 직렬화 과정에서 사라져서, `{ a: 1, b: undefined }`와 `{ a: 1 }`은 같은 키가 된다. 이 동작을 구현 코드와 함께 따라간 내용은 [hashKey](/251230)에 따로 정리해 두었다.
+그렇다면 렌더링마다 새로 만들어지는 배열을 TanStack Query는 어떻게 같은 키로 알아볼까? 배열의 참조를 비교하지 않고, queryKey를 `hashKey`로 직렬화한 문자열(`queryHash`)을 캐시의 키로 쓴다. 이 함수는 plain object의 키를 정렬하면서 `JSON.stringify`로 직렬화하므로, 객체 안의 키 순서는 해시에 영향을 주지 않고 배열의 요소 순서는 영향을 준다. 값이 `undefined`인 속성은 직렬화 과정에서 사라져서, `{ a: 1, b: undefined }`와 `{ a: 1 }`은 같은 키가 된다. 이 동작을 구현 코드와 함께 따라간 내용은 [queryKey 비교 원리](/251230)에 따로 정리해 두었다.
 
 
 ## queryKey 작성 규칙

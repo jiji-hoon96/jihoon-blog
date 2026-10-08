@@ -1,12 +1,12 @@
 ---
 emoji: 🧭
-title: 'AI 智能体工具'
+title: '上下文文件'
 seoTitle: "CLAUDE.md、AGENTS.md 与 SKILL.md 的区别: AI 编程智能体上下文文件"
 date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: zh-CN
 translationOf: '260529'
-sourceHash: 576f9a09086bc4f6444b6e39ded3b6204214a004b2497c595989116307daebab
+sourceHash: bb7924b155b99b2e2f0c86c6ab970989ae0c36a6e40193617be6dd29adb326d3
 categories: AI 开发工具 Claude MCP CodeGraph
 description: "梳理 CLAUDE.md、AGENTS.md、SKILL.md 与 Cursor rules 何时、如何被智能体读取，并根据 CLAUDE.md 以 user message 注入的机制、上下文遗忘与 ETH Zurich 研究，给出上下文文件该写什么的判断标准。"
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, 上下文文件, AI 编程智能体, Claude Code, ETH Zurich AGENTS.md 研究"
@@ -19,7 +19,7 @@ keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-inst
 作为一名前端开发者，我在日常工作中经常使用 Claude。渐渐地，项目根目录里多出了 `CLAUDE.md`，旁边还有别人创建的 `AGENTS.md`，某个角落仍留着 `.cursorrules`，我也曾照着某篇文章建起 `.claude/skills/` 文件夹。（回过神来，记录着相似内容的文件已经有五个左右了。）
 
 
-## 上下文文件
+## 没有持久记忆的智能体
 
 AI 编程智能体存在一个根本局限：**它没有持久记忆**。每个 session 都从空白状态开始，昨天约定的 convention，或一小时前介绍过的文件夹结构，到了下一次对话就无法记住。上下文文件是解决这个问题最简单的装置：只要在项目中放置一个每次 session 开始时都会自动读取的文件，就不必反复说明同一件事。
 
@@ -41,7 +41,7 @@ AI 编程智能体存在一个根本局限：**它没有持久记忆**。每个 
 
 ### AGENTS.md
 
-`AGENTS.md` 是为解决上述各工具专属文件泛滥而创建的标准。2025 年 12 月，Anthropic、Block、OpenAI 三家公司将它与 MCP 一同捐赠给 Linux Foundation 旗下的 **Agentic AI Foundation（AAIF）**，使其成为事实上的行业标准。官方网站（`agents.md`）明确表示，**已有超过 6 万个开源仓库采用该文件**。
+`AGENTS.md` 是为解决上述各工具专属文件泛滥而创建的标准。2025 年 12 月，Anthropic、Block、OpenAI 三家公司将它与 MCP（把智能体连接到外部系统的协议）一同捐赠给 Linux Foundation 旗下的 **Agentic AI Foundation（AAIF）**，使其成为事实上的行业标准。官方网站（`agents.md`）明确表示，**已有超过 6 万个开源仓库采用该文件**。
 
 看看支持工具的名单，这一点就更清楚了。OpenAI Codex、Google Jules、VS Code、GitHub Copilot、Cursor、JetBrains Junie、Aider、Devin、Zed、Factory、Warp、goose、opencode、Amp、RooCode、Gemini CLI、Kilo Code、Phoenix、Semgrep、Ona、Windsurf、Augment Code 等众多工具都提供支持。GitHub Copilot 从 2025 年 8 月起原生支持 `AGENTS.md`。有趣的是，**Claude Code 对 `AGENTS.md` 的原生支持目前仍处于 active feature request 状态**。Claude Code 依然将 `CLAUDE.md` 视为主要文件。
 
@@ -181,13 +181,13 @@ Aider 的“200 行建议”是实用层面的提醒——文件每次都会进�
 
 ## 总结
 
-写这篇文章时，我最常想到的是：**工具增长得实在太快了**。就在写作期间，新的 MCP server 又登上 GitHub Trending，AGENTS.md 的支持状态发生变化，新的安全 CVE 也不断发布。写到一半的段落转眼就过时，是技术写作特有的宿命，但 AI 智能体生态的速度尤其惊人。
+上下文文件因工具而异，名称、存放位置和被读取的时机都不一样。仅本文提到的就有 CLAUDE.md、AGENTS.md、SKILL.md、Cursor rules、copilot-instructions.md 和 MEMORY.md，哪个工具支持哪个文件也在不断变化。只记住文件清单，很快就会过时。
 
 所以，我想做的不是推荐某种特定的文件格式，而是培养一种**看清文件如何被智能体读取的眼光**。理解 CLAUDE.md 为何以 user message 注入、不同工具为何以不同方式读取同一个 AGENTS.md、指令为何会在上下文中间变弱之后，新的上下文文件格式出现时，就能快速看懂：“它何时被加载，作用有多强。”
 
-最终留下的，是 ETH Zurich 研究带来的一个直觉：**模型本来就知道很多东西。**把所有内容都塞进上下文文件，并不会让智能体更认真地遵循。更好的做法是，只保留模型很可能不知道的信息——项目专属 convention、非标准工具、过去的错误——删除其余内容。安装更多工具，与把工具用好，是两回事。
+最终留下的，是 ETH Zurich 研究带来的一个直觉：**模型本来就知道很多东西。**把所有内容都塞进上下文文件，并不会让智能体更认真地遵循。更好的做法是，只保留模型很可能不知道的信息——项目专属 convention、非标准工具、过去的错误——删除其余内容。把上下文文件写长，与把它写好，是两回事。
 
-我也建议读者不要立刻添加十个 MCP server，或把 CLAUDE.md 扩展到几百行；不妨先花点时间，深入了解自己当前使用的工具究竟如何运作。无论生态将走向何方，这种理解都会成为不易动摇的基础。
+我也建议读者不要急着把 CLAUDE.md 扩展到几百行，不妨先深入了解一下，自己当前使用的工具会在何时、放在哪个位置、以多大的力度读取这个文件。无论文件格式如何变化，这种理解都会成为不易动摇的基础。
 
 
 ## 参考资料

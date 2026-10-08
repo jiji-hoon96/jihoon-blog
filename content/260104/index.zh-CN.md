@@ -9,7 +9,7 @@ description: "梳理 TanStack Query 的 queryKey 管理方式如何从内联数�
 keywords: "queryKey, query key factory, TanStack Query queryKey, queryKey 编写规则, queryOptions, setQueryData, TkDodo query keys, query-key-factory, React Query v5, 查询失效"
 locale: zh-CN
 translationOf: '260104'
-sourceHash: 9a36bf314bac28176dfc2e56aa119d80db0e87fe66e6df7a83ca4350fb6d2a19
+sourceHash: 50857db5f010cd899635d01d412999ec0ecc8b8d295039fbaad49e0c10d51f58
 ---
 
 这篇文章想聊一聊 **TanStack Query 的 queryKey**。
@@ -92,7 +92,7 @@ const { data } = useQuery({
 
 当 `userId` 为 `'A'` 和 `'B'` 时，queryKey 彼此不同。不同就意味着缓存未命中，进而触发数据获取，而且这一切都是自动的。得益于这种简洁性，我们无需亲自编写“userId 变了，所以要重新获取”的逻辑。
 
-那么，TanStack Query 如何把每次渲染都新建的数组认作同一个键？它不比较数组的引用，而是把用 `hashKey` 序列化 queryKey 得到的字符串（`queryHash`）作为缓存的键。这个函数在用 `JSON.stringify` 序列化的同时对普通对象的键进行排序，因此对象内部的键顺序不会影响哈希，而数组元素的顺序会影响。值为 `undefined` 的属性会在序列化过程中消失，所以 `{ a: 1, b: undefined }` 和 `{ a: 1 }` 会成为同一个键。结合实现代码梳理这一行为的内容，另外整理在 [hashKey](/251230) 中。
+那么，TanStack Query 如何把每次渲染都新建的数组认作同一个键？它不比较数组的引用，而是把用 `hashKey` 序列化 queryKey 得到的字符串（`queryHash`）作为缓存的键。这个函数在用 `JSON.stringify` 序列化的同时对普通对象的键进行排序，因此对象内部的键顺序不会影响哈希，而数组元素的顺序会影响。值为 `undefined` 的属性会在序列化过程中消失，所以 `{ a: 1, b: undefined }` 和 `{ a: 1 }` 会成为同一个键。结合实现代码梳理这一行为的内容，另外整理在 [queryKey 比较原理](/251230) 中。
 
 
 ## queryKey 编写规则

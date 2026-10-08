@@ -1,6 +1,6 @@
 ---
 emoji: 🧭
-title: 'Herramientas para agentes de IA'
+title: 'Archivos de contexto'
 seoTitle: "CLAUDE.md, AGENTS.md y SKILL.md: archivos de contexto"
 date: '2026-05-29'
 updatedAt: "2026-10-08"
@@ -9,7 +9,7 @@ description: "Cómo cargan los agentes CLAUDE.md, AGENTS.md, SKILL.md y Cursor r
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, archivos de contexto, agente de codificación con IA, Claude Code, estudio ETH Zurich AGENTS.md"
 locale: es
 translationOf: '260529'
-sourceHash: 576f9a09086bc4f6444b6e39ded3b6204214a004b2497c595989116307daebab
+sourceHash: bb7924b155b99b2e2f0c86c6ab970989ae0c36a6e40193617be6dd29adb326d3
 ---
 
 En esta publicación quiero hablar sobre **los archivos de contexto que leen los agentes de codificación con IA**.
@@ -19,7 +19,7 @@ Este artículo está pensado para quienes tienen `CLAUDE.md`, `AGENTS.md`, `SKIL
 Trabajo como desarrollador frontend y utilizo Claude a diario. Con el tiempo, apareció un `CLAUDE.md` en la raíz del proyecto, junto a un `AGENTS.md` que alguien había creado; `.cursorrules` seguía olvidado en un rincón y yo mismo terminé creando una carpeta `.claude/skills/` siguiendo algún artículo que había visto. (Cuando me di cuenta, había unos cinco archivos con contenidos parecidos).
 
 
-## Archivos de contexto
+## Agentes sin memoria persistente
 
 Los agentes de codificación con IA tienen una limitación fundamental: **carecen de memoria persistente**. Cada sesión empieza desde cero y, en la conversación siguiente, no recuerdan las convenciones acordadas ayer ni la estructura de carpetas explicada una hora antes. Los archivos de contexto son el mecanismo más sencillo para resolver este problema. Si colocamos en el proyecto un archivo que se lea automáticamente al comenzar cada sesión, no tendremos que repetir siempre las mismas explicaciones.
 
@@ -41,7 +41,7 @@ Hay un detalle que suele pasarse por alto: **lee todos los `CLAUDE.md` que encue
 
 ### AGENTS.md
 
-`AGENTS.md` es un estándar creado para resolver la proliferación de archivos específicos de cada herramienta que acabamos de describir. En diciembre de 2025, Anthropic, Block y OpenAI lo donaron, junto con MCP, a la **Agentic AI Foundation (AAIF)** de la Linux Foundation, con lo que se convirtió de facto en un estándar del sector. El sitio oficial (`agents.md`) afirma que **más de 60.000 repositorios open source han adoptado este archivo**.
+`AGENTS.md` es un estándar creado para resolver la proliferación de archivos específicos de cada herramienta que acabamos de describir. En diciembre de 2025, Anthropic, Block y OpenAI lo donaron, junto con MCP (el protocolo que conecta a los agentes con sistemas externos), a la **Agentic AI Foundation (AAIF)** de la Linux Foundation, con lo que se convirtió de facto en un estándar del sector. El sitio oficial (`agents.md`) afirma que **más de 60.000 repositorios open source han adoptado este archivo**.
 
 La lista de herramientas compatibles lo deja aún más claro. OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf y Augment Code, entre muchas otras, lo admiten. GitHub Copilot empezó a ofrecer compatibilidad nativa con `AGENTS.md` en agosto de 2025. Un detalle interesante es que **la compatibilidad nativa de Claude Code con `AGENTS.md` sigue siendo una active feature request**. Claude Code continúa tratando `CLAUDE.md` como su archivo principal.
 
@@ -181,13 +181,13 @@ La recomendación de Aider de «no superar las 200 líneas» ofrece una orientac
 
 ## En conclusión
 
-Mientras escribía este artículo, mi pensamiento más recurrente fue que **las herramientas se multiplican demasiado deprisa**. Incluso durante la redacción aparecieron nuevos servidores MCP en GitHub Trending, cambió la compatibilidad con AGENTS.md y se publicaron nuevas CVE de seguridad. La sensación de que un párrafo a medio terminar queda obsoleto enseguida es inherente a la escritura técnica, pero el ecosistema de agentes de IA avanza a una velocidad especialmente vertiginosa.
+Los archivos de contexto cambian de una herramienta a otra en nombre, ubicación y momento de lectura. Solo en este artículo hemos visto CLAUDE.md, AGENTS.md, SKILL.md, Cursor rules, copilot-instructions.md y MEMORY.md, y qué herramienta admite qué archivo no deja de cambiar. Memorizar una lista de archivos se queda obsoleto enseguida.
 
 Por eso, mi objetivo aquí no era recomendar un formato de archivo concreto, sino desarrollar **la capacidad de ver cómo leen los agentes estos archivos**. Cuando sabemos por qué CLAUDE.md se inyecta como user message, por qué cada herramienta lee de forma distinta el mismo AGENTS.md y por qué las instrucciones se debilitan en la mitad del contexto, al aparecer un formato nuevo de archivo de contexto podemos identificar rápidamente «cuándo se carga y con cuánta fuerza actúa».
 
-Al final, queda una intuición transmitida por el estudio de ETH Zurich: **el modelo ya sabe muchas cosas**. Meter de todo a la fuerza en un archivo de contexto no hace que el agente lo siga mejor. Es preferible conservar solo aquello que el modelo probablemente desconozca —convenciones propias del proyecto, herramientas no estándar y errores del pasado— y retirar lo demás. Instalar más herramientas y saber utilizarlas bien son dos problemas diferentes.
+Al final, queda una intuición transmitida por el estudio de ETH Zurich: **el modelo ya sabe muchas cosas**. Meter de todo a la fuerza en un archivo de contexto no hace que el agente lo siga mejor. Es preferible conservar solo aquello que el modelo probablemente desconozca —convenciones propias del proyecto, herramientas no estándar y errores del pasado— y retirar lo demás. Escribir un archivo de contexto largo y escribirlo bien son dos problemas diferentes.
 
-A quienes lean este artículo les recomiendo que, antes de añadir de golpe diez MCP o ampliar CLAUDE.md a cientos de líneas, investiguen al menos una vez los principios en los que se basan las herramientas que ya utilizan. Creo que esa comprensión constituye una base sólida, con independencia de la dirección que tome el ecosistema.
+A quienes lean este artículo les recomiendo que, antes de ampliar CLAUDE.md a cientos de líneas, investiguen al menos una vez cuándo, dónde y con cuánta fuerza leen ese archivo las herramientas que ya utilizan. Creo que esa comprensión constituye una base sólida, cambien como cambien los formatos de archivo.
 
 
 ## Referencias

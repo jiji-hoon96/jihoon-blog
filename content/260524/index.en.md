@@ -5,7 +5,7 @@ seoTitle: "How MCP Differs from Function Calling: Protocol and Calls"
 date: "2026-05-24"
 locale: en
 translationOf: '260524'
-sourceHash: c8c4c1ecc1bcc3dec03f51f86523bff1a97cfb134b8b21433ff155fcea071b34
+sourceHash: f5c56031068e65cfbee19861ae45e0809590a1961be8364a856a0caa02ffedcb
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "How MCP differs from function calling: six primitives, stdio and Streamable HTTP, the tools/list to tool_use loop flow, and risks like Tool Poisoning."
 keywords: "MCP, Model Context Protocol, MCP vs function calling, MCP primitives, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP security"
@@ -13,7 +13,7 @@ keywords: "MCP, Model Context Protocol, MCP vs function calling, MCP primitives,
 
 In this post, I want to talk about **how MCP (Model Context Protocol) differs from function calling**.
 
-This is for developers who use MCP servers with Claude Code or Cursor but have found it hard to explain where MCP parts ways with the function calling in LLM APIs. To give the answer first, there are four differences: dynamic discovery, which fetches the tool list at runtime; a stateful session with a defined lifecycle; primitives beyond Tool; and bidirectionality, which lets the server call the client's LLM in the reverse direction. By the end, you will know which part of the protocol each of these four comes from, and what security problems that structure leads to.
+This is for developers who use MCP servers with Claude Code or Cursor but have found it hard to explain where MCP parts ways with the function calling in LLM APIs. By the end, you will know which part of the protocol each of the four differences between the two comes from, and what security problems that structure leads to. The four are dynamic discovery, which fetches the tool list at runtime; a stateful session with a defined lifecycle; primitives beyond Tool; and bidirectionality, which lets the server call the client's LLM in the reverse direction.
 
 I work as a frontend developer and use Claude every day, yet each time I added another MCP server, I was never quite sure how these tools actually entered the model's field of view.
 
@@ -113,7 +113,7 @@ How has the ecosystem responded? Anthropic **did not change the protocol archite
 
 In short, MCP does not replace function calling; it is a standard layered on top of it. The model still invokes tools through the `tools` parameter and the `tool_use` loop. What MCP adds is a way to exchange the tool list at runtime, a session lifecycle, primitives beyond Tool, and calls that go from the server to the client. Because tool definitions travel at runtime, attacks that poison those definitions or quietly change them arise in the same place.
 
-If MCP is about what to enable the agent to do, what to tell the agent is the job of context files such as `CLAUDE.md` and `AGENTS.md`. How those files are read by the agent, and how far their instructions are followed, is covered in [AI Agent Tools](/260529).
+If MCP is about what to enable the agent to do, what to tell the agent is the job of context files such as `CLAUDE.md` and `AGENTS.md`. How those files are read by the agent, and how far their instructions are followed, is covered in [Context Files](/260529).
 
 
 ## References

@@ -9,7 +9,7 @@ description: "React Router と TanStack Query を使う画面で、ErrorBoundary
 keywords: "React ErrorBoundary 配置, ネストルート ErrorBoundary, ErrorBoundary 設計, fallbackRender, useRouteError, revalidate, useSuspenseQuery エラー処理, TanStack Query retry 条件"
 locale: ja
 translationOf: '251203'
-sourceHash: 67ce7b3aa827b0db5a574e0b77296d9b06e5d25b01b56c3627979b1a008eee79
+sourceHash: 3352c5f5606bee4380b6309b6e8eb02fc35be733311492c3d45f8a89dd57fbda
 ---
 
 今回の記事では、**`ErrorBoundary` をいくつ置き、どこに置くのか**について話してみたい。React Router と TanStack Query で画面を作りながら、失敗をルートの `ErrorBoundary`、`react-error-boundary`、`useQuery` の `isError` のどこで受けるかに悩んでいるフロントエンド開発者に向けた記事である。最後まで読めば、`ErrorBoundary` を置く場所を決める基準と、場所ごとに fallback と再試行の条件を合わせる方法が得られる。
@@ -164,6 +164,8 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
   <CommentList postId={postId} />
 </ErrorBoundary>
 ```
+
+コードの `reset` は、TanStack Query の `QueryErrorResetBoundary` が渡す関数だ。エラー状態で残ったクエリを解いて再試行が再リクエストするようにするもので、なぜ必要なのかは下の再試行の節で扱う。
 
 `ErrorFallback` は `onRetry` を受け取るので名前が合わない。そのため、名前を移すためだけのコンポーネントがもうひとつ要る。
 

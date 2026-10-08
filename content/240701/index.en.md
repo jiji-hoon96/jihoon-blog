@@ -8,14 +8,14 @@ description: "How LZ77 and LZ78 handle their dictionaries differently, and why L
 keywords: "LZ77, LZ78, LZ77 vs LZ78, LZ77 algorithm, sliding window compression, LZW, how DEFLATE works, dictionary-based compression"
 locale: en
 translationOf: '240701'
-sourceHash: 35e37cad93277833db1bd5edddc87e35fc2e4b706c42e88a6016a9ea2ec62b12
+sourceHash: 52903051284734eb36f6b7918ae6ca4a2ff9c02f62fa2fa53411ac70e9539a71
 ---
 
 In this post, I want to talk about **how LZ77 and LZ78 differ**.
 
 This post is for developers who use tools like zip, gzip, and zstd and have wondered how the dictionary-based compression inside them works. By the end, you will be able to explain how the two algorithms differ in handling their dictionaries and why nearly every mainstream compressor today descends from LZ77.
 
-I traced compression back to these two algorithms while choosing a format for compressing build artifacts in an internal deployment process.
+If you compare formats for compressing build artifacts, you eventually end up tracing them back to these two algorithms.
 
 <hr>
 

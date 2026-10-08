@@ -8,14 +8,14 @@ description: "Cómo difieren LZ77 y LZ78 al manejar su diccionario, y por qué, 
 keywords: "LZ77, LZ78, LZ77 vs LZ78, algoritmo LZ77, compresión con ventana deslizante, LZW, cómo funciona DEFLATE, compresión basada en diccionario"
 locale: es
 translationOf: '240701'
-sourceHash: 35e37cad93277833db1bd5edddc87e35fc2e4b706c42e88a6016a9ea2ec62b12
+sourceHash: 52903051284734eb36f6b7918ae6ca4a2ff9c02f62fa2fa53411ac70e9539a71
 ---
 
 En este artículo quiero hablar de **en qué se diferencian LZ77 y LZ78**.
 
 Este artículo es para desarrolladores que usan herramientas como zip, gzip o zstd y se han preguntado cómo funciona la compresión basada en diccionario que llevan dentro. Al terminar, podrás explicar en qué se diferencian ambos algoritmos al manejar su diccionario y por qué casi todos los compresores de uso general actuales descienden de LZ77.
 
-Llegué hasta estos dos algoritmos mientras elegía el formato para comprimir artefactos de compilación en un proceso de despliegue interno.
+Si se comparan formatos para comprimir artefactos de compilación, tarde o temprano se acaba remontando a estos dos algoritmos.
 
 <hr>
 

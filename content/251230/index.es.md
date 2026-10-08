@@ -1,6 +1,6 @@
 ---
 emoji: 🧮
-title: "hashKey"
+title: "Cómo se comparan las queryKey"
 seoTitle: "Cómo compara TanStack Query las queryKey: hashKey explicado"
 date: "2025-12-30"
 categories: frontend React TanStack-Query queryKey
@@ -8,12 +8,12 @@ description: "Cómo TanStack Query trata arreglos queryKey nuevos como la misma 
 keywords: "comparación de queryKey, hashKey, queryHash, clave de caché de TanStack Query, orden de queryKey en React Query, queryKeyHashFn, JSON.stringify claves ordenadas, QueryCache"
 locale: es
 translationOf: '251230'
-sourceHash: 7560f02e4d0eed43c223d135356ae58f4451e1b7b0805a2b6baf0caa0f67573d
+sourceHash: 7e26877fcdd3f1c85b67751a911900b36ff424cb43b408fb640fb8aa3075e22a
 ---
 
 En esta publicación quiero hablar sobre **cómo decide TanStack Query que dos queryKey son la misma clave**.
 
-Está dirigida a quienes usan TanStack Query y se han preguntado por qué una queryKey, que se crea como un arreglo nuevo en cada renderizado, no provoca un fallo de caché cada vez, y si el orden de las claves de un objeto o los valores `undefined` afectan a la caché. Para adelantar la conclusión: TanStack Query usa como clave de caché la cadena que resulta de serializar la queryKey con `hashKey`, y en ese proceso se ignora el orden de las claves de los objetos mientras se conserva el orden de los elementos de los arreglos.
+Está dirigida a quienes usan TanStack Query y se han preguntado por qué una queryKey, que se crea como un arreglo nuevo en cada renderizado, no provoca un fallo de caché cada vez, y si el orden de las claves de un objeto o los valores `undefined` afectan a la caché; al terminar sabrás qué regla hace que dos claves sean iguales y cómo afecta esa regla a la caché. Para adelantar la conclusión: TanStack Query usa como clave de caché la cadena que resulta de serializar la queryKey con `hashKey`, y en ese proceso se ignora el orden de las claves de los objetos mientras se conserva el orden de los elementos de los arreglos.
 
 La queryKey es el arreglo que TanStack Query usa como base para gestionar la caché de consultas. La misma clave significa los mismos datos, y cuando `['user', userId]` cambia porque cambió su `userId`, se produce un fallo de caché y los datos se vuelven a obtener con fetch.
 

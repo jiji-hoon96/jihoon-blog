@@ -9,7 +9,7 @@ description: "基于 React 源码，深入分析 React Fiber 架构，从 Stack 
 keywords: "React Fiber, React Fiber 架构, Stack Reconciler, Concurrent Mode, React 18 并发, useTransition, useDeferredValue, Suspense, React 渲染原理, React 源码分析, Virtual DOM, Reconciliation, Lane 优先级, 前端面试"
 locale: zh-CN
 translationOf: '250520'
-sourceHash: 3377c18b0ba4131a4cd9e2f09d904e200a6f09b2abe55a812ca1caa70ff5239e
+sourceHash: a7f912dab6e219c0f6a0434354cd27179f0020fd867d2f22fad5d7f6f6391393
 ---
 
 这篇文章想聊聊堪称 React 心脏的 **Fiber 架构**。
@@ -76,7 +76,7 @@ function performWork(deadline) {
 
 上面的代码展示了 Fiber 早期的概念模型。关键在于，`while` 循环每次只处理一个工作单元（unit of work）；时间不足时就退出循环，把控制权交还给浏览器。
 
-上面的代码为了说明概念使用了 `requestIdleCallback`，但实际的 React 并不使用它。这个 API 只在浏览器真正空闲时才会被调用，在繁忙的页面上 React 的工作可能被无限期推迟，而且各浏览器的支持与行为也不一致。因此 React 的 Scheduler 包用 `MessageChannel` 调度下一个 macrotask 来继续工作，并在间隙把控制权交还给主线程。为什么不用 `setTimeout` 而选择 `MessageChannel`，另外整理在[React 为什么使用 MessageChannel](/250515)中。
+不过，这个示例只是为了说明概念才使用了 `requestIdleCallback`，实际的 React 并不使用它。这个 API 只在浏览器真正空闲时才会被调用，在繁忙的页面上 React 的工作可能被无限期推迟，而且各浏览器的支持与行为也不一致。因此 React 的 Scheduler 包用 `MessageChannel` 调度下一个 macrotask 来继续工作，并在间隙把控制权交还给主线程。为什么不用 `setTimeout` 而选择 `MessageChannel`，另外整理在[React 为什么使用 MessageChannel](/250515)中。
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">

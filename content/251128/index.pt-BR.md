@@ -8,12 +8,12 @@ description: "Três casos em que tentar de novo num fallback do react-error-boun
 keywords: "ErrorBoundary não tenta de novo, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy falha ao carregar chunk, erro no useSuspenseQuery, react-error-boundary"
 locale: pt-BR
 translationOf: '251128'
-sourceHash: bf21fc8f515898fa79deb6500860e1b524bee121476422600343e6ffa3febdcf
+sourceHash: 9b7369d4cc04cce44463bae3484aac4cfc28f8721890c7216a90b1df3612021d
 ---
 
 Neste post quero falar sobre **por que o botão de tentar de novo de um `ErrorBoundary` não funciona**.
 
-É para desenvolvedores frontend que colocaram um botão de tentar de novo no fallback do `react-error-boundary` e, ao apertá-lo, veem a mesma tela voltar. A resposta curta: um `ErrorBoundary` só restaura o próprio estado, e o estado que causou a falha continua com quem lançou. Ao final, você saberá quais são os três casos em que esse estado permanece e como resolver cada um.
+É para desenvolvedores frontend que colocaram um botão de tentar de novo no fallback do `react-error-boundary` e, ao apertá-lo, veem a mesma tela voltar, e reúne os três casos em que o estado da falha permanece e como resolver cada um. A resposta curta: um `ErrorBoundary` só restaura o próprio estado, e o estado que causou a falha continua com quem lançou.
 
 Os exemplos usam TanStack Query junto com `react-error-boundary`, e conferi o comportamento das bibliotecas abrindo o código instalado.
 
@@ -100,7 +100,7 @@ queryFn: async () => {
 },
 ```
 
-Numa resposta de `fetch`, `json()` devolve `Promise<any>`, então o tipo que você coloca depois é uma declaração, não uma checagem, e a checagem em tempo de execução que confirma o que o servidor mandou precisa ser colocada por você. **Esse lugar é aqui.** Se você sobe essa checagem para `queryFn`, a mesma falha vira **o erro da query**. Fica no cache em estado de erro, `reset` limpa e o tentar de novo refaz a requisição.
+Numa resposta de `fetch`, `json()` devolve `Promise<any>`, então o tipo que você coloca depois é uma declaração, não uma checagem, e a checagem em tempo de execução que confirma o que o servidor mandou precisa ser colocada por você. **Se você sobe essa checagem para `queryFn`**, a mesma falha vira **o erro da query**. Fica no cache em estado de erro, `reset` limpa e o tentar de novo refaz a requisição.
 
 Se você adiar a checagem em tempo de execução porque o `ErrorBoundary` recebe de qualquer jeito, acaba com um fallback que recebe mas não consegue desfazer.
 

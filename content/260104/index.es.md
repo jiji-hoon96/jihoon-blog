@@ -9,7 +9,7 @@ description: "Cómo evolucionó la gestión de queryKey en TanStack Query: de ar
 keywords: "queryKey, fábrica de claves de consulta, queryKey de TanStack Query, reglas para escribir queryKey, queryOptions, setQueryData, claves de consulta de TkDodo, query-key-factory, React Query v5, invalidación de consultas"
 locale: es
 translationOf: '260104'
-sourceHash: 9a36bf314bac28176dfc2e56aa119d80db0e87fe66e6df7a83ca4350fb6d2a19
+sourceHash: 50857db5f010cd899635d01d412999ec0ecc8b8d295039fbaad49e0c10d51f58
 ---
 
 En esta publicación quiero hablar sobre **queryKey de TanStack Query**.
@@ -92,7 +92,7 @@ const { data } = useQuery({
 
 Cuando `userId` es `'A'` y cuando es `'B'`, las queryKey son diferentes. Si son diferentes, se produce un fallo de caché; si hay un fallo de caché, se obtienen los datos. Todo ocurre automáticamente. Gracias a esta sencillez, no tenemos que escribir por nuestra cuenta la lógica de «como userId ha cambiado, hay que volver a obtener los datos».
 
-Entonces, ¿cómo reconoce TanStack Query como la misma clave un arreglo que se crea de nuevo en cada renderizado? No compara las referencias de los arreglos, sino que usa como clave de caché la cadena que resulta de serializar la queryKey con `hashKey` (`queryHash`). Esta función ordena las claves de los objetos planos mientras serializa con `JSON.stringify`, así que el orden de las claves dentro de un objeto no afecta al hash, pero el orden de los elementos de un arreglo sí. Una propiedad cuyo valor es `undefined` desaparece durante la serialización, de modo que `{ a: 1, b: undefined }` y `{ a: 1 }` resultan ser la misma clave. He recogido aparte este comportamiento, siguiendo el código de la implementación, en [hashKey](/251230).
+Entonces, ¿cómo reconoce TanStack Query como la misma clave un arreglo que se crea de nuevo en cada renderizado? No compara las referencias de los arreglos, sino que usa como clave de caché la cadena que resulta de serializar la queryKey con `hashKey` (`queryHash`). Esta función ordena las claves de los objetos planos mientras serializa con `JSON.stringify`, así que el orden de las claves dentro de un objeto no afecta al hash, pero el orden de los elementos de un arreglo sí. Una propiedad cuyo valor es `undefined` desaparece durante la serialización, de modo que `{ a: 1, b: undefined }` y `{ a: 1 }` resultan ser la misma clave. He recogido aparte este comportamiento, siguiendo el código de la implementación, en [Cómo se comparan las queryKey](/251230).
 
 
 ## Reglas para escribir queryKey

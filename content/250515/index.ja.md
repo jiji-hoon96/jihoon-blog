@@ -4,11 +4,11 @@ title: "ReactがMessageChannelを使う理由"
 seoTitle: "React SchedulerはなぜrequestIdleCallbackではなくMessageChannelを使うのか"
 date: "2025-05-15"
 categories: フロントエンド React
-description: "React SchedulerがrequestIdleCallback、requestAnimationFrame、setTimeoutではなくMessageChannelで作業を予約する理由を整理する。呼び出し頻度、ブラウザー互換性、setTimeoutの4ms遅延をソースコードで確認する。"
+description: "React SchedulerがrequestIdleCallback、requestAnimationFrame、setTimeoutではなくMessageChannelで作業を予約する理由を、呼び出し頻度、ブラウザー互換性、setTimeoutの4ms遅延から整理する。"
 keywords: "requestIdleCallback, MessageChannel, React Scheduler, setTimeout 4ms, Reactスケジューラーの仕組み, shouldYieldToHost, requestAnimationFrame, React Fiber"
 locale: ja
 translationOf: '250515'
-sourceHash: bfb181318a2adf0a9dd6422a287895eff5a1b654aab1a204bbdc1eba1ec1808c
+sourceHash: bfaa67abcb8f66de08aab49d2098ef5c87175fada85358ac546691c7c36a2619
 ---
 
 今回の記事では、**ReactがrequestIdleCallbackではなくMessageChannelで作業を予約する理由**について話してみたい。
@@ -40,9 +40,9 @@ if (typeof MessageChannel !== 'undefined') {
 }
 ```
 
-なぜ`setTimeout`ではなく`MessageChannel`なのか。HTML仕様により、`setTimeout`は5回以上ネストすると**最低4msの遅延**が強制される。一方、`MessageChannel`はこの制限なしに、イベントループの次のティックで即座にマクロタスクとして実行される。5ms単位で作業を分割するFiberにとって、4msの人為的な遅延は致命的だからだ。
-
 Schedulerの`shouldYieldToHost()`は、作業開始後の経過時間が`frameInterval`（既定値は**5ms**、`SchedulerFeatureFlags.js`で定義）を超えたか確認し、メインスレッドへ制御を返すかどうかを判断する。
+
+なぜ`setTimeout`ではなく`MessageChannel`なのか。HTML仕様により、`setTimeout`は5回以上ネストすると**最低4msの遅延**が強制される。一方、`MessageChannel`はこの制限なしに、イベントループの次のティックで即座にマクロタスクとして実行される。5ms単位で作業を分割するFiberにとって、4msの人為的な遅延は致命的だからだ。
 
 
 ## おわりに

@@ -8,7 +8,7 @@ description: "Por que o Scheduler do React passou de requestIdleCallback, reques
 keywords: "requestIdleCallback, MessageChannel, React Scheduler, setTimeout 4 ms, como funciona o scheduler do React, shouldYieldToHost, requestAnimationFrame, React Fiber"
 locale: pt-BR
 translationOf: '250515'
-sourceHash: bfb181318a2adf0a9dd6422a287895eff5a1b654aab1a204bbdc1eba1ec1808c
+sourceHash: bfaa67abcb8f66de08aab49d2098ef5c87175fada85358ac546691c7c36a2619
 ---
 
 Neste post, quero falar sobre **por que o React agenda seu trabalho com MessageChannel em vez de requestIdleCallback**.
@@ -40,9 +40,9 @@ if (typeof MessageChannel !== 'undefined') {
 }
 ```
 
-Por que não `setTimeout`, mas sim `MessageChannel`? Segundo a especificação HTML, quando `setTimeout` é aninhado cinco vezes ou mais, um **atraso mínimo de 4 ms** é imposto. Já `MessageChannel` roda imediatamente como uma macrotask no próximo tick do event loop, sem essa restrição. Para Fiber, que divide o trabalho em unidades de 5 ms, um atraso artificial de 4 ms seria fatal.
-
 O `shouldYieldToHost()` do Scheduler verifica se o tempo decorrido desde o início do trabalho excedeu `frameInterval` (por padrão, **5 ms**, definido em `SchedulerFeatureFlags.js`) e decide se deve devolver o controle à main thread.
+
+Por que não `setTimeout`, mas sim `MessageChannel`? Segundo a especificação HTML, quando `setTimeout` é aninhado cinco vezes ou mais, um **atraso mínimo de 4 ms** é imposto. Já `MessageChannel` roda imediatamente como uma macrotask no próximo tick do event loop, sem essa restrição. Para Fiber, que divide o trabalho em unidades de 5 ms, um atraso artificial de 4 ms seria fatal.
 
 
 ## Conclusão
