@@ -9,7 +9,7 @@ description: "React Router と TanStack Query を使う画面で、ErrorBoundary
 keywords: "React ErrorBoundary 配置, ネストルート ErrorBoundary, ErrorBoundary 設計, fallbackRender, useRouteError, revalidate, useSuspenseQuery エラー処理, TanStack Query retry 条件"
 locale: ja
 translationOf: '251203'
-sourceHash: 3352c5f5606bee4380b6309b6e8eb02fc35be733311492c3d45f8a89dd57fbda
+sourceHash: 4597e3854b16c9dc107815c3fc788c12d804a00e0aaff83ffe8ebee9ebcd3883
 ---
 
 今回の記事では、**`ErrorBoundary` をいくつ置き、どこに置くのか**について話してみたい。React Router と TanStack Query で画面を作りながら、失敗をルートの `ErrorBoundary`、`react-error-boundary`、`useQuery` の `isError` のどこで受けるかに悩んでいるフロントエンド開発者に向けた記事である。最後まで読めば、`ErrorBoundary` を置く場所を決める基準と、場所ごとに fallback と再試行の条件を合わせる方法が得られる。
@@ -165,7 +165,7 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
 </ErrorBoundary>
 ```
 
-コードの `reset` は、TanStack Query の `QueryErrorResetBoundary` が渡す関数だ。エラー状態で残ったクエリを解いて再試行が再リクエストするようにするもので、なぜ必要なのかは下の再試行の節で扱う。
+コードの `reset` は、TanStack Query の `QueryErrorResetBoundary` が渡す関数だ。エラー状態で残ったクエリを解いて再試行が再リクエストするようにするもので、なぜ必要なのかは[再試行ボタンが効かない理由](/251128)でソースを追って確かめる。
 
 `ErrorFallback` は `onRetry` を受け取るので名前が合わない。そのため、名前を移すためだけのコンポーネントがもうひとつ要る。
 
@@ -187,7 +187,7 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
 
 ## 再試行を付けない失敗
 
-fallback に再試行ボタンを付けても、すべての失敗が解けるわけではない。`ErrorBoundary` は自分の状態しか戻さないからだ。クエリのエラーは `QueryErrorResetBoundary` の `reset` を `onReset` につないで初めて再リクエストされ、サーバーが 200 で返した想定外の値を読んで起きたレンダーエラーは `queryFn` で先に検査してクエリのエラーに変えて初めて解け、`React.lazy` のチャンク読み込みの失敗は再読み込みでしか解けない。三つの場合をソースで確かめた過程は、[再試行ボタンが効かない理由](/251128)に別途まとめておいた。このように復旧できる失敗とできない失敗が分かれるので、ボタンも分けなければならない。
+fallback に再試行ボタンを付けても、すべての失敗が解けるわけではない。`ErrorBoundary` は自分の状態しか戻さないからだ。クエリのエラーは `QueryErrorResetBoundary` の `reset` を `onReset` につないで初めて再リクエストされ、サーバーが 200 で返した想定外の値を読んで起きたレンダーエラーは `queryFn` で先に検査してクエリのエラーに変えて初めて解け、`React.lazy` のチャンク読み込みの失敗は再読み込みでしか解けない。三つの場合をソースで確かめた過程は、先にリンクした「再試行ボタンが効かない理由」に別途まとめておいた。このように復旧できる失敗とできない失敗が分かれるので、ボタンも分けなければならない。
 
 すべての失敗に同じボタンを見せるのは、ユーザーに **できない行動を案内するようなもの**だ。404 で再試行を押しても同じ 404 が返ってくる。権限がなくて受け取った 403 も同じだ。チャンク読み込みの失敗は、上で見たとおりそもそも効かない。
 

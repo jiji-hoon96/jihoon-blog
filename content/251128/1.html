@@ -23,13 +23,15 @@ function arrow(x1,y1,x2,y2,opt={}){
 const W=196, H=54;
 function step(x,y,label,opt={}){
   box(x,y,W,H,opt);
-  txt(label, x+W/2, y+33, {size:15, align:'center', ...(opt.tone||{})});
+  let size=15; ctx.font=((opt.tone&&opt.tone.weight)||'')+' '+size+'px -apple-system, system-ui, sans-serif';
+  while(size>11 && ctx.measureText(label).width>W-20){ size--; ctx.font=((opt.tone&&opt.tone.weight)||'')+' '+size+'px -apple-system, system-ui, sans-serif'; }
+  txt(label, x+W/2, y+33, {size, align:'center', ...(opt.tone||{})});
 }
 
 // 위: onReset 없음
 txt('onReset 을 잇지 않으면', 40, 36, {size:16, weight:'bold'});
 const TY=58;
-const upper=['재시도 클릭','EB 해제','재마운트','캐시의 에러를 다시 던짐'];
+const upper=['재시도 클릭','ErrorBoundary 해제','재마운트','캐시의 에러를 다시 던짐'];
 upper.forEach((s,i)=>{
   const x=40+i*(W+46);
   step(x,TY,s);
@@ -48,12 +50,11 @@ rc.line(40, 236, 1000, 236, {...o, stroke:MUTE, strokeWidth:1.2, strokeLineDash:
 // 아래: onReset 있음
 txt('onReset 을 이으면', 40, 278, {size:16, weight:'bold', color:ACCENT});
 const BY=300;
-const lower=[['재시도 클릭',0],['onReset · 잠금 해제',1],['EB 해제 · 재마운트',0],['다시 요청',1]];
+const lower=[['재시도 클릭',0],['onReset · reset()',1],['ErrorBoundary 해제 · 재마운트',0],['다시 요청',1]];
 lower.forEach(([s,hi],i)=>{
   const x=40+i*(W+46);
   step(x,BY,s, hi ? {stroke:ACCENT, fill:'#e8eeff', fillStyle:'solid', tone:{color:ACCENT, weight:'bold'}} : {});
   if(i<lower.length-1) arrow(x+W+8, BY+H/2, x+W+38, BY+H/2, {stroke:ACCENT});
 });
-txt('retryOnMount 가 살아난다', 40, BY+H+34, {size:14, color:MUTE});
 
 </script>

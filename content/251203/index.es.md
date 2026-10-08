@@ -9,7 +9,7 @@ description: "Cuántos ErrorBoundary usar y dónde, comprobado en el código: qu
 keywords: "dónde colocar ErrorBoundary, ErrorBoundary rutas anidadas, diseño de ErrorBoundary, fallbackRender, useRouteError, revalidate, manejo de errores con useSuspenseQuery, condición de retry en TanStack Query"
 locale: es
 translationOf: '251203'
-sourceHash: 3352c5f5606bee4380b6309b6e8eb02fc35be733311492c3d45f8a89dd57fbda
+sourceHash: 4597e3854b16c9dc107815c3fc788c12d804a00e0aaff83ffe8ebee9ebcd3883
 ---
 
 En esta entrada quiero hablar de **cuántos `ErrorBoundary` tener y dónde ponerlos**. Está pensada para desarrolladores frontend que construyen pantallas con React Router y TanStack Query y no terminan de decidir si un fallo debe recibirlo el `ErrorBoundary` de la ruta, `react-error-boundary` o `useQuery` con su `isError`. Al terminar, tendrás un criterio para decidir dónde va cada `ErrorBoundary` y una forma de ajustar el fallback y la condición de retry a cada sitio.
@@ -165,7 +165,7 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
 </ErrorBoundary>
 ```
 
-El `reset` del código es la función que pasa el `QueryErrorResetBoundary` de TanStack Query. Limpia las queries que quedaron en estado de error para que el reintento vuelva a pedir; por qué hace falta lo trato más abajo, en la sección sobre reintentos.
+El `reset` del código es la función que pasa el `QueryErrorResetBoundary` de TanStack Query. Limpia las queries que quedaron en estado de error para que el reintento vuelva a pedir; por qué hace falta lo sigo en el código en [Por qué el botón de reintentar no hace nada](/251128).
 
 `ErrorFallback` recibe `onRetry`, así que los nombres no encajan. Eso cuesta un componente más cuyo único trabajo es mover el nombre de un lado a otro.
 
@@ -187,7 +187,7 @@ Yo elegí este. La razón es **que puedes cambiar el nombre ahí mismo**. Arriba
 
 ## Fallos a los que no poner reintentar
 
-Poner un botón de reintentar en el fallback no resuelve todos los fallos, porque un `ErrorBoundary` solo restablece su propio estado. El error de una query solo se vuelve a pedir cuando `QueryErrorResetBoundary` conecta su `reset` a `onReset`; el error de render que surge al leer un valor inesperado que el servidor envió con un 200 solo se resuelve si `queryFn` lo comprueba antes y lo convierte en el error de la query; y el fallo al cargar un chunk de `React.lazy` solo se resuelve recargando. Cómo comprobé los tres casos en el código lo recojo aparte en [Por qué el botón de reintentar no hace nada](/251128). Como los fallos se dividen así entre recuperables y no recuperables, hay que separar también el botón.
+Poner un botón de reintentar en el fallback no resuelve todos los fallos, porque un `ErrorBoundary` solo restablece su propio estado. El error de una query solo se vuelve a pedir cuando `QueryErrorResetBoundary` conecta su `reset` a `onReset`; el error de render que surge al leer un valor inesperado que el servidor envió con un 200 solo se resuelve si `queryFn` lo comprueba antes y lo convierte en el error de la query; y el fallo al cargar un chunk de `React.lazy` solo se resuelve recargando. Cómo comprobé los tres casos en el código lo recojo aparte en «Por qué el botón de reintentar no hace nada», enlazado más arriba. Como los fallos se dividen así entre recuperables y no recuperables, hay que separar también el botón.
 
 Enseñar el mismo botón en todos los fallos es **guiar al usuario hacia una acción que no puede hacer**. Si pulsas reintentar en un 404 vuelve el mismo 404. Un 403 por falta de permisos es igual. El fallo al cargar un chunk directamente no hace nada, como vimos arriba.
 

@@ -162,7 +162,7 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
 </ErrorBoundary>
 ```
 
-코드의 `reset` 은 TanStack Query 의 `QueryErrorResetBoundary` 가 내려주는 함수다. 에러 상태로 남은 쿼리를 풀어 재시도가 다시 요청하게 만들고, 왜 필요한지는 아래 재시도 절에서 다룬다.
+코드의 `reset` 은 TanStack Query 의 `QueryErrorResetBoundary` 가 내려주는 함수다. 에러 상태로 남은 쿼리를 풀어 재시도가 다시 요청하게 만들고, 왜 필요한지는 [재시도 버튼이 안 듣는 이유](/251128)에서 소스로 따라간다.
 
 `ErrorFallback` 은 `onRetry` 를 받으므로 이름이 안 맞는다. 그래서 이름을 옮기는 컴포넌트가 하나 더 든다.
 
@@ -184,7 +184,7 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
 
 ## 재시도를 붙이지 않을 실패
 
-fallback 에 재시도 버튼을 달아도 모든 실패가 풀리지는 않는다. `ErrorBoundary` 는 자기 상태만 되돌리기 때문이다. 쿼리의 에러는 `QueryErrorResetBoundary` 의 `reset` 을 `onReset` 에 이어야 다시 요청되고, 서버가 200 으로 준 예상 밖의 값을 읽다 난 렌더 에러는 `queryFn` 에서 미리 검사해 쿼리의 에러로 바꿔야 풀리며, `React.lazy` 의 청크 로드 실패는 새로 고침으로만 풀린다. 세 경우를 소스로 확인한 과정은 [재시도 버튼이 안 듣는 이유](/251128)에 따로 정리해 두었다. 이렇게 복구가 되는 실패와 안 되는 실패가 갈리니 버튼도 갈라야 한다.
+fallback 에 재시도 버튼을 달아도 모든 실패가 풀리지는 않는다. `ErrorBoundary` 는 자기 상태만 되돌리기 때문이다. 쿼리의 에러는 `QueryErrorResetBoundary` 의 `reset` 을 `onReset` 에 이어야 다시 요청되고, 서버가 200 으로 준 예상 밖의 값을 읽다 난 렌더 에러는 `queryFn` 에서 미리 검사해 쿼리의 에러로 바꿔야 풀리며, `React.lazy` 의 청크 로드 실패는 새로 고침으로만 풀린다. 세 경우를 소스로 확인한 과정은 앞서 링크한 "재시도 버튼이 안 듣는 이유"에 따로 정리해 두었다. 이렇게 복구가 되는 실패와 안 되는 실패가 갈리니 버튼도 갈라야 한다.
 
 모든 실패에 같은 버튼을 보여주면 사용자에게 **할 수 없는 행동을 안내하는 셈**이 된다. 404 에서 재시도를 눌러 봐야 같은 404 가 온다. 권한이 없어서 받은 403 도 같다. 청크 로드 실패는 위에서 본 대로 아예 안 듣는다.
 

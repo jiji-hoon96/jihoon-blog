@@ -9,7 +9,7 @@ description: "在使用 React Router 与 TanStack Query 的页面里，用已安
 keywords: "ErrorBoundary 放在哪里, 嵌套路由 ErrorBoundary, ErrorBoundary 设计, fallbackRender, useRouteError, revalidate, useSuspenseQuery 错误处理, TanStack Query retry 条件"
 locale: zh-CN
 translationOf: '251203'
-sourceHash: 3352c5f5606bee4380b6309b6e8eb02fc35be733311492c3d45f8a89dd57fbda
+sourceHash: 4597e3854b16c9dc107815c3fc788c12d804a00e0aaff83ffe8ebee9ebcd3883
 ---
 
 这篇文章想聊聊 **`ErrorBoundary` 要放几个、放在哪里**。本文写给用 React Router 和 TanStack Query 搭页面、总在纠结失败该由路由的 `ErrorBoundary`、`react-error-boundary` 还是 `useQuery` 的 `isError` 来接的前端开发者。读完之后，你会得到决定 `ErrorBoundary` 放在哪里的标准，以及让每个位置的 fallback 和重试条件对得上的方法。
@@ -165,7 +165,7 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
 </ErrorBoundary>
 ```
 
-代码里的 `reset` 是 TanStack Query 的 `QueryErrorResetBoundary` 传下来的函数。它解开停留在错误状态的查询，让重试真正重新请求；为什么需要它，放在下面讲重试的一节。
+代码里的 `reset` 是 TanStack Query 的 `QueryErrorResetBoundary` 传下来的函数。它解开停留在错误状态的查询，让重试真正重新请求；为什么需要它，在[重试按钮为什么不起作用](/251128)中顺着源码讲。
 
 `ErrorFallback` 接收的是 `onRetry`，名字对不上。于是就多出一个只负责搬名字的组件。
 
@@ -187,7 +187,7 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
 
 ## 不该挂重试的失败
 
-在 fallback 上挂了重试按钮，也不是所有失败都能解开，因为 `ErrorBoundary` 只撤回自己的状态。查询的错误要把 `QueryErrorResetBoundary` 的 `reset` 接到 `onReset` 上才会重新请求；读服务器用 200 返回的意外值时出的渲染错误，要先在 `queryFn` 里检查、变成查询的错误才能解开；`React.lazy` 的分块加载失败只有刷新才能解开。用源码核对这三种情况的过程，另外整理在[重试按钮为什么不起作用](/251128)中。能恢复的失败和不能恢复的失败就这样分开了，所以按钮也得分开。
+在 fallback 上挂了重试按钮，也不是所有失败都能解开，因为 `ErrorBoundary` 只撤回自己的状态。查询的错误要把 `QueryErrorResetBoundary` 的 `reset` 接到 `onReset` 上才会重新请求；读服务器用 200 返回的意外值时出的渲染错误，要先在 `queryFn` 里检查、变成查询的错误才能解开；`React.lazy` 的分块加载失败只有刷新才能解开。用源码核对这三种情况的过程，另外整理在前面链接过的「重试按钮为什么不起作用」中。能恢复的失败和不能恢复的失败就这样分开了，所以按钮也得分开。
 
 给所有失败都显示同一个按钮，等于**在引导用户去做他做不到的事**。在 404 上按重试，回来的还是同一个 404。因为没有权限而拿到的 403 也一样。分块加载失败则如上所述，压根就不起作用。
 

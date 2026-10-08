@@ -9,7 +9,7 @@ description: "How many ErrorBoundaries to use and where, checked in source: what
 keywords: "React ErrorBoundary placement, nested route ErrorBoundary, ErrorBoundary design, fallbackRender, useRouteError, revalidate, useSuspenseQuery error handling, TanStack Query retry condition"
 locale: en
 translationOf: '251203'
-sourceHash: 3352c5f5606bee4380b6309b6e8eb02fc35be733311492c3d45f8a89dd57fbda
+sourceHash: 4597e3854b16c9dc107815c3fc788c12d804a00e0aaff83ffe8ebee9ebcd3883
 ---
 
 In this post, I want to talk about **how many `ErrorBoundary` components to have and where to put them**. This is for frontend developers building screens with React Router and TanStack Query who keep weighing whether a failure should be received by the route's `ErrorBoundary`, by `react-error-boundary`, or by `useQuery`'s `isError`. By the end, you will have a criterion for deciding where `ErrorBoundary` goes, and a way to match the fallback and the retry condition to each place.
@@ -165,7 +165,7 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
 </ErrorBoundary>
 ```
 
-The `reset` in this code is the function TanStack Query's `QueryErrorResetBoundary` passes down. It clears queries left in an error state so that a retry actually refetches; why that is needed is covered in the retry section below.
+The `reset` in this code is the function TanStack Query's `QueryErrorResetBoundary` passes down. It clears queries left in an error state so that a retry actually refetches; why that is needed is traced through the source in [Why the Retry Button Does Nothing](/251128).
 
 `ErrorFallback` takes `onRetry`, so the names do not line up. That costs one more component whose only job is to move the name across.
 
@@ -187,7 +187,7 @@ I picked this one. The reason is **that you can swap the name right there**. Abo
 
 ## Failures you do not attach retry to
 
-Putting a retry button in the fallback does not clear every failure, because an `ErrorBoundary` only resets its own state. A query's error is refetched only once `QueryErrorResetBoundary`'s `reset` is connected to `onReset`; a render error from reading an unexpected value the server sent with a 200 clears only once `queryFn` checks it first and turns it into the query's error; and a chunk load failure of `React.lazy` clears only with a reload. How I checked the three cases in the source is written up separately in [Why the Retry Button Does Nothing](/251128). Since failures split into recoverable and unrecoverable this way, the button has to be split too.
+Putting a retry button in the fallback does not clear every failure, because an `ErrorBoundary` only resets its own state. A query's error is refetched only once `QueryErrorResetBoundary`'s `reset` is connected to `onReset`; a render error from reading an unexpected value the server sent with a 200 clears only once `queryFn` checks it first and turns it into the query's error; and a chunk load failure of `React.lazy` clears only with a reload. How I checked the three cases in the source is written up separately in "Why the Retry Button Does Nothing," linked above. Since failures split into recoverable and unrecoverable this way, the button has to be split too.
 
 Showing the same button on every failure means **guiding the user toward an action they cannot take**. Press retry on a 404 and you get the same 404. A 403 from missing permissions is the same. A chunk load failure does nothing at all, as shown above.
 

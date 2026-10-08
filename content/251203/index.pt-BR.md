@@ -9,7 +9,7 @@ description: "Quantos ErrorBoundary usar e onde, conferido no código instalado:
 keywords: "onde colocar ErrorBoundary, ErrorBoundary rotas aninhadas, design de ErrorBoundary, fallbackRender, useRouteError, revalidate, tratamento de erro com useSuspenseQuery, condição de retry no TanStack Query"
 locale: pt-BR
 translationOf: '251203'
-sourceHash: 3352c5f5606bee4380b6309b6e8eb02fc35be733311492c3d45f8a89dd57fbda
+sourceHash: 4597e3854b16c9dc107815c3fc788c12d804a00e0aaff83ffe8ebee9ebcd3883
 ---
 
 Neste post quero falar sobre **quantos `ErrorBoundary` ter e onde colocá-los**. É para desenvolvedores frontend que montam telas com React Router e TanStack Query e vivem pesando se uma falha deve ser recebida pelo `ErrorBoundary` da rota, pelo `react-error-boundary` ou pelo `useQuery` com seu `isError`. Ao final, você terá um critério para decidir onde vai cada `ErrorBoundary` e um jeito de ajustar o fallback e a condição de retry a cada lugar.
@@ -165,7 +165,7 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
 </ErrorBoundary>
 ```
 
-O `reset` do código é a função que o `QueryErrorResetBoundary` do TanStack Query passa adiante. Ele limpa as queries que ficaram em estado de erro para que o tentar de novo refaça a requisição; por que isso é necessário fica para a seção sobre tentar de novo, mais abaixo.
+O `reset` do código é a função que o `QueryErrorResetBoundary` do TanStack Query passa adiante. Ele limpa as queries que ficaram em estado de erro para que o tentar de novo refaça a requisição; por que isso é necessário eu sigo pelo código em [Por que o botão de tentar de novo não funciona](/251128).
 
 `ErrorFallback` recebe `onRetry`, então os nomes não batem. Isso custa mais um componente cujo único trabalho é mover o nome de um lado para o outro.
 
@@ -187,7 +187,7 @@ Eu escolhi este. A razão é **que dá para trocar o nome ali mesmo**. Acima, `r
 
 ## Falhas em que não se coloca tentar de novo
 
-Colocar um botão de tentar de novo no fallback não resolve toda falha, porque um `ErrorBoundary` só restaura o próprio estado. O erro de uma query só é requisitado de novo quando o `QueryErrorResetBoundary` liga seu `reset` ao `onReset`; o erro de render que surge ao ler um valor inesperado que o servidor mandou com um 200 só se resolve se `queryFn` o checar antes e transformá-lo no erro da query; e a falha ao carregar um chunk do `React.lazy` só se resolve recarregando. Como conferi os três casos no código está registrado à parte em [Por que o botão de tentar de novo não funciona](/251128). Como as falhas se dividem assim entre recuperáveis e não recuperáveis, o botão também precisa ser separado.
+Colocar um botão de tentar de novo no fallback não resolve toda falha, porque um `ErrorBoundary` só restaura o próprio estado. O erro de uma query só é requisitado de novo quando o `QueryErrorResetBoundary` liga seu `reset` ao `onReset`; o erro de render que surge ao ler um valor inesperado que o servidor mandou com um 200 só se resolve se `queryFn` o checar antes e transformá-lo no erro da query; e a falha ao carregar um chunk do `React.lazy` só se resolve recarregando. Como conferi os três casos no código está registrado à parte em "Por que o botão de tentar de novo não funciona", linkado acima. Como as falhas se dividem assim entre recuperáveis e não recuperáveis, o botão também precisa ser separado.
 
 Mostrar o mesmo botão em toda falha é **orientar o usuário a uma ação que ele não pode fazer**. Apertar tentar de novo num 404 traz o mesmo 404. Um 403 por falta de permissão é igual. A falha ao carregar um chunk simplesmente não funciona, como vimos acima.
 
