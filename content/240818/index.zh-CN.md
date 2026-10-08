@@ -8,7 +8,7 @@ description: "通过阅读源码深入探究 Zustand 无需 Provider 就能管�
 keywords: "Zustand 原理, Zustand 不需要 Provider 的原因, React 状态管理库, Zustand 源码分析, useSyncExternalStore, React Context API"
 locale: zh-CN
 translationOf: '240818'
-sourceHash: 7265ecf6c3a01948368141403982cc212e6f42034158346c4eed4629c2dac8d6
+sourceHash: 7128866f5e5b91c42a8b11b5a62e46fec3ff6b39defa8ce185c304c755039851
 ---
 
 这篇文章想聊一聊 Zustand 是如何在没有 Provider 的情况下完成状态管理的。
@@ -16,8 +16,6 @@ sourceHash: 7265ecf6c3a01948368141403982cc212e6f42034158346c4eed4629c2dac8d6
 使用 Zustand 时，我一直把无需 Provider 就能管理状态这件事视为理所当然。直到某天，我突然想到一个问题。在 React 生态中，大多数库都已把用 Provider 包裹应用变成了一种近乎仪式化的做法。TanStack React Query 必须由 `QueryClientProvider` 包裹才能使用 `useQuery`，toss 的 overlay-kit 没有 `OverlayProvider` 也无法调用 `overlay.open()`。React 的 Context API 同样必须用 Provider 包裹组件树。那么 Zustand 究竟施了什么魔法，才省掉了这道流程？
 
 出于好奇，我直接拆解了 Zustand 的源码，发现其中隐藏着比预想更有意思的结构。下面就来整理一下这个过程中了解到的内容。
-
-<hr>
 
 ## 状态在 React 中如何流动
 
@@ -28,8 +26,6 @@ sourceHash: 7265ecf6c3a01948368141403982cc212e6f42034158346c4eed4629c2dac8d6
 组件内部状态使用 React 提供的状态管理 hook（`useState`、`useReducer`）进行管理，状态则通过 props 传递给子组件。到这里都很简单。
 
 问题出现在相距较远的组件需要共享状态时。React 为此提供的官方解决方案就是 Context API，但它要求必须用 Provider 组件包裹下层树。
-
-<hr>
 
 ### 为什么 Context API 需要 Provider？
 
@@ -42,8 +38,6 @@ React 使用一种名为 Fiber 的内部数据结构来管理组件树。每个 
 也就是说，Context API 与 React 的渲染系统紧密耦合。状态的存储、传播和订阅全都发生在 React 组件树内部。
 
 那么 Zustand 是如何绕过这个结构的呢？
-
-<hr>
 
 ## Zustand 活在 React 外部
 
@@ -68,8 +62,6 @@ const useStore = create((set) => ({
 
 这段代码中的 `create` 会在模块加载时调用。也就是说，在 React 开始渲染之前，Store 就已经存在于内存中。这就是**模块级单例（Module-level Singleton）模式**。
 
-<hr>
-
 ### 什么是模块级单例？
 
 JavaScript 的 ES 模块系统会**仅在首次加载时对模块求值（evaluate），并缓存结果**。之后，无论从哪里 `import` 同一个模块，都不会重新执行，而是返回缓存中的同一个对象。也就是说，无论组件 A 还是组件 B 执行 `import { useStore } from './store'`，二者引用的都是**完全相同的 Store 实例**。
@@ -78,13 +70,9 @@ JavaScript 的 ES 模块系统会**仅在首次加载时对模块求值（evalua
 
 读到这里，自然会产生一个问题：Zustand 的内部究竟是什么样的？
 
-<hr>
-
 ## Zustand 的内部结构
 
 查看 [Zustand 的 GitHub 仓库](https://github.com/pmndrs/zustand/tree/main/src)就会发现，其核心逻辑简洁得令人惊讶。核心主要由两个文件组成：`vanilla.ts` 负责 Store 本身，`react.ts` 负责与 React 建立连接。
-
-<hr>
 
 ### vanilla.ts
 
@@ -202,8 +190,6 @@ const createStoreImpl: CreateStoreImpl = (createState) => {
 
     服务端渲染（SSR）环境中没有浏览器 API，也没有用户交互，因此不会调用 `setState`。所以服务端始终使用 `initialState`（= 初始状态）作为快照。当客户端开始 hydration 时，React 会比较服务端渲染的 HTML 与客户端初次渲染的结果。因为两边都基于同一个 `initialState` 渲染，所以能够**防止 hydration 不一致**。
 
-<hr>
-
 ### react.ts
 
 [react.ts](https://github.com/pmndrs/zustand/blob/main/src/react.ts) 负责把上面创建的纯 JavaScript Store 连接到 React 的渲染系统。
@@ -250,8 +236,6 @@ const createImpl = <T>(createState: StateCreator<T, [], []>) => {
 
 它通过 `createStore` 创建 vanilla Store，用名为 `useBoundStore` 的自定义 hook 包裹，然后通过 `Object.assign` 把 Store API 的方法（`setState`、`getState`、`subscribe` 等）直接附加到 hook 函数本身。最终返回的 `useBoundStore` 具有双重性质：**既是 React hook，同时也是 Store API**。（明明是函数却还有方法，是一种很有 JavaScript 风格的模式。）
 
-<hr>
-
 ## 其他状态管理库又如何？
 
 理解到这里，自然会想和其他库做一番比较。
@@ -259,8 +243,6 @@ const createImpl = <T>(createState: StateCreator<T, [], []>) => {
 Jotai、Recoil、MobX、Xstate、Redux 等状态管理库有很多，这里主要比较一下我亲自使用过的库。
 
 > 顺带一提，经常与 Jotai 比较的 **Recoil**（Meta）在 2025 年 1 月归档了仓库，事实上已经停止开发，也没有支持 React 19。如果需要原子化状态模型，那么现阶段可以说 Jotai 是唯一现实的选择。
-
-<hr>
 
 ### Redux
 
@@ -270,8 +252,6 @@ Redux 的 `<Provider store={store}>` 通过 React Context 将 Store 实例**注�
 
 这种设计带来的好处很明确。测试时，用 Provider 包裹另一个 Store 实例即可实现完全隔离；在同一个应用中，也可以通过 `context` prop 构建多个彼此独立的 Store 树。正如 Redux 维护者 Mark Erikson 所强调的，“Context 是一种传输机制（transport mechanism），而不是状态管理工具”。
 
-<hr>
-
 ### Jotai
 
 Jotai 采用了与 Redux、Zustand 有根本差异的**原子化（atomic）状态模型**。它不会把状态集中在一个大型 Store 对象里，而是采用**将每个状态片段拆分成独立 atom**的方式。（Jotai 官方文档也解释说：“如果 Zustand 类似 Redux，那么 Jotai 就类似 Recoil。”）
@@ -279,8 +259,6 @@ Jotai 采用了与 Redux、Zustand 有根本差异的**原子化（atomic）状�
 这种结构的核心差异在于**渲染优化的方式**。Zustand 是一种**自上而下（top-down）**的方法，通过 selector 从单个 Store 中只提取所需部分。开发者必须像 `useStore((state) => state.count)` 这样亲自编写 selector，有时还要通过 memoization 来保持引用相等（referential equality）。而 Jotai 会自动构建 atom 之间的**依赖图（dependency graph）**。当某个 atom 变化时，它会进行**自下而上（bottom-up）**的传播，只精确地重新渲染依赖该 atom 的组件。在电子表格或画布编辑器这类数十个状态相互交织的场景中，这种自动依赖追踪会发挥很大作用。
 
 从 Provider 的角度看，Jotai 处于一个有趣的中间位置。它默认使用全局 Store，无需 Provider 即可运行；需要时，也能用 `<Provider>` 包裹，创建隔离的 Store 作用域。借用 Jotai 官方文档的说法，Jotai 是 **“context first, module second”**，Zustand 则是 **“module first, context second”**。
-
-<hr>
 
 ### Zustand 的选择
 
@@ -362,21 +340,15 @@ TkDodo 还介绍了一个在 design system 的多选组件中实际采用该模�
 
 v3 通过 `zustand/context` 提供的 `createContext` helper 在 v4 被删除后，这个模式逐渐固定为**直接组合 React 原生 `createContext` 与 Zustand 的 `createStore`/`useStore`**。该 API 在 v5 中也保持不变，[Zustand 官方文档](https://github.com/pmndrs/zustand/blob/main/docs/previous-versions/zustand-v3-create-context.md)也在 v4+ 迁移指南中介绍了这一模式。
 
-<hr>
-
 ## ProviderLess 的阴影
 
 当然，没有 Provider 并不全是优点。下面整理一下我认为需要注意的地方。
-
-<hr>
 
 ### SSR 中的状态共享问题
 
 模块级 singleton 在服务端环境中可能很危险。Node.js 服务器会在同一个进程中处理多个请求，而模块在进程内只加载一次。这意味着不同用户的请求可能会**共享同一个 Store 实例**。
 
 这正是 Zustand 提供 `getInitialState`，并把服务端快照作为 `useSyncExternalStore` 第三个参数传入的原因。但仅凭这一点，未必能彻底隔离请求之间的状态。因此在 SSR 环境中，建议使用前面提到的 Scoped Store 模式（`createStore` + React Context），为每个请求创建新的 Store。
-
-<hr>
 
 ### 测试隔离的困难
 
@@ -390,8 +362,6 @@ beforeEach(() => {
 ```
 
 在这里，Scoped Store 模式同样是解决方案。如果采用 Provider 包裹的方式，就能在每个测试中创建并注入新的 Store，从而无需重置逻辑即可实现完全隔离。
-
-<hr>
 
 ### 缺少多实例
 
@@ -414,8 +384,6 @@ beforeEach(() => {
 
 也建议读到这里的各位，有机会亲自打开正在使用的某个库的源码看一看。你可能会发现官方文档中没有的深度。
 
-<hr>
-
 ![手绘角色说着「等一下!!」](7.jpeg)
 
 ### 另外，还有一则新消息
@@ -431,8 +399,6 @@ beforeEach(() => {
 - **改进了 `shallow` 函数**，使其支持 iterable 对象。
 
 从 v4 迁移到 v5 时，建议先升级至 v4 的最新版本。v4 最新版会显示 deprecation 警告，因此先解决这些警告，再升级到 v5，就能顺利完成迁移。
-
-<hr>
 
 ### 参考资料
 

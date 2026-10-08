@@ -8,7 +8,7 @@ description: 'Measure AI coding token costs with a React POC and cut them using 
 keywords: 'save AI tokens, Claude Code cost, reduce token costs, prompt caching, context engineering, subagent, MCP tokens, Cursor Composer, model routing, context rot, LLM cost optimization'
 locale: en
 translationOf: '260611'
-sourceHash: 5c65e3eb331c1de5b140f5b74b6b6299868d5d98e88d8fe880877f3369372cc4
+sourceHash: 4dbeb0d46f8579795a37d789c7ebec381ef8b89a5c262b210dbc0fc1a403a0b7
 ---
 
 In this post, I want to talk about how to save AI tokens.
@@ -18,8 +18,6 @@ In the early days, I focused on results and process rather than performance and 
 After a while, however, I became increasingly conscious of token usage. Individuals felt the burden of monthly subscriptions, while companies grew more concerned about labor and operating costs. [MCP and Function Calling](/260524) covered the protocol that connects agents to external systems, [Four Tiers of Code Intelligence](/260526) covered code search tools and GitHub Trending, and [Context Files](/260529) covered the rule files that agents read. In this way, my articles so far have focused more on which tools exist and how to use them well. I still think those topics matter, but as time passes, cost will ultimately become the question people care about most.
 
 I covered the mechanics of tokens—what exactly they are, how BPE creates them, and what happens inside a transformer when prompt caching lowers the unit price—in a separate article, [How Tokens Work](/260610). Building on that foundation, this article first examines how costs are billed and where inefficiencies arise, then organizes proven cost-saving patterns. For the main patterns, I attached token usage I measured myself by running the same task under different strategies.
-
----
 
 ## Where Do Token Costs Come From?
 

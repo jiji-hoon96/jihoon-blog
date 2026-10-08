@@ -8,7 +8,7 @@ description: "Diferenças entre domínio, modelo de domínio, objeto de domínio
 keywords: "modelo de domínio, objeto de domínio, modelo de objetos de domínio, modelo de domínio vs modelo de dados, Entity Value Object, terminologia DDD, DDD no frontend, Eric Evans"
 locale: pt-BR
 translationOf: '260413'
-sourceHash: c44630b259f5c6692b591bff280ce59e22263c54168a8cd07887817db1f56727
+sourceHash: aeb26f1209027c081c1785b1c47b80315eba3977fbe2e60693868979c7b24af0
 ---
 
 Neste post, quero falar sobre **como domínio, modelo de domínio, objeto de domínio e modelo de objetos de domínio se diferenciam**.
@@ -16,9 +16,6 @@ Neste post, quero falar sobre **como domínio, modelo de domínio, objeto de dom
 É para desenvolvedores frontend que, lendo sobre DDD, ficaram em dúvida se essas palavras apontam para a mesma coisa. Ao final, você conseguirá colocar os quatro termos em uma única linha que desce do abstrato ao concreto e explicar por que o tipo de uma resposta da API não é um modelo de domínio.
 
 Encontrei essas palavras com bastante frequência como desenvolvedor, mas quando alguém pergunta "o que exatamente é um domínio?", não é fácil responder com clareza. (Sinceramente, quando comecei a programar, achava que domínio era aquele do "www".) Todos os exemplos usam o cálculo do imposto de renda.
-
----
-
 
 ## Domínio (Domain)
 

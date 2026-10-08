@@ -8,7 +8,7 @@ description: "How domains, domain models, domain objects, and domain object mode
 keywords: "domain model, domain object, domain object model, domain model vs data model, Entity Value Object, DDD terminology, frontend DDD, Eric Evans"
 locale: en
 translationOf: '260413'
-sourceHash: c44630b259f5c6692b591bff280ce59e22263c54168a8cd07887817db1f56727
+sourceHash: aeb26f1209027c081c1785b1c47b80315eba3977fbe2e60693868979c7b24af0
 ---
 
 In this post, I want to talk about **how domains, domain models, domain objects, and domain object models differ from one another**.
@@ -16,9 +16,6 @@ In this post, I want to talk about **how domains, domain models, domain objects,
 This is for frontend developers who have read about DDD and wondered whether these words all point to the same thing. By the end, you will be able to place the four terms on a single line from abstract to concrete, and explain why an API response type is not a domain model.
 
 I have encountered these words quite often as a developer, yet when someone asks, "What exactly is a domain?" it is not easy to give a clear answer. (Honestly, when I first started programming, I thought domain meant the "www" kind.) All the examples in this post use the comprehensive income tax calculation.
-
----
-
 
 ## Domain
 

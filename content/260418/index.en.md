@@ -9,7 +9,7 @@ description: "Where frontend domain logic should live, with an income tax exampl
 keywords: "frontend domain model, domain-driven design, frontend DDD, Frontend DDD, domain logic separation, Anemic Domain Model, Clean Architecture frontend, Martin Fowler, React design patterns, frontend architecture, ViewModel separation, Bounded Context"
 locale: en
 translationOf: '260418'
-sourceHash: 3710613d8d4eb4c17a551b41f7ccd5ef860b5df145a5b1b524f1ef0b80c8abd8
+sourceHash: 263cc7c7f9b3268ef9d5e341b869de5c782febdf64a07af5ec969eef54639d56
 ---
 
 In this post, I want to talk about **where domain logic should live on the frontend**.
@@ -17,9 +17,6 @@ In this post, I want to talk about **where domain logic should live on the front
 This is for frontend developers whose business rules, such as tax calculations or filing status checks, are scattered across components, hooks, and utils, so that every rule change means hunting down several files. By the end, you will know how to move those rules into pure functions that do not depend on React, and how to judge where that separation should stop.
 
 All the examples use the comprehensive income tax calculation, a domain I have been paying attention to.
-
----
-
 
 ## Where Should Domain Logic Live on the Frontend?
 

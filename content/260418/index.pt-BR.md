@@ -9,7 +9,7 @@ description: "Onde a lógica de domínio deve ficar no frontend, com um exemplo 
 keywords: "modelo de domínio no frontend, design orientado a domínio, DDD no frontend, Frontend DDD, separação da lógica de domínio, Anemic Domain Model, modelo de domínio anêmico, Clean Architecture no frontend, Martin Fowler, padrões de design React, arquitetura frontend, separação de ViewModel, Bounded Context"
 locale: pt-BR
 translationOf: '260418'
-sourceHash: 3710613d8d4eb4c17a551b41f7ccd5ef860b5df145a5b1b524f1ef0b80c8abd8
+sourceHash: 263cc7c7f9b3268ef9d5e341b869de5c782febdf64a07af5ec969eef54639d56
 ---
 
 Neste post, quero falar sobre **onde a lógica de domínio deve ficar no frontend**.
@@ -17,9 +17,6 @@ Neste post, quero falar sobre **onde a lógica de domínio deve ficar no fronten
 É para desenvolvedores frontend cujas regras de negócio, como o cálculo de impostos ou a verificação do status de uma declaração, estão espalhadas por componentes, hooks e utils, de modo que cada mudança de regra exige procurar e corrigir vários arquivos. Ao final, você saberá como mover essas regras para funções puras que não dependem do React e com que critério decidir onde essa separação deve parar.
 
 Todos os exemplos usam o cálculo do imposto de renda, um domínio que me interessa.
-
----
-
 
 ## Onde a lógica de domínio deve ficar no frontend?
 

@@ -9,7 +9,7 @@ description: 'Why I built Kalyx, a headless React DatePicker, and how it differs
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React date picker timezone, ISO 8601 UTC date string, date off by one day bug, DST bug JavaScript, fast-check property testing, react-day-picker alternative'
 locale: en
 translationOf: '260617'
-sourceHash: '3ef642d1bca4f9c8c3029970e3fe56ac1bc3e6e3623f9dad7d017e7dcf9d292f'
+sourceHash: 80176614ac16b54692eaef49e0e57c5e4d771c737abd741e3e8905c5f4cdbe87
 ---
 
 In this post, I want to talk about **Kalyx**, the headless React DatePicker library I built.
@@ -17,8 +17,6 @@ In this post, I want to talk about **Kalyx**, the headless React DatePicker libr
 This is a rewrite of a retrospective I wrote in June 2026. The original post's headline claim, "seven pickers behind one API, smaller than a single calendar from a competing library," turned out on re-examination to be half wrong and half not a differentiator. So I am reorganizing it in three parts: why I built it, how it differs from existing options, and a technical definition.
 
 To give the conclusion first, what sets Kalyx apart is not the number of components but its **value model**. The reference versions are `@kalyx/react` 1.4.7 and `@kalyx/core` 1.4.8 (MIT, React 19 only), and code excerpts come from the [GitHub repository](https://github.com/jiji-hoon96/kalyx) at `main` as of 2026-09-16 (`0bb302e`).
-
----
 
 ## I wanted to use date pickers declaratively
 
@@ -55,8 +53,6 @@ Modes were scattered across prop combinations, values across `Date` objects whos
 A date picker looks small, but it contains calendar arithmetic, locales, timezones and DST, keyboard navigation, and SSR. So I set two goals: on the consumer side, you should be able to read what is being built just from the JSX; on the implementation side, the code should be narrow enough that I can explain where values get converted.
 
 So was there really no library that had already solved these needs?
-
----
 
 ## How it differs from existing options
 
@@ -102,8 +98,6 @@ Measured on 2026-09-16 with esbuild 0.28.2, and KB here means bytes divided by 1
 ![Measured under the same esbuild conditions, sizes grow in this order: Kalyx DatePicker 18.9KB, react-day-picker 20.0KB, all of Kalyx 25.6KB, Ark UI 42.7KB, react-datepicker 45.4KB, React Aria Components 75.3KB (78.8KB with range and time), MUI X 113.1KB.](1.png?w=720)
 
 Under the same conditions, one statement holds. One DatePicker (18.9KB) is about the same size as `DayPicker` (20.0KB), and all seven together (25.6KB) are larger. (Even then, DayPicker is just a calendar, while Kalyx DatePicker also includes the input and popover.) Size is sensitive to the import combination and gzip level, so it is better read as an order of magnitude, and size is not the main reason to choose Kalyx.
-
----
 
 ## Defining Kalyx technically
 
@@ -252,8 +246,6 @@ MonthPicker's Root merely changes the default display format to `yyyy-MM` and pa
 
 So `DateTimePicker.Calendar` is the same component as `DatePicker.Calendar`, and it does not know which picker it is inside. A fix in one place reaches every picker that uses the same component, and so does a defect in one place. This shared foundation is also why a single DatePicker came to 74% of the whole in the earlier chart.
 
----
-
 ## What keeping the contract cost
 
 I spent the three months since 1.0 verifying this contract more than building new features, and it surfaced three defects that example-based tests would have let through. The first was found by a property test, the second by a cross-review of the code, and the third by fact-checking this post.
@@ -294,8 +286,6 @@ Size was a selling point shown on the README badge. A date picker that slips by 
 **If I have to choose between small and correct, I choose correct.**
 
 The ceiling is tight now. According to the repository's bundle byte map document from 2026-09-11, `dist/index.cjs` measured with Node's default gzip is 20,259B against a ceiling of 20,480B, leaving 221B of headroom. (This is the size of its own file with dependencies left external, so it is a different quantity from the earlier chart.) The next feature will have to reclaim bytes before it can land.
-
----
 
 ## Not the conclusion I started with
 

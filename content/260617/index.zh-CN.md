@@ -9,7 +9,7 @@ description: '整理了我为什么开发 React headless DatePicker Kalyx，以�
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React 日期选择器 时区, ISO 8601 UTC, 日期 差一天, DST 夏令时 bug, fast-check 属性测试, react-day-picker 对比'
 locale: zh-CN
 translationOf: '260617'
-sourceHash: '3ef642d1bca4f9c8c3029970e3fe56ac1bc3e6e3623f9dad7d017e7dcf9d292f'
+sourceHash: 80176614ac16b54692eaef49e0e57c5e4d771c737abd741e3e8905c5f4cdbe87
 ---
 
 这篇文章想聊聊我开发的 React headless DatePicker 库 **Kalyx**。
@@ -17,8 +17,6 @@ sourceHash: '3ef642d1bca4f9c8c3029970e3fe56ac1bc3e6e3623f9dad7d017e7dcf9d292f'
 本文是对 2026 年 6 月所写复盘的重写。最初那篇文章打出的“七种选择器共用一套 API，比竞品库的一个日历还小”，重新核实后发现一半是错的，另一半算不上差异点。所以这次按照开发原因、与现有方案的区别、技术定义的顺序重新整理。
 
 先说结论：Kalyx 的区别不在组件数量，而在 **值模型**。基准版本是 `@kalyx/react` 1.4.7 与 `@kalyx/core` 1.4.8（MIT，仅支持 React 19），引用的代码基于 [GitHub 仓库](https://github.com/jiji-hoon96/kalyx) 2026-09-16 的 `main`（`0bb302e`）。
-
----
 
 ## 我想以声明式的方式使用日期选择器
 
@@ -55,8 +53,6 @@ react-datepicker 和 react-day-picker 传递的是原生 `Date`。两者确实�
 日期选择器看起来很小，却包含了日历计算、区域设置、时区与夏令时（DST）、键盘导航和 SSR。所以我定下的目标是：在使用方，只看 JSX 就能读懂在构建什么；在实现方，把范围收窄到能说清值在哪里被转换。
 
 那么，真的没有已经解决这些需求的库吗？
-
----
 
 ## 与现有方案有什么不同
 
@@ -102,8 +98,6 @@ npx esbuild entry.jsx --bundle --minify --format=esm --platform=browser \
 ![在相同的 esbuild 条件下测量，体积依次为 Kalyx DatePicker 18.9KB、react-day-picker 20.0KB、Kalyx 全部 25.6KB、Ark UI 42.7KB、react-datepicker 45.4KB、React Aria Components 75.3KB（含范围与时间为 78.8KB）、MUI X 113.1KB。](1.png?w=720)
 
 在相同条件下，成立的说法只有一个。一个 DatePicker（18.9KB）与 `DayPicker`（20.0KB）体积相当，七种全部（25.6KB）则比它大。（即便如此，DayPicker 只有日历，而 Kalyx DatePicker 还包含输入框和弹出层）体积对 import 组合和 gzip 级别很敏感，按数量级来读更合适，体积也不是选择 Kalyx 的核心理由。
-
----
 
 ## 从技术上定义 Kalyx
 
@@ -252,8 +246,6 @@ MonthPicker 的 Root 只是把显示格式默认值改为 `yyyy-MM`，再把 `se
 
 所以 `DateTimePicker.Calendar` 和 `DatePicker.Calendar` 是同一个组件，它并不知道自己处在哪个选择器里。一处修改会作用到所有使用该组件的选择器，一处缺陷也会波及全部。前面图表中单个 DatePicker 占全部体积 74% 的原因，也正是这层共享基础。
 
----
-
 ## 守住契约的代价
 
 1.0 之后的三个月，我更多用来确认这个契约而不是做新功能，结果出现了三次靠示例测试会被放过的缺陷。第一个由属性测试发现，第二个由代码交叉审查发现，第三个由本文的核查发现。
@@ -294,8 +286,6 @@ MonthPicker 的 Root 只是把显示格式默认值改为 `yyyy-MM`，再把 `se
 **如果必须在小和对之间选一个，那就选对的。**
 
 现在的上限很紧。根据仓库 2026-09-11 的包字节分布文档，用 Node 默认 gzip 测量 `dist/index.cjs` 的结果是 20,259B，上限是 20,480B，余量只有 221B。（这是把依赖留在外部的自身文件大小，与前面图表测的是不同的量）下一个功能得先回收字节才能加进来。
-
----
 
 ## 与最初设想不同的结论
 

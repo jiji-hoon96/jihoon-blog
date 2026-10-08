@@ -8,7 +8,7 @@ description: 'Meça custos de tokens com um React POC e reduza-os com prompt cac
 keywords: 'economizar tokens de IA, custo do Claude Code, Cursor Composer, React POC, prompt caching, context engineering, subagent, MCP, model routing, context rot'
 locale: pt-BR
 translationOf: '260611'
-sourceHash: 5c65e3eb331c1de5b140f5b74b6b6299868d5d98e88d8fe880877f3369372cc4
+sourceHash: 4dbeb0d46f8579795a37d789c7ebec381ef8b89a5c262b210dbc0fc1a403a0b7
 ---
 
 Neste artigo, quero falar sobre como economizar tokens de IA.
@@ -18,8 +18,6 @@ No começo, eu me concentrava mais nos resultados e no processo do que em desemp
 Com o tempo, porém, fiquei cada vez mais atento ao uso de tokens. Para as pessoas, a mensalidade pesava; para as empresas, aumentavam as preocupações com custos de pessoal e operação. Em [MCP e function calling](/260524) expliquei o protocolo que conecta agentes a sistemas externos; em [Quatro camadas de inteligência de código](/260526), as ferramentas de busca de código e o GitHub Trending; e em [Arquivos de contexto](/260529), os arquivos de regras que os agentes leem. Assim, meus textos até aqui se concentraram mais em quais ferramentas existem e em como usá-las bem. Ainda considero isso importante, mas acredito que o custo acabará sendo a maior dúvida.
 
 Expliquei os princípios dos tokens — o que são, como o BPE os cria e o que ocorre dentro do transformador quando prompt caching reduz o preço — em [Como os tokens funcionam](/260610). Com essa base, veremos primeiro como os custos são cobrados e onde surgem ineficiências, depois reuniremos padrões comprovados de economia. Os principais padrões vêm acompanhados do uso de tokens que medi eu mesmo executando a mesma tarefa com estratégias diferentes.
-
----
 
 ## De onde vêm os custos dos tokens?
 

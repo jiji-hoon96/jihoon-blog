@@ -8,7 +8,7 @@ description: "After prompts gave way to context engineering, what comes next? An
 keywords: 'context engineering, harness design, AI agent evals, agent evaluation, containment, agent isolation, AI trends 2026, prompt engineering, LLM agents, beyond token efficiency'
 locale: en
 translationOf: '260622'
-sourceHash: 06bdc8be3e1e0ff49702ada8265d88df2ffd88a750b85ab5e845bf748bac236e
+sourceHash: aa14385fc8ca2a3c0a5b713cc2b3c36f328877e6cdc181f184e2ac7936036ef4
 ---
 
 In this post, I want to look at what may come after prompt engineering and context engineering.
@@ -18,8 +18,6 @@ While wrapping up the previous article on [saving tokens](/260611), one question
 ![A 3-layer architecture for reliable AI systems, comprising prompt, context, and harness engineering](3.webp)
 
 Writing about “where things are headed” calls for caution. The future contains many possible paths, so the focus here is on **a shift in emphasis visible in already-published primary sources**. Some inference is inevitably involved, and I hope readers will approach it from multiple perspectives.
-
----
 
 ## From prompts to context
 

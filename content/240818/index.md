@@ -14,8 +14,6 @@ keywords: "Zustand 원리, Zustand Provider 없는 이유, React 상태관리 �
 
 궁금해서 Zustand의 소스 코드를 직접 뜯어보았고, 생각보다 흥미로운 구조가 숨어있었다. 그 과정에서 알게 된 내용을 정리해보려 한다.
 
-<hr>
-
 ## React에서 상태는 어떻게 흘러가는가
 
 일반적인 React 애플리케이션에서 상태는 아래 그림처럼 동작한다.
@@ -25,8 +23,6 @@ keywords: "Zustand 원리, Zustand Provider 없는 이유, React 상태관리 �
 컴포넌트 내부 상태는 React가 제공하는 상태 관리 훅(`useState`, `useReducer`)을 사용하여 관리한다. 그리고 하위 컴포넌트로의 상태 전달은 props를 통해 이루어진다. 여기까지는 단순한 이야기이다.
 
 문제는 멀리 떨어진 컴포넌트 간에 상태를 공유해야 할 때 발생한다. 이때 React가 제공하는 공식적인 해법이 바로 Context API인데, 이 녀석은 반드시 Provider 컴포넌트로 하위 트리를 감싸야 한다.
-
-<hr>
 
 ### 왜 Context API는 Provider가 필요할까?
 
@@ -39,8 +35,6 @@ React는 컴포넌트 트리를 Fiber라는 내부 자료구조로 관리한다.
 즉, Context API는 React의 렌더링 시스템과 긴밀하게 결합되어 있다. 상태의 저장, 전파, 구독 모두가 React의 컴포넌트 트리 내부에서 일어나는 것이다.
 
 그렇다면 Zustand는 이 구조를 어떻게 우회하는 걸까?
-
-<hr>
 
 ## Zustand는 React 바깥에 산다
 
@@ -65,8 +59,6 @@ const useStore = create((set) => ({
 
 이 코드에서 `create`가 호출되는 시점은 모듈이 로드될 때이다. 즉, React가 렌더링을 시작하기도 전에 스토어는 이미 메모리에 존재하게 된다. 이것이 **모듈 레벨 싱글톤(Module-level Singleton) 패턴**이다.
 
-<hr>
-
 ### 모듈 레벨 싱글톤이란?
 
 JavaScript의 ES 모듈 시스템은 **모듈을 최초 한 번만 평가(evaluate)하고, 그 결과를 캐싱**한다. 이후 어디서든 같은 모듈을 `import`하면 새로 실행하는 것이 아니라 캐싱된 동일한 객체를 반환한다. 즉, `import { useStore } from './store'`를 컴포넌트 A에서 하든 컴포넌트 B에서 하든, 둘 다 **정확히 같은 스토어 인스턴스**를 참조하게 된다.
@@ -75,13 +67,9 @@ JavaScript의 ES 모듈 시스템은 **모듈을 최초 한 번만 평가(evalua
 
 여기까지 읽으면 자연스럽게 떠오르는 질문이 하나 있다. 그래서 Zustand의 내부는 구체적으로 어떻게 생겼을까?
 
-<hr>
-
 ## Zustand 내부 구조
 
 [Zustand의 GitHub 저장소](https://github.com/pmndrs/zustand/tree/main/src)를 들여다보면, 핵심 로직은 놀라울 정도로 간결하다. 크게 두 개의 파일이 핵심인데, `vanilla.ts`가 스토어의 본체를, `react.ts`가 React와의 연결 고리를 담당한다.
-
-<hr>
 
 ### vanilla.ts
 
@@ -199,8 +187,6 @@ const createStoreImpl: CreateStoreImpl = (createState) => {
 
     서버 사이드 렌더링(SSR) 환경에서는 브라우저 API가 없고, 사용자 인터랙션도 없으므로 `setState`가 호출될 일이 없다. 따라서 서버에서는 항상 `initialState`(= 최초 상태)가 스냅샷으로 사용된다. 클라이언트에서 hydration이 시작될 때, React는 서버에서 렌더링한 HTML과 클라이언트의 초기 렌더링 결과를 비교하는데, 양쪽 모두 동일한 `initialState`를 기준으로 렌더링했기 때문에 **hydration 불일치를 방지**할 수 있는 것이다.
 
-<hr>
-
 ### react.ts
 
 [react.ts](https://github.com/pmndrs/zustand/blob/main/src/react.ts)는 위에서 만든 순수 JavaScript 스토어를 React의 렌더링 시스템에 연결하는 역할을 한다.
@@ -247,8 +233,6 @@ const createImpl = <T>(createState: StateCreator<T, [], []>) => {
 
 `createStore`로 vanilla 스토어를 생성하고, `useBoundStore`라는 커스텀 훅으로 감싼 뒤, `Object.assign`으로 스토어 API의 메서드들(`setState`, `getState`, `subscribe` 등)을 훅 함수 자체에 붙여버린다. 그 결과 반환되는 `useBoundStore`는 **React 훅이면서 동시에 스토어 API**라는 이중적인 성격을 가지게 된다. (함수인데 메서드도 있는, 꽤나 JavaScript스러운 패턴이다.)
 
-<hr>
-
 ## 다른 상태관리 라이브러리는 어떨까?
 
 여기까지 이해했다면 자연스럽게 다른 라이브러리들과 비교해보고 싶어질 것이다.
@@ -256,8 +240,6 @@ const createImpl = <T>(createState: StateCreator<T, [], []>) => {
 Jotai, Recoil, MobX, Xstate, Redux 등 다양한 상태관리 라이브러리가 존재하겠지만, 필자가 직접 사용해본 라이브러리 위주로 비교해보려고 한다.
 
 > 참고로, Jotai와 자주 비교되던 **Recoil**(Meta)은 2025년 1월 저장소가 아카이브되면서 사실상 개발이 중단되었다. React 19 지원도 이루어지지 않은 상태이다. 원자적 상태 모델을 원한다면 현시점에서는 Jotai가 유일한 현실적 선택지라고 할 수 있다.
-
-<hr>
 
 ### Redux
 
@@ -267,8 +249,6 @@ Redux의 `<Provider store={store}>`는 React Context를 통해 스토어 인스�
 
 이 설계가 가져다주는 이점은 명확하다. 테스트 시 다른 스토어 인스턴스를 Provider로 감싸면 완벽한 격리가 되고, 하나의 앱에서 `context` prop을 통해 여러 독립적인 스토어 트리를 구성할 수도 있다. Mark Erikson(Redux 메인테이너)이 강조하듯, "Context는 전송 메커니즘(transport mechanism)이지 상태 관리 도구가 아니다."
 
-<hr>
-
 ### Jotai
 
 Jotai는 Redux나 Zustand와 근본적으로 다른 **원자적(atomic) 상태 모델**을 채택한다. 하나의 큰 스토어 객체에 상태를 모아두는 것이 아니라, **각각의 상태 조각을 독립적인 atom으로 분리**하는 접근이다. (Jotai 공식 문서에서도 "Zustand가 Redux와 유사하다면, Jotai는 Recoil과 유사하다"고 설명한다.)
@@ -276,8 +256,6 @@ Jotai는 Redux나 Zustand와 근본적으로 다른 **원자적(atomic) 상태 �
 이 구조의 핵심 차이는 **렌더링 최적화 방식**에 있다. Zustand는 하나의 스토어에서 selector를 통해 필요한 부분만 추출하는 **하향식(top-down)** 접근이다. 개발자가 `useStore((state) => state.count)`처럼 selector를 직접 작성해야 하고, 참조 동일성(referential equality)을 유지하기 위해 때로는 메모이제이션이 필요하다. 반면 Jotai는 atom 간의 **의존성 그래프(dependency graph)** 를 자동으로 구축하여, 특정 atom이 변경되면 그 atom에 의존하는 컴포넌트만 정확히 리렌더링하는 **상향식(bottom-up)** 전파를 수행한다. 스프레드시트나 캔버스 에디터처럼 수십 개의 상태가 서로 얽혀 있는 경우에 이 자동 의존성 추적이 큰 힘을 발휘한다.
 
 Provider 측면에서 Jotai는 흥미로운 중간 지점에 위치한다. 기본적으로 전역 스토어를 사용하여 Provider 없이 동작하지만, 필요하다면 `<Provider>`로 감싸서 격리된 스토어 스코프를 만들 수 있다. Jotai 공식 문서의 표현을 빌리면, Jotai는 **"context first, module second"** 이고, Zustand는 **"module first, context second"** 인 것이다.
-
-<hr>
 
 ### Zustand의 선택
 
@@ -359,21 +337,15 @@ TkDodo는 디자인 시스템의 멀티셀렉트 컴포넌트에서 이 패턴�
 
 이 패턴은 v3에서 `zustand/context`로 제공되던 `createContext` 헬퍼가 v4에서 제거된 이후, **React의 네이티브 `createContext` + Zustand의 `createStore`/`useStore`를 직접 조합하는 방식**으로 정착했다. v5에서도 이 API는 그대로 유지되고 있으며, [Zustand 공식 문서](https://github.com/pmndrs/zustand/blob/main/docs/previous-versions/zustand-v3-create-context.md)에서도 v4+ 마이그레이션 가이드로 이 패턴을 안내하고 있다.
 
-<hr>
-
 ## ProviderLess의 그림자
 
 물론 Provider가 없다는 것이 장점만 있는 것은 아니다. 필자가 생각하는 주의해야 할 지점들을 정리해보겠다.
-
-<hr>
 
 ### SSR에서의 상태 공유 문제
 
 모듈 레벨 싱글톤은 서버 환경에서 위험할 수 있다. Node.js 서버는 여러 요청을 하나의 프로세스에서 처리하는데, 모듈은 프로세스 내에서 한 번만 로드된다. 이는 서로 다른 사용자의 요청이 **같은 스토어 인스턴스를 공유**할 수 있다는 뜻이다.
 
 Zustand가 `getInitialState`를 제공하고 `useSyncExternalStore`의 세 번째 인자로 서버 스냅샷을 넘기는 이유가 여기에 있다. 하지만 이것만으로는 요청 간 상태 격리가 완벽하지 않을 수 있어, SSR 환경에서는 앞서 언급한 스코프드 스토어 패턴(`createStore` + React Context)을 활용하여 요청마다 새로운 스토어를 생성하는 것이 권장된다.
-
-<hr>
 
 ### 테스트 격리의 어려움
 
@@ -387,8 +359,6 @@ beforeEach(() => {
 ```
 
 여기서도 스코프드 스토어 패턴이 해결책이 된다. Provider로 감싸는 방식이라면 각 테스트에서 새로운 스토어를 생성하여 주입하면 되므로, 리셋 로직 없이 완벽한 격리가 가능하다.
-
-<hr>
 
 ### 다중 인스턴스의 부재
 
@@ -411,8 +381,6 @@ beforeEach(() => {
 
 이 글을 읽는 분들도 한 번쯤 사용하고 있는 라이브러리의 소스 코드를 직접 열어보기를 권한다. 공식 문서에는 없는 깊이를 발견할 수 있을 것이다.
 
-<hr>
-
 !["여기서 잠깐!!" 이라고 말하는 손그림 캐릭터](7.jpeg)
 
 ### 아 그리고 새로운 소식
@@ -428,8 +396,6 @@ beforeEach(() => {
 - 반복 가능한 객체를 지원하도록 **`shallow` 함수가 개선**되었다.
 
 v4에서 v5로 마이그레이션할 때는 먼저 v4 최신 버전으로 업데이트하는 것이 권장된다. v4 최신 버전에서 deprecation 경고가 표시되므로, 이를 먼저 해결한 뒤 v5로 올리면 무리 없이 전환할 수 있다.
-
-<hr>
 
 ### 참고자료
 

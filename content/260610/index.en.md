@@ -8,7 +8,7 @@ description: 'How BPE creates tokens, embeddings feed LLMs, prefill and decode s
 keywords: 'how LLM tokens work, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, input output token costs, what is an AI token'
 locale: en
 translationOf: '260610'
-sourceHash: 6a6a147aafe2b372f09525cabfc507e80cc78dac0ae2696a4bae69db6199fd48
+sourceHash: a359ae36125600a9a8fbc77be4cd73e220ea1f176491eeade359585fc424c8a8
 ---
 
 In this post, I want to explore what AI tokens actually are and how they work.
@@ -16,8 +16,6 @@ In this post, I want to explore what AI tokens actually are and how they work.
 Until now, I have mainly written about how to use AI tools effectively, which tools are gaining popularity, and why. But while putting together my guide to [saving tokens](/260611), I was reminded of something important: before explaining how to reduce costs, I first needed to explain what tokens are and how they are billed. Yet I had never properly covered that foundation. (As I wrote the cost-saving guide, the explanation of how tokens work grew substantial enough to become a post of its own.)
 
 This post, then, lays the groundwork before we get into cost-saving techniques. We will go through what tokens actually are if they are neither words nor characters (BPE), what form they take when they enter a model (embeddings), why output is more expensive than input (prefill/decode), where inside the Transformer architecture prompt caching gets its cost advantage (KV cache), and why longer contexts become more expensive (the quadratic cost of attention). If you are looking for practical ways to save, continue with How to Save Tokens after this article.
-
----
 
 ## Tokens Are Neither Words nor Characters
 

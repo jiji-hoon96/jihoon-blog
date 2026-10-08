@@ -15,8 +15,6 @@ keywords: 'Kalyx, React DatePicker, headless DatePicker, React DatePicker timezo
 
 결론을 먼저 말하면 Kalyx의 차이는 컴포넌트 개수가 아니라 **값 모델**에 있다. 기준 버전은 `@kalyx/react` 1.4.7과 `@kalyx/core` 1.4.8(MIT, React 19 전용)이고, 코드 인용은 [GitHub 저장소](https://github.com/jiji-hoon96/kalyx)의 2026-09-16 `main`(`0bb302e`) 기준이다.
 
----
-
 ## 날짜 picker를 선언적으로 쓰고 싶었다
 
 만든 이유는 두 가지였다. 복잡하고 쓰기 어려운 날짜 라이브러리를 더 선언적이고 단순하게 쓰고 싶었고, 그런 라이브러리가 안에서 어떻게 만들어지는지 공부하고 싶었다. "쓰기 어렵다"는 말은 막연하니, 필자가 걸렸던 지점이 지금 최신 버전에도 남아 있는지 각 라이브러리의 타입 정의로 다시 확인했다.
@@ -52,8 +50,6 @@ timezone 지원이 날짜 라이브러리 선택에 묶이기도 한다. MUI X D
 날짜 picker는 작아 보이지만 달력 계산, locale, timezone과 DST, 키보드 탐색, SSR이 전부 들어 있다. 그래서 쓰는 쪽에서는 JSX만 보고 무엇을 만드는지 읽히게, 만드는 쪽에서는 값이 어디서 변환되는지 설명할 수 있을 만큼 좁히는 것을 목표로 잡았다.
 
 그렇다면 이런 요구를 이미 풀어 둔 라이브러리는 정말 없었을까?
-
----
 
 ## 이미 있는 선택지와 무엇이 다른가
 
@@ -99,8 +95,6 @@ esbuild 0.28.2, 2026-09-16 측정이고 KB는 바이트를 1024로 나눈 값이
 ![같은 esbuild 조건으로 재면 Kalyx DatePicker 18.9KB, react-day-picker 20.0KB, Kalyx 전부 25.6KB, Ark UI 42.7KB, react-datepicker 45.4KB, React Aria Components 75.3KB(범위·시간 포함 78.8KB), MUI X 113.1KB 순으로 커진다.](1.png?w=720)
 
 같은 조건에서 참인 문장은 하나다. DatePicker 하나(18.9KB)는 `DayPicker`(20.0KB)와 비슷한 크기이고, 일곱 종 전부(25.6KB)는 그보다 크다. (그마저 DayPicker는 calendar만, Kalyx DatePicker는 입력 칸과 popover까지 포함한다) 크기는 import 조합과 gzip 레벨에 민감하니 자릿수로 읽는 편이 맞고, 크기가 Kalyx를 고를 중심 이유는 아니다.
-
----
 
 ## Kalyx를 기술적으로 정의하면
 
@@ -249,8 +243,6 @@ MonthPicker의 Root는 표시 형식 기본값을 `yyyy-MM`으로 바꾸고 Date
 
 그래서 `DateTimePicker.Calendar`는 `DatePicker.Calendar`와 같은 컴포넌트이고, 자기가 어느 picker 안에 있는지 모른다. 한 곳의 수정이 같은 컴포넌트를 쓰는 picker 전부에 닿고, 한 곳의 결함도 전부에 닿는다. 앞 도표에서 DatePicker 하나가 전부의 74% 였던 이유도 이 공유 기반이다.
 
----
-
 ## 계약을 지키는 데 든 비용
 
 1.0 이후 석 달은 새 기능보다 이 계약을 확인하는 데 썼고, 예제 테스트로는 지나갔을 결함이 세 번 나왔다. 첫 번째는 속성 테스트가, 두 번째는 코드 교차 검토가, 세 번째는 이 글의 검증이 찾았다.
@@ -291,8 +283,6 @@ MonthPicker의 Root는 표시 형식 기본값을 `yyyy-MM`으로 바꾸고 Date
 **작다와 맞다 중 하나를 골라야 한다면 맞는 쪽이다.**
 
 지금 천장은 빠듯하다. 레포의 2026-09-11 번들 바이트 지도 문서에 따르면 `dist/index.cjs`를 Node 기본 gzip으로 잰 값이 20,259B, 천장이 20,480B로 여유가 221B다. (의존성을 외부로 남긴 자기 파일 크기라 앞 도표와는 다른 양이다) 다음 기능은 바이트를 먼저 회수해야 들어온다.
-
----
 
 ## 처음 생각과 달라진 결론
 

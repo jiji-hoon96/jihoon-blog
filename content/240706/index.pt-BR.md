@@ -9,7 +9,7 @@ description: "Comparamos estrutura, velocidade e taxa de ZIP, GZIP, ZSTD, BZIP2,
 keywords: "comparação de algoritmos de compressão, GZIP vs ZSTD, tar.gz vs zip, tar.zst, Brotli, arquivo sólido, otimização de build frontend"
 locale: pt-BR
 translationOf: "240706"
-sourceHash: 132c3004808c90e13100237fdca4ad721e66d22703805a4c44767f41910fbb45
+sourceHash: b12e08c3033cab03e44164ef060426b26390a5a80430530fc191e20f70f7ca0e
 ---
 
 Neste artigo, quero falar sobre algoritmos de compressão de software.
@@ -26,8 +26,6 @@ O desempenho de compressão costuma ser avaliado em dois eixos: a **taxa de comp
 
 Com essa base, vamos comparar os principais formatos um a um.
 
-<hr>
-
 ## ZIP
 
 ZIP é um formato criado por Phil Katz em 1989. Internamente, costuma usar **DEFLATE**, a combinação de LZ77 com Huffman coding. A distinção importante é que ZIP não é um algoritmo de compressão, mas um formato contêiner que armazena dados comprimidos por algoritmos como DEFLATE.
@@ -35,8 +33,6 @@ ZIP é um formato criado por Phil Katz em 1989. Internamente, costuma usar **DEF
 O ZIP **comprime cada arquivo individualmente**. Essa estrutura, em que cada arquivo é comprimido separadamente, é chamada de arquivo não sólido (Non-solid Archive). A abordagem oposta, que junta todos os arquivos em um único fluxo e o comprime de uma vez, é o arquivo sólido. Graças à estrutura não sólida, é possível extrair um arquivo específico sem descompactar os demais. Em contrapartida, não aproveita dados duplicados entre arquivos, por isso sua taxa pode ser inferior à do tar.gz, que veremos adiante.
 
 Windows, macOS, Linux e a maioria dos sistemas operacionais oferecem suporte sem software adicional. Por isso, é a escolha mais segura quando a compatibilidade entre plataformas é importante.
-
-<hr>
 
 ## GZIP (GNU Zip)
 
@@ -50,8 +46,6 @@ O DEFLATE usa uma janela deslizante de **no máximo 32 KB**. Esse limite é impo
 
 Em ambientes Unix e Linux, GZIP é usado como padrão para distribuir código-fonte, comprimir logs e empacotar software. Também segue comum na compressão HTTP por meio de `Content-Encoding: gzip`, embora o Brotli venha substituindo-o gradualmente nesse uso.
 
-<hr>
-
 ## ZSTD (Zstandard)
 
 ZSTD é um algoritmo desenvolvido por Yann Collet na Meta, antiga Facebook, e publicado como código aberto em 2016. Sua principal vantagem é **comprimir e descomprimir muito mais rápido, mantendo uma taxa comparável à do GZIP**.
@@ -63,8 +57,6 @@ O localizador também muda de estratégia conforme o nível. Os níveis baixos, 
 No benchmark Silesia Corpus, o nível padrão 3 do ZSTD comprime a cerca de 300 MB/s e descomprime a aproximadamente 1.200 MB/s. Já o nível padrão 6 do GZIP alcança apenas 34 MB/s e 380 MB/s. **O ZSTD comprime cerca de oito vezes mais rápido e descomprime cerca de três vezes mais rápido, e ainda assim sua taxa é superior: 3,17 contra 3,09 do GZIP.** Esses números mostram com clareza como o ZSTD melhora o compromisso tradicional.
 
 A adoção cresceu rapidamente. O ZSTD é usado na compressão de módulos do kernel Linux e na compressão transparente de sistemas de arquivos; distribuições como Arch Linux, Fedora, Debian e Ubuntu o adotaram como formato padrão de compressão de pacotes. Desde a versão 1.5.7, lançada em fevereiro de 2025, a **compressão multithread fica ativada por padrão** com até quatro threads, ampliando ainda mais a diferença prática em relação ao GZIP single-thread. A AWS também informou ter reduzido em cerca de 30% o armazenamento no S3 ao migrar serviços internos de gzip para zstd.
-
-<hr>
 
 ## BZIP2
 
@@ -80,8 +72,6 @@ O BZIP2 oferece taxa maior que o GZIP, mas tanto a compressão quanto a descompr
 
 Sua última versão foi a 1.0.8, em 2019, e não está em desenvolvimento ativo. Conforme benchmarks mostram que o ZSTD supera o BZIP2 em taxa e velocidade, projetos novos tendem a escolher ZSTD.
 
-<hr>
-
 ## XZ
 
 XZ é um formato que usa **LZMA2**. LZMA, Lempel-Ziv-Markov chain Algorithm, foi desenvolvido por Igor Pavlov e combina compressão por dicionário baseada em LZ77 com codificação por intervalo (Range Encoding). Em vez de ser apenas uma “versão melhorada do LZMA”, LZMA2 se parece mais com um **formato contêiner** para fluxos LZMA. Ele acrescenta compressão e descompressão multithread e tratamento eficiente para dados que não podem ser comprimidos.
@@ -89,8 +79,6 @@ XZ é um formato que usa **LZMA2**. LZMA, Lempel-Ziv-Markov chain Algorithm, foi
 Entre os formatos discutidos aqui, o XZ oferece **a maior taxa de compressão**. O custo é uma compressão muito lenta e alto consumo de memória. É adequado para arquivamento quando economizar espaço é a prioridade absoluta.
 
 Em março de 2024, porém, **foi descoberta uma backdoor no xz-utils, a biblioteca central do XZ, no grave incidente de cadeia de suprimentos CVE-2024-3094**. Uma campanha de engenharia social de dois anos havia obtido permissões de mantenedor, e a vulnerabilidade recebeu a nota máxima CVSS 10.0. As principais distribuições voltaram imediatamente a versões seguras, mas o caso serviu como um alerta importante sobre segurança na cadeia de software open source. (O valor técnico do XZ continua existindo, mas vale considerar esse contexto na escolha de ferramentas.)
-
-<hr>
 
 ## TAR
 
@@ -104,8 +92,6 @@ TAR não reduz o tamanho por conta própria; na verdade, cabeçalhos e padding d
 
 É o método padrão de arquivamento em Unix/Linux, enquanto o Windows pode precisar de software adicional, como 7-Zip.
 
-<hr>
-
 ## Uma breve introdução ao Brotli
 
 Quem trabalha com frontend também deve conhecer o **Brotli**. O Google desenvolveu esse algoritmo, que em 2015 foi padronizado para compressão de fluxos HTTP como `Content-Encoding: br`.
@@ -113,8 +99,6 @@ Quem trabalha com frontend também deve conhecer o **Brotli**. O Google desenvol
 Todos os navegadores principais oferecem suporte em HTTPS, com cobertura global acima de 96%, e ele costuma produzir arquivos **cerca de 15% a 25% menores que o GZIP**. É especialmente eficaz para arquivos estáticos de texto, como JavaScript, CSS e HTML. Grandes CDNs, incluindo Cloudflare, usam Brotli como padrão, e a prática moderna pode ser resumida em “Brotli primeiro, GZIP como fallback”.
 
 Se os artefatos são enviados para o S3 e servidos por uma CDN, pré-comprimir os arquivos estáticos com Brotli pode reduzir bastante a transferência de rede. (Naquele momento, eu não tinha evidências específicas do projeto suficientes para adotá-lo imediatamente, mas ele continua sendo uma alternativa que vale conhecer e reavaliar.)
-
-<hr>
 
 ## Por que tar.gz comprime melhor que ZIP?
 
@@ -128,8 +112,6 @@ Arquivos sólidos também têm desvantagens claras.
 
 - Para extrair um único arquivo, pode ser necessário **descomprimir primeiro todos os dados anteriores a ele**. Como tudo pertence a um único fluxo, não é possível saltar diretamente para o meio. ZIP permite acesso aleatório a cada arquivo e pode ser melhor quando itens específicos são extraídos com frequência.
 - Se uma parte for corrompida, **todos os dados posteriores ao ponto danificado podem se tornar irrecuperáveis**. Em um formato não sólido, às vezes apenas o arquivo afetado é perdido e o restante permanece intacto.
-
-<hr>
 
 ## Em 2024 escolhi tar.gz. O que escolheria hoje?
 
@@ -151,8 +133,6 @@ O ZSTD também iguala ou supera a taxa do GZIP, portanto praticamente desaparece
 
 Ainda assim, é essencial verificar se o ambiente de destino consegue descompactar zstd. As principais distribuições Linux já o incluem, e no macOS é fácil instalá-lo pelo Homebrew com `brew install zstd`. Sistemas legados ou instalações mínimas podem exigir uma instalação adicional, então todos os ambientes usados pela equipe devem ser verificados antes. Se compatibilidade for a prioridade absoluta, tar.gz continua sendo a alternativa mais segura.
 
-<hr>
-
 ## Comparação rápida
 
 | Formato    | Algoritmo       | Taxa      | Velocidade | Principais características          |
@@ -163,8 +143,6 @@ Ainda assim, é essencial verificar se o ambiente de destino consegue descompact
 | **BZIP2**  | BWT+MTF+Huffman | Alta      | Lenta     | Desenvolvimento praticamente parado |
 | **XZ**     | LZMA2           | Muito alta | Muito lenta | Maior taxa, contexto de segurança |
 | **Brotli** | Brotli          | Alta      | Média     | Especializado para a web            |
-
-<hr>
 
 ## Conclusão
 

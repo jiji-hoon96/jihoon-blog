@@ -8,7 +8,7 @@ description: 'AIのトークンは単語でも文字でもない。BPEトーク�
 keywords: 'LLMトークンの仕組み, BPE, Byte Pair Encoding, トークナイザー, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, 入力出力トークン料金, AIトークンとは'
 locale: ja
 translationOf: '260610'
-sourceHash: 6a6a147aafe2b372f09525cabfc507e80cc78dac0ae2696a4bae69db6199fd48
+sourceHash: a359ae36125600a9a8fbc77be4cd73e220ea1f176491eeade359585fc424c8a8
 ---
 
 この記事では、AIのトークンとはそもそも何なのか、どのような仕組みで動くのかを掘り下げる。
@@ -16,8 +16,6 @@ sourceHash: 6a6a147aafe2b372f09525cabfc507e80cc78dac0ae2696a4bae69db6199fd48
 これまで筆者は、AIツールをうまく使う方法や、どのツールがなぜ流行しているのかを主に扱ってきた。ところが[トークン節約術](/260611)をまとめる中で、改めて気づいたことがある。コストの減らし方を語るには、まず「トークンとは何か、どのように課金されるのか」を知る必要があるのに、その土台をきちんと説明したことがなかったのだ。（節約術を書いているうちに、トークンの仕組みだけで一本の記事になる分量になった。）
 
 そこで本稿では、節約術に入る前の基礎を整理する。トークンが単語でも文字でもないなら正確には何なのか（BPE）、どのような姿でモデルに入るのか（embedding）、なぜ入力より出力の方が高いのか（prefill/decode）、prompt cachingが単価を下げる理由はTransformer（ニューラルネットワークの設計）のどこにあるのか（KV cache）、そしてコンテキストが長くなるほどなぜ高くなるのか（注意機構の二乗コスト）を順に見ていく。実践的な節約方法を知りたい場合は、本稿の次にトークン節約術を読んでほしい。
-
----
 
 ## トークンは単語でも文字でもない
 
