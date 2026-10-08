@@ -2,9 +2,12 @@ import { readFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-// docs/post-structure.md 의 역할표를 기계로 검사한다. 한글 원문만 본다.
+import { fromMarkdown } from 'mdast-util-from-markdown'
+
+// docs/post-structure.md 의 역할표를 기계로 검사한다. 역할표는 한글 원문만 본다.
 // 번역본은 validate-translations 가 원문과 구조를 맞추므로 따로 보지 않는다.
 // 순서 없는 나열에 쓴 `1.` 처럼 판단이 필요한 것은 여기서 잡지 않는다.
+// 볼드가 열리거나 닫히지 않아 `**` 가 글자로 남는 것은 로케일마다 다르게 깨지므로 전 로케일을 본다.
 
 const RULES = [
   ['h1', /^# /u, '본문에 # 을 쓰지 않는다. 제목은 프론트매터 title 이다'],
@@ -78,6 +81,25 @@ export function validatePostStructure(markdown) {
   return violations
 }
 
+// `**決める。**ひとつ` 처럼 구두점 뒤에서 닫거나 `は**`code`**` 처럼 구두점 앞에서 열면
+// CommonMark 가 강조로 읽지 않는다. 파싱한 뒤 코드와 HTML 을 뺀 텍스트에 남은 `**` 를 찾는다.
+export function findBrokenEmphasis(markdown) {
+  const frontmatter = markdown.match(/^---\n[\s\S]*?\n---\n/u)?.[0] ?? ''
+  const body = frontmatter.replace(/[^\n]/gu, '') + markdown.slice(frontmatter.length)
+  const lines = new Set()
+  const walk = (node) => {
+    if (node.type === 'code' || node.type === 'inlineCode' || node.type === 'html') return
+    if (node.type === 'text' && node.value.includes('**')) lines.add(node.position.start.line)
+    node.children?.forEach(walk)
+  }
+  walk(fromMarkdown(body))
+  return [...lines].map((line) => ({
+    line,
+    id: 'broken-bold',
+    message: '볼드가 렌더되지 않는다. 구두점을 ** 밖으로 내보낸다. 공백으로 때우지 않는다',
+  }))
+}
+
 export async function validateAllPosts({ rootDirectory = process.cwd(), post } = {}) {
   const contentDirectory = path.join(rootDirectory, 'content')
   const entries = await readdir(contentDirectory, { withFileTypes: true })
@@ -86,15 +108,15 @@ export async function validateAllPosts({ rootDirectory = process.cwd(), post } =
   for (const entry of entries) {
     if (!entry.isDirectory() || !/^\d{6}$/u.test(entry.name)) continue
     if (post && entry.name !== post) continue
-    let markdown
-    try {
-      markdown = await readFile(path.join(contentDirectory, entry.name, 'index.md'), 'utf8')
-    } catch (error) {
-      if (error?.code === 'ENOENT') continue
-      throw error
-    }
-    for (const violation of validatePostStructure(markdown)) {
-      results.push({ post: entry.name, ...violation })
+    const files = (await readdir(path.join(contentDirectory, entry.name)))
+      .filter((name) => /^index(?:\.[\w-]+)?\.md$/u.test(name))
+    for (const file of files) {
+      const markdown = await readFile(path.join(contentDirectory, entry.name, file), 'utf8')
+      const key = file === 'index.md' ? entry.name : `${entry.name}/${file}`
+      const violations = file === 'index.md'
+        ? [...validatePostStructure(markdown), ...findBrokenEmphasis(markdown)]
+        : findBrokenEmphasis(markdown)
+      for (const violation of violations) results.push({ post: key, ...violation })
     }
   }
 

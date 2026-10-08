@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { validatePostStructure } from './validate-post-structure.mjs'
+import { findBrokenEmphasis, validatePostStructure } from './validate-post-structure.mjs'
 
 const ids = (body) =>
   validatePostStructure(`---\ntitle: t\n---\n\n${body}\n`).map((v) => v.id)
@@ -56,4 +56,10 @@ test('flags :::ref items without a dash', () => {
 
 test('allows a list item that opens with a bold sentence', () => {
   assert.deepEqual(ids('- **로직은 컴포넌트 밖으로 뺀다.** 순수 함수로 만든다'), [])
+})
+
+test('finds bold that CommonMark leaves as literal asterisks', () => {
+  const lines = (md) => findBrokenEmphasis(md).map((v) => v.line)
+  assert.deepEqual(lines('---\nlocale: ja\n---\n\n**決める。**ひとつ'), [5])
+  assert.deepEqual(lines('**決める**。ひとつ\n\n`a ** b`\n\n```js\n2 ** 3\n```'), [])
 })
