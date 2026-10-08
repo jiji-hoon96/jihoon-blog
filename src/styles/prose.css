@@ -60,36 +60,16 @@
   display: none;
 }
 
-/* H3 — 서브 섹션. 본문과의 위계를 분명히:
-   1) 크기 22~24px로 본문(17px)과 격차 확보
-   2) extrabold로 굵게 (본문은 400, 시각적 무게가 즉시 구분)
-   3) 색은 본문과 동일한 black100 — 톤다운하면 오히려 본문보다 약해 보인다
-   4) 좌측 3px strip을 헤딩 라인 풀하이트로 늘려 종속 섹션 마커를 강조 */
+/* H3. 위계는 크기(22~24px)와 굵기로만 준다. 왼쪽 막대는 번호 목록의 막대와 같은 모양이라
+   두 위계가 한 모티프로 겹쳐 보여서 걷어냈다(2026-10-08). 색은 본문과 같은 black100 이다. */
 .prose h3 {
   @apply text-xl sm:text-2xl font-bold mb-6 mt-14 sm:mt-20 tracking-tight;
   line-height: 1.35;
-  position: relative;
-  padding-left: 0.875rem;
   color: var(--color-light-black100);
 }
 
 .dark .prose h3 {
   color: var(--color-dark-black100);
-}
-
-.prose h3::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  border-radius: 9999px;
-  background-color: var(--color-light-black40);
-}
-
-.dark .prose h3::before {
-  background-color: var(--color-dark-black40);
 }
 
 .prose h4 {
@@ -148,68 +128,50 @@
   font-weight: 700;
 }
 
-/* Lists */
-.prose ul {
-  @apply list-none mb-5 space-y-2 pl-5;
+/* Lists. 번호와 점은 본문 왼쪽 선에 맞추고, 항목 간격은 두 목록이 같다.
+   중첩 목록은 부모 항목의 텍스트 시작선에서 시작한다. 별도 들여쓰기를 더하지 않는다. */
+.prose ul,
+.prose ol {
+  @apply list-none mb-5 pl-0;
 }
 
 .prose ol {
-  @apply list-none mb-5 pl-0;
   counter-reset: ol-counter;
 }
 
 .prose li {
-  line-height: 1.8;
-}
-
-/* Ordered list — editorial step style:
-   muted large number + thin left accent bar, generous spacing. */
-.prose ol > li {
   position: relative;
-  counter-increment: ol-counter;
-  padding-left: 2.75rem;
-  margin-bottom: 1.25rem;
+  line-height: 1.8;
+  margin-bottom: 0.5rem;
 }
 
-.prose ol > li:last-child {
+.prose li:last-child {
   margin-bottom: 0;
+}
+
+/* Ordered list. 번호만 회색으로 둔다. 막대나 배지 같은 장식은 쓰지 않는다. */
+.prose ol > li {
+  counter-increment: ol-counter;
+  padding-left: 1.75rem;
 }
 
 .prose ol > li::before {
   content: counter(ol-counter) ".";
   position: absolute;
-  left: 0.75rem;
+  left: 0;
   top: 0;
-  font-size: 1rem;
-  line-height: inherit;
   font-weight: 700;
-  color: var(--color-light-black100);
+  color: var(--color-light-gray80);
   font-variant-numeric: tabular-nums;
 }
 
 .dark .prose ol > li::before {
-  color: var(--color-dark-black100);
+  color: var(--color-dark-gray80);
 }
 
-.prose ol > li::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.5rem;
-  bottom: 0.5rem;
-  width: 2px;
-  border-radius: 9999px;
-  background-color: var(--color-light-gray40);
-}
-
-.dark .prose ol > li::after {
-  background-color: var(--color-dark-gray40);
-}
-
-/* Unordered list — smaller, softer dot to avoid visual heaviness */
+/* Unordered list */
 .prose ul > li {
-  position: relative;
-  padding-left: 1.125rem;
+  padding-left: 1.25rem;
 }
 
 .prose ul > li::before {
@@ -217,7 +179,7 @@
   position: absolute;
   border-radius: 9999px;
   background-color: var(--color-light-gray80);
-  left: 2px;
+  left: 0.25rem;
   top: 0.7em;
   width: 5px;
   height: 5px;
@@ -229,27 +191,7 @@
 
 .prose li > ul,
 .prose li > ol {
-  @apply mt-2 ml-2;
-}
-
-/* Nested ol inside ol: smaller, even more muted, no accent bar to avoid noise */
-.prose ol ol > li {
-  padding-left: 2.25rem;
-  margin-bottom: 0.75rem;
-}
-
-.prose ol ol > li::before {
-  font-size: 0.875rem;
-  color: var(--color-light-gray80);
-  left: 0.5rem;
-}
-
-.dark .prose ol ol > li::before {
-  color: var(--color-dark-gray80);
-}
-
-.prose ol ol > li::after {
-  display: none;
+  @apply mt-2 mb-0;
 }
 
 /* Blockquotes — 한글 italic 가독성이 떨어지므로 italic 제거하고
