@@ -488,11 +488,11 @@ FilingModel.canSubmit(filing);
 
 `FilingModel.canAmend(filing)`은 `filing.canAmend()`만큼은 아니지만, 최소한 이 함수가 Filing 도메인에 속한다는 것이 코드에서 바로 드러난다. 함수가 여러 도메인에 걸쳐 섞일 위험도 없어진다.
 
-#### 첫 번째 인자를 도메인 주체로 통일하기
+#### 첫 인자는 도메인 주체로
 
 함수형에서 응집을 표현하는 또 다른 컨벤션이 있다. **첫 번째 인자를 항상 "행위의 주체"로 둔다.** `canAmend(filing)`, `calculateTotalIncome(income)`처럼 시그니처를 통일하면 `canAmend(filing)`은 "filing에 대해 canAmend를 물어본다"로 읽힌다. Unix의 파이프라인 사고방식(`data |> transform`)과도 일맥상통한다. 사실 Go 언어의 메서드 리시버가 정확히 이 패턴이고, Rust의 `impl` 블록에서 `self`를 첫 인자로 받는 것도 같은 발상이다.
 
-#### 도메인 객체 생성 함수(Factory)로 행위를 묶기
+#### Factory 함수로 행위 묶기
 
 Class의 응집력이 그리울 때 사용할 수 있는 패턴이다. 팩토리 함수가 도메인 객체와 그 행위를 한 번에 반환한다.
 

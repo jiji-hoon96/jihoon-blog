@@ -9,7 +9,7 @@ description: "Onde a lógica de domínio deve ficar no frontend, com um exemplo 
 keywords: "modelo de domínio no frontend, design orientado a domínio, DDD no frontend, Frontend DDD, separação da lógica de domínio, Anemic Domain Model, modelo de domínio anêmico, Clean Architecture no frontend, Martin Fowler, padrões de design React, arquitetura frontend, separação de ViewModel, Bounded Context"
 locale: pt-BR
 translationOf: '260418'
-sourceHash: d6b76ba7f8a6d52a0ab5d57ff19ae3a276e5feee996a0536f0a670a00ad6e878
+sourceHash: 000e6a66d1f0d04efadc85f811baced7fd8a4c85197034a3063499e601dd7468
 ---
 
 Neste post, quero falar sobre **onde a lógica de domínio deve ficar no frontend**.
@@ -491,11 +491,11 @@ FilingModel.canSubmit(filing);
 
 `FilingModel.canAmend(filing)` não é tão conciso quanto `filing.canAmend()`, mas ao menos torna evidente no próprio código que a função pertence ao domínio de Filing. Também elimina o risco de misturar funções de vários domínios.
 
-#### Padronizar o primeiro argumento como sujeito do domínio
+#### O sujeito do domínio como primeiro argumento
 
 Há outra convenção para expressar coesão no estilo funcional: **o primeiro argumento é sempre o "sujeito da ação"**. Ao padronizar as assinaturas como `canAmend(filing)` e `calculateTotalIncome(income)`, `canAmend(filing)` passa a ser lido como "perguntar canAmend sobre filing". Isso também se alinha à mentalidade de pipeline do Unix (`data |> transform`). Na verdade, o receiver de método da linguagem Go segue exatamente esse padrão, e, em um bloco `impl` do Rust, receber `self` como primeiro argumento parte da mesma ideia.
 
-#### Agrupar comportamentos em uma função de criação de objeto de domínio (Factory)
+#### Agrupar comportamentos em uma Factory
 
 Esse padrão pode ser usado quando sentimos falta da coesão de uma Class. Uma função Factory retorna de uma só vez o objeto de domínio e seus comportamentos.
 

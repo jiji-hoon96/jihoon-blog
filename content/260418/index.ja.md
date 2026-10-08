@@ -9,7 +9,7 @@ description: "フロントエンドのドメインロジックをどこに置く
 keywords: "フロントエンド ドメインモデル, ドメイン駆動設計, DDD フロントエンド, Frontend DDD, ドメインロジック分離, Anemic Domain Model, 貧血ドメインモデル, Clean Architecture フロントエンド, Martin Fowler, React 設計パターン, フロントエンドアーキテクチャ, ViewModel 分離, Bounded Context"
 locale: ja
 translationOf: '260418'
-sourceHash: d6b76ba7f8a6d52a0ab5d57ff19ae3a276e5feee996a0536f0a670a00ad6e878
+sourceHash: 000e6a66d1f0d04efadc85f811baced7fd8a4c85197034a3063499e601dd7468
 ---
 
 今回の記事では、**フロントエンドのドメインロジックをどこに置くべきか**について話してみたい。
@@ -491,11 +491,11 @@ FilingModel.canSubmit(filing);
 
 `FilingModel.canAmend(filing)`は`filing.canAmend()`ほどではないが、少なくともこの関数がFilingドメインに属することがコードからすぐに分かる。関数が複数のドメインにまたがって混在するリスクもなくなる。
 
-#### 最初の引数をドメインの主体に統一する
+#### 最初の引数はドメインの主体に
 
 関数型で凝集を表す、もう一つの規約がある。**最初の引数を常に「振る舞いの主体」にする。** `canAmend(filing)`、`calculateTotalIncome(income)`のようにシグネチャを統一すると、`canAmend(filing)`は「filingについてcanAmendかどうかを問う」と読める。Unixのパイプラインという考え方（`data |> transform`）にも通じる。実際、Goのメソッドレシーバーはまさにこのパターンであり、Rustの`impl`ブロックで`self`を最初の引数として受け取るのも同じ発想である。
 
-#### ドメインオブジェクトの生成関数（Factory）で振る舞いをまとめる
+#### Factory 関数で振る舞いをまとめる
 
 Classの凝集性が欲しいときに使えるパターンである。ファクトリ関数がドメインオブジェクトとその振る舞いをまとめて返す。
 

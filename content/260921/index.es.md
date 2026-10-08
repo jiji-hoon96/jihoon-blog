@@ -8,7 +8,7 @@ description: 'Cambiar un flag global isOpen por un await: lo que gané, lo que p
 keywords: 'overlay-kit, gestión de estado de modales en React, interfaz declarativa, openAsync, useOverlay, modal con Promise, overlay React, nice-modal-react'
 locale: es
 translationOf: '260921'
-sourceHash: bd323089f5880e7531b68e2536604afc740c2c5ebb61d2fcfdf83385a556a83b
+sourceHash: 4f728d708b53ac4df10a72ae8b6da95ae923df39f44d27a36e90f57b381593ec
 ---
 
 En este artículo quiero hablar de las interfaces que tratan los overlays de forma declarativa.
@@ -183,7 +183,7 @@ El fallo aparece con dos formas. Al abrir no hay estado inicial, así que no se 
 
 La última fila explica por qué el lado que cierra queda en manos de quien usa la librería. En el lado que abre, la librería conoce la constante: basta con un frame. En el lado que cierra, la librería no puede saber si la animación dura 200 o 400 milisegundos.
 
-#### Por eso un lado es automático y el otro se entrega como una función llamada `unmount`
+#### El cierre entregado como `unmount`
 
 Lo que sostiene el lado que cierra está en el reducer. `CLOSE` solo invierte, dentro de `overlayData`, el valor `isOpen`, y no toca `overlayOrderList`. El provider renderiza recorriendo esa lista, así que el componente sigue vivo mientras permanezca en ella. Solo se desmonta cuando `REMOVE` lo saca.
 
@@ -277,7 +277,7 @@ Estos fueron los resultados, ejecutados con vitest sobre la rama main en la vers
 
 La tercera fila es un comportamiento que la documentación describe como una función, así que salió como esperaba. El problema es la primera fila.
 
-### Si solo haces `close` y reabres con el mismo id, el JSX nuevo con el contenido cambiado se ignora y aparece la pantalla anterior tal cual
+### El JSX nuevo se ignora
 
 Aquí comprobé una cosa más. Más abajo, en el mismo reducer, hay este comentario.
 
@@ -290,7 +290,7 @@ overlayOrderList: [...state.overlayOrderList.filter((item) => item !== action.ov
 
 Dice que reabrir después de cerrar trae el overlay al frente. Pero como la rama anterior llega antes a `return`, esta línea no se ejecuta en esa situación. Apilé dos overlays, hice `close` sobre el de abajo, lo volví a abrir y el orden del DOM no cambió.
 
-### Lo que describe el comentario y lo que ocurre de verdad son cosas distintas
+### Un comportamiento que contradice el comentario
 
 Eso sí, no comprobé si esto se manifiesta como un problema visible en pantalla. La prueba solo miró el orden del DOM y, como la mayoría de las librerías de diálogos usan su propio z-index o portales, el orden del DOM no equivale al orden visual.
 
