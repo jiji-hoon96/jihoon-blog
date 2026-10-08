@@ -6,7 +6,7 @@ date: "2026-05-24"
 updatedAt: "2026-10-08"
 locale: en
 translationOf: '260524'
-sourceHash: fd3f65bb3af440c545df1ff8dc578fe055a2f12ae9af2be784adc03369a89d11
+sourceHash: c875da907fb126eda19d80e783e72785cccab4386558a197481c554cc9d8efce
 categories: AI Developer-Tools Claude MCP
 description: "How MCP differs from function calling: six primitives, stdio and Streamable HTTP, the tools/list to tool_use loop flow, and risks like Tool Poisoning."
 keywords: "MCP, Model Context Protocol, MCP vs function calling, MCP primitives, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP security"
@@ -46,7 +46,7 @@ The overview of the 2025-11-25 specification lists three features that servers o
 - **Roots**: workspace boundary information through which the client tells the server, “This is the extent of the area you may work in”
 - **Elicitation**: a feature that allows the server to request additional user input in a structured form while executing a tool
 
-This distinction matters because **who decides to invoke or provide something differs**. A Tool runs at the model’s discretion, so an incorrect invocation carries risk, while a Prompt is explicitly chosen by the user. A Resource is chosen by the application by default, but the specification also allows implementations that include resources automatically, based on heuristics or the model’s selection. So it cannot be said that a Resource is always safer than a Tool. The three client-side primitives run in the opposite direction: the server asks, and the client decides whether to respond.
+This distinction matters because **who decides to invoke or provide something differs**. A Tool runs at the model’s discretion, so an incorrect invocation carries risk, while a Prompt is explicitly chosen by the user. A Resource is chosen by the application by default, but the specification also allows implementations that include resources automatically, based on heuristics or the model’s selection. The three client-side primitives run in the opposite direction: the server asks, and the client decides whether to respond.
 
 ### Two Transports
 
@@ -65,7 +65,7 @@ In the 2025-11-25 revision, the following handshake takes place when a connectio
 - **Client → server**: `tools/list` request → receives the list of available tools
 - (Later) The LLM decides to invoke a tool → the client sends `tools/call` → receives the result
 
-What to look at here is the **`initialize` response’s `instructions` field**. It is where the server sends text describing how its tools should be used, and the [comment in the specification schema](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts) only says this content MAY be added to the system prompt, so whether to add it is up to the host.
+The `initialize` response’s `instructions` field is where the server sends text describing how its tools should be used. The instructions line in the demo output below shows this value.
 
 How, then, does the tool definition itself enter the LLM’s field of view? An MCP tool definition takes the following JSON Schema form.
 
@@ -178,15 +178,11 @@ In other words, when MCP is consumed at the function calling layer, only Tool re
 
 ### The Attack Surface Dynamic Discovery Opens
 
-**MCP does not automate authorization.** The [tool specification](https://modelcontextprotocol.io/specification/2025-11-25/server/tools) recommends that a human who can deny tool invocations be in the loop (SHOULD), and requires that tool annotations not be trusted unless they come from trusted servers (MUST). Which servers to trust, and whether a tool will continue to behave the same way over time, is up to the host and the user.
+Tool descriptions and tool call results pass through the host into the model’s context. So whatever a server writes there, the model reads. Both representative attacks come from this.
 
-Both representative attacks come from the fact that tool definitions travel at runtime.
+- **Tool Poisoning Attack (TPA)**: an attack named and demonstrated in a PoC by [Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks) in April 2025. If malicious instructions are hidden inside an MCP server’s tool description, the model reads that text, which the user never sees, and may follow it without the user knowing.
 
-- **Tool Poisoning Attack (TPA)**: an attack named and demonstrated in a PoC by [Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks) in April 2025. If malicious instructions are hidden inside an MCP server’s tool description, the model may follow those instructions without the user knowing. The text is invisible to the user but visible to the model. I see the `instructions` field from earlier as the same kind of place, because text written by the server can end up in front of the model.
-
-- **Rug Pull** (Silent Redefinition): an attack in which the server changes a tool definition after the user has approved it. Invariant Labs described it first in the same post, the name Silent Redefinition comes from a post by Elena Cross, and [Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/) quoted it in his write-up on April 9, 2025. You approve a safe-looking tool on day 1, and by day 7 that tool has been changed to send your API keys to an attacker. Because the user is not asked to approve it again, the behavior simply changes.
-
-A Rug Pull comes from the structure in which tool definitions are fetched from the server at runtime rather than at install time. `notifications/tools/list_changed` is only a channel for announcing that change; the same thing happens if only the next `tools/list` response changes, with no notification. The specification defines how to announce that the list has changed and recommends (SHOULD) UI that shows which tools are exposed to the model, but it does not require showing the changed definition to the user again. Willison wrote that MCP clients should show users the initial tool descriptions and alert them if those descriptions change. Getting re-approval after a change is the host’s job, not the specification’s.
+- **Rug Pull**: an attack, described by Invariant Labs in the same post, in which the server changes a tool definition after the user has approved it. As in Elena Cross's example [quoted by Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/), you approve a safe-looking tool on day 1, and by day 7 that tool has been changed to send your API keys to an attacker; it happens because tool definitions are fetched from the server at runtime rather than at install time. The [tool specification](https://modelcontextprotocol.io/specification/2025-11-25/server/tools) recommends (SHOULD) UI that shows which tools are exposed to the model but does not require re-approval of a changed definition, so re-approval falls to the host.
 
 
 ## Wrapping Up

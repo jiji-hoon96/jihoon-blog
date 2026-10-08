@@ -9,7 +9,7 @@ description: "Cómo difiere MCP de function calling: seis primitivas, stdio y St
 keywords: "MCP, Model Context Protocol, MCP vs function calling, primitivas MCP, tools/list, Streamable HTTP, Tool Poisoning Attack, seguridad MCP"
 locale: es
 translationOf: '260524'
-sourceHash: fd3f65bb3af440c545df1ff8dc578fe055a2f12ae9af2be784adc03369a89d11
+sourceHash: c875da907fb126eda19d80e783e72785cccab4386558a197481c554cc9d8efce
 ---
 
 En esta publicación quiero hablar sobre **en qué se diferencia MCP (Model Context Protocol) de function calling**.
@@ -46,7 +46,7 @@ La visión general de la especificación 2025-11-25 enumera tres funciones que o
 - **Roots**: información sobre los límites del espacio de trabajo con la que el cliente le dice al servidor «hasta aquí llega el área en la que puedes trabajar»
 - **Elicitation**: una función que permite al servidor pedir al usuario datos adicionales de forma estructurada mientras ejecuta una herramienta
 
-Esta distinción importa porque **quién decide invocar o proporcionar algo es distinto**. Un Tool se ejecuta por decisión del modelo, así que una invocación errónea implica riesgo, mientras que un Prompt lo elige el usuario de forma explícita. Un Resource lo elige la aplicación por defecto, pero la especificación también permite implementaciones que incluyen recursos automáticamente, según heurísticas o la selección del modelo. Por eso no se puede afirmar que un Resource sea siempre más seguro que un Tool. Las tres primitivas del lado del cliente van en sentido contrario: el servidor pide y el cliente decide si responde.
+Esta distinción importa porque **quién decide invocar o proporcionar algo es distinto**. Un Tool se ejecuta por decisión del modelo, así que una invocación errónea implica riesgo, mientras que un Prompt lo elige el usuario de forma explícita. Un Resource lo elige la aplicación por defecto, pero la especificación también permite implementaciones que incluyen recursos automáticamente, según heurísticas o la selección del modelo. Las tres primitivas del lado del cliente van en sentido contrario: el servidor pide y el cliente decide si responde.
 
 ### Dos mecanismos de transporte
 
@@ -65,7 +65,7 @@ En la revisión 2025-11-25, al iniciarse una conexión se produce el siguiente h
 - **Cliente → servidor**: solicitud `tools/list` → recibe la lista de herramientas disponibles
 - (Después) El LLM decide invocar una herramienta → el cliente envía `tools/call` → recibe el resultado
 
-Lo que conviene mirar aquí es la **respuesta `initialize` y su campo `instructions`**. Es donde el servidor envía un texto sobre cómo deben usarse sus herramientas, y el [comentario del esquema de la especificación](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts) solo dice que este contenido MAY añadirse al system prompt, así que añadirlo o no lo decide el host.
+En la respuesta `initialize`, el campo `instructions` es donde el servidor envía un texto sobre cómo deben usarse sus herramientas. La línea instructions de la salida de la demo, más abajo, muestra ese valor.
 
 Entonces, ¿cómo entra la propia definición de la herramienta en el campo de visión del LLM? La definición de una herramienta MCP tiene esta forma de JSON Schema.
 
@@ -178,15 +178,11 @@ Es decir, cuando MCP se consume en la capa de function calling, solo queda Tool.
 
 ### La superficie de ataque del descubrimiento dinámico
 
-**MCP no automatiza la autorización.** La [especificación de tools](https://modelcontextprotocol.io/specification/2025-11-25/server/tools) recomienda que haya en el bucle una persona capaz de rechazar invocaciones de herramientas (SHOULD) y exige no confiar en las tool annotations salvo que procedan de servidores de confianza (MUST). En qué servidores confiar y si una herramienta seguirá comportándose igual con el tiempo queda en manos del host y del usuario.
+Las descripciones de las herramientas y los resultados de sus invocaciones llegan, a través del host, al contexto del modelo. Así que, escriba lo que escriba ahí el servidor, el modelo lo lee. Los dos ataques representativos nacen de ahí.
 
-Los dos ataques representativos nacen de que las definiciones de herramientas viajan en tiempo de ejecución.
+- **Tool Poisoning Attack (TPA)**: un ataque al que [Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks) dio nombre y del que publicó una PoC en abril de 2025. Si se ocultan instrucciones maliciosas en la descripción (description) de una herramienta de un servidor MCP, el modelo lee ese texto, que el usuario no ve, y puede seguirlo sin que el usuario lo sepa.
 
-- **Tool Poisoning Attack (TPA)**: un ataque al que [Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks) dio nombre y del que publicó una PoC en abril de 2025. Si se ocultan instrucciones maliciosas en la descripción (description) de una herramienta de un servidor MCP, el modelo puede seguir esas instrucciones sin que el usuario lo sepa. Es un texto invisible para el usuario, pero visible para el modelo. En mi opinión, el campo `instructions` que vimos antes es un espacio del mismo tipo, porque un texto escrito por el servidor puede acabar delante del modelo.
-
-- **Rug Pull** (Silent Redefinition): un ataque en el que el servidor cambia la definición de una herramienta después de que el usuario la aprobó. Invariant Labs lo describió primero en la misma publicación, el nombre Silent Redefinition procede de un texto de Elena Cross, y [Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/) lo citó en su análisis del 9 de abril de 2025. Apruebas el día 1 una herramienta de aspecto seguro y, para el día 7, esa herramienta ha cambiado para enviar tus claves de API a un atacante. Como el usuario no tiene que volver a aprobarla, el comportamiento cambia sin más.
-
-Un Rug Pull nace de una estructura en la que las definiciones de herramientas se obtienen del servidor en tiempo de ejecución y no en el momento de la instalación. `notifications/tools/list_changed` es solo un canal para avisar de ese cambio; lo mismo ocurre si, sin ninguna notificación, solo cambia la siguiente respuesta de `tools/list`. La especificación define cómo avisar de que la lista cambió y recomienda (SHOULD) una UI que muestre qué herramientas se exponen al modelo, pero no exige volver a mostrar al usuario la definición modificada. Willison escribió que los clientes MCP deberían mostrar a los usuarios las descripciones iniciales de las herramientas y alertarles si esas descripciones cambian. Pedir una nueva aprobación tras un cambio es tarea del host, no de la especificación.
+- **Rug Pull**: un ataque, descrito por Invariant Labs en la misma publicación, en el que el servidor cambia la definición de una herramienta después de que el usuario la aprobó. Como en el ejemplo de Elena Cross [citado por Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/), apruebas el día 1 una herramienta de aspecto seguro y, para el día 7, esa herramienta ha cambiado para enviar tus claves de API a un atacante; ocurre porque las definiciones de herramientas se obtienen del servidor en tiempo de ejecución y no en el momento de la instalación. La [especificación de tools](https://modelcontextprotocol.io/specification/2025-11-25/server/tools) recomienda (SHOULD) una UI que muestre qué herramientas se exponen al modelo, pero no exige volver a aprobar una definición modificada, así que esa nueva aprobación queda en manos del host.
 
 
 ## Conclusión

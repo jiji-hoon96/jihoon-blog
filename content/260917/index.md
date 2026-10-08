@@ -1,7 +1,7 @@
 ---
 emoji: 🎯
 title: "LLM calibration과 overconfidence"
-seoTitle: "LLM calibration과 ECE 계산법: RLHF 뒤 모델의 확률은 왜 어긋나는가"
+seoTitle: "LLM calibration과 ECE 계산법: RLHF를 거친 모델의 확률은 왜 어긋나는가"
 date: "2026-09-17"
 updatedAt: "2026-10-08"
 categories: AI calibration
@@ -58,7 +58,7 @@ console.log(ece(answers.map((a) => ({ ...a, p: 0.95 }))).toFixed(3)) // 매번 0
 
 ## RLHF의 목표 함수
 
-그렇다면 사람의 피드백으로 다듬은 모델은 왜 이 눈금이 어긋날까. 먼저 :term[RLHF]{key="rlhf"}(reinforcement learning from human feedback)가 무엇을 최적화하는지 봐야 한다. 사람의 선호 비교로 보상 모델을 세우는 골격은 Atari 게임과 MuJoCo 로봇 시뮬레이션을 다룬 [Deep reinforcement learning from human preferences](https://arxiv.org/abs/1706.03741)에서 나왔다. 이것을 언어 모델에 옮긴 초기 작업이 [Ziegler et al. 2019](https://arxiv.org/abs/1909.08593)이고, [Learning to summarize from human feedback](https://arxiv.org/abs/2009.01325)이 요약 과제에서 규모를 키웠으며, [InstructGPT](https://arxiv.org/abs/2203.02155)가 지시 따르기로 확장했다. 이 계보가 공유하는 목표는 하나다. **평가자인 사람이 더 선호하는 출력을 내는 것.** 실제로 끌어올리는 값은 사람의 선호를 흉내 낸 보상 모델의 점수다. 이 계열은 강화학습을 시작하기 전 모델에서 너무 멀어지지 않도록 붙잡는 KL penalty를 보상에 더하고, InstructGPT는 사전학습 데이터의 기울기도 섞었지만(PPO-ptx), 끌어올리는 대상은 여전히 그 점수다.
+그렇다면 사람의 피드백으로 다듬은 모델은 왜 이 눈금이 어긋날까. 먼저 :term[RLHF]{key="rlhf"}(reinforcement learning from human feedback)가 무엇을 최적화하는지 봐야 한다. 사람의 선호 비교로 보상 모델을 세우는 골격은 [Christiano et al. 2017](https://arxiv.org/abs/1706.03741)에서 나왔고, 이것을 언어 모델에 옮긴 초기 작업이 [Ziegler et al. 2019](https://arxiv.org/abs/1909.08593)이며, [InstructGPT](https://arxiv.org/abs/2203.02155)가 지시 따르기에 적용했다. 이때 끌어올리는 값은 **사람의 선호를 흉내 낸 보상 모델의 점수**다. 언어 모델 쪽 작업은 강화학습을 시작하기 전 모델에서 너무 멀어지지 않도록 KL penalty를 보상에 더하고, InstructGPT는 사전학습 데이터의 기울기도 섞었지만(PPO-ptx), 끌어올리는 대상은 여전히 그 점수다.
 
 챗봇에는 사람의 선호가 맞는 목표다. 문제는 그 선호가 불확실성을 드러낸 말투를 피하는 쪽으로 기울어 있다는 것이다. [Zhou et al. 2024](https://arxiv.org/abs/2401.06730)는 네 개의 공개 선호 데이터셋에서 주석자가 "I'm not sure, maybe" 같은 약화 표현이 든 답을 덜 고른다는 것을 보였다. 차이는 작지만 유의했다. 다만 확신을 강조한 표현이 든 답을 더 고르지는 않았다. [Leng et al. 2025](https://arxiv.org/abs/2410.09724)는 보상 모델이 답의 실제 품질과 상관없이 높은 확신 점수를 적은 답에 점수를 더 준다는 것을 보였다. 둘 다 토큰 확률이 아니라 문장 속 확신 표현(verbalized confidence)에 대한 결과다. RLHF를 대신할 학습법을 내놓은 TypeSafe도 자사의 [입문 문서](https://docs.typesafe.ai/introduction/machine-learning-primer)에서 RLHF가 자신 있게 들리는 환각(confident-sounding hallucinations)을 보상할 수 있다고 적는다. 대안을 파는 쪽의 입장이다.
 
@@ -82,7 +82,7 @@ Figure 8의 오른쪽(PPO) 패널에서 0.4 이상 구간의 막대는 대각선
 
 Figure 8의 확률은 토큰의 로그 확률이다. 같은 종류의 값을 받으려면 [OpenAI API 명세](https://github.com/openai/openai-openapi/blob/506aff0a8099581b50e119b87f8f2692cdad043f/openapi.yaml)대로 Chat Completions 요청에 `logprobs`를 `true`로 주고, `top_logprobs`로 토큰 위치마다 받을 후보 수를 0에서 20 사이로 정한다. 모델에게 답과 함께 확신도를 숫자로 말하게 해서 받는 값은 문장으로 말한 확신이고, 토큰 확률과는 다른 값이다.
 
-두 값을 다룬 연구는 서로 다른 짝을 비교한다. [Tian et al. 2023](https://arxiv.org/abs/2305.14975)은 ChatGPT, GPT-4, Claude 같은 RLHF 모델 안에서 문장으로 말한 확신이 조건부 확률보다 대체로 calibration이 좋았고, 세 벤치마크에서 ECE를 상대적으로 50% 가량 줄인 경우가 많았다고 보고했다. 다만 이 비교에서 가중치가 공개되지 않은 모델의 조건부 확률은 API의 토큰 확률이 아니라 같은 질문을 10번 샘플링해 답이 나온 비율로 추정한 값이다. 앞서 본 Leng et al.은 RLHF 이전 모델과 견주어 RLHF 모델이 문장으로 말한 확신에서 더 overconfident하다고 보고했다. 두 결과는 함께 성립할 수 있다. 그리고 0.074는 2023년 GPT-4 post-training 모델이 MMLU 일부에서 낸 값이라, 지금 API로 부르는 모델에 그대로 옮길 수 없다. 어느 쪽 확률을 쓰든 자기 데이터에서 다시 재야 한다.
+두 값을 다룬 연구는 서로 다른 짝을 비교한다. [Tian et al. 2023](https://arxiv.org/abs/2305.14975)은 ChatGPT, GPT-4, Claude 같은 RLHF 모델 안에서 문장으로 말한 확신이 조건부 확률보다 대체로 calibration이 좋았고, 세 벤치마크에서 ECE를 상대적으로 50% 가량 줄인 경우가 많았다고 보고했다. 다만 이 비교에서 가중치가 공개되지 않은 모델의 조건부 확률은 API의 토큰 확률이 아니라 같은 질문을 10번 샘플링해 답이 나온 비율로 추정한 값이다. 앞서 본 Leng et al.은 RLHF 이전 모델과 견주어 RLHF 모델이 문장으로 말한 확신에서 더 overconfident하다고 보고했다. 두 결과는 함께 성립할 수 있다. 그리고 0.074는 2023년 GPT-4 post-training 모델이 MMLU 일부에서 낸 값이라, 지금 API로 부르는 모델에 그대로 옮길 수 없다.
 
 ## 마무리
 

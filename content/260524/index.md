@@ -43,7 +43,7 @@ MCP는 JSON-RPC 위에 만들어진 프로토콜이다. [JSON-RPC 2.0](https://w
 - **Roots**: 클라이언트가 서버에게 "여기까지가 작업 가능한 범위"라고 알려주는 워크스페이스 경계 정보
 - **Elicitation**: 서버가 도구를 실행하는 도중에 사용자에게 추가 입력을 구조화된 형태로 요청할 수 있게 해주는 기능
 
-이 구분이 중요한 이유는 **누가 호출이나 제공을 결정하는가**가 다르기 때문이다. Tool은 모델이 판단해 실행하니 잘못된 호출의 리스크가 있고, Prompt는 사용자가 명시적으로 고른다. Resource는 앱이 고르는 것이 기본이지만, 스펙은 heuristic이나 모델의 선택으로 자동 포함하는 구현도 허용한다. 그래서 Resource가 늘 Tool보다 안전하다고 말할 수는 없다. 클라이언트측 세 가지는 방향이 반대다. 서버가 요청하고, 응할지는 클라이언트가 정한다.
+이 구분이 중요한 이유는 **누가 호출이나 제공을 결정하는가**가 다르기 때문이다. Tool은 모델이 판단해 실행하니 잘못된 호출의 리스크가 있고, Prompt는 사용자가 명시적으로 고른다. Resource는 앱이 고르는 것이 기본이지만, 스펙은 heuristic이나 모델의 선택으로 자동 포함하는 구현도 허용한다. 클라이언트측 세 가지는 방향이 반대다. 서버가 요청하고, 응할지는 클라이언트가 정한다.
 
 ### 두 가지 전송 방식
 
@@ -62,7 +62,7 @@ primitive와 전송 방식까지 봤으니, 이제 **실제로 LLM이 MCP 도구
 - **클라이언트 → 서버**: `tools/list` 요청 → 사용 가능한 도구 목록 수신
 - (이후) LLM이 도구를 호출하기로 결정 → 클라이언트가 `tools/call` 발송 → 결과 수신
 
-여기서 볼 것이 **`initialize` 응답의 `instructions` 필드**다. 서버가 도구를 어떻게 써야 하는지 텍스트로 적어 보내는 자리인데, [스펙 schema의 주석](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts)은 이 내용을 시스템 프롬프트에 넣어도 된다(MAY)고만 적으므로 넣을지는 호스트가 정한다.
+`initialize` 응답의 `instructions` 필드는 서버가 도구를 어떻게 써야 하는지 텍스트로 적어 보내는 자리다. 아래 데모 출력의 instructions 줄이 이 값이다.
 
 그러면 tool 정의 자체는 어떻게 LLM의 시야에 들어갈까. MCP의 tool 정의는 다음과 같은 JSON Schema 형태다.
 
@@ -175,15 +175,11 @@ Sampling과 Roots는 Logging과 함께 deprecated 되었다. 명세에 남아 �
 
 ### 동적 발견이 여는 공격면
 
-**MCP는 권한 부여를 자동화하지 않는다.** [tool 명세](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)는 tool 호출을 거부할 수 있는 사람이 루프 안에 있어야 한다고 권하고(SHOULD), 신뢰하는 서버가 아니면 tool annotation을 믿지 말라고 요구한다(MUST). 어떤 서버를 신뢰할지, 그 도구가 시간이 지나도 같은 동작을 할지는 호스트와 사용자의 몫이다.
+도구의 description과 도구 호출 결과는 호스트를 거쳐 모델의 context에 들어간다. 그러니 서버가 그 자리에 무엇을 쓰든 모델은 그것을 읽는다. 대표적인 공격 두 가지가 모두 여기서 나온다.
 
-대표적인 공격 두 가지가 모두 도구 정의가 런타임에 오간다는 데서 나온다.
+- **Tool Poisoning Attack(TPA)** : [Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)가 2025년 4월에 명명하고 PoC를 공개한 공격이다. MCP 서버의 도구 설명(description)에 악의적 지시사항을 숨겨 두면, 모델은 사용자에게 보이지 않는 그 텍스트를 읽고 사용자 모르게 따를 수 있다.
 
-- **Tool Poisoning Attack(TPA)** : [Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)가 2025년 4월에 명명하고 PoC를 공개한 공격이다. MCP 서버의 도구 설명(description)에 악의적 지시사항을 숨겨두면, 모델이 사용자 모르게 그 지시를 따를 수 있다. 사용자에게는 보이지 않는 텍스트지만 모델에는 보이는 것이다. 필자는 앞에서 본 `instructions` 필드도 같은 성격의 자리라고 본다. 서버가 쓴 텍스트가 모델 앞에 놓일 수 있기 때문이다.
-
-- **Rug Pull**(Silent Redefinition): 사용자가 승인한 뒤에 서버가 도구 정의를 바꾸는 공격이다. Invariant Labs가 같은 글에서 먼저 설명했고, Silent Redefinition이라는 이름은 Elena Cross의 글에서 왔으며, [Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/)이 2025년 4월 9일 이를 인용해 정리했다. 1일 차에 안전해 보이는 도구를 승인했는데, 7일 차에는 그 도구가 API 키를 공격자에게 보내도록 바뀌어 있는 식이다. 사용자에게 다시 승인을 받지 않으니 동작이 그대로 바뀐다.
-
-Rug Pull은 도구 정의를 설치 시점이 아니라 런타임에 서버에서 받아 온다는 구조에서 나온다. `notifications/tools/list_changed` 는 그 변경을 알리는 통로일 뿐이고, 알림 없이 다음 `tools/list` 응답만 바뀌어도 같은 일이 생긴다. 스펙은 목록이 바뀌었다고 알리는 방법을 정하고, 어떤 도구가 모델에 노출되는지 보여 주는 UI를 권할(SHOULD) 뿐, 바뀐 정의를 사용자에게 다시 보여 주라고 요구하지는 않는다. Willison은 MCP 클라이언트가 처음 도구 설명을 사용자에게 보여 주고, 설명이 바뀌면 경고해야 한다고 적었다. 변경 뒤에 재승인을 받는 일은 스펙이 아니라 호스트가 맡는다.
+- **Rug Pull**: Invariant Labs가 같은 글에서 설명한 공격으로, 사용자가 승인한 뒤에 서버가 도구 정의를 바꾼다. [Simon Willison이 인용한](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/) Elena Cross의 예처럼, 1일 차에 안전해 보이는 도구를 승인했는데 7일 차에는 그 도구가 API 키를 공격자에게 보내도록 바뀌어 있는 식이고, 도구 정의를 설치 시점이 아니라 런타임에 서버에서 받아 오는 구조라서 생긴다. [tool 명세](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)는 어떤 도구가 모델에 노출되는지 보여 주는 UI를 권할(SHOULD) 뿐 바뀐 정의를 다시 승인받으라고 요구하지는 않으므로, 재승인은 호스트의 몫이다.
 
 
 ## 마무리

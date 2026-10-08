@@ -6,7 +6,7 @@ date: "2026-05-24"
 updatedAt: "2026-10-08"
 locale: zh-CN
 translationOf: '260524'
-sourceHash: fd3f65bb3af440c545df1ff8dc578fe055a2f12ae9af2be784adc03369a89d11
+sourceHash: c875da907fb126eda19d80e783e72785cccab4386558a197481c554cc9d8efce
 categories: AI 开发工具 Claude MCP
 description: "从协议结构梳理 MCP（Model Context Protocol）与 function calling 的区别：六种 primitive、stdio 与 Streamable HTTP、从 tools/list 到 tool_use 循环的调用流程，以及 Tool Poisoning 等安全问题。"
 keywords: "MCP, Model Context Protocol, MCP 与 function calling 区别, MCP primitive, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP 安全"
@@ -46,7 +46,7 @@ MCP 是建立在 JSON-RPC 之上的协议。[JSON-RPC 2.0](https://www.jsonrpc.o
 - **Roots**：client 向 server 说明“可操作范围到这里为止”的 workspace 边界信息
 - **Elicitation**：server 在执行工具的过程中，以结构化形式向用户请求补充输入
 
-这种区分之所以重要，是因为**由谁决定调用或提供**各不相同。Tool 由模型判断并执行，因此存在误调用风险；Prompt 由用户明确选择。Resource 默认由应用选择，但规范也允许依据启发式规则或模型的选择自动纳入的实现。因此不能说 Resource 总是比 Tool 更安全。client 侧的三种方向正好相反：由 server 发出请求，是否响应由 client 决定。
+这种区分之所以重要，是因为**由谁决定调用或提供**各不相同。Tool 由模型判断并执行，因此存在误调用风险；Prompt 由用户明确选择。Resource 默认由应用选择，但规范也允许依据启发式规则或模型的选择自动纳入的实现。client 侧的三种方向正好相反：由 server 发出请求，是否响应由 client 决定。
 
 ### 两种传输方式
 
@@ -65,7 +65,7 @@ MCP 是建立在 JSON-RPC 之上的协议。[JSON-RPC 2.0](https://www.jsonrpc.o
 - **Client → Server**：发送 `tools/list` 请求 → 获取可用工具列表
 - （之后）LLM 决定调用工具 → client 发送 `tools/call` → 接收结果
 
-这里要看的是 **`initialize` 响应中的 `instructions` 字段**。这是 server 用文字说明工具该如何使用的位置，而[规范 schema 的注释](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts)只写了这些内容可以（MAY）加入 system prompt，所以是否加入由 host 决定。
+`initialize` 响应中的 `instructions` 字段，是 server 用文字说明工具该如何使用的位置。下面演示输出中的 instructions 一行就是这个值。
 
 那么，tool 定义本身又是如何进入 LLM 视野的？MCP 的 tool 定义采用如下 JSON Schema 形式。
 
@@ -178,15 +178,11 @@ Sampling 和 Roots 与 Logging 一起被标为 deprecated。它们仍留在规�
 
 ### 动态发现打开的攻击面
 
-**MCP 不会自动完成授权管理。** [tool 规范](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)建议在循环中保留一个能够拒绝 tool 调用的人（SHOULD），并要求除非来自可信 server，否则不得信任 tool annotation（MUST）。信任哪些 server、工具日后是否仍保持相同行为，由 host 和用户负责。
+工具的 description 和工具调用的结果，会经由 host 进入模型的 context。所以无论 server 在那里写了什么，模型都会读到。两种代表性攻击都源于这一点。
 
-两种代表性攻击都源于工具定义在运行时传递这一点。
+- **Tool Poisoning Attack（TPA）**：[Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks) 于 2025 年 4 月命名并公开 PoC 的攻击。若把恶意指令隐藏在 MCP server 的工具 description 中，模型会读到这段用户看不见的文本，并可能在用户不知情的情况下照做。
 
-- **Tool Poisoning Attack（TPA）**：[Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks) 于 2025 年 4 月命名并公开 PoC 的攻击。若把恶意指令隐藏在 MCP server 的工具 description 中，模型可能会在用户不知情的情况下照这些指令去做。这段文本对用户不可见，对模型却可见。笔者认为前面看到的 `instructions` 字段也属于同一性质的位置，因为 server 写下的文字可能被放到模型面前。
-
-- **Rug Pull**（Silent Redefinition）：在用户批准之后，server 修改工具定义的攻击。Invariant Labs 在同一篇文章中最先描述了它，Silent Redefinition 这个名字来自 Elena Cross 的文章，[Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/) 在 2025 年 4 月 9 日引用并整理了它。比如第 1 天批准了一个看起来安全的工具，到第 7 天它已经被改成把 API key 发给攻击者。由于不会再次征求用户批准，行为就这样改变了。
-
-Rug Pull 源于这样一种结构：工具定义不是在安装时，而是在运行时从 server 获取。`notifications/tools/list_changed` 只是通知这种变化的通道；即使没有通知，只要下一次 `tools/list` 的响应变了，也会发生同样的事。规范规定了如何通知列表已变化，也建议（SHOULD）提供显示哪些工具暴露给模型的 UI，但并没有要求把变化后的定义重新展示给用户。Willison 写道，MCP client 应当一开始就向用户展示工具描述，并在描述变化时发出警告。变更之后重新取得批准，是 host 的职责，而不是规范的职责。
+- **Rug Pull**：Invariant Labs 在同一篇文章中描述的攻击，即在用户批准之后，server 修改工具定义。就像 [Simon Willison 引用的](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/) Elena Cross 的例子：第 1 天批准了一个看起来安全的工具，到第 7 天它已经被改成把 API key 发给攻击者；这是因为工具定义不是在安装时，而是在运行时从 server 获取。[tool 规范](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)建议（SHOULD）提供显示哪些工具暴露给模型的 UI，但并不要求对变化后的定义重新批准，因此重新批准由 host 负责。
 
 
 ## 总结

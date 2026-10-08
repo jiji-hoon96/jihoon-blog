@@ -9,7 +9,7 @@ description: "校准不是准确率，而是知道自己能答对百分之几的
 keywords: "模型校准, ECE, expected calibration error, RLHF 过度自信, LLM 过度自信, 校准 准确率 区别, GPT-4 校准"
 locale: zh-CN
 translationOf: '260917'
-sourceHash: 8438ba6dec9e8688d94f83837751db44397f110f2fa21bcb400a5f4b00b5595e
+sourceHash: c997c869e321ce8ccd42d7cd4c57a40568628d48b8130fab9fd65e2b7706c077
 ---
 
 这篇文章想聊聊模型的校准，以及 RLHF 之后出现的过度自信。本文写给想把模型返回的概率或确信度当作代码中判断标准的开发者。读完之后，你可以说明准确率和校准有什么不同、ECE 衡量的是什么、用人类偏好打磨过的模型给出的概率如何偏离实际命中率，以及这背后的原因目前弄清到了什么程度。
@@ -61,7 +61,7 @@ console.log(ece(answers.map((a) => ({ ...a, p: 0.95 }))).toFixed(3)) // 매번 0
 
 ## RLHF 的目标函数
 
-那么，用人的反馈打磨过的模型，为什么这个刻度会偏呢。首先要看 :term[RLHF]{key="rlhf"}（reinforcement learning from human feedback）在优化什么。用人的偏好比较来建立奖励模型这一骨架，出自处理 Atari 游戏和 MuJoCo 机器人仿真的 [Deep reinforcement learning from human preferences](https://arxiv.org/abs/1706.03741)。把它搬到语言模型上的早期工作是 [Ziegler et al. 2019](https://arxiv.org/abs/1909.08593)，[Learning to summarize from human feedback](https://arxiv.org/abs/2009.01325) 在摘要任务上扩大了规模，[InstructGPT](https://arxiv.org/abs/2203.02155) 又扩展到指令跟随。这条谱系共享的目标只有一个。**给出人类评估者更偏好的输出。** 实际被推高的值，是模仿人类偏好的奖励模型的分数。这一路做法会在奖励上加 KL penalty，让模型不要离开始强化学习之前的模型太远，InstructGPT 还混入了预训练数据的梯度（PPO-ptx），但推高的对象仍然是那个分数。
+那么，用人的反馈打磨过的模型，为什么这个刻度会偏呢。首先要看 :term[RLHF]{key="rlhf"}（reinforcement learning from human feedback）在优化什么。用人的偏好比较来建立奖励模型这一骨架出自 [Christiano et al. 2017](https://arxiv.org/abs/1706.03741)，把它搬到语言模型上的早期工作是 [Ziegler et al. 2019](https://arxiv.org/abs/1909.08593)，[InstructGPT](https://arxiv.org/abs/2203.02155) 又把它用于指令跟随。这时被推高的值，是**模仿人类偏好的奖励模型的分数**。语言模型方面的工作会在奖励上加 KL penalty，让模型不要离开始强化学习之前的模型太远，InstructGPT 还混入了预训练数据的梯度（PPO-ptx），但推高的对象仍然是那个分数。
 
 对聊天机器人来说，人的偏好是对的目标。问题在于这种偏好偏向回避流露不确定性的语气。[Zhou et al. 2024](https://arxiv.org/abs/2401.06730) 在四个公开偏好数据集上表明，标注者较少选择含有 "I'm not sure, maybe" 这类弱化表达的回答。差异很小，但显著。不过，他们并没有更多地选择含有强调确信的表达的回答。[Leng et al. 2025](https://arxiv.org/abs/2410.09724) 表明，奖励模型不管回答的实际质量如何，都会给写出高确信度分数的回答更高的分数。两者都不是关于 token 概率，而是关于文字中的确信表达（verbalized confidence）的结果。推出替代 RLHF 的训练方法的 TypeSafe，也在自家的[入门文档](https://docs.typesafe.ai/introduction/machine-learning-primer)中写道，RLHF 可能会奖励听起来很有把握的幻觉（confident-sounding hallucinations）。这是推销替代方案的一方的立场。
 
@@ -85,7 +85,7 @@ console.log(ece(answers.map((a) => ({ ...a, p: 0.95 }))).toFixed(3)) // 매번 0
 
 Figure 8 里的概率是 token 的对数概率。要拿到同一类值，按照 [OpenAI API 规范](https://github.com/openai/openai-openapi/blob/506aff0a8099581b50e119b87f8f2692cdad043f/openapi.yaml)，在 Chat Completions 请求里把 `logprobs` 设为 `true`，再用 `top_logprobs` 在 0 到 20 之间决定每个 token 位置返回多少个候选。让模型在回答的同时用数字说出确信度，这样拿到的值是用文字说出的确信，和 token 概率是不同的值。
 
-研究这两种值的论文比较的是不同的组合。[Tian et al. 2023](https://arxiv.org/abs/2305.14975) 报告说，在 ChatGPT、GPT-4、Claude 这样的 RLHF 模型内部，用文字说出的确信通常比条件概率校准得更好，在三个基准上常常把 ECE 相对降低约 50%。不过在这项比较中，权重未公开的模型的条件概率不是 API 的 token 概率，而是把同一个问题采样 10 次、按得出该答案的比例估计的值。前面提到的 Leng et al. 则报告说，与 RLHF 之前的模型相比，RLHF 模型在用文字说出的确信上更 overconfident。两个结果可以同时成立。而且 0.074 是 2023 年 GPT-4 post-training 模型在 MMLU 子集上得出的值，不能原样套用到你现在通过 API 调用的模型上。不管用哪一种概率，都要在自己的数据上重新测一遍。
+研究这两种值的论文比较的是不同的组合。[Tian et al. 2023](https://arxiv.org/abs/2305.14975) 报告说，在 ChatGPT、GPT-4、Claude 这样的 RLHF 模型内部，用文字说出的确信通常比条件概率校准得更好，在三个基准上常常把 ECE 相对降低约 50%。不过在这项比较中，权重未公开的模型的条件概率不是 API 的 token 概率，而是把同一个问题采样 10 次、按得出该答案的比例估计的值。前面提到的 Leng et al. 则报告说，与 RLHF 之前的模型相比，RLHF 模型在用文字说出的确信上更 overconfident。两个结果可以同时成立。而且 0.074 是 2023 年 GPT-4 post-training 模型在 MMLU 子集上得出的值，不能原样套用到你现在通过 API 调用的模型上。
 
 ## 总结
 

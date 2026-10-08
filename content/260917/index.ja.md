@@ -9,7 +9,7 @@ description: "キャリブレーションは正解率ではなく、自分が何
 keywords: "モデルキャリブレーション, ECE, expected calibration error, RLHF 過信, LLM 過信, キャリブレーション 正解率 違い, GPT-4 キャリブレーション"
 locale: ja
 translationOf: '260917'
-sourceHash: 8438ba6dec9e8688d94f83837751db44397f110f2fa21bcb400a5f4b00b5595e
+sourceHash: c997c869e321ce8ccd42d7cd4c57a40568628d48b8130fab9fd65e2b7706c077
 ---
 
 今回の記事では、モデルのキャリブレーションと、RLHF の後に現れる過信について話してみたい。モデルが返す確率や確信度を、コードの中で判断基準として使いたい開発者のための記事だ。最後まで読めば、正解率とキャリブレーションがどう違うのか、ECE が何を測るのか、そして人の選好で仕上げたモデルの確率が実際の的中率とどうずれるのか、その原因がどこまで明らかになっているのかを説明できるようになる。
@@ -61,7 +61,7 @@ console.log(ece(answers.map((a) => ({ ...a, p: 0.95 }))).toFixed(3)) // 매번 0
 
 ## RLHFの目的関数
 
-では、人のフィードバックで仕上げたモデルは、なぜこの目盛りがずれるのだろうか。まず :term[RLHF]{key="rlhf"}（reinforcement learning from human feedback）が何を最適化しているのかを見る必要がある。人の選好比較から報酬モデルを立てる骨格は、Atari のゲームと MuJoCo のロボットシミュレーションを扱った [Deep reinforcement learning from human preferences](https://arxiv.org/abs/1706.03741) で生まれた。これを言語モデルに移した初期の仕事が [Ziegler et al. 2019](https://arxiv.org/abs/1909.08593) で、[Learning to summarize from human feedback](https://arxiv.org/abs/2009.01325) が要約タスクで規模を広げ、[InstructGPT](https://arxiv.org/abs/2203.02155) が指示追従へ拡張した。この系譜が共有する目標は一つだ。**人間の評価者がより選好する出力を出すこと。** 実際に押し上げる値は、人の選好を真似た報酬モデルの点数だ。この系統は、強化学習を始める前のモデルから離れすぎないよう引き留める KL penalty を報酬に加え、InstructGPT は事前学習データの勾配も混ぜたが（PPO-ptx）、押し上げる対象はやはりその点数である。
+では、人のフィードバックで仕上げたモデルは、なぜこの目盛りがずれるのだろうか。まず :term[RLHF]{key="rlhf"}（reinforcement learning from human feedback）が何を最適化しているのかを見る必要がある。人の選好比較から報酬モデルを立てる骨格は [Christiano et al. 2017](https://arxiv.org/abs/1706.03741) で生まれ、これを言語モデルに移した初期の仕事が [Ziegler et al. 2019](https://arxiv.org/abs/1909.08593) で、[InstructGPT](https://arxiv.org/abs/2203.02155) が指示追従に適用した。このとき押し上げる値は、**人の選好を真似た報酬モデルの点数**だ。言語モデルでの仕事は、強化学習を始める前のモデルから離れすぎないよう引き留める KL penalty を報酬に加え、InstructGPT は事前学習データの勾配も混ぜたが（PPO-ptx）、押し上げる対象はやはりその点数である。
 
 チャットボットにとって、人の選好は正しい目標だ。問題は、その選好が不確実さを表に出した口調を避ける側に傾いていることにある。[Zhou et al. 2024](https://arxiv.org/abs/2401.06730) は、四つの公開選好データセットで、アノテーターが "I'm not sure, maybe" のような弱める表現を含む答えをあまり選ばないことを示した。差は小さいが有意だった。ただし、確信を強める表現を含む答えをより多く選んだわけではない。[Leng et al. 2025](https://arxiv.org/abs/2410.09724) は、報酬モデルが答えの実際の品質と関係なく、高い確信度の数値を書いた答えに高い点数を与えることを示した。どちらもトークン確率ではなく、文章の中の確信表現（verbalized confidence）についての結果だ。RLHF に代わる学習法を打ち出した TypeSafe も、自社の[入門ドキュメント](https://docs.typesafe.ai/introduction/machine-learning-primer)で、RLHF が自信ありげに聞こえるハルシネーション（confident-sounding hallucinations）に報酬を与えうると書いている。代替案を売る側の立場である。
 
@@ -85,7 +85,7 @@ Figure 8 の右（PPO）のパネルでは、0.4以上の区間の棒は対角�
 
 Figure 8 の確率はトークンの対数確率だ。同じ種類の値を受け取るには、[OpenAI API の仕様](https://github.com/openai/openai-openapi/blob/506aff0a8099581b50e119b87f8f2692cdad043f/openapi.yaml)どおり Chat Completions のリクエストで `logprobs` を `true` にし、`top_logprobs` でトークン位置ごとに受け取る候補の数を0から20のあいだで決める。モデルに答えと一緒に確信度を数字で言わせて受け取る値は、文章で述べた確信であり、トークン確率とは別の値だ。
 
-二つの値を扱った研究は、それぞれ異なる組を比べている。[Tian et al. 2023](https://arxiv.org/abs/2305.14975) は、ChatGPT、GPT-4、Claude のような RLHF モデルの中で、文章で述べた確信が条件付き確率よりおおむねキャリブレーションがよく、三つのベンチマークで ECE を相対的に50%ほど減らした場合が多かったと報告した。ただしこの比較で、重みが公開されていないモデルの条件付き確率は、API のトークン確率ではなく、同じ質問を10回サンプリングして答えが出た割合で推定した値である。先に見た Leng et al. は、RLHF 以前のモデルと比べて、RLHF モデルは文章で述べる確信でより overconfident だと報告した。二つの結果は両立しうる。そして 0.074 は2023年の GPT-4 post-training モデルが MMLU の一部で出した値なので、いま API で呼んでいるモデルにそのまま当てはめることはできない。どちらの確率を使うにしても、自分のデータでもう一度測る必要がある。
+二つの値を扱った研究は、それぞれ異なる組を比べている。[Tian et al. 2023](https://arxiv.org/abs/2305.14975) は、ChatGPT、GPT-4、Claude のような RLHF モデルの中で、文章で述べた確信が条件付き確率よりおおむねキャリブレーションがよく、三つのベンチマークで ECE を相対的に50%ほど減らした場合が多かったと報告した。ただしこの比較で、重みが公開されていないモデルの条件付き確率は、API のトークン確率ではなく、同じ質問を10回サンプリングして答えが出た割合で推定した値である。先に見た Leng et al. は、RLHF 以前のモデルと比べて、RLHF モデルは文章で述べる確信でより overconfident だと報告した。二つの結果は両立しうる。そして 0.074 は2023年の GPT-4 post-training モデルが MMLU の一部で出した値なので、いま API で呼んでいるモデルにそのまま当てはめることはできない。
 
 ## まとめ
 

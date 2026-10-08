@@ -6,7 +6,7 @@ date: "2026-05-24"
 updatedAt: "2026-10-08"
 locale: ja
 translationOf: '260524'
-sourceHash: fd3f65bb3af440c545df1ff8dc578fe055a2f12ae9af2be784adc03369a89d11
+sourceHash: c875da907fb126eda19d80e783e72785cccab4386558a197481c554cc9d8efce
 categories: AI 開発ツール Claude MCP
 description: "MCPがfunction callingとどう違うのかをプロトコル構造から整理する。6つのプリミティブ、stdioとStreamable HTTP、tools/listからtool_useループまでの流れ、Tool Poisoningなどのセキュリティ問題を扱う。"
 keywords: "MCP, Model Context Protocol, MCP function calling 違い, MCP プリミティブ, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP セキュリティ"
@@ -46,7 +46,7 @@ MCPはJSON-RPC上に構築されたプロトコルだ。[JSON-RPC 2.0](https://w
 - **Roots**：クライアントがサーバーへ「ここまでが作業可能な範囲」と伝えるワークスペース境界の情報
 - **Elicitation**：サーバーがツールの実行中に、構造化された形式でユーザーへ追加入力を求められる機能
 
-この区別が重要なのは、**誰が呼び出しや提供を決めるのか**が異なるからだ。Toolはモデルの判断で実行されるため誤った呼び出しのリスクがあり、Promptはユーザーが明示的に選ぶ。Resourceはアプリが選ぶのが基本だが、仕様はヒューリスティクスやモデルの選択による自動的な取り込みを行う実装も認めている。そのため、Resourceが常にToolより安全だとは言えない。クライアント側の3つは向きが逆だ。サーバーが要求し、応じるかどうかはクライアントが決める。
+この区別が重要なのは、**誰が呼び出しや提供を決めるのか**が異なるからだ。Toolはモデルの判断で実行されるため誤った呼び出しのリスクがあり、Promptはユーザーが明示的に選ぶ。Resourceはアプリが選ぶのが基本だが、仕様はヒューリスティクスやモデルの選択による自動的な取り込みを行う実装も認めている。クライアント側の3つは向きが逆だ。サーバーが要求し、応じるかどうかはクライアントが決める。
 
 ### 2つの転送方式
 
@@ -65,7 +65,7 @@ MCPはJSON-RPC上に構築されたプロトコルだ。[JSON-RPC 2.0](https://w
 - **クライアント → サーバー**：`tools/list`リクエスト → 利用可能なツール一覧を受信
 - （以後）LLMがツールを呼び出すと判断 → クライアントが`tools/call`を送信 → 結果を受信
 
-ここで見ておきたいのが、**`initialize`レスポンスの`instructions`フィールド**だ。サーバーがツールの使い方をテキストで書いて送る場所だが、[仕様スキーマのコメント](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts)は、この内容をシステムプロンプトに追加してもよい（MAY）と書いているだけなので、追加するかどうかはホストが決める。
+`initialize`レスポンスの`instructions`フィールドは、サーバーがツールの使い方をテキストで書いて送る場所だ。下のデモ出力のinstructions行がこの値である。
 
 では、tool定義そのものはどのようにLLMの視野に入るのか。MCPのtool定義は、次のようなJSON Schemaの形をしている。
 
@@ -178,15 +178,11 @@ SamplingとRootsはLoggingとともにdeprecatedになった。仕様に残っ�
 
 ### 動的な発見が開く攻撃面
 
-**MCPは権限付与を自動化しない。** [tool仕様](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)は、tool呼び出しを拒否できる人間がループの中にいるべきだと勧め（SHOULD）、信頼できるサーバーからのものでない限りtool annotationを信頼しないよう求めている（MUST）。どのサーバーを信頼するか、そのツールが時間が経っても同じ動作をするかは、ホストとユーザーが受け持つ。
+ツールのdescriptionとツール呼び出しの結果は、ホストを経てモデルのcontextに入る。だからサーバーがそこに何を書いても、モデルはそれを読む。代表的な2つの攻撃は、どちらもここから生まれる。
 
-代表的な2つの攻撃は、どちらもツール定義が実行時にやり取りされることから生まれる。
+- **Tool Poisoning Attack（TPA）**：[Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)が2025年4月に命名し、PoCを公開した攻撃だ。MCPサーバーのツール説明（description）に悪意ある指示を隠すと、モデルはユーザーには見えないそのテキストを読み、ユーザーの知らないうちに従うことがある。
 
-- **Tool Poisoning Attack（TPA）**：[Invariant Labs](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)が2025年4月に命名し、PoCを公開した攻撃だ。MCPサーバーのツール説明（description）に悪意ある指示を隠すと、モデルがユーザーの知らないうちにその指示に従うことがある。ユーザーには見えないが、モデルには見えるテキストである。筆者は、先に見た`instructions`フィールドも同じ性質の場所だと見ている。サーバーが書いたテキストがモデルの前に置かれうるからだ。
-
-- **Rug Pull**（Silent Redefinition）：ユーザーが承認した後に、サーバーがツール定義を変える攻撃だ。Invariant Labsが同じ記事で先に説明しており、Silent Redefinitionという名前はElena Crossの記事に由来し、[Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/)が2025年4月9日にそれを引用してまとめた。1日目に安全そうに見えるツールを承認したのに、7日目にはそのツールがAPIキーを攻撃者へ送るように変わっている、という具合だ。ユーザーに改めて承認を求めないので、動作はそのまま変わってしまう。
-
-Rug Pullは、ツール定義をインストール時点ではなく実行時にサーバーから受け取るという構造から生まれる。`notifications/tools/list_changed`はその変更を知らせる経路にすぎず、通知がなくても次の`tools/list`レスポンスが変わるだけで同じことが起きる。仕様は一覧が変わったことを知らせる方法を定め、どのツールがモデルに公開されているかを示すUIを推奨する（SHOULD）だけで、変わった定義をユーザーに改めて見せることまでは求めていない。Willisonは、MCPクライアントが最初にツール説明をユーザーに見せ、説明が変わったら警告すべきだと書いている。変更後に再承認を取るのは、仕様ではなくホストの役目だ。
+- **Rug Pull**：Invariant Labsが同じ記事で説明した攻撃で、ユーザーが承認した後にサーバーがツール定義を変える。[Simon Willisonが引用した](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/)Elena Crossの例のように、1日目に安全そうに見えるツールを承認したのに、7日目にはそのツールがAPIキーを攻撃者へ送るように変わっている、という具合で、ツール定義をインストール時点ではなく実行時にサーバーから受け取る構造から生まれる。[tool仕様](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)は、どのツールがモデルに公開されているかを示すUIを推奨する（SHOULD）だけで、変わった定義の再承認までは求めていないので、再承認はホストの役目になる。
 
 
 ## まとめ
