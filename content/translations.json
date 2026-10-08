@@ -130,7 +130,7 @@
     {
       "key": "260418",
       "source": "content/260418/index.md",
-      "sourceHash": "b9aa3af2ee684933bfaa47fe2c6b9543a7eaf0d22299b554491c0040f6069953",
+      "sourceHash": "a98c558911e190542a4e68cfccad3b2642f3bd14e02d2d66399bfc3520fadb14",
       "reviewed": [
         "en",
         "ja",
@@ -239,6 +239,18 @@
       "key": "260922",
       "source": "content/260922/index.md",
       "sourceHash": "6cee92c77bd8cd7cc8b115142f94b9880919a1c4d8ae265bd8a0e4738421703a",
+      "reviewed": [
+        "en",
+        "ja",
+        "es",
+        "pt-BR",
+        "zh-CN"
+      ]
+    },
+    {
+      "key": "261008",
+      "source": "content/261008/index.md",
+      "sourceHash": "211c677badd5b4aa86934ac51dd3a5716cda8991dcb5f7d3825be753a67e35d1",
       "reviewed": [
         "en",
         "ja",
