@@ -2,13 +2,13 @@
 emoji: 📖
 title: "Domain Terms"
 seoTitle: "Domain vs. Domain Model vs. Domain Object: A Frontend Guide"
-date: "2026-10-08"
+date: "2026-09-27"
 categories: frontend Architecture DDD
 description: "How domains, domain models, domain objects, and domain object models differ, using Eric Evans' and Martin Fowler's definitions and an income tax example."
 keywords: "domain model, domain object, domain object model, domain model vs data model, Entity Value Object, DDD terminology, frontend DDD, Eric Evans"
 locale: en
-translationOf: '261008'
-sourceHash: eae49014df4120d4b2d931c7b8bfb2038c7621ea82bd7fcab150b49bc63ad05e
+translationOf: '260927'
+sourceHash: 4cfc49adccec644b3c8e8010fb2c1d282e147c7aa47596cef38fd79f8a1adab8
 ---
 
 In this post, I want to talk about **how domains, domain models, domain objects, and domain object models differ from one another**.

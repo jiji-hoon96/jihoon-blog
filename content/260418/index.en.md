@@ -9,7 +9,7 @@ description: "Where frontend domain logic should live, with an income tax exampl
 keywords: "frontend domain model, domain-driven design, frontend DDD, Frontend DDD, domain logic separation, Anemic Domain Model, Clean Architecture frontend, Martin Fowler, React design patterns, frontend architecture, ViewModel separation, Bounded Context"
 locale: en
 translationOf: '260418'
-sourceHash: 60644795c5361206d2908732e77d5e7dfd99e1aeca18d5e650675781c0af1fa4
+sourceHash: 659a241fbc2d3b77ab61c966dfa3259ca0a56f01208faf6e0a3e6fb8fc89c65b
 ---
 
 In this post, I want to talk about **where domain logic should live on the frontend**.
@@ -23,7 +23,7 @@ All the examples use the comprehensive income tax calculation, a domain I have b
 
 ## Where Should Domain Logic Live on the Frontend?
 
-Before answering, let us agree on one term. In this post, a **domain model** holds business concepts together with the rules that operate on them. It differs from a **data model**, such as an API response type, which only defines the shape in which data travels. This difference is also why, when components depend directly on the response structure, the whole frontend is shaken every time the backend schema changes. How the four terms (domain, domain model, domain object, and domain object model) differ is covered separately in [Domain Terms](/261008).
+Before answering, let us agree on one term. In this post, a **domain model** holds business concepts together with the rules that operate on them. It differs from a **data model**, such as an API response type, which only defines the shape in which data travels. This difference is also why, when components depend directly on the response structure, the whole frontend is shaken every time the backend schema changes. How the four terms (domain, domain model, domain object, and domain object model) differ is covered separately in [Domain Terms](/260927).
 
 [Khalil Stemmler](https://khalilstemmler.com/about/), who has a deep interest in software design, initially argued that "business logic does not belong on the frontend." He later revised his position, saying, "Almost everything we do architecturally on the backend can and should also be done on the frontend."
 
