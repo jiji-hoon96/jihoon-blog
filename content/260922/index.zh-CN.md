@@ -9,7 +9,7 @@ description: '有个模型不返回文本，只返回概率。confidence 不是�
 keywords: 'Jev, TypeSafe AI, System One 模型, RLCD, 模型校准, ECE, confidence 阈值, 决策模型, Kev 开源, Jev 应用案例'
 locale: zh-CN
 translationOf: '260922'
-sourceHash: a03e9433d3b511a0455856bd8e0acb6db6001086a5e61108b6894c90072622bf
+sourceHash: 966cedd7c0143dde34129e34ea80c0b3cf6c838277523dae23929576711e8943
 ---
 
 这篇文章想聊聊上周 TypeSafe AI 公开的 Jev，一个不返回文本、只返回概率的模型。本文写给想给模型返回的概率设阈值、在没有人工确认的情况下自动处理的开发者。读完之后，你会知道 Jev 的 `confidence` 是怎么算出来的，校准会随分布变化多少，以及用自己的数据定阈值的步骤。
@@ -54,7 +54,7 @@ endpoint 也只有一个。向 `POST /v1/systemone` 发送 `state`（要评估�
 
 那为什么需要新的训练方法呢。让现有的模型只答是/否不行吗。
 
-线索在:term[校准]{key="calibration"}里。准确率是能答对百分之几，校准则是知不知道自己能答对百分之几，衡量这种偏离的指标是 :term[ECE]{key="ece"}（expected calibration error）。它把每个概率区间里说出口的概率与实际命中率的差值按样本比例加权平均，0 为完美。可是优化人类偏好的 :term[RLHF]{key="rlhf"}（reinforcement learning from human feedback）会削弱这种能力。比起吞吞吐吐的回答，人更偏好有自信的回答，于是模型养成了含糊时也把话说死的习惯。在 [GPT-4 技术报告](https://arxiv.org/abs/2303.08774)的 Figure 8 中，预训练模型的 ECE 是 **0.007**，经过 post-training 的模型则是 **0.074**，差了十倍以上。定义和这个过程另外整理在[校准与 RLHF 带来的过度自信](/260917)中。
+线索在:term[校准]{key="calibration"}里。准确率是能答对百分之几，校准则是知不知道自己能答对百分之几，衡量这种偏离的指标是 :term[ECE]{key="ece"}（expected calibration error）。它把每个概率区间里说出口的概率与实际命中率的差值按样本比例加权平均，0 为完美。可是，有案例显示，经过优化人类偏好的 :term[RLHF]{key="rlhf"}（reinforcement learning from human feedback）之后，这个刻度偏了。在 [GPT-4 技术报告](https://arxiv.org/abs/2303.08774)的 Figure 8 中，预训练模型的 ECE 是 **0.007**，经过 post-training 的模型则是 **0.074**，差了十倍以上。报告没有写出原因，笔者也没有找到能确定原因的一手证据。定义以及原因目前弄清到了什么程度，另外整理在[LLM 的校准与过度自信](/260917)中。
 
 **不过光靠 ECE 一个是不够的。** 对所有输入都打 0.6 的常数预测器，只要实际命中率是 60%，ECE 也是 0。概率只是诚实、却不随案例分开，就没有划线的地方。所以除校准之外还要一起看**概率是否真的分得开**，后文要用的“在误差预算内可自动处理的比例”就是把这两者捆成一个数字的指标。
 

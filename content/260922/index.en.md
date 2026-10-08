@@ -9,7 +9,7 @@ description: "Jev returns probabilities instead of text. Its confidence is arith
 keywords: 'Jev, TypeSafe AI, System One model, RLCD, model calibration, ECE, confidence threshold, decision model, Kev open source, Jev use cases'
 locale: en
 translationOf: '260922'
-sourceHash: a03e9433d3b511a0455856bd8e0acb6db6001086a5e61108b6894c90072622bf
+sourceHash: 966cedd7c0143dde34129e34ea80c0b3cf6c838277523dae23929576711e8943
 ---
 
 In this post, I want to talk about Jev, a model TypeSafe AI released last week that returns probabilities instead of text. This is for developers who want to put a threshold on a model's returned probability and handle cases automatically without a human check. By the end, you will know how Jev's `confidence` is calculated, how much calibration moves with the distribution, and a procedure for setting the threshold on your own data.
@@ -54,7 +54,7 @@ I drew a similar distinction while writing up [harness design](/260622). An agen
 
 But why did this call for a new training method? Could you not simply make an existing model answer yes or no?
 
-The clue lies in :term[calibration]{key="calibration"}. If accuracy is what percentage you get right, calibration is whether you know what percentage you will get right, and the metric for that gap is :term[ECE]{key="ece"} (expected calibration error). It averages the difference between the stated probability and the actual hit rate in each probability bin, weighted by sample share, so 0 is perfect. Yet :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback), which optimizes human preference, wears this ability down. People prefer a confident answer to a hedging one, so the model picks up the habit of speaking decisively even when things are ambiguous. In Figure 8 of the [GPT-4 technical report](https://arxiv.org/abs/2303.08774), the pre-trained model's ECE was **0.007**, while the post-trained model's was **0.074**, more than ten times worse. I wrote up the definitions and that process separately in [Calibration and RLHF Overconfidence](/260917).
+The clue lies in :term[calibration]{key="calibration"}. If accuracy is what percentage you get right, calibration is whether you know what percentage you will get right, and the metric for that gap is :term[ECE]{key="ece"} (expected calibration error). It averages the difference between the stated probability and the actual hit rate in each probability bin, weighted by sample share, so 0 is perfect. Yet there is a case where this scale drifted after :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback), which optimizes human preference. In Figure 8 of the [GPT-4 technical report](https://arxiv.org/abs/2303.08774), the pre-trained model's ECE was **0.007**, while the post-trained model's was **0.074**, more than ten times worse. The report does not state the cause, and I have not found a primary source that establishes one either. I wrote up the definitions and how much of the cause is known separately in [LLM Calibration and Overconfidence](/260917).
 
 **ECE alone is not enough, though.** A constant predictor that stamps 0.6 on every input also has an ECE of 0 as long as its real hit rate is 60%. If the probabilities are merely honest and do not separate from case to case, there is nowhere to draw a line. So alongside calibration you have to watch **whether the probabilities actually separate**, and the "share that can be automated inside an error budget" I use later on is the metric that folds those two into one number.
 

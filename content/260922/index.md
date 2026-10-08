@@ -51,7 +51,7 @@ Archer Hume이라는 개발자가 API를 약 1만 번 호출해 바깥에서 동
 
 그런데 왜 새 학습법이 필요했을까. 기존 모델에게 예/아니오만 시키면 안 되는 걸까.
 
-답의 실마리는 :term[Calibration]{key="calibration"}에 있다. 정확도가 몇 퍼센트 맞히느냐라면 calibration은 자기가 몇 퍼센트 맞힐지를 아느냐이고, 그 어긋남을 재는 지표가 :term[ECE]{key="ece"}(expected calibration error)다. 확률 구간마다 말한 확률과 실제 적중률의 차이를 표본 비율로 가중해 평균한 값이라 0이 완벽이다. 그런데 사람의 선호를 최적화하는 :term[RLHF]{key="rlhf"}(reinforcement learning from human feedback)는 이 능력을 깎는다. 사람이 우물쭈물하는 답보다 자신 있는 답을 선호하므로 모델이 애매할 때도 단정하는 버릇을 들이기 때문이다. [GPT-4 기술 보고서](https://arxiv.org/abs/2303.08774)의 Figure 8에서는 사전학습 모델의 ECE가 **0.007**이었는데 post-training을 거친 모델은 **0.074**로 열 배 넘게 나빠졌다. 정의와 그 과정은 [LLM calibration과 overconfidence](/260917)에 따로 정리해 두었다.
+답의 실마리는 :term[Calibration]{key="calibration"}에 있다. 정확도가 몇 퍼센트 맞히느냐라면 calibration은 자기가 몇 퍼센트 맞힐지를 아느냐이고, 그 어긋남을 재는 지표가 :term[ECE]{key="ece"}(expected calibration error)다. 확률 구간마다 말한 확률과 실제 적중률의 차이를 표본 비율로 가중해 평균한 값이라 0이 완벽이다. 그런데 사람의 선호를 최적화하는 :term[RLHF]{key="rlhf"}(reinforcement learning from human feedback)를 거친 뒤 이 눈금이 어긋난 사례가 있다. [GPT-4 기술 보고서](https://arxiv.org/abs/2303.08774)의 Figure 8에서는 사전학습 모델의 ECE가 **0.007**이었는데 post-training을 거친 모델은 **0.074**로 열 배 넘게 나빠졌다. 보고서는 그 원인을 적지 않았고, 필자도 원인을 확정한 1차 근거는 찾지 못했다. 정의와 원인이 어디까지 밝혀졌는지는 [LLM calibration과 overconfidence](/260917)에 따로 정리해 두었다.
 
 **다만 ECE 하나로는 부족하다.** 모든 입력에 0.6을 찍는 상수 예측기도 실제 적중률이 60%면 ECE가 0이다. 확률이 정직하기만 하고 사안마다 갈리지 않으면 선을 그을 자리가 없다. 그래서 calibration과 별개로 **확률이 실제로 갈라지는지**를 같이 봐야 하고, 뒤에서 쓸 "오차 예산 안에서 자동 처리할 수 있는 비율"이 그 둘을 한 숫자로 묶은 지표다.
 
