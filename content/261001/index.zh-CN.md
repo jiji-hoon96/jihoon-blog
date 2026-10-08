@@ -8,7 +8,7 @@ description: '跟着 Juntao Qiu 关于 React 模块化的文章，把支付页�
 keywords: 'React 分层架构, React 架构设计, 自定义 hook 拆分, domain object, React 策略模式, Presentation Domain Data 分层, React 重构, React 关注点分离'
 locale: zh-CN
 translationOf: '261001'
-sourceHash: 04386dc525603086b1a6518b3fc3658aa52bda3e4f74955bd48e7683dad0f199
+sourceHash: a471069dd1f6949b51da4ba268781878b3bb9d94f9bf5e928521cd4799ecef3e
 ---
 
 这篇文章想聊聊如何把 React 应用的代码拆成界面、业务规则和数据访问三部分。它写给这样的开发者：一个 component 里同时塞着 fetch、计算和 render，每次修改都得从头读到尾。读完之后，你会知道 hook、pure component、domain object、Strategy、network client 分别该看到什么信号、按什么顺序抽出来，以及把这套结构原样搬过去时会在哪里出问题。
@@ -356,7 +356,7 @@ Dan Abramov 也有类似的经历。他在 2015 年提出把 component 分成 [p
 没有标准答案，但希望读到这篇文章的各位也能想一想，自己的代码眼下正遭遇的是第几个阶段的不便。
 
 :::ref
-[docs] [Microsoft Azure Architecture Center，Anti-corruption Layer 模式](https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer)
-[article] [Juntao Qiu，Headless Component](https://martinfowler.com/articles/headless-component.html)
-[article] [Juntao Qiu，Data Fetching Patterns in Single-Page Applications](https://martinfowler.com/articles/data-fetch-spa.html)
+- [docs] [Microsoft Azure Architecture Center，Anti-corruption Layer 模式](https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer)
+- [article] [Juntao Qiu，Headless Component](https://martinfowler.com/articles/headless-component.html)
+- [article] [Juntao Qiu，Data Fetching Patterns in Single-Page Applications](https://martinfowler.com/articles/data-fetch-spa.html)
 :::

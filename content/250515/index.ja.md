@@ -9,7 +9,7 @@ description: "React SchedulerがrequestIdleCallback、requestAnimationFrame、se
 keywords: "requestIdleCallback, MessageChannel, React Scheduler, setTimeout 4ms, Reactスケジューラーの仕組み, shouldYieldToHost, requestAnimationFrame, React Fiber"
 locale: ja
 translationOf: '250515'
-sourceHash: f9e36a7b0a0e10bfe8dc30ec353c2703fbf8e586fb8ce86dccf0c23a712b3454
+sourceHash: 2b9882e6b7b4a6ad16bcb679ac72102e95b7c50101ea3ffda6bbc08e3c63f7ca
 ---
 
 今回の記事では、**ReactがrequestIdleCallbackではなくMessageChannelで作業を予約する理由**について話してみたい。
@@ -107,8 +107,6 @@ schedule();
 
 このSchedulerが分けて実行する作業単位であるFiberノードがどんな形をしていて、Work Loopがそれをどう巡回するのかは、[React Fiber完全攻略](/250520)で扱う。この記事を読んだ皆さんも、Reactのソースコードで再び`MessageChannel`に出会ったら、なぜそこにそれがあるのかを一度思い出してみてほしい。
 
-
-## 参考資料
 
 :::ref
 - [repo] [React 16.0.0のReactDOMFrameScheduling.js](https://github.com/facebook/react/blob/v16.0.0/src/renderers/shared/ReactDOMFrameScheduling.js)

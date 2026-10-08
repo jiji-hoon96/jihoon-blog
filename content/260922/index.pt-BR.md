@@ -9,7 +9,7 @@ description: 'O Jev devolve probabilidades em vez de texto. O confidence não é
 keywords: 'Jev, TypeSafe AI, modelos System One, RLCD, calibração de modelos, ECE, limiar de confidence, modelo de decisão, Kev open source, casos de uso do Jev'
 locale: pt-BR
 translationOf: '260922'
-sourceHash: 966cedd7c0143dde34129e34ea80c0b3cf6c838277523dae23929576711e8943
+sourceHash: 5c9dfaaf13880df9237ac0b3d8ee8acf63ea576d1e319a1de375d9a179acc499
 ---
 
 Neste post quero falar sobre o Jev, um modelo que a TypeSafe AI lançou na semana passada e que devolve probabilidades em vez de texto. É para desenvolvedores que querem aplicar um limiar à probabilidade devolvida por um modelo e tratar casos automaticamente, sem conferência humana. Ao final, você vai saber como o `confidence` do Jev é calculado, quanto a calibração se move conforme a distribuição e um procedimento para definir o limiar com os seus próprios dados.
@@ -145,8 +145,8 @@ Eu ainda não tenho uma chave de API do Jev. Em vez disso, **rodei localmente o 
 
 O conjunto de avaliação saiu de 18 posts em coreano deste repositório. O critério de verdade dos rótulos é **qual grafia este repositório usa de forma consistente para aquela palavra**. Ou seja, não é o consenso da comunidade de documentação técnica em coreano, e sim o costume deste blog; nas palavras em que os dois divergem, o modelo pode estar certo pelo critério da comunidade e errado por este.
 
-- **Conjunto do gate, 102 frases.** São palavras que o gate já conhece. Há 23 positivos, que são **frases contrafactuais** em que palavras escritas em inglês no texto original, como `calendar`, `picker` e `adapter`, foram revertidas para a transliteração coreana, e 79 negativos, que são frases em que de fato aparecem palavras marcadas como exceção pelo `write-post.md`, como `리렌더링` ou `콜 스택`. Aqui o gate de regex atual acerta 100% por definição.
-- **Conjunto pendente, 60 frases.** **São palavras que o gate nunca viu.** É o que em machine learning se chama conjunto :term[held-out]{key="held-out-set"}. Há 30 positivos, em que `loader`, `mutation` e `prefill`, que o texto só escreve em inglês, foram revertidos para transliteração, e 30 negativos com `리듀서`, `스냅샷` e `런타임`, que o texto só escreve em coreano. Aqui a regex não pega um único positivo.
+- **Conjunto do gate, 102 frases**: São palavras que o gate já conhece. Há 23 positivos, que são **frases contrafactuais** em que palavras escritas em inglês no texto original, como `calendar`, `picker` e `adapter`, foram revertidas para a transliteração coreana, e 79 negativos, que são frases em que de fato aparecem palavras marcadas como exceção pelo `write-post.md`, como `리렌더링` ou `콜 스택`. Aqui o gate de regex atual acerta 100% por definição.
+- **Conjunto pendente, 60 frases**: **São palavras que o gate nunca viu.** É o que em machine learning se chama conjunto :term[held-out]{key="held-out-set"}. Há 30 positivos, em que `loader`, `mutation` e `prefill`, que o texto só escreve em inglês, foram revertidos para transliteração, e 30 negativos com `리듀서`, `스냅샷` e `런타임`, que o texto só escreve em coreano. Aqui a regex não pega um único positivo.
 
 ![Diagrama do conjunto gate de 102 frases e do conjunto reservado de 60 frases, sua composição de positivos e negativos, e como o gate de regex cobre todo o primeiro mas não pega nenhum positivo do segundo](6.png?w=720)
 
@@ -286,6 +286,6 @@ Mesmo sem a chave, medir já dá para começar hoje. O Kev está publicado sob A
 Seria bom contar quantas chamadas, no serviço que você opera hoje, só perguntam sim ou não a um modelo grande. Antes de mover essas chamadas para um modelo de decisão, recomendo medir primeiro onde deve ficar a linha depois da mudança. Foi por ter seguido essa ordem que eu pude decidir não mexer no gate. Quando eu conseguir uma chave do Jev penso em rodar o mesmo conjunto de novo, e se a conclusão mudar eu escrevo isso também.
 
 :::ref
-[paper] [Lambert et al., Tulu 3: a origem do nome RLVR](https://arxiv.org/abs/2411.15124)
-[repo] [themsquared/jev-benchmark, julgamento de risco em chamadas de ferramenta](https://github.com/themsquared/jev-benchmark)
+- [paper] [Lambert et al., Tulu 3: a origem do nome RLVR](https://arxiv.org/abs/2411.15124)
+- [repo] [themsquared/jev-benchmark, julgamento de risco em chamadas de ferramenta](https://github.com/themsquared/jev-benchmark)
 :::

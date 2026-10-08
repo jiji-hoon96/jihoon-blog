@@ -8,7 +8,7 @@ description: "How domains, domain models, domain objects, and domain object mode
 keywords: "domain model, domain object, domain object model, domain model vs data model, Entity Value Object, DDD terminology, frontend DDD, Eric Evans"
 locale: en
 translationOf: '260413'
-sourceHash: aeb26f1209027c081c1785b1c47b80315eba3977fbe2e60693868979c7b24af0
+sourceHash: 200a8b74a4f7351393d1f58ad8a0395a05f2832ac9b1227d1e8df78b0b84e5a2
 ---
 
 In this post, I want to talk about **how domains, domain models, domain objects, and domain object models differ from one another**.
@@ -153,9 +153,6 @@ To summarize, a **domain** is the problem space we are trying to solve; a **doma
 How this distinction plays out in code, that is, where domain logic such as tax calculation should live outside components and how far to separate it, is the subject of [Domain Models](/260418).
 
 Next time you look at an API response type, I hope you will ask yourself at least once: "Is this a data model or a domain model?"
-
-
-### References
 
 :::ref
 - [article] [Eric Evans, Domain-Driven Design (Book)](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215)

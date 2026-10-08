@@ -6,7 +6,7 @@ date: "2026-05-24"
 updatedAt: "2026-10-08"
 locale: en
 translationOf: '260524'
-sourceHash: c875da907fb126eda19d80e783e72785cccab4386558a197481c554cc9d8efce
+sourceHash: b205038e9317d3f184709c9982ea3836b1f40973e9c105d846718153ca395fd3
 categories: AI Developer-Tools Claude MCP
 description: "How MCP differs from function calling: six primitives, stdio and Streamable HTTP, the tools/list to tool_use loop flow, and risks like Tool Poisoning."
 keywords: "MCP, Model Context Protocol, MCP vs function calling, MCP primitives, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP security"
@@ -34,13 +34,13 @@ MCP is a protocol built on JSON-RPC. [JSON-RPC 2.0](https://www.jsonrpc.org/spec
 
 The overview of the 2025-11-25 specification lists three features that servers offer and three features that clients offer. This post calls these six primitives. Here, a primitive has nothing to do with JavaScript's primitive types (such as string or number); it refers to a basic type of interaction defined by the protocol.
 
-**Server-side primitives**
+#### Server-side primitives
 
 - **Tool** (model-controlled): an action the model autonomously decides whether to invoke. Such actions may have side effects
 - **Resource** (application-controlled): data identified by a URI. The specification only has `resources/read` for reading its contents and no method for writing. How those resources go into the context is decided by the host application
 - **Prompt** (user-controlled): a reusable template explicitly triggered by the user, for example through a slash command
 
-**Client-side primitives**
+#### Client-side primitives
 
 - **Sampling**: a mechanism that allows the server to request a completion from the client’s LLM, making the client-server architecture bidirectional. It lets a server that needs generated text while running a tool borrow the model the client uses, without an API key of its own. It was deprecated, that is, scheduled for removal, in the 2026-07-28 revision.
 - **Roots**: workspace boundary information through which the client tells the server, “This is the extent of the area you may work in”
@@ -190,9 +190,6 @@ Tool descriptions and tool call results pass through the host into the model’s
 In short, MCP does not replace function calling; it is a standard layered on top of it. The model still invokes tools through the `tools` parameter and the `tool_use` loop, and the host translates between the two protocols. In the 2025-11-25 revision, what MCP added was dynamic discovery, a stateful session, primitives beyond Tool, and calls that go from the server to the client. With sessions gone and Sampling deprecated in the 2026-07-28 revision, what remains is a contract for exchanging the tool list and context at runtime. Because of that contract, attacks that poison tool definitions or quietly change them arise in the same place. When you add another MCP server, I recommend checking not only what that server can do but also whether your host tells you when its definitions change.
 
 If MCP is about what to enable the agent to do, what to tell the agent is the job of context files such as `CLAUDE.md` and `AGENTS.md`. How those files are read by the agent, and how far their instructions are followed, is covered in [Context Files](/260529).
-
-
-## References
 
 :::ref
 - [docs] [MCP Specification 2025-11-25, Lifecycle](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle)

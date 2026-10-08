@@ -189,8 +189,6 @@ Context file은 도구마다 이름도, 놓이는 위치도, 읽히는 시점도
 이 글을 읽는 독자들도 지금 당장 CLAUDE.md를 수백 줄로 늘리기보다는, 지금 쓰고 있는 도구가 그 파일을 언제, 어느 자리에, 얼마나 강하게 읽어 들이는지 한 번쯤 파고들어 보기를 권한다. 그게 파일 형식이 어떻게 바뀌든 흔들리지 않는 기반이 된다고 생각한다.
 
 
-## 참고 자료
-
 :::ref
 - [docs] [Claude Code Memory, Anthropic](https://code.claude.com/docs/en/memory)
 - [docs] [Anthropic Tool Use Overview](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)

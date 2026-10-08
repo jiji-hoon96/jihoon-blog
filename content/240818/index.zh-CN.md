@@ -8,7 +8,7 @@ description: "通过阅读源码深入探究 Zustand 无需 Provider 就能管�
 keywords: "Zustand 原理, Zustand 不需要 Provider 的原因, React 状态管理库, Zustand 源码分析, useSyncExternalStore, React Context API"
 locale: zh-CN
 translationOf: '240818'
-sourceHash: 7128866f5e5b91c42a8b11b5a62e46fec3ff6b39defa8ce185c304c755039851
+sourceHash: 3e57a2ce5bbe419d4da395f2e35c5acc0dbda2a29badcb792fd83a76e89a509e
 ---
 
 这篇文章想聊一聊 Zustand 是如何在没有 Provider 的情况下完成状态管理的。
@@ -45,9 +45,7 @@ React 使用一种名为 Fiber 的内部数据结构来管理组件树。每个 
 
 Zustand 基于 Flux 模式运行。闭包内部的 `state` 扮演 Store，用户定义的函数扮演 Action，`set` 函数扮演 Dispatcher，React 组件则扮演 View。决定性的差异就在这里。 
 
-**Zustand 的 Store 存在于 React 组件树之外，也就是 JavaScript 模块的作用域内。**
-
-所谓组件树之外，是指与 React 内部的状态管理不同，Zustand 的状态独立存在，与 React 的 Fiber 树无关。任何组件只要执行 `import` 就能访问 Store，无需用 Provider 包裹应用。（它像全局变量一样可以从任何地方访问，同时又受到闭包的妥善保护。）
+**Zustand 的 Store 存在于 React 组件树之外，也就是 JavaScript 模块的作用域内**。所谓组件树之外，是指与 React 内部的状态管理不同，Zustand 的状态独立存在，与 React 的 Fiber 树无关。任何组件只要执行 `import` 就能访问 Store，无需用 Provider 包裹应用。（它像全局变量一样可以从任何地方访问，同时又受到闭包的妥善保护。）
 
 为什么能做到这一点？来看下面的代码。
 
@@ -118,77 +116,77 @@ const createStoreImpl: CreateStoreImpl = (createState) => {
 
 逐行拆解这段代码，就能看清 Zustand 的核心机制。
 
-- **通过闭包封装状态**
+#### 通过闭包封装状态
 
-  - 变量 `let state: TState` 被声明为 `createStoreImpl` 函数的局部变量。即使函数执行结束，`setState`、`getState` 等内部函数仍然引用着这个变量，所以它不会被垃圾回收。这就是闭包的本质。
+- 变量 `let state: TState` 被声明为 `createStoreImpl` 函数的局部变量。即使函数执行结束，`setState`、`getState` 等内部函数仍然引用着这个变量，所以它不会被垃圾回收。这就是闭包的本质。
 
-  - 外部没有任何办法直接访问 `state` 变量。只能通过 `getState()` 读取，通过 `setState()` 写入。（相当于用闭包实现了面向对象中的 private 字段。）
+- 外部没有任何办法直接访问 `state` 变量。只能通过 `getState()` 读取，通过 `setState()` 写入。（相当于用闭包实现了面向对象中的 private 字段。）
 
-- **利用 `Object.is` 检测变化**
+#### 利用 `Object.is` 检测变化
 
-  - `setState` 计算出新状态后，会通过 `Object.is(nextState, state)` 与原状态进行比较。如果引用相同，就什么都不会发生。这是防止不必要重新渲染的第一道防线。
+- `setState` 计算出新状态后，会通过 `Object.is(nextState, state)` 与原状态进行比较。如果引用相同，就什么都不会发生。这是防止不必要重新渲染的第一道防线。
 
-  - 不过，这种 `Object.is` 比较检查的是**严格引用相等（strict reference equality）**，因此使用方需要留意一个问题。只取出一个原始值（如数字、字符串等）时没有问题。
+- 不过，这种 `Object.is` 比较检查的是**严格引用相等（strict reference equality）**，因此使用方需要留意一个问题。只取出一个原始值（如数字、字符串等）时没有问题。
 
-    ```typescript
-    const count = useStore((state) => state.count);
-    ```
+  ```typescript
+  const count = useStore((state) => state.count);
+  ```
 
-    但如果 selector **返回一个新对象**，情况就不同了。
+  但如果 selector **返回一个新对象**，情况就不同了。
 
-    ```typescript
-    const { count, name } = useStore((state) => ({
-      count: state.count,
-      name: state.name,
-    }));
-    ```
+  ```typescript
+  const { count, name } = useStore((state) => ({
+    count: state.count,
+    name: state.name,
+  }));
+  ```
 
-    `{ count, name }` 对象即使值相同，每次调用也会创建新的引用。`Object.is` 不比较内部属性，只比较引用，因此在 Zustand 看来，每次都会被判断为“状态变了”，从而触发重新渲染。
+  `{ count, name }` 对象即使值相同，每次调用也会创建新的引用。`Object.is` 不比较内部属性，只比较引用，因此在 Zustand 看来，每次都会被判断为“状态变了”，从而触发重新渲染。
 
-    为了解决这个问题，Zustand 提供了 **`useShallow`** hook。
+  为了解决这个问题，Zustand 提供了 **`useShallow`** hook。
 
-    ```typescript
-    import { useShallow } from 'zustand/react/shallow';
+  ```typescript
+  import { useShallow } from 'zustand/react/shallow';
 
-    const { count, name } = useStore(
-      useShallow((state) => ({ count: state.count, name: state.name }))
-    );
-    ```
+  const { count, name } = useStore(
+    useShallow((state) => ({ count: state.count, name: state.name }))
+  );
+  ```
 
-    `useShallow` 会逐一比较返回对象的**顶层属性**，只有值真正发生变化时才触发重新渲染。这与 Redux 的 `useSelector` 默认使用引用比较、同时允许将 `shallowEqual` 作为第二个参数传入的思路相似。（不过，顾名思义，`useShallow` 只做“浅层”比较，不会追踪嵌套对象的内部。）
+  `useShallow` 会逐一比较返回对象的**顶层属性**，只有值真正发生变化时才触发重新渲染。这与 Redux 的 `useSelector` 默认使用引用比较、同时允许将 `shallowEqual` 作为第二个参数传入的思路相似。（不过，顾名思义，`useShallow` 只做“浅层”比较，不会追踪嵌套对象的内部。）
 
-- **采用 Pub/Sub 模式的 listener 系统**
+#### 采用 Pub/Sub 模式的 listener 系统
 
-  - `const listeners: Set<Listener> = new Set()` 这一行就是 Zustand 的整个订阅系统。状态发生变化时，通过 `listeners.forEach` 通知所有订阅者。 
-  - 调用 `subscribe` 时，listener 会被添加到 `Set`；调用其返回的函数时，则从 `Set` 中删除。
-  - 这个模式之所以重要，是因为它构成了一个**完全独立于 React Fiber 树的通知系统**。并不是由 Provider 遍历树来寻找订阅者，而是由 Store 直接管理订阅者列表。
+- `const listeners: Set<Listener> = new Set()` 这一行就是 Zustand 的整个订阅系统。状态发生变化时，通过 `listeners.forEach` 通知所有订阅者。 
+- 调用 `subscribe` 时，listener 会被添加到 `Set`；调用其返回的函数时，则从 `Set` 中删除。
+- 这个模式之所以重要，是因为它构成了一个**完全独立于 React Fiber 树的通知系统**。并不是由 Provider 遍历树来寻找订阅者，而是由 Store 直接管理订阅者列表。
 
-- **创建初始状态**
+#### 创建初始状态
 
-  - 来看一下处理初始状态的最后一行代码。
+- 来看一下处理初始状态的最后一行代码。
 
-    ```typescript
-    const initialState = (state = createState(setState, getState, api))
-    ```
-    
-    一行里压缩了很多内容。在 JavaScript 中，赋值运算符（`=`）是一个会**返回所赋值本身**的表达式（expression）。也就是说，括号中的 `state = createState(...)` 会先执行，把初始状态赋给 `state`，其返回值再赋给 `const initialState`。最终，`state` 与 `initialState` **引用同一个对象**。
+  ```typescript
+  const initialState = (state = createState(setState, getState, api))
+  ```
+  
+  一行里压缩了很多内容。在 JavaScript 中，赋值运算符（`=`）是一个会**返回所赋值本身**的表达式（expression）。也就是说，括号中的 `state = createState(...)` 会先执行，把初始状态赋给 `state`，其返回值再赋给 `const initialState`。最终，`state` 与 `initialState` **引用同一个对象**。
 
-    可为什么要特意用两个变量保存同一个值呢？关键在于两个变量的职责不同。
+  可为什么要特意用两个变量保存同一个值呢？关键在于两个变量的职责不同。
 
-    - **`state`** 是用 `let` 声明的变量。每当调用 `setState` 时，它都会被替换成新值。也就是说，它表示**当前时刻仍在变化的状态**。
-    - **`initialState`** 是用 `const` 声明的变量。Store 创建时的状态会被永久保存。之后无论调用何种 `setState`，这个值都不会改变。它相当于**Store 的第一个快照**。
+  - **`state`** 是用 `let` 声明的变量。每当调用 `setState` 时，它都会被替换成新值。也就是说，它表示**当前时刻仍在变化的状态**。
+  - **`initialState`** 是用 `const` 声明的变量。Store 创建时的状态会被永久保存。之后无论调用何种 `setState`，这个值都不会改变。它相当于**Store 的第一个快照**。
 
-    这个 `initialState` 通过 `getInitialState()` 方法暴露给外部，并在 `react.ts` 中作为 `useSyncExternalStore` 的**第三个参数（服务端快照）**传入。
+  这个 `initialState` 通过 `getInitialState()` 方法暴露给外部，并在 `react.ts` 中作为 `useSyncExternalStore` 的**第三个参数（服务端快照**）传入。
 
-    ```typescript
-    const slice = React.useSyncExternalStore(
-      api.subscribe,
-      () => selector(api.getState()),       
-      () => selector(api.getInitialState()), 
-    )
-    ```
+  ```typescript
+  const slice = React.useSyncExternalStore(
+    api.subscribe,
+    () => selector(api.getState()),       
+    () => selector(api.getInitialState()), 
+  )
+  ```
 
-    服务端渲染（SSR）环境中没有浏览器 API，也没有用户交互，因此不会调用 `setState`。所以服务端始终使用 `initialState`（= 初始状态）作为快照。当客户端开始 hydration 时，React 会比较服务端渲染的 HTML 与客户端初次渲染的结果。因为两边都基于同一个 `initialState` 渲染，所以能够**防止 hydration 不一致**。
+  服务端渲染（SSR）环境中没有浏览器 API，也没有用户交互，因此不会调用 `setState`。所以服务端始终使用 `initialState`（= 初始状态）作为快照。当客户端开始 hydration 时，React 会比较服务端渲染的 HTML 与客户端初次渲染的结果。因为两边都基于同一个 `initialState` 渲染，所以能够**防止 hydration 不一致**。
 
 ### react.ts
 
@@ -256,7 +254,7 @@ Redux 的 `<Provider store={store}>` 通过 React Context 将 Store 实例**注�
 
 Jotai 采用了与 Redux、Zustand 有根本差异的**原子化（atomic）状态模型**。它不会把状态集中在一个大型 Store 对象里，而是采用**将每个状态片段拆分成独立 atom**的方式。（Jotai 官方文档也解释说：“如果 Zustand 类似 Redux，那么 Jotai 就类似 Recoil。”）
 
-这种结构的核心差异在于**渲染优化的方式**。Zustand 是一种**自上而下（top-down）**的方法，通过 selector 从单个 Store 中只提取所需部分。开发者必须像 `useStore((state) => state.count)` 这样亲自编写 selector，有时还要通过 memoization 来保持引用相等（referential equality）。而 Jotai 会自动构建 atom 之间的**依赖图（dependency graph）**。当某个 atom 变化时，它会进行**自下而上（bottom-up）**的传播，只精确地重新渲染依赖该 atom 的组件。在电子表格或画布编辑器这类数十个状态相互交织的场景中，这种自动依赖追踪会发挥很大作用。
+这种结构的核心差异在于**渲染优化的方式**。Zustand 是一种**自上而下（top-down**）的方法，通过 selector 从单个 Store 中只提取所需部分。开发者必须像 `useStore((state) => state.count)` 这样亲自编写 selector，有时还要通过 memoization 来保持引用相等（referential equality）。而 Jotai 会自动构建 atom 之间的**依赖图（dependency graph**）。当某个 atom 变化时，它会进行**自下而上（bottom-up**）的传播，只精确地重新渲染依赖该 atom 的组件。在电子表格或画布编辑器这类数十个状态相互交织的场景中，这种自动依赖追踪会发挥很大作用。
 
 从 Provider 的角度看，Jotai 处于一个有趣的中间位置。它默认使用全局 Store，无需 Provider 即可运行；需要时，也能用 `<Provider>` 包裹，创建隔离的 Store 作用域。借用 Jotai 官方文档的说法，Jotai 是 **“context first, module second”**，Zustand 则是 **“module first, context second”**。
 
@@ -390,7 +388,7 @@ beforeEach(() => {
 
 在查找上述内容时得知，**Zustand v5.0.0 已于 2024 年 10 月正式发布**。
 
-有意思的是，v5 几乎没有新功能。v4.x 已经在添加新功能的同时逐步将原有 API 标记为 deprecated，因此 v5 更像是一次**整理（cleanup）版本**。主要变更如下。（详细内容请参阅**[发布页面](https://github.com/pmndrs/zustand/releases)**和**[迁移指南](https://zustand.docs.pmnd.rs/reference/migrations/migrating-to-v5)**。）
+有意思的是，v5 几乎没有新功能。v4.x 已经在添加新功能的同时逐步将原有 API 标记为 deprecated，因此 v5 更像是一次**整理（cleanup）版本**。主要变更如下。（详细内容请参阅[发布页面](https://github.com/pmndrs/zustand/releases)和[迁移指南](https://zustand.docs.pmnd.rs/reference/migrations/migrating-to-v5)。）
 
 - 最低要求提升至 **React 18、TypeScript 4.5 及以上版本**。
 - **删除了 `getServerState`**。（由 `useSyncExternalStore` 的第三个参数取代）
@@ -399,8 +397,6 @@ beforeEach(() => {
 - **改进了 `shallow` 函数**，使其支持 iterable 对象。
 
 从 v4 迁移到 v5 时，建议先升级至 v4 的最新版本。v4 最新版会显示 deprecation 警告，因此先解决这些警告，再升级到 v5，就能顺利完成迁移。
-
-### 参考资料
 
 :::ref
 - [docs] [React useSyncExternalStore](https://react.dev/reference/react/useSyncExternalStore)

@@ -8,7 +8,7 @@ description: "Qué es la abstracción en frontend y en qué se diferencian una b
 keywords: "abstracción en frontend, abstracción de componentes React, abstracción en Clean Code, nivel de abstracción, Level of Abstraction, cómo escribir buen código, nombres que revelan la intención, Composed Method, ley de las abstracciones con fugas, diseño de componentes, diseño de hooks personalizados, arquitectura frontend, Kent Beck, Robert C. Martin"
 locale: es
 translationOf: '260201'
-sourceHash: 5efbefc3d64dc594438caaa486c232919b92fc74e1211a9ba56fa124dbcef0c4
+sourceHash: 2035d8bcaf96c40a302631b399747f5dacf236e3e3ff1368cdaa3429e5e3f2de
 ---
 
 En este artículo quiero hablar de la abstracción en programación y de cómo escribir buen código desde la perspectiva de la abstracción.
@@ -514,9 +514,9 @@ Si hemos caído en esta situación, la solución está clara: volver a poner inl
 
 Entonces, ¿cuándo debemos abstraer? Estas son, a grandes rasgos, las **señales de abstracción** que percibo:
 
-- **Se está perdiendo la coherencia.** Aunque se trata de la misma lógica, en algunos componentes aparece inline y en otros se ha separado en una función. La misma lógica de cálculo está dispersa por todas partes.
-- **La estructura interna se expone innecesariamente al exterior.** Quien llama al módulo tiene que manejar uno por uno detalles de implementación que no necesita conocer.
-- **El procedimiento interno sigue quedando expuesto.** El módulo no logra ocultar su propio procedimiento y quien lo utiliza debe seguirlo tal cual.
+- **Se está perdiendo la coherencia**: Aunque se trata de la misma lógica, en algunos componentes aparece inline y en otros se ha separado en una función. La misma lógica de cálculo está dispersa por todas partes.
+- **La estructura interna se expone innecesariamente al exterior**: Quien llama al módulo tiene que manejar uno por uno detalles de implementación que no necesita conocer.
+- **El procedimiento interno sigue quedando expuesto**: El módulo no logra ocultar su propio procedimiento y quien lo utiliza debe seguirlo tal cual.
 
 El problema es que detectar estas señales suele ser bastante sencillo, pero **en la práctica es fácil ignorarlas y centrarse en satisfacer requisitos más «importantes»**. Cuando nos presionan los plazos o estamos absortos en implementar una funcionalidad, pensamos: «Ya funciona; lo ordenaré más adelante». Y ese momento rara vez llega.
 

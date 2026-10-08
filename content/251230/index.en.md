@@ -9,7 +9,7 @@ description: "How TanStack Query judges new queryKey arrays equal: hashKey seria
 keywords: "queryKey comparison, hashKey, queryHash, TanStack Query cache key, React Query queryKey order, queryKeyHashFn, JSON.stringify sorted keys, QueryCache"
 locale: en
 translationOf: '251230'
-sourceHash: 24fc2216b382a69ba99c1d4ca8676c6ef3f58966b132171d60acb75e1be1f38c
+sourceHash: 47c18317b91a4b6f5d16479d680433d97c9f8ee7a016da28cd3387dd9417f417
 ---
 
 In this post, I want to talk about **how TanStack Query decides that two queryKeys are the same key**.
@@ -72,7 +72,7 @@ Key sorting applies only to **plain objects**. In the same file, `isPlainObject`
 
 Seen from the calling side, there are two results.
 
-**1. Object key order does not matter.**
+### Object key order does not matter
 
 ```tsx
 useQuery({ queryKey: ['todos', { status: 'done', page: 1 }], queryFn });
@@ -82,7 +82,7 @@ useQuery({ queryKey: ['todos', { page: 1, status: 'done' }], queryFn });
 
 Without key sorting, you would have to remember the key order every time you used an object literal.
 
-**2. Array element order matters.**
+### Array element order matters
 
 ```tsx
 useQuery({ queryKey: ['todos', status, page], queryFn });
@@ -191,9 +191,6 @@ In short, TanStack Query does not compare queryKey array references. Instead, `h
 How this rule carries over to writing and managing queryKeys, that is, the path from inline arrays through query key factories to `queryOptions`, is covered in [queryKey](/260104).
 
 Next time you put an object or a `Map` into a queryKey, I hope you will stop for a moment and think about what string it will be serialized into.
-
-
-## References
 
 :::ref
 - [docs] [TanStack Query, Query Keys](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)

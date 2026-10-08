@@ -6,7 +6,7 @@ date: "2026-05-26"
 updatedAt: "2026-10-08"
 locale: en
 translationOf: '260526'
-sourceHash: 443bddf4754e316487730bed1445d039acc52211b70f3df7ebb4269a217329f1
+sourceHash: 182bb75afe619d0d97875b8a9abbc855d796bdf96b4c9aaf93ff0695021afce5
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "Four tiers of tools that cut an AI agent's code search cost: context packing like Repomix, tree-sitter repo maps, CodeGraph's graph, and LSP-based Serena."
 keywords: "code intelligence, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider repo map, AI coding agent token savings"
@@ -169,8 +169,6 @@ So when I pick a tool, I look first at which cost is the problem right now, rath
 
 If these tools cut the cost of an agent finding code, how much of the project rules an agent should know from the start to write, and in which file, is a separate problem. I cover that in [Context Files](/260529).
 
-
-## References
 
 :::ref
 - [repo] [ast-grep/ast-grep](https://github.com/ast-grep/ast-grep)

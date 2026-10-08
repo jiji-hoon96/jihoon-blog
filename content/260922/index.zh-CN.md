@@ -9,7 +9,7 @@ description: '有个模型不返回文本，只返回概率。confidence 不是�
 keywords: 'Jev, TypeSafe AI, System One 模型, RLCD, 模型校准, ECE, confidence 阈值, 决策模型, Kev 开源, Jev 应用案例'
 locale: zh-CN
 translationOf: '260922'
-sourceHash: 966cedd7c0143dde34129e34ea80c0b3cf6c838277523dae23929576711e8943
+sourceHash: 5c9dfaaf13880df9237ac0b3d8ee8acf63ea576d1e319a1de375d9a179acc499
 ---
 
 这篇文章想聊聊上周 TypeSafe AI 公开的 Jev，一个不返回文本、只返回概率的模型。本文写给想给模型返回的概率设阈值、在没有人工确认的情况下自动处理的开发者。读完之后，你会知道 Jev 的 `confidence` 是怎么算出来的，校准会随分布变化多少，以及用自己的数据定阈值的步骤。
@@ -145,8 +145,8 @@ ECE 最大的那个集合的 0.105，比前面看到的 post-RLHF GPT-4 的 0.07
 
 评估集合取自本仓库的 18 篇韩语文章。标签的正确答案标准是**本仓库一贯把那个词写成哪种形式**。也就是说，它不是韩语技术文档社区的共识，而是这个博客的惯例；在两者分歧的词上，模型可能按社区标准是对的，按这个标准却是错的。
 
-- **闸门集合 102 句。** 是闸门已经认识的词。把正文里写成英文的 `calendar`、`picker`、`adapter` 之类的词改回韩文音译的**反事实句子**为阳性 23 句，`write-post.md` 明确列为例外的 `리렌더링`（re-rendering）或 `콜 스택`（call stack）实际出现的句子为阴性 79 句。在这里，现行的正则闸门按定义能答对 100%。
-- **保留集合 60 句。** **是闸门一次都没见过的词。** 也就是机器学习里说的 :term[held-out]{key="held-out-set"} 集合。 把正文里只写英文的 `loader`、`mutation`、`prefill` 改成音译的为阳性 30 句，正文里只写韩文的 `리듀서`（reducer）、`스냅샷`（snapshot）、`런타임`（runtime）为阴性 30 句。在这里，正则一个阳性都抓不到。
+- **闸门集合 102 句**：是闸门已经认识的词。把正文里写成英文的 `calendar`、`picker`、`adapter` 之类的词改回韩文音译的**反事实句子**为阳性 23 句，`write-post.md` 明确列为例外的 `리렌더링`（re-rendering）或 `콜 스택`（call stack）实际出现的句子为阴性 79 句。在这里，现行的正则闸门按定义能答对 100%。
+- **保留集合 60 句**：**是闸门一次都没见过的词。** 也就是机器学习里说的 :term[held-out]{key="held-out-set"} 集合。 把正文里只写英文的 `loader`、`mutation`、`prefill` 改成音译的为阳性 30 句，正文里只写韩文的 `리듀서`（reducer）、`스냅샷`（snapshot）、`런타임`（runtime）为阴性 30 句。在这里，正则一个阳性都抓不到。
 
 ![示意图：闸门集合 102 句和保留集合 60 句的阳性、阴性构成，以及正则闸门完全覆盖闸门集合、却抓不到保留集合任何一个阳性](6.png?w=720)
 
@@ -286,6 +286,6 @@ ECE 最大的那个集合的 0.105，比前面看到的 post-RLHF GPT-4 的 0.07
 希望各位数一数，现在运营的服务里只向大模型问是/否的调用有多少个。在把那些调用搬到决策模型之前，建议先测一测搬过去之后该把线划在哪里。笔者守住了这个顺序，才能定下不去动那道闸门。拿到 Jev 的 key 之后打算把同一批集合再跑一遍，那时如果结论变了，也会写下来。
 
 :::ref
-[paper] [Lambert 等人，Tulu 3：RLVR 的命名](https://arxiv.org/abs/2411.15124)
-[repo] [themsquared/jev-benchmark，工具调用风险判定](https://github.com/themsquared/jev-benchmark)
+- [paper] [Lambert 等人，Tulu 3：RLVR 的命名](https://arxiv.org/abs/2411.15124)
+- [repo] [themsquared/jev-benchmark，工具调用风险判定](https://github.com/themsquared/jev-benchmark)
 :::

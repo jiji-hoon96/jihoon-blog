@@ -9,7 +9,7 @@ description: "结合 React 的 PR 记录与在 Chrome 中实测的 setTimeout 4m
 keywords: "requestIdleCallback, MessageChannel, React Scheduler, setTimeout 4ms, React 调度器原理, shouldYieldToHost, requestAnimationFrame, React Fiber"
 locale: zh-CN
 translationOf: '250515'
-sourceHash: f9e36a7b0a0e10bfe8dc30ec353c2703fbf8e586fb8ce86dccf0c23a712b3454
+sourceHash: 2b9882e6b7b4a6ad16bcb679ac72102e95b7c50101ea3ffda6bbc08e3c63f7ca
 ---
 
 这篇文章想聊一聊 **React 为什么用 MessageChannel 而不是 requestIdleCallback 来调度工作**。
@@ -107,8 +107,6 @@ schedule();
 
 这个 Scheduler 分开执行的工作单元，也就是 Fiber 节点长什么样、Work Loop 如何遍历它们，会在[彻底掌握 React Fiber](/250520)中讨论。希望各位读者下次在 React 源码中再遇到 `MessageChannel` 时，能想起它为什么会出现在那里。
 
-
-## 参考资料
 
 :::ref
 - [repo] [React 16.0.0 的 ReactDOMFrameScheduling.js](https://github.com/facebook/react/blob/v16.0.0/src/renderers/shared/ReactDOMFrameScheduling.js)

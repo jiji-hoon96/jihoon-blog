@@ -8,7 +8,7 @@ description: "ドメイン、ドメインモデル、ドメインオブジェク
 keywords: "ドメインモデル, ドメインオブジェクト, ドメインオブジェクトモデル, ドメインモデル データモデル 違い, Entity Value Object, ドメイン駆動設計 用語, DDD フロントエンド, Eric Evans"
 locale: ja
 translationOf: '260413'
-sourceHash: aeb26f1209027c081c1785b1c47b80315eba3977fbe2e60693868979c7b24af0
+sourceHash: 200a8b74a4f7351393d1f58ad8a0395a05f2832ac9b1227d1e8df78b0b84e5a2
 ---
 
 今回の記事では、**ドメイン、ドメインモデル、ドメインオブジェクト、ドメインオブジェクトモデルがそれぞれどう違うのか**について話してみたい。
@@ -153,9 +153,6 @@ EntityはIDによる比較、Value Objectは属性による比較。この区別
 この区別がコードでどんな違いを生むのか、つまり税金計算のようなドメインロジックをコンポーネントの外のどこに置き、どこまで分けるのかは、[ドメインモデル](/260418)で続けて扱う。
 
 この記事を読んだ皆さんも、次にAPIレスポンスの型を見たときには「これはデータモデルなのか、ドメインモデルなのか」と一度問いかけてみてほしい。
-
-
-### 参考資料
 
 :::ref
 - [article] [Eric Evans, Domain-Driven Design (Book)](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215)

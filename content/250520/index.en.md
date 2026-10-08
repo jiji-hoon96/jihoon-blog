@@ -9,7 +9,7 @@ description: "A source-based look at React Fiber: Stack Reconciler, Fiber nodes,
 keywords: "React Fiber, React Fiber architecture, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, React rendering, React source code analysis, Virtual DOM, Reconciliation, Lane priority, frontend interview"
 locale: en
 translationOf: '250520'
-sourceHash: 829e3fcfb711596a9ec0772911ab6d13e00e41ba3ddcb03ae930070dbee27260
+sourceHash: 85d40d1c649dd353904731d56b58a7aa98ef44ef02eae868a59d2edcfa4da326
 ---
 
 In this post, I want to talk about the **Fiber architecture**, which could be called the heart of React.
@@ -590,10 +590,12 @@ Internally, the Commit Phase proceeds in the following detailed order.
 3. **Tree swap**: `root.current = finishedWork`
    - This is the essence of double buffering. The workInProgress tree is promoted to the current tree. The reason the swap happens after Mutation but before Layout is important. `componentWillUnmount` must read the **previous tree**, so it must run during Mutation, while `componentDidMount`/`componentDidUpdate` must read the **new tree**, so they must run during Layout.
 4. **Layout Phase**: `commitLayoutEffects()`
-   - After DOM changes are complete, tasks based on the new DOM state run.
-      - Run `componentDidMount` and `componentDidUpdate`
-      - Run `useLayoutEffect` callbacks
-      - At this point, `current` already points to the new tree, so reading the DOM returns updated values
+
+   After DOM changes are complete, tasks based on the new DOM state run.
+
+   - Run `componentDidMount` and `componentDidUpdate`
+   - Run `useLayoutEffect` callbacks
+   - At this point, `current` already points to the new tree, so reading the DOM returns updated values
 5. **Passive Effects** (asynchronous)
    - `useEffect` cleanup and setup are scheduled separately and run **asynchronously**. Because they handle side effects that do not depend on DOM changes (such as data fetching and event subscriptions), they do not need to run synchronously. Running them asynchronously yields so the browser can paint the screen first.
 
@@ -647,8 +649,6 @@ Of course, Fiber's internal implementation continues to change with each React r
 
 I hope this article has conveyed that React Fiber is not merely an interview keyword but the runtime architecture supporting every React feature. There may be no single correct interpretation, but I also hope readers will inspect the source code themselves and build their own understanding.
 
-
-## Sources
 
 :::ref
 - [repo] [React source code, ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberWorkLoop.js)

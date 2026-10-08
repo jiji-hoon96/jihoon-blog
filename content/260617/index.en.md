@@ -9,7 +9,7 @@ description: 'Why I built Kalyx, a headless React DatePicker, and how it differs
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React date picker timezone, ISO 8601 UTC date string, date off by one day bug, DST bug JavaScript, fast-check property testing, react-day-picker alternative'
 locale: en
 translationOf: '260617'
-sourceHash: 80176614ac16b54692eaef49e0e57c5e4d771c737abd741e3e8905c5f4cdbe87
+sourceHash: 623e415de2fed4e1a482540920a8081dd7a4923f5cd41f61f749302cba79cc1d
 ---
 
 In this post, I want to talk about **Kalyx**, the headless React DatePicker library I built.
@@ -44,9 +44,7 @@ On the other side, Ark UI and React Aria use `@internationalized/date` objects s
 
 Timezone support can also be tied to your choice of date library. Looking at the adapter code in MUI X Date Pickers 9.13.0, the dayjs, Luxon, and Moment adapters have `isTimezoneCompatible = true`, while the date-fns family has `false`. An app on date-fns has to bring in a second date library to use the `timezone` prop.
 
-Modes were scattered across prop combinations, values across `Date` objects whose interpretation depends on the runtime, and timezone support across the choice of date library.
-
-**It was hard to express intent in a single declaration.**
+Modes were scattered across prop combinations, values across `Date` objects whose interpretation depends on the runtime, and timezone support across the choice of date library. **It was hard to express intent in a single declaration.**
 
 ### Learning by building
 
@@ -267,9 +265,7 @@ In positive-offset zones the two shifts cancelled out and it happened to be righ
 
 The mechanisms differ, but both broke the same rule: convert only once per direction, with the function assigned to that direction.
 
-This incident widened core's round-trip property tests from "a few representative zones" to "every zone the runtime knows." (Component tests on the React side still use representative zones such as `America/New_York`.)
-
-**Defects that only appear where the sign flips are not caught by sampling.**
+This incident widened core's round-trip property tests from "a few representative zones" to "every zone the runtime knows." (Component tests on the React side still use representative zones such as `America/New_York`.) **Defects that only appear where the sign flips are not caught by sampling.**
 
 ### London's 01:30 resolved late
 
@@ -283,9 +279,7 @@ These fixes cost code. Kalyx sets a CI ceiling on the default entry bundle, and 
 
 Size was a selling point shown on the README badge. A date picker that slips by a day in negative-offset zones is unusable whether it is small or large.
 
-**If I have to choose between small and correct, I choose correct.**
-
-The ceiling is tight now. According to the repository's bundle byte map document from 2026-09-11, `dist/index.cjs` measured with Node's default gzip is 20,259B against a ceiling of 20,480B, leaving 221B of headroom. (This is the size of its own file with dependencies left external, so it is a different quantity from the earlier chart.) The next feature will have to reclaim bytes before it can land.
+**If I have to choose between small and correct, I choose correct.** The ceiling is tight now. According to the repository's bundle byte map document from 2026-09-11, `dist/index.cjs` measured with Node's default gzip is 20,259B against a ceiling of 20,480B, leaving 221B of headroom. (This is the size of its own file with dependencies left external, so it is a different quantity from the earlier chart.) The next feature will have to reclaim bytes before it can land.
 
 ## Not the conclusion I started with
 
@@ -305,10 +299,10 @@ On the docs site's [Playground](https://kalyx-docs-site.vercel.app/playground), 
 
 :::ref
 
-[docs] [Kalyx official documentation site](https://kalyx-docs-site.vercel.app/)
+- [docs] [Kalyx official documentation site](https://kalyx-docs-site.vercel.app/)
 
-[docs] [MUI, Date and Time Pickers Timezone](https://mui.com/x/react-date-pickers/timezone/)
+- [docs] [MUI, Date and Time Pickers Timezone](https://mui.com/x/react-date-pickers/timezone/)
 
-[docs] [Floating UI official documentation](https://floating-ui.com/)
+- [docs] [Floating UI official documentation](https://floating-ui.com/)
 
 :::

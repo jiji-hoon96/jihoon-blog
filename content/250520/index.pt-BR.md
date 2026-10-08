@@ -9,7 +9,7 @@ description: "Análise do React Fiber pelo código-fonte: Stack Reconciler, nós
 keywords: "React Fiber, arquitetura React Fiber, Stack Reconciler, Concurrent Mode, concorrência no React 18, useTransition, useDeferredValue, Suspense, renderização do React, análise do código-fonte do React, Virtual DOM, Reconciliation, prioridade de Lane, entrevista de frontend"
 locale: pt-BR
 translationOf: '250520'
-sourceHash: 829e3fcfb711596a9ec0772911ab6d13e00e41ba3ddcb03ae930070dbee27260
+sourceHash: 85d40d1c649dd353904731d56b58a7aa98ef44ef02eae868a59d2edcfa4da326
 ---
 
 Neste post, quero falar sobre a **arquitetura Fiber**, que pode ser considerada o coração do React.
@@ -590,10 +590,12 @@ Internamente, a Commit Phase segue esta ordem detalhada.
 3. **Troca da árvore**: `root.current = finishedWork`
    - Este é o ponto central do double buffering: a árvore workInProgress é promovida a árvore current. É importante que essa troca aconteça depois de Mutation e antes de Layout. `componentWillUnmount` precisa ler a **árvore anterior**, por isso é executado na Mutation Phase; já `componentDidMount`/`componentDidUpdate` precisam ler a **nova árvore**, por isso são executados na Layout Phase.
 4. **Layout Phase**: `commitLayoutEffects()`
-   - Depois que as mudanças no DOM terminam, são executados os trabalhos baseados no novo estado do DOM.
-      - execução de `componentDidMount` e `componentDidUpdate`
-      - execução dos callbacks de `useLayoutEffect`
-      - nesse momento, `current` já aponta para a nova árvore, portanto a leitura do DOM retorna os valores atualizados
+
+   Depois que as mudanças no DOM terminam, são executados os trabalhos baseados no novo estado do DOM.
+
+   - execução de `componentDidMount` e `componentDidUpdate`
+   - execução dos callbacks de `useLayoutEffect`
+   - nesse momento, `current` já aponta para a nova árvore, portanto a leitura do DOM retorna os valores atualizados
 5. **Passive Effects** (assíncronos)
    - O cleanup e o setup de `useEffect` são agendados separadamente e executados **de forma assíncrona**. Como eles tratam side effects que não dependem de mudanças no DOM, como data fetching e event subscriptions, não precisam ser executados de maneira síncrona. Ao processá-los assincronamente, o React cede ao navegador a oportunidade de desenhar a tela primeiro.
 
@@ -647,8 +649,6 @@ Naturalmente, a implementação interna do Fiber continua mudando a cada versão
 
 Espero que este artigo tenha mostrado que React Fiber não é apenas uma palavra-chave de entrevistas, mas a arquitetura de runtime que sustenta todos os recursos do React. Não há uma resposta única, mas espero também que você examine o código-fonte diretamente e construa sua própria compreensão.
 
-
-## Fontes
 
 :::ref
 - [repo] [Código-fonte do React, ReactFiberWorkLoop.js](https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberWorkLoop.js)

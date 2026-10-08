@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: zh-CN
 translationOf: '260529'
-sourceHash: fed5bdb321dec9666f12273f4c77b5c082799acd8ee57d2aeddff7096e128221
+sourceHash: 03edb5679e5e12f5dfab8b993152fdcc6c46eb0469c401b0c40f6255723f212d
 categories: AI 开发工具 Claude MCP CodeGraph
 description: "梳理 CLAUDE.md、AGENTS.md、SKILL.md 与 Cursor rules 何时、如何被智能体读取，并根据 CLAUDE.md 以 user message 注入的机制、上下文遗忘与 ETH Zurich 研究，给出上下文文件该写什么的判断标准。"
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, 上下文文件, AI 编程智能体, Claude Code, ETH Zurich AGENTS.md 研究"
@@ -191,8 +191,6 @@ Aider 的“200 行建议”是实用层面的提醒——文件每次都会进�
 
 我也建议读者不要急着把 CLAUDE.md 扩展到几百行，不妨先深入了解一下，自己当前使用的工具会在何时、放在哪个位置、以多大的力度读取这个文件。无论文件格式如何变化，这种理解都会成为不易动摇的基础。
 
-
-## 参考资料
 
 :::ref
 - [docs] [Claude Code Memory, Anthropic](https://code.claude.com/docs/en/memory)

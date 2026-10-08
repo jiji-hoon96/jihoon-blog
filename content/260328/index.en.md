@@ -8,7 +8,7 @@ description: "Refactoring the meeting room reservation app from the second Toss 
 keywords: "Toss Frontend Fundamentals, frontend refactoring, React component decomposition, code review, Toss mock exam, frontend architecture"
 locale: en
 translationOf: '260328'
-sourceHash: 8923c8faeb0909fd5fee8880f17c5920e68b3589e7236965925ee70f6b304162
+sourceHash: c2f3ff4e13d42fcd24e6ac8beaefd56e00e3fe59d4c28b6b5d08a10a5ec0ead9
 ---
 
 In this post, I want to share my experience refactoring the project from the second Toss Frontend Fundamentals mock exam.

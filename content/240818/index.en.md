@@ -8,7 +8,7 @@ description: "A source-code analysis of how Zustand manages state without a Prov
 keywords: "how Zustand works, why Zustand has no Provider, React state management library, Zustand source code analysis, useSyncExternalStore, React Context API"
 locale: en
 translationOf: '240818'
-sourceHash: 7128866f5e5b91c42a8b11b5a62e46fec3ff6b39defa8ce185c304c755039851
+sourceHash: 3e57a2ce5bbe419d4da395f2e35c5acc0dbda2a29badcb792fd83a76e89a509e
 ---
 
 In this post, I want to explore how Zustand manages state without a Provider.
@@ -45,9 +45,7 @@ How, then, does Zustand bypass this structure?
 
 Zustand is based on the Flux pattern. The `state` inside a closure acts as the Store, user-defined functions act as Actions, the `set` function acts as the Dispatcher, and React components act as Views. This is where the decisive difference appears.
 
-**A Zustand Store exists outside the React component tree, within the scope of a JavaScript module.**
-
-Unlike state managed inside React, the phrase "outside the component tree," often used when discussing Zustand, means that the state exists independently of React's Fiber tree. Any component can access the Store simply by using `import`, with no need to wrap the app in a Provider. (It is accessible from anywhere like a global variable, while still being safely protected inside a closure.)
+**A Zustand Store exists outside the React component tree, within the scope of a JavaScript module.** Unlike state managed inside React, the phrase "outside the component tree," often used when discussing Zustand, means that the state exists independently of React's Fiber tree. Any component can access the Store simply by using `import`, with no need to wrap the app in a Provider. (It is accessible from anywhere like a global variable, while still being safely protected inside a closure.)
 
 How is this possible? Consider the code below.
 
@@ -118,77 +116,77 @@ const createStoreImpl: CreateStoreImpl = (createState) => {
 
 Breaking down this code line by line reveals Zustand's core mechanisms.
 
-- **State encapsulation through a closure**
+#### State encapsulation through a closure
 
-  - The variable `let state: TState` is declared locally inside `createStoreImpl`. Even after the function finishes executing, internal functions such as `setState` and `getState` continue to reference it, so it is not garbage-collected. This is the essence of a closure.
+- The variable `let state: TState` is declared locally inside `createStoreImpl`. Even after the function finishes executing, internal functions such as `setState` and `getState` continue to reference it, so it is not garbage-collected. This is the essence of a closure.
 
-  - External code has no way to access the `state` variable directly. It can only read it through `getState()` and write it through `setState()`. (This is effectively an object-oriented private field implemented with a closure.)
+- External code has no way to access the `state` variable directly. It can only read it through `getState()` and write it through `setState()`. (This is effectively an object-oriented private field implemented with a closure.)
 
-- **Change detection with `Object.is`**
+#### Change detection with `Object.is`
 
-  - After calculating the next state, `setState` compares it with the existing state using `Object.is(nextState, state)`. If the references are identical, nothing happens. This is the first line of defense against unnecessary rerenders.
+- After calculating the next state, `setState` compares it with the existing state using `Object.is(nextState, state)`. If the references are identical, nothing happens. This is the first line of defense against unnecessary rerenders.
 
-  - However, because this `Object.is` comparison performs a **strict referential equality** check, consumers need to be careful in one particular area. There is no issue when selecting a single primitive value, such as a number or string.
+- However, because this `Object.is` comparison performs a **strict referential equality** check, consumers need to be careful in one particular area. There is no issue when selecting a single primitive value, such as a number or string.
 
-    ```typescript
-    const count = useStore((state) => state.count);
-    ```
+  ```typescript
+  const count = useStore((state) => state.count);
+  ```
 
-    But the situation changes when a selector **returns a new object**.
+  But the situation changes when a selector **returns a new object**.
 
-    ```typescript
-    const { count, name } = useStore((state) => ({
-      count: state.count,
-      name: state.name,
-    }));
-    ```
+  ```typescript
+  const { count, name } = useStore((state) => ({
+    count: state.count,
+    name: state.name,
+  }));
+  ```
 
-    Even when the values are identical, the `{ count, name }` object receives a new reference on every call. Because `Object.is` compares only the reference rather than the object's properties, Zustand considers the state "changed" and triggers a rerender every time.
+  Even when the values are identical, the `{ count, name }` object receives a new reference on every call. Because `Object.is` compares only the reference rather than the object's properties, Zustand considers the state "changed" and triggers a rerender every time.
 
-    To solve this problem, Zustand provides the **`useShallow`** hook.
+  To solve this problem, Zustand provides the **`useShallow`** hook.
 
-    ```typescript
-    import { useShallow } from 'zustand/react/shallow';
+  ```typescript
+  import { useShallow } from 'zustand/react/shallow';
 
-    const { count, name } = useStore(
-      useShallow((state) => ({ count: state.count, name: state.name }))
-    );
-    ```
+  const { count, name } = useStore(
+    useShallow((state) => ({ count: state.count, name: state.name }))
+  );
+  ```
 
-    `useShallow` compares the returned object's **top-level properties one by one**, triggering a rerender only when a value actually changes. This is similar to how Redux's `useSelector` uses reference comparison by default but accepts `shallowEqual` as its second argument. (As its name suggests, however, `useShallow` performs a "shallow" comparison, so remember that it does not track changes inside nested objects.)
+  `useShallow` compares the returned object's **top-level properties one by one**, triggering a rerender only when a value actually changes. This is similar to how Redux's `useSelector` uses reference comparison by default but accepts `shallowEqual` as its second argument. (As its name suggests, however, `useShallow` performs a "shallow" comparison, so remember that it does not track changes inside nested objects.)
 
-- **A Pub/Sub listener system**
+#### A Pub/Sub listener system
 
-  - The single line `const listeners: Set<Listener> = new Set()` constitutes Zustand's entire subscription system. When state changes, `listeners.forEach` notifies every subscriber.
-  - Calling `subscribe` adds a listener to the `Set`, and calling the returned function removes it from the `Set`.
-  - This pattern matters because it is **a notification system completely independent of React's Fiber tree**. Rather than having a Provider traverse the tree to find subscribers, the Store manages its subscriber list directly.
+- The single line `const listeners: Set<Listener> = new Set()` constitutes Zustand's entire subscription system. When state changes, `listeners.forEach` notifies every subscriber.
+- Calling `subscribe` adds a listener to the `Set`, and calling the returned function removes it from the `Set`.
+- This pattern matters because it is **a notification system completely independent of React's Fiber tree**. Rather than having a Provider traverse the tree to find subscribers, the Store manages its subscriber list directly.
 
-- **Creating the initial state**
+#### Creating the initial state
 
-  - Consider the final line that handles the initial state.
+- Consider the final line that handles the initial state.
 
-    ```typescript
-    const initialState = (state = createState(setState, getState, api))
-    ```
-    
-    A great deal is compressed into this one line. In JavaScript, the assignment operator (`=`) is an expression that **returns the assigned value itself**. This means `state = createState(...)` inside the parentheses runs first and assigns the initial state to `state`, after which its return value is assigned again to `const initialState`. As a result, `state` and `initialState` **refer to the same object**.
+  ```typescript
+  const initialState = (state = createState(setState, getState, api))
+  ```
+  
+  A great deal is compressed into this one line. In JavaScript, the assignment operator (`=`) is an expression that **returns the assigned value itself**. This means `state = createState(...)` inside the parentheses runs first and assigns the initial state to `state`, after which its return value is assigned again to `const initialState`. As a result, `state` and `initialState` **refer to the same object**.
 
-    Why store the same value in two separate variables? The key is that the variables have different roles.
+  Why store the same value in two separate variables? The key is that the variables have different roles.
 
-    - **`state`** is declared with `let`. It is replaced with a new value every time `setState` is called. In other words, it represents **the live state at the current point in time**.
-    - **`initialState`** is declared with `const`. It permanently preserves the state from the moment the Store was created. No later call to `setState` changes this value. It is **the Store's original snapshot**.
+  - **`state`** is declared with `let`. It is replaced with a new value every time `setState` is called. In other words, it represents **the live state at the current point in time**.
+  - **`initialState`** is declared with `const`. It permanently preserves the state from the moment the Store was created. No later call to `setState` changes this value. It is **the Store's original snapshot**.
 
-    This `initialState` is exposed through the `getInitialState()` method and passed in `react.ts` as the **third argument (the server snapshot)** to `useSyncExternalStore`.
+  This `initialState` is exposed through the `getInitialState()` method and passed in `react.ts` as the **third argument (the server snapshot)** to `useSyncExternalStore`.
 
-    ```typescript
-    const slice = React.useSyncExternalStore(
-      api.subscribe,
-      () => selector(api.getState()),       
-      () => selector(api.getInitialState()), 
-    )
-    ```
+  ```typescript
+  const slice = React.useSyncExternalStore(
+    api.subscribe,
+    () => selector(api.getState()),       
+    () => selector(api.getInitialState()), 
+  )
+  ```
 
-    In a server-side rendering (SSR) environment, browser APIs are unavailable and there is no user interaction, so `setState` is never called. The server therefore always uses `initialState` (= the original state) as its snapshot. When hydration begins on the client, React compares the HTML rendered on the server with the client's initial rendering result. Because both sides rendered from the same `initialState`, this **prevents a hydration mismatch**.
+  In a server-side rendering (SSR) environment, browser APIs are unavailable and there is no user interaction, so `setState` is never called. The server therefore always uses `initialState` (= the original state) as its snapshot. When hydration begins on the client, React compares the HTML rendered on the server with the client's initial rendering result. Because both sides rendered from the same `initialState`, this **prevents a hydration mismatch**.
 
 ### react.ts
 
@@ -399,8 +397,6 @@ Interestingly, v5 contains almost no new features. New features had already been
 - The **`shallow` function was improved** to support iterable objects.
 
 When migrating from v4 to v5, the recommended approach is to update to the latest v4 release first. The latest v4 release displays deprecation warnings, so addressing those warnings before upgrading to v5 makes the transition straightforward.
-
-### References
 
 :::ref
 - [docs] [React useSyncExternalStore](https://react.dev/reference/react/useSyncExternalStore)

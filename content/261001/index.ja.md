@@ -8,7 +8,7 @@ description: 'Juntao Qiu の React モジュール化の記事に沿って、決
 keywords: 'React レイヤー分割, React アーキテクチャ, カスタムフック 分離, domain object, Strategy パターン React, Presentation Domain Data layering, React リファクタリング, React 設計 責務分離'
 locale: ja
 translationOf: '261001'
-sourceHash: 04386dc525603086b1a6518b3fc3658aa52bda3e4f74955bd48e7683dad0f199
+sourceHash: a471069dd1f6949b51da4ba268781878b3bb9d94f9bf5e928521cd4799ecef3e
 ---
 
 今回の記事では、React アプリのコードを画面、業務ルール、データアクセスに分ける方法について話してみたい。component 一つに fetch と計算と render が一緒に入っていて、直すたびに全部を読まなければならない開発者のための記事だ。最後まで読めば、hook、pure component、domain object、Strategy、network client をどんなシグナルを見てどの順番で取り出すのか、そしてその構造をそのまま持ち込むとどこで壊れるのかがわかる。
@@ -356,7 +356,7 @@ fetch については、React 公式ドキュメントがさらに一歩進む�
 正解はないが、この記事を読んでいる読者の皆さんも、自分のコードが今何段階目の不便を抱えているのか一度確かめてみてほしい。
 
 :::ref
-[docs] [Microsoft Azure Architecture Center, Anti-corruption Layer pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer)
-[article] [Juntao Qiu, Headless Component](https://martinfowler.com/articles/headless-component.html)
-[article] [Juntao Qiu, Data Fetching Patterns in Single-Page Applications](https://martinfowler.com/articles/data-fetch-spa.html)
+- [docs] [Microsoft Azure Architecture Center, Anti-corruption Layer pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer)
+- [article] [Juntao Qiu, Headless Component](https://martinfowler.com/articles/headless-component.html)
+- [article] [Juntao Qiu, Data Fetching Patterns in Single-Page Applications](https://martinfowler.com/articles/data-fetch-spa.html)
 :::

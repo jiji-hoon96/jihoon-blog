@@ -9,7 +9,7 @@ description: "梳理 TanStack Query 如何把每次渲染新建的 queryKey 数�
 keywords: "queryKey 比较, hashKey, queryHash, TanStack Query 缓存键, React Query queryKey 顺序, queryKeyHashFn, JSON.stringify 键排序, QueryCache"
 locale: zh-CN
 translationOf: '251230'
-sourceHash: 24fc2216b382a69ba99c1d4ca8676c6ef3f58966b132171d60acb75e1be1f38c
+sourceHash: 47c18317b91a4b6f5d16479d680433d97c9f8ee7a016da28cd3387dd9417f417
 ---
 
 这篇文章想聊一聊 **TanStack Query 如何判断两个 queryKey 是同一个键**。
@@ -72,7 +72,7 @@ export function hashKey(queryKey: QueryKey | MutationKey): string {
 
 从使用者的角度看，结果有两个。
 
-**1. 对象的键顺序无关紧要。**
+### 对象的键顺序无关紧要
 
 ```tsx
 useQuery({ queryKey: ['todos', { status: 'done', page: 1 }], queryFn });
@@ -82,7 +82,7 @@ useQuery({ queryKey: ['todos', { page: 1, status: 'done' }], queryFn });
 
 如果没有键排序，每次使用对象字面量时都得记住键的顺序。
 
-**2. 数组的元素顺序很重要。**
+### 数组的元素顺序很重要
 
 ```tsx
 useQuery({ queryKey: ['todos', status, page], queryFn });
@@ -191,9 +191,6 @@ console.log(partialMatchKey(queryKey, ['todos', { status: 'todo' }])) // false
 这个判断标准如何延伸到 queryKey 的编写与管理，也就是从内联数组经过 query key factory 走到 `queryOptions` 的过程，会在 [queryKey](/260104) 中讨论。
 
 希望各位读者下次往 queryKey 里放对象或 `Map` 时，也能想一想这个值会被序列化成什么样的字符串。
-
-
-## 参考资料
 
 :::ref
 - [docs] [TanStack Query, Query Keys](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)

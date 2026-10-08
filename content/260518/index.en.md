@@ -8,7 +8,7 @@ description: "A framework for frontend state management across seven categories 
 keywords: "frontend state management, React state management, TanStack Query, Server State vs Client State, State Colocation, Single Source of Truth"
 locale: en
 translationOf: '260518'
-sourceHash: c29c3eb016acb3fa6ee86740afa1cdf4888bb4fa2e78cbf0a931a18ad2e7f70c
+sourceHash: 296e313b1c4b7d8b64dca1de6c4fe4d7aceb74f42321a01fd6a691ee98c806a5
 ---
 
 In this post, I want to talk about **State Management**. This is not a library comparison. Rather than deciding which tool is better, the goal is to develop a feel for **how to think about** state and **where to draw its boundaries**.
@@ -60,13 +60,13 @@ The central point is clear: **Server State and Client State are different proble
 
 I take this one step further and divide frontend state into **seven categories**. To be clear, these seven categories do not separate neatly along a single axis. They mix storage location, source, lifecycle, and role, so a single piece of state may belong to several categories at once. Rather than treating this as a perfect taxonomy, think of the categories as **questions to ask when deciding how state should be managed**.
 
-- **Local State** — State used only within one component or a narrow subtree
-- **Global State** — State that must be shared across the application
-- **Server State** — State whose source of truth is the server and whose client-side copy is a cache
-- **Form State** — Temporary state that exists while the user is entering data
-- **URL State** — Shareable state that lives in the address bar and survives refreshes
-- **External State** — State outside React, such as cookies, localStorage, sessionStorage, and IndexedDB
-- **State Guard** — Logic that blocks, allows, or validates access and actions based on combinations of state, rather than state itself
+- **Local State**: State used only within one component or a narrow subtree
+- **Global State**: State that must be shared across the application
+- **Server State**: State whose source of truth is the server and whose client-side copy is a cache
+- **Form State**: Temporary state that exists while the user is entering data
+- **URL State**: Shareable state that lives in the address bar and survives refreshes
+- **External State**: State outside React, such as cookies, localStorage, sessionStorage, and IndexedDB
+- **State Guard**: Logic that blocks, allows, or validates access and actions based on combinations of state, rather than state itself
 
 Beyond these categories, there is workflow state that may need to be modeled as a state machine and real-time collaborative state built on WebSocket or CRDTs.
 
@@ -243,8 +243,8 @@ return children;
 
 Two models are commonly used when implementing permission guards.
 
-- **RBAC(Role-Based Access Control)** : Grants permissions by role—for example, "an admin can view all user information." It is simple and fast, but the number of roles can explode as permissions become more granular
-- **ABAC(Attribute-Based Access Control)** : Determines permissions from combinations of attributes—for example, "the user is the author of the post, belongs to the same team, or is an admin." It is highly expressive but more difficult to implement and debug
+- **RBAC(Role-Based Access Control)**: Grants permissions by role—for example, "an admin can view all user information." It is simple and fast, but the number of roles can explode as permissions become more granular
+- **ABAC(Attribute-Based Access Control)**: Determines permissions from combinations of attributes—for example, "the user is the author of the post, belongs to the same team, or is an admin." It is highly expressive but more difficult to implement and debug
 
 Patterns such as the [TanStack Router RBAC guide](https://tanstack.com/router/v1/docs/framework/react/how-to/setup-rbac), which places guards in `beforeLoad` at the router level, are recommended. The key is that **permission checks should be expressed as data—a list of roles and permissions—rather than scattered throughout the code**. That way, changing an authorization policy remains a **data change**.
 
@@ -268,8 +268,6 @@ As I said at the beginning, AI will remain beside us for a long time. We will sp
 
 There is no single right answer. But there is a clear difference between **"creating state without understanding what state is"** and **"creating state with deliberate awareness of its category and location."** Before readers write their next line of `useState`, I hope they will pause for a moment and ask, "Which category of state is this?"
 
-
-### References
 
 :::ref
 - [docs] [React, Choosing the State Structure](https://react.dev/learn/choosing-the-state-structure)

@@ -69,7 +69,7 @@ export function hashKey(queryKey: QueryKey | MutationKey): string {
 
 쓰는 쪽에서 보면 결과는 둘이다.
 
-**1. 객체의 키 순서는 무관하다.**
+### 객체의 키 순서는 무관하다
 
 ```tsx
 useQuery({ queryKey: ['todos', { status: 'done', page: 1 }], queryFn });
@@ -79,7 +79,7 @@ useQuery({ queryKey: ['todos', { page: 1, status: 'done' }], queryFn });
 
 키 정렬이 없었다면 객체 리터럴을 쓸 때마다 키 순서를 외우고 있어야 했을 것이다.
 
-**2. 배열의 요소 순서는 중요하다.**
+### 배열의 요소 순서는 중요하다
 
 ```tsx
 useQuery({ queryKey: ['todos', status, page], queryFn });
@@ -188,9 +188,6 @@ console.log(partialMatchKey(queryKey, ['todos', { status: 'todo' }])) // false
 이 판단 기준이 queryKey를 어떻게 작성하고 관리할지로 이어지는 이야기, 즉 인라인 배열에서 query key factory를 거쳐 `queryOptions`까지 오게 된 흐름은 [queryKey](/260104)에서 다룬다.
 
 이 글을 읽는 독자 분들도 다음에 queryKey에 객체나 `Map`을 넣을 때, 그 값이 어떤 문자열로 직렬화될지 한 번쯤 떠올려 보시길 바란다.
-
-
-## 참고 자료
 
 :::ref
 - [docs] [TanStack Query, Query Keys](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)

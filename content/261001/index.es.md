@@ -8,7 +8,7 @@ description: 'Dividimos una pantalla de pago React en view, model y data siguien
 keywords: 'separar layers en React, arquitectura React, extraer custom hook, domain object, patrón Strategy en React, Presentation Domain Data layering, refactorización React, modularizar aplicaciones React'
 locale: es
 translationOf: '261001'
-sourceHash: 04386dc525603086b1a6518b3fc3658aa52bda3e4f74955bd48e7683dad0f199
+sourceHash: a471069dd1f6949b51da4ba268781878b3bb9d94f9bf5e928521cd4799ecef3e
 ---
 
 En este artículo quiero hablar de cómo dividir el código de una app React en pantalla, reglas de negocio y acceso a datos. Está escrito para quien tiene un solo component con fetch, cálculos y render juntos, y tiene que leerlo entero cada vez que cambia algo. Si llegas al final, sabrás qué señales mirar y en qué orden extraer hooks, pure components, domain objects, Strategy y un network client, y dónde se rompe esa estructura cuando la copias tal cual.
@@ -356,7 +356,7 @@ En resumen, mi juicio es este. El orden del original (hook, pure component, doma
 No hay una respuesta correcta, pero espero que tú también te pares a pensar de qué etapa es la incomodidad que está sufriendo tu código ahora mismo.
 
 :::ref
-[docs] [Microsoft Azure Architecture Center, patrón Anti-corruption Layer](https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer)
-[article] [Juntao Qiu, Headless Component](https://martinfowler.com/articles/headless-component.html)
-[article] [Juntao Qiu, Data Fetching Patterns in Single-Page Applications](https://martinfowler.com/articles/data-fetch-spa.html)
+- [docs] [Microsoft Azure Architecture Center, patrón Anti-corruption Layer](https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer)
+- [article] [Juntao Qiu, Headless Component](https://martinfowler.com/articles/headless-component.html)
+- [article] [Juntao Qiu, Data Fetching Patterns in Single-Page Applications](https://martinfowler.com/articles/data-fetch-spa.html)
 :::

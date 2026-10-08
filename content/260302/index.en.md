@@ -8,7 +8,7 @@ description: "How frontend engineers grow when AI writes the code: new skills in
 keywords: 'frontend in the AI era, developers in the AI era, vibe coding, agentic engineering, AI coding tools, Product Engineer, frontend career roadmap'
 locale: en
 translationOf: '260302'
-sourceHash: c38de9f219e846c233a2afb136f3ea0ee2a9f849517236b327d2e82dd05659f5
+sourceHash: c2fa8469abc21ff1a933ac6f740362bfc7b640c4b87f1f0780aeaabf148ee5bc
 ---
 
 In this post, I want to share my personal perspective on **how engineers can grow and survive alongside AI**.
@@ -227,7 +227,5 @@ Looking at the writing of Andrej Karpathy, an authority on OpenAI, the core of t
 
 The original article’s closing message was likewise that the person who becomes a senior is someone who “does not settle for completing the assigned work well, but examines the surrounding context and creates greater impact.” In the AI era, only the definition of that “impact” has changed. One person merges a screen AI built in an hour because “it works.” Another spends thirty more minutes examining how reasonable it is in terms of accessibility, security, performance, and system consistency. A year later, it is the latter who will be recognized as a senior. The people who survive will be those who stand on the 30% side of the boundary between 70% (functionality) and 30% (application and effective use).
 
-I hope the frontend engineers reading this leave with their own answer to the question, “What should I study next?” No one knows the definitive answer, but I am quite confident that the more AI writes our code, the more the people who can see “what lies beyond the code” will survive. I will close with the hope that, a year from now, I can write again about how this landscape has changed.
-
-**(If this article feels painfully obvious or outdated a year from now, perhaps that will mean we responded well enough.)**
+I hope the frontend engineers reading this leave with their own answer to the question, “What should I study next?” No one knows the definitive answer, but I am quite confident that the more AI writes our code, the more the people who can see “what lies beyond the code” will survive. I will close with the hope that, a year from now, I can write again about how this landscape has changed. **(If this article feels painfully obvious or outdated a year from now, perhaps that will mean we responded well enough.)**
 

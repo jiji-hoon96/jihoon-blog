@@ -6,7 +6,7 @@ date: "2026-05-24"
 updatedAt: "2026-10-08"
 locale: ja
 translationOf: '260524'
-sourceHash: c875da907fb126eda19d80e783e72785cccab4386558a197481c554cc9d8efce
+sourceHash: b205038e9317d3f184709c9982ea3836b1f40973e9c105d846718153ca395fd3
 categories: AI 開発ツール Claude MCP
 description: "MCPがfunction callingとどう違うのかをプロトコル構造から整理する。6つのプリミティブ、stdioとStreamable HTTP、tools/listからtool_useループまでの流れ、Tool Poisoningなどのセキュリティ問題を扱う。"
 keywords: "MCP, Model Context Protocol, MCP function calling 違い, MCP プリミティブ, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP セキュリティ"
@@ -34,13 +34,13 @@ MCPはJSON-RPC上に構築されたプロトコルだ。[JSON-RPC 2.0](https://w
 
 2025-11-25仕様の概要は、サーバーが提供する機能3つと、クライアントが提供する機能3つを挙げている。この記事ではこの6つをプリミティブ（primitive）と呼ぶ。ここでいうプリミティブは、JavaScriptのプリミティブ型（stringやnumberなど）とは関係がなく、プロトコルが定めた基本的なやり取りの種類を指す。
 
-**サーバー側プリミティブ**
+#### サーバー側プリミティブ
 
 - **Tool**（model-controlled）：モデルが呼び出すかどうかを自ら判断して実行する操作。この操作は副作用（side effect）を持つことがある
 - **Resource**（application-controlled）：URIで識別されるデータ。仕様には内容を読み出す`resources/read`だけがあり、書き込むメソッドはない。そのリソースをコンテキストにどう入れるかはホストアプリケーションが決める
 - **Prompt**（user-controlled）：ユーザーがスラッシュコマンドなどで明示的にトリガーする、再利用可能なテンプレート
 
-**クライアント側プリミティブ**
+#### クライアント側プリミティブ
 
 - **Sampling**：サーバーから逆にクライアントのLLMへcompletionを要求できる仕組みで、クライアントとサーバーを双方向の構造にする。ツールの実行中に文章の生成が必要になったサーバーが、自前のAPIキーなしでクライアントの使うモデルを借りるための仕組みだ。2026-07-28改訂版では削除予定のdeprecatedになった
 - **Roots**：クライアントがサーバーへ「ここまでが作業可能な範囲」と伝えるワークスペース境界の情報
@@ -190,9 +190,6 @@ SamplingとRootsはLoggingとともにdeprecatedになった。仕様に残っ�
 まとめると、MCPはfunction callingを置き換えるものではなく、その上に載った標準だ。モデルがツールを呼び出す方法は依然として`tools`パラメータと`tool_use`ループであり、2つのプロトコルの間はホストが翻訳する。2025-11-25改訂版でMCPが加えたのは、動的な発見、stateful session、Tool以外のプリミティブ、そしてサーバーからクライアントへ向かう呼び出しだった。2026-07-28改訂版でセッションがなくなりSamplingがdeprecatedになると、残るのはツール一覧とコンテキストを実行時にやり取りする契約だ。その契約があるからこそ、ツール定義を汚染したり、こっそり書き換えたりする攻撃も同じところから生まれる。MCPサーバーをもう一つつなぐときは、そのサーバーが何をできるのかとあわせて、定義が変わったときにホストが知らせてくれるかどうかも確かめてみてほしい。
 
 MCPがエージェントに何をできるようにするかの問題なら、何を知らせるかは`CLAUDE.md`や`AGENTS.md`のようなコンテキストファイルの問題だ。それらのファイルがエージェントにどのように読まれ、どこまで守られるのかは[コンテキストファイル](/260529)で扱う。
-
-
-## 参考資料
 
 :::ref
 - [docs] [MCP Specification 2025-11-25, Lifecycle](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle)

@@ -9,7 +9,7 @@ description: "How LZ77 and LZ78 handle their dictionaries differently, how each 
 keywords: "LZ77, LZ78, LZ77 vs LZ78, LZ77 algorithm, sliding window compression, LZW, how DEFLATE works, dictionary-based compression"
 locale: en
 translationOf: '240701'
-sourceHash: adffb2f465dace79a47b172dc53877d2d34bbfaa46c14978fa16575a00ae19df
+sourceHash: ddc4d9e1f3f50970b1b45c010136599e1ae4ffc77291be473b4b38679baa37a9
 ---
 
 In this post, I want to talk about **how LZ77 and LZ78 differ**.
@@ -169,8 +169,6 @@ How this lineage plays out in an actual format choice, comparing the speed and c
 
 The next time you extract a `.zip` or `.gz` file, I hope you will remember that instructions like “go back this many characters and copy this many” are being exchanged inside it.
 
-
-### References
 
 :::ref
 - [paper] [Storer, Szymanski, Data compression via textual substitution (1982)](https://doi.org/10.1145/322344.322346)

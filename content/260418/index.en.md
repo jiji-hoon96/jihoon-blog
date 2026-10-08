@@ -9,7 +9,7 @@ description: "Where frontend domain logic should live, with an income tax exampl
 keywords: "frontend domain model, domain-driven design, frontend DDD, Frontend DDD, domain logic separation, Anemic Domain Model, Clean Architecture frontend, Martin Fowler, React design patterns, frontend architecture, ViewModel separation, Bounded Context"
 locale: en
 translationOf: '260418'
-sourceHash: 263cc7c7f9b3268ef9d5e341b869de5c782febdf64a07af5ec969eef54639d56
+sourceHash: d6b76ba7f8a6d52a0ab5d57ff19ae3a276e5feee996a0536f0a670a00ad6e878
 ---
 
 In this post, I want to talk about **where domain logic should live on the frontend**.
@@ -454,7 +454,7 @@ As a result, the bond between subject and verb is looser. To know that the `canA
 
 Honestly, the answer is **"it depends."** In my experience, however, there are practical reasons classes are not a silver bullet in a React + TypeScript environment.
 
-**1. Friction with React State Management**
+#### Friction with React State Management
 
 React state management fits most naturally with **plain objects**. `useState` and `useReducer` can technically hold any value, and Redux DevTools does not itself remove a class instance's prototype. If Redux/Zustand persistence middleware stores and restores state as JSON, however, a class instance loses its methods and prototype in the `JSON.stringify` → `JSON.parse` cycle and becomes a plain object. The props boundary from a React Server Component to a Client Component has a different constraint: it accepts only supported serializable values, so an arbitrary class instance cannot be passed through it in the first place.
 
@@ -468,7 +468,7 @@ const [filing, setFiling] = useState(
 
 Updating React state alone does not stop `filing` from being an instance of `TaxFilingModel`. If Redux/Zustand persistence saves and restores it as JSON, however, the restored value may be a plain object without methods, so an innocent call to `filing.canAmend()` can produce a runtime error. Passing it from a React Server Component to a Client Component fails earlier because a class instance is not a supported serializable prop value.
 
-**2. The Difficulty of Guaranteeing Immutability**
+#### The Difficulty of Guaranteeing Immutability
 
 React detects state changes based on **referential equality**. If a method on a class instance mutates internal state with something like `this.items.push(...)`, the reference stays the same and React does not trigger a rerender. In the end, `addDeduction(item)` has to return a new instance every time—something like `return new DeductionList([...this.items, item])`. That undermines the class advantage of "encapsulated state mutation" and leaves code that is not very different from functional updates.
 
@@ -477,7 +477,7 @@ React detects state changes based on **referential equality**. If a method on a 
 
 Then how can we improve the loose cohesion of code such as `eat('jihoon', '감자탕')` in a functional style? Here are three approaches I have found effective.
 
-**1. Create Cohesion with a Module Namespace**
+#### Create Cohesion with a Module Namespace
 
 This is the most straightforward approach. Make the file (module) itself correspond to a domain, and use a namespace when importing it. We can use the `domain/filing.ts` defined earlier as-is.
 
@@ -491,11 +491,11 @@ FilingModel.canSubmit(filing);
 
 `FilingModel.canAmend(filing)` is not quite as compact as `filing.canAmend()`, but the code makes it immediately clear that this function belongs to the Filing domain. It also eliminates the risk of functions from several domains being mixed together.
 
-**2. Always Make the Domain Subject the First Argument**
+#### Always Make the Domain Subject the First Argument
 
 Another convention expresses cohesion in a functional style: **always make the first argument the "subject of the behavior."** Consistent signatures such as `canAmend(filing)` and `calculateTotalIncome(income)` allow `canAmend(filing)` to read as "ask canAmend about filing." This also resonates with the Unix pipeline mindset (`data |> transform`). In fact, Go's method receiver follows precisely this pattern, and Rust's `impl` blocks accept `self` as the first argument from the same underlying idea.
 
-**3. Bundle Behavior with a Domain Object Factory**
+#### Bundle Behavior with a Domain Object Factory
 
 This pattern is useful when we miss the cohesion of a class. A factory function returns a domain object and its behavior together.
 
@@ -566,9 +566,6 @@ Putting this into practice on the frontend is not merely a matter of splitting f
 Of course, not every project needs every layer of Clean Architecture. Splitting a simple CRUD app into four layers and applying the factory pattern to every domain would be a case where the cure is worse than the disease. Between the elegant cohesion of classes and the practical flexibility of functions, the right answer is determined by the project's complexity and the team's context.
 
 There is no single right answer. But there is a clear difference between **"writing code without knowing what the domain is"** and **"recognizing the domain, reasoning about boundaries, and separating things deliberately."** I hope readers will take a moment to ask themselves, "What is the domain here, and where should this code live?" in their own projects.
-
-
-### References
 
 :::ref
 - [article] [Eric Evans, Domain-Driven Design (Book)](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215)

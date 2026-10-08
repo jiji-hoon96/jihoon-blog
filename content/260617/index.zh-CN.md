@@ -9,7 +9,7 @@ description: '整理了我为什么开发 React headless DatePicker Kalyx，以�
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React 日期选择器 时区, ISO 8601 UTC, 日期 差一天, DST 夏令时 bug, fast-check 属性测试, react-day-picker 对比'
 locale: zh-CN
 translationOf: '260617'
-sourceHash: 80176614ac16b54692eaef49e0e57c5e4d771c737abd741e3e8905c5f4cdbe87
+sourceHash: 623e415de2fed4e1a482540920a8081dd7a4923f5cd41f61f749302cba79cc1d
 ---
 
 这篇文章想聊聊我开发的 React headless DatePicker 库 **Kalyx**。
@@ -44,9 +44,7 @@ react-datepicker 和 react-day-picker 传递的是原生 `Date`。两者确实�
 
 时区支持有时还和日期库的选择绑定在一起。查看 MUI X Date Pickers 9.13.0 的适配器代码，dayjs、Luxon、Moment 适配器是 `isTimezoneCompatible = true`，date-fns 系列则是 `false`。使用 date-fns 的应用若想用 `timezone` prop，就得再引入一个日期库。
 
-模式分散在 prop 组合里，值分散在解释依赖运行环境的 `Date` 里，时区支持分散在日期库的选择里。
-
-**很难用一个声明写清意图。**
+模式分散在 prop 组合里，值分散在解释依赖运行环境的 `Date` 里，时区支持分散在日期库的选择里。**很难用一个声明写清意图**。
 
 ### 在构建中学习
 
@@ -267,9 +265,7 @@ MonthPicker 的 Root 只是把显示格式默认值改为 `yyyy-MM`，再把 `se
 
 机制不同，违反的规则却是同一条：每个方向只用指定的函数转换一次。
 
-这次事故让 core 的往返属性测试从“几个代表性时区”扩展到“运行时知道的全部时区”。（React 一侧的组件测试仍在使用 `America/New_York` 这类代表性时区）
-
-**只在符号翻转处暴露的缺陷，靠抽样是抓不到的。**
+这次事故让 core 的往返属性测试从“几个代表性时区”扩展到“运行时知道的全部时区”。（React 一侧的组件测试仍在使用 `America/New_York` 这类代表性时区）**只在符号翻转处暴露的缺陷，靠抽样是抓不到的**。
 
 ### London 的 01:30 被解析成较晚的一个
 
@@ -283,9 +279,7 @@ MonthPicker 的 Root 只是把显示格式默认值改为 `yyyy-MM`，再把 `se
 
 体积是 README 徽章上展示的卖点。在负偏移时区每次差一天的日期选择器，不管大小都没法用。
 
-**如果必须在小和对之间选一个，那就选对的。**
-
-现在的上限很紧。根据仓库 2026-09-11 的包字节分布文档，用 Node 默认 gzip 测量 `dist/index.cjs` 的结果是 20,259B，上限是 20,480B，余量只有 221B。（这是把依赖留在外部的自身文件大小，与前面图表测的是不同的量）下一个功能得先回收字节才能加进来。
+**如果必须在小和对之间选一个，那就选对的**。现在的上限很紧。根据仓库 2026-09-11 的包字节分布文档，用 Node 默认 gzip 测量 `dist/index.cjs` 的结果是 20,259B，上限是 20,480B，余量只有 221B。（这是把依赖留在外部的自身文件大小，与前面图表测的是不同的量）下一个功能得先回收字节才能加进来。
 
 ## 与最初设想不同的结论
 
@@ -305,10 +299,10 @@ pnpm add @kalyx/react
 
 :::ref
 
-[docs] [Kalyx 官方文档站](https://kalyx-docs-site.vercel.app/)
+- [docs] [Kalyx 官方文档站](https://kalyx-docs-site.vercel.app/)
 
-[docs] [MUI，Date and Time Pickers Timezone](https://mui.com/x/react-date-pickers/timezone/)
+- [docs] [MUI，Date and Time Pickers Timezone](https://mui.com/x/react-date-pickers/timezone/)
 
-[docs] [Floating UI 官方文档](https://floating-ui.com/)
+- [docs] [Floating UI 官方文档](https://floating-ui.com/)
 
 :::

@@ -8,7 +8,7 @@ description: 'Trocar uma flag global isOpen por um await: o que ganhei, o que pe
 keywords: 'overlay-kit, gerenciamento de estado de modais em React, interface declarativa, openAsync, useOverlay, modal com Promise, overlay React, nice-modal-react'
 locale: pt-BR
 translationOf: '260921'
-sourceHash: ed400c5a8b46a704145041ba4b471e7c32392681c613d53c9e09aa6f0b9e12a6
+sourceHash: bd323089f5880e7531b68e2536604afc740c2c5ebb61d2fcfdf83385a556a83b
 ---
 
 Neste post quero falar sobre interfaces que tratam overlays de forma declarativa.
@@ -183,7 +183,7 @@ A falha aparece de duas formas. Ao abrir não existe estado inicial, então nada
 
 A última linha explica por que o lado que fecha fica a cargo de quem usa. No lado que abre, a biblioteca conhece a constante: um frame basta. No lado que fecha, a biblioteca não tem como saber se a animação dura 200 ou 400 milissegundos.
 
-**Por isso um lado é automático e o outro é entregue como uma função chamada `unmount`.**
+#### Por isso um lado é automático e o outro é entregue como uma função chamada `unmount`
 
 O que sustenta o lado que fecha está no reducer. `CLOSE` apenas inverte, dentro de `overlayData`, o valor `isOpen`, e não toca em `overlayOrderList`. O provider renderiza percorrendo essa lista, então o componente continua vivo enquanto permanecer nela. Ele só é desmontado quando `REMOVE` o tira de lá.
 
@@ -277,7 +277,7 @@ Estes foram os resultados, executados com vitest na branch main na versão 1.9.0
 
 A terceira linha é um comportamento que a documentação descreve como recurso, então saiu como o esperado. O problema é a primeira linha.
 
-**Se você só faz `close` e reabre com o mesmo id, o JSX novo com o conteúdo alterado é ignorado e a tela anterior aparece exatamente como estava.**
+### Se você só faz `close` e reabre com o mesmo id, o JSX novo com o conteúdo alterado é ignorado e a tela anterior aparece exatamente como estava
 
 Aqui verifiquei mais uma coisa. Mais adiante, no mesmo reducer, há este comentário.
 
@@ -290,7 +290,7 @@ overlayOrderList: [...state.overlayOrderList.filter((item) => item !== action.ov
 
 Ele diz que reabrir depois de fechar traz o overlay para a frente. Mas, como o ramo anterior chega antes ao `return`, essa linha não é executada nessa situação. Empilhei dois overlays, fiz `close` no de baixo, reabri, e a ordem do DOM não mudou.
 
-**O que o comentário descreve e o que acontece de fato são coisas diferentes.**
+### O que o comentário descreve e o que acontece de fato são coisas diferentes
 
 Só que não verifiquei se isso aparece como um problema visível na tela. O teste olhou apenas a ordem do DOM e, como a maioria das bibliotecas de diálogo usa z-index próprio ou portais, a ordem do DOM não equivale à ordem visual.
 
@@ -353,6 +353,6 @@ O overlay-kit chegou ao mesmo lugar e deu mais um passo: ele coloca também no p
 Acho que a sensação de gostar da interface de uma biblioteca é um sinal bastante confiável. Ainda assim, vale a pena colocar em palavras pelo menos uma vez para o que exatamente essa sensação aponta. Sem fazer isso, você não consegue distinguir se o que agradou foi a interface ou a reputação de quem usa a biblioteca. Recomendo a quem estiver lendo fazer esse exercício uma vez com alguma biblioteca que esteja usando agora.
 
 :::ref
-[docs] [Documentação oficial do overlay-kit](https://overlay-kit.slash.page/)
-[repo] [desko27/react-call](https://github.com/desko27/react-call)
+- [docs] [Documentação oficial do overlay-kit](https://overlay-kit.slash.page/)
+- [repo] [desko27/react-call](https://github.com/desko27/react-call)
 :::

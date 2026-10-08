@@ -9,7 +9,7 @@ description: "Como agentes carregam CLAUDE.md, AGENTS.md, SKILL.md e regras do C
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, regras do Cursor, copilot-instructions.md, arquivos de contexto, agente de programação com IA, Claude Code, estudo ETH Zurich AGENTS.md"
 locale: pt-BR
 translationOf: '260529'
-sourceHash: fed5bdb321dec9666f12273f4c77b5c082799acd8ee57d2aeddff7096e128221
+sourceHash: 03edb5679e5e12f5dfab8b993152fdcc6c46eb0469c401b0c40f6255723f212d
 ---
 
 Neste post, quero falar sobre **os arquivos de contexto que os agentes de programação com IA leem**.
@@ -191,8 +191,6 @@ No fim, o que permanece é uma intuição transmitida pelo estudo da ETH Zurich:
 
 Em vez de ampliar CLAUDE.md para centenas de linhas agora mesmo, recomendo que quem leu este artigo investigue ao menos uma vez quando, onde e com que força as ferramentas que já usa leem esse arquivo. Acredito que essa compreensão cria uma base estável, independentemente de como os formatos de arquivo mudarem.
 
-
-## Referências
 
 :::ref
 - [docs] [Claude Code Memory, Anthropic](https://code.claude.com/docs/en/memory)

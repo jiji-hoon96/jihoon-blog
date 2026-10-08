@@ -9,7 +9,7 @@ description: "フロントエンドのドメインロジックをどこに置く
 keywords: "フロントエンド ドメインモデル, ドメイン駆動設計, DDD フロントエンド, Frontend DDD, ドメインロジック分離, Anemic Domain Model, 貧血ドメインモデル, Clean Architecture フロントエンド, Martin Fowler, React 設計パターン, フロントエンドアーキテクチャ, ViewModel 分離, Bounded Context"
 locale: ja
 translationOf: '260418'
-sourceHash: 263cc7c7f9b3268ef9d5e341b869de5c782febdf64a07af5ec969eef54639d56
+sourceHash: d6b76ba7f8a6d52a0ab5d57ff19ae3a276e5feee996a0536f0a670a00ad6e878
 ---
 
 今回の記事では、**フロントエンドのドメインロジックをどこに置くべきか**について話してみたい。
@@ -454,7 +454,7 @@ eat("jihoon", "감자탕");
 
 正直に言えば、答えは **「状況による」**。しかし、筆者の経験上、React + TypeScript環境でClassが万能ではない現実的な理由がある。
 
-**1. Reactの状態管理との摩擦**
+#### Reactの状態管理との摩擦
 
 Reactの状態管理は、基本的に **Plain Object** と最も自然に組み合わせられる。`useState`や`useReducer`は技術的にはどんな値でも保持でき、Redux DevTools自体がClassインスタンスのプロトタイプを取り除くわけでもない。ただし、Redux/Zustandの永続化ミドルウェアが状態をJSONとして保存・復元すると、Classインスタンスは`JSON.stringify` → `JSON.parse`のサイクルでメソッドとプロトタイプを失い、plain objectになる。一方、React Server ComponentからClient Componentへpropsを渡す境界は、対応するシリアライズ可能な（serializable）値だけを受け付けるため、任意のClassインスタンスはそもそも渡せない。
 
@@ -468,7 +468,7 @@ const [filing, setFiling] = useState(
 
 Reactの状態を更新するだけなら、`filing`が`TaxFilingModel`のインスタンスでなくなることはない。ただし、Redux/Zustandの永続化でJSONとして保存・復元されると、値がメソッドのないplain objectになる可能性があり、何気なく呼び出した`filing.canAmend()`がランタイムエラーを起こし得る。React Server ComponentからClient Componentへ渡す場合は、Classインスタンスが対応するシリアライズ形式ではないため、受け渡しの時点で失敗する。
 
-**2. イミュータビリティを保証する難しさ**
+#### イミュータビリティを保証する難しさ
 
 Reactは、状態の変更を **参照同一性（referential equality）** に基づいて検出する。Classインスタンスのメソッドが`this.items.push(...)`のように内部を変更しても参照は同じままなので、Reactは再レンダリングをトリガーしない。そのため、結局は`addDeduction(item)`が`return new DeductionList([...this.items, item])`のように毎回新しいインスタンスを返すよう実装しなければならない。そうなると、Classの利点である「カプセル化された状態変更」の意味が薄れ、関数型の更新とさほど変わらないコードになる。
 
@@ -477,7 +477,7 @@ Reactは、状態の変更を **参照同一性（referential equality）** に�
 
 では、関数型スタイルで`eat('jihoon', '감자탕')`のような、凝集の弱さに関する問題をどう改善できるだろうか？筆者が効果的だと感じた三つの方法を紹介する。
 
-**1. モジュールの名前空間で凝集させる**
+#### モジュールの名前空間で凝集させる
 
 最も直感的な方法である。ファイル（モジュール）自体をドメイン単位にし、import時に名前空間を利用する。先ほど定義した`domain/filing.ts`をそのまま使えばよい。
 
@@ -491,11 +491,11 @@ FilingModel.canSubmit(filing);
 
 `FilingModel.canAmend(filing)`は`filing.canAmend()`ほどではないが、少なくともこの関数がFilingドメインに属することがコードからすぐに分かる。関数が複数のドメインにまたがって混在するリスクもなくなる。
 
-**2. 最初の引数をドメインの主体に統一する**
+#### 最初の引数をドメインの主体に統一する
 
 関数型で凝集を表す、もう一つの規約がある。**最初の引数を常に「振る舞いの主体」にする。** `canAmend(filing)`、`calculateTotalIncome(income)`のようにシグネチャを統一すると、`canAmend(filing)`は「filingについてcanAmendかどうかを問う」と読める。Unixのパイプラインという考え方（`data |> transform`）にも通じる。実際、Goのメソッドレシーバーはまさにこのパターンであり、Rustの`impl`ブロックで`self`を最初の引数として受け取るのも同じ発想である。
 
-**3. ドメインオブジェクトの生成関数（Factory）で振る舞いをまとめる**
+#### ドメインオブジェクトの生成関数（Factory）で振る舞いをまとめる
 
 Classの凝集性が欲しいときに使えるパターンである。ファクトリ関数がドメインオブジェクトとその振る舞いをまとめて返す。
 
@@ -566,9 +566,6 @@ src/
 もちろん、すべてのプロジェクトでClean Architectureの層をすべてそろえる必要はない。単純なCRUDアプリを4層に分け、すべてのドメインにFactoryパターンを適用するのは、本末転倒である。Classの優れた凝集性と関数型の実用的な柔軟性のどちらを選ぶかは、プロジェクトの複雑さとチームのコンテキストによって決まる。
 
 唯一の正解はない。しかし少なくとも、**「ドメインが何かを知らずにコードを書くこと」** と **「ドメインを認識し、境界を判断し、意識的に分離すること」** の間には明確な違いがある。この記事を読んだ方にも、自分のプロジェクトで「ここでのドメインは何だろう。そして、このコードはどこに置くべきだろう？」と一度問いかけてみてほしい。
-
-
-### 参考資料
 
 :::ref
 - [article] [Eric Evans, Domain-Driven Design (Book)](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215)

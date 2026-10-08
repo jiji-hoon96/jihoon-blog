@@ -42,9 +42,7 @@ React는 컴포넌트 트리를 Fiber라는 내부 자료구조로 관리한다.
 
 Zustand는 Flux 패턴을 기반으로 동작한다. 클로저 내부의 `state`가 Store 역할을, 사용자 정의 함수들이 Action 역할을, `set` 함수가 Dispatcher 역할을, React 컴포넌트가 View 역할을 수행한다. 여기서 결정적인 차이가 있다. 
 
-**Zustand의 스토어는 React 컴포넌트 트리 외부, JavaScript 모듈의 스코프 내에 존재한다.**
-
-컴포넌트 트리 외부라는 것의 의미는 React 내부의 상태관리와 달리, Zustand에서 자주 언급되는 "컴포넌트 트리 외부"라는 표현은 상태가 React의 Fiber 트리와 무관하게 독립적으로 존재한다는 뜻이다. 어떤 컴포넌트든 `import`만 하면 스토어에 접근할 수 있고, Provider로 앱을 감쌀 필요가 없다. (마치 전역 변수처럼 어디서든 접근 가능하되, 클로저로 잘 보호되어 있는 셈이다.)
+**Zustand의 스토어는 React 컴포넌트 트리 외부, JavaScript 모듈의 스코프 내에 존재한다.** 컴포넌트 트리 외부라는 것의 의미는 React 내부의 상태관리와 달리, Zustand에서 자주 언급되는 "컴포넌트 트리 외부"라는 표현은 상태가 React의 Fiber 트리와 무관하게 독립적으로 존재한다는 뜻이다. 어떤 컴포넌트든 `import`만 하면 스토어에 접근할 수 있고, Provider로 앱을 감쌀 필요가 없다. (마치 전역 변수처럼 어디서든 접근 가능하되, 클로저로 잘 보호되어 있는 셈이다.)
 
 어떻게 이렇게 가능할까? 아래 코드를 살펴보자.
 
@@ -115,77 +113,77 @@ const createStoreImpl: CreateStoreImpl = (createState) => {
 
 이 코드를 한 줄 한 줄 뜯어보면 Zustand의 핵심 메커니즘이 드러난다.
 
-- **클로저를 통한 상태 캡슐화**
+#### 클로저를 통한 상태 캡슐화
 
-  - `let state: TState`라는 변수가 `createStoreImpl` 함수의 지역 변수로 선언되어 있다. 이 변수는 함수 실행이 끝난 후에도 `setState`, `getState` 등의 내부 함수가 참조하고 있기 때문에 가비지 컬렉션되지 않는다. 이것이 클로저의 본질이다.
+- `let state: TState`라는 변수가 `createStoreImpl` 함수의 지역 변수로 선언되어 있다. 이 변수는 함수 실행이 끝난 후에도 `setState`, `getState` 등의 내부 함수가 참조하고 있기 때문에 가비지 컬렉션되지 않는다. 이것이 클로저의 본질이다.
 
-  - 외부에서는 `state` 변수에 직접 접근할 방법이 없다. 오로지 `getState()`로 읽고, `setState()`로 쓸 수 있을 뿐이다. (객체지향에서 말하는 private 필드를 클로저로 구현한 셈이다.)
+- 외부에서는 `state` 변수에 직접 접근할 방법이 없다. 오로지 `getState()`로 읽고, `setState()`로 쓸 수 있을 뿐이다. (객체지향에서 말하는 private 필드를 클로저로 구현한 셈이다.)
 
-- **`Object.is`를 활용한 변경 감지**
+#### `Object.is`를 활용한 변경 감지
 
-  - `setState`는 새로운 상태를 계산한 뒤, `Object.is(nextState, state)`로 기존 상태와 비교한다. 참조가 동일하면 아무 일도 일어나지 않는다. 이것이 불필요한 리렌더링을 방지하는 첫 번째 방어선이다.
+- `setState`는 새로운 상태를 계산한 뒤, `Object.is(nextState, state)`로 기존 상태와 비교한다. 참조가 동일하면 아무 일도 일어나지 않는다. 이것이 불필요한 리렌더링을 방지하는 첫 번째 방어선이다.
 
-  - 그런데 이 `Object.is` 비교는 **엄격한 참조 동등성(strict reference equality)** 검사이기 때문에, 사용하는 쪽에서 주의해야 할 지점이 있다. 원시값(숫자, 문자열 등)을 하나만 꺼내 쓸 때는 문제가 없다.
+- 그런데 이 `Object.is` 비교는 **엄격한 참조 동등성(strict reference equality)** 검사이기 때문에, 사용하는 쪽에서 주의해야 할 지점이 있다. 원시값(숫자, 문자열 등)을 하나만 꺼내 쓸 때는 문제가 없다.
 
-    ```typescript
-    const count = useStore((state) => state.count);
-    ```
+  ```typescript
+  const count = useStore((state) => state.count);
+  ```
 
-    하지만 selector가 **새로운 객체를 반환**하면 이야기가 달라진다.
+  하지만 selector가 **새로운 객체를 반환**하면 이야기가 달라진다.
 
-    ```typescript
-    const { count, name } = useStore((state) => ({
-      count: state.count,
-      name: state.name,
-    }));
-    ```
+  ```typescript
+  const { count, name } = useStore((state) => ({
+    count: state.count,
+    name: state.name,
+  }));
+  ```
 
-    `{ count, name }` 객체는 값이 동일하더라도 호출할 때마다 새로운 참조가 만들어진다. `Object.is`는 내부 프로퍼티를 비교하지 않고 참조만 비교하므로, Zustand 입장에서는 "상태가 바뀌었다"고 판단하여 매번 리렌더링을 트리거하게 된다.
+  `{ count, name }` 객체는 값이 동일하더라도 호출할 때마다 새로운 참조가 만들어진다. `Object.is`는 내부 프로퍼티를 비교하지 않고 참조만 비교하므로, Zustand 입장에서는 "상태가 바뀌었다"고 판단하여 매번 리렌더링을 트리거하게 된다.
 
-    이 문제를 해결하기 위해 Zustand는 **`useShallow`** 훅을 제공한다.
+  이 문제를 해결하기 위해 Zustand는 **`useShallow`** 훅을 제공한다.
 
-    ```typescript
-    import { useShallow } from 'zustand/react/shallow';
+  ```typescript
+  import { useShallow } from 'zustand/react/shallow';
 
-    const { count, name } = useStore(
-      useShallow((state) => ({ count: state.count, name: state.name }))
-    );
-    ```
+  const { count, name } = useStore(
+    useShallow((state) => ({ count: state.count, name: state.name }))
+  );
+  ```
 
-    `useShallow`는 반환된 객체의 **최상위 프로퍼티들을 하나씩 비교**하여, 실제로 값이 변한 경우에만 리렌더링을 발생시킨다. Redux의 `useSelector`가 기본적으로 참조 비교를 사용하되 `shallowEqual`을 두 번째 인자로 넘길 수 있는 것과 비슷한 맥락이다. (다만 `useShallow`는 이름 그대로 "얕은" 비교이므로, 중첩된 객체의 내부까지는 추적하지 않는다는 점을 기억해두자.)
+  `useShallow`는 반환된 객체의 **최상위 프로퍼티들을 하나씩 비교**하여, 실제로 값이 변한 경우에만 리렌더링을 발생시킨다. Redux의 `useSelector`가 기본적으로 참조 비교를 사용하되 `shallowEqual`을 두 번째 인자로 넘길 수 있는 것과 비슷한 맥락이다. (다만 `useShallow`는 이름 그대로 "얕은" 비교이므로, 중첩된 객체의 내부까지는 추적하지 않는다는 점을 기억해두자.)
 
-- **Pub/Sub 패턴의 리스너 시스템**
+#### Pub/Sub 패턴의 리스너 시스템
 
-  - `const listeners: Set<Listener> = new Set()`라는 한 줄이 Zustand의 구독 시스템 전체이다. 상태가 변경되면 `listeners.forEach`로 모든 구독자에게 알림을 보낸다. 
-  - `subscribe`를 호출하면 리스너가 `Set`에 추가되고, 반환된 함수를 호출하면 `Set`에서 제거된다.
-  - 이 패턴이 중요한 이유는, **React의 Fiber 트리와 완전히 독립적인 알림 시스템**이기 때문이다. Provider가 트리를 순회하며 구독자를 찾는 방식이 아니라, 스토어가 직접 구독자 목록을 관리하는 방식인 것이다.
+- `const listeners: Set<Listener> = new Set()`라는 한 줄이 Zustand의 구독 시스템 전체이다. 상태가 변경되면 `listeners.forEach`로 모든 구독자에게 알림을 보낸다. 
+- `subscribe`를 호출하면 리스너가 `Set`에 추가되고, 반환된 함수를 호출하면 `Set`에서 제거된다.
+- 이 패턴이 중요한 이유는, **React의 Fiber 트리와 완전히 독립적인 알림 시스템**이기 때문이다. Provider가 트리를 순회하며 구독자를 찾는 방식이 아니라, 스토어가 직접 구독자 목록을 관리하는 방식인 것이다.
 
-- **초기 상태 생성**
+#### 초기 상태 생성
 
-  - 초기 상태를 핸들링하는 마지막 줄 코드를 살펴보자.
+- 초기 상태를 핸들링하는 마지막 줄 코드를 살펴보자.
 
-    ```typescript
-    const initialState = (state = createState(setState, getState, api))
-    ```
-    
-    한 줄에 많은 것이 압축되어 있다. JavaScript에서 할당 연산자(`=`)는 **할당된 값 자체를 반환**하는 표현식(expression)이다. 즉, 괄호 안의 `state = createState(...)` 가 먼저 실행되어 `state`에 초기 상태가 할당되고, 그 반환값이 다시 `const initialState`에 할당된다. 결과적으로 `state`와 `initialState`가 **동일한 객체를 참조**하게 되는 것이다.
+  ```typescript
+  const initialState = (state = createState(setState, getState, api))
+  ```
+  
+  한 줄에 많은 것이 압축되어 있다. JavaScript에서 할당 연산자(`=`)는 **할당된 값 자체를 반환**하는 표현식(expression)이다. 즉, 괄호 안의 `state = createState(...)` 가 먼저 실행되어 `state`에 초기 상태가 할당되고, 그 반환값이 다시 `const initialState`에 할당된다. 결과적으로 `state`와 `initialState`가 **동일한 객체를 참조**하게 되는 것이다.
 
-    그런데 왜 같은 값을 굳이 두 변수에 나눠 담는 걸까? 핵심은 두 변수의 역할이 다르다는 점이다.
+  그런데 왜 같은 값을 굳이 두 변수에 나눠 담는 걸까? 핵심은 두 변수의 역할이 다르다는 점이다.
 
-    - **`state`** 는 `let`으로 선언된 변수이다. `setState`가 호출될 때마다 새로운 값으로 교체된다. 즉 **현재 시점의 살아있는 상태**를 나타낸다.
-    - **`initialState`** 는 `const`로 선언된 변수이다. 스토어가 생성된 시점의 상태가 영구히 보존된다. 이후 어떤 `setState`가 호출되더라도 이 값은 변하지 않는다. **스토어의 최초 스냅샷**인 셈이다.
+  - **`state`** 는 `let`으로 선언된 변수이다. `setState`가 호출될 때마다 새로운 값으로 교체된다. 즉 **현재 시점의 살아있는 상태**를 나타낸다.
+  - **`initialState`** 는 `const`로 선언된 변수이다. 스토어가 생성된 시점의 상태가 영구히 보존된다. 이후 어떤 `setState`가 호출되더라도 이 값은 변하지 않는다. **스토어의 최초 스냅샷**인 셈이다.
 
-    이 `initialState`는 `getInitialState()` 메서드를 통해 외부에 노출되고, `react.ts`에서 `useSyncExternalStore`의 **세 번째 인자(서버 스냅샷)** 로 전달된다.
+  이 `initialState`는 `getInitialState()` 메서드를 통해 외부에 노출되고, `react.ts`에서 `useSyncExternalStore`의 **세 번째 인자(서버 스냅샷)** 로 전달된다.
 
-    ```typescript
-    const slice = React.useSyncExternalStore(
-      api.subscribe,
-      () => selector(api.getState()),       
-      () => selector(api.getInitialState()), 
-    )
-    ```
+  ```typescript
+  const slice = React.useSyncExternalStore(
+    api.subscribe,
+    () => selector(api.getState()),       
+    () => selector(api.getInitialState()), 
+  )
+  ```
 
-    서버 사이드 렌더링(SSR) 환경에서는 브라우저 API가 없고, 사용자 인터랙션도 없으므로 `setState`가 호출될 일이 없다. 따라서 서버에서는 항상 `initialState`(= 최초 상태)가 스냅샷으로 사용된다. 클라이언트에서 hydration이 시작될 때, React는 서버에서 렌더링한 HTML과 클라이언트의 초기 렌더링 결과를 비교하는데, 양쪽 모두 동일한 `initialState`를 기준으로 렌더링했기 때문에 **hydration 불일치를 방지**할 수 있는 것이다.
+  서버 사이드 렌더링(SSR) 환경에서는 브라우저 API가 없고, 사용자 인터랙션도 없으므로 `setState`가 호출될 일이 없다. 따라서 서버에서는 항상 `initialState`(= 최초 상태)가 스냅샷으로 사용된다. 클라이언트에서 hydration이 시작될 때, React는 서버에서 렌더링한 HTML과 클라이언트의 초기 렌더링 결과를 비교하는데, 양쪽 모두 동일한 `initialState`를 기준으로 렌더링했기 때문에 **hydration 불일치를 방지**할 수 있는 것이다.
 
 ### react.ts
 
@@ -265,9 +263,9 @@ Zustand는 가장 급진적인 선택을 했다. 기본적으로 모듈 레벨 �
 
 [TkDodo(React Query 메인테이너)의 블로그](https://tkdodo.eu/blog/zustand-and-react-context)에서 이 패턴을 깊이 있게 다루고 있는데, 그가 제시하는 핵심 논지는 이렇다. 전역 싱글톤 스토어에는 세 가지 한계가 있다.
 
-- **Props로 초기화할 수 없다** : 모듈 로드 시점에 스토어가 생성되므로, 서버에서 내려온 데이터나 부모 컴포넌트의 props를 초기값으로 넣을 방법이 없다.
-- **테스트 격리가 어렵다** : 테스트마다 스토어를 수동으로 리셋해야 한다.
-- **재사용이 불가능하다** : 같은 구조의 스토어가 필요한 컴포넌트를 페이지에 두 개 렌더링하면, 둘이 상태를 공유해버린다.
+- **Props로 초기화할 수 없다**: 모듈 로드 시점에 스토어가 생성되므로, 서버에서 내려온 데이터나 부모 컴포넌트의 props를 초기값으로 넣을 방법이 없다.
+- **테스트 격리가 어렵다**: 테스트마다 스토어를 수동으로 리셋해야 한다.
+- **재사용이 불가능하다**: 같은 구조의 스토어가 필요한 컴포넌트를 페이지에 두 개 렌더링하면, 둘이 상태를 공유해버린다.
 
 이 세 가지를 모두 해결하는 것이 스코프드 스토어 패턴이다. 핵심 아이디어는 **Context로 상태 값을 전달하는 것이 아니라, 스토어 인스턴스의 참조를 전달**하는 것이다. (Redux의 Provider가 하는 일과 정확히 같은 구조이다.)
 
@@ -396,8 +394,6 @@ beforeEach(() => {
 - 반복 가능한 객체를 지원하도록 **`shallow` 함수가 개선**되었다.
 
 v4에서 v5로 마이그레이션할 때는 먼저 v4 최신 버전으로 업데이트하는 것이 권장된다. v4 최신 버전에서 deprecation 경고가 표시되므로, 이를 먼저 해결한 뒤 v5로 올리면 무리 없이 전환할 수 있다.
-
-### 참고자료
 
 :::ref
 - [docs] [React useSyncExternalStore](https://react.dev/reference/react/useSyncExternalStore)

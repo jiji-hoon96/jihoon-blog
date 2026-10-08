@@ -9,7 +9,7 @@ description: "Como o TanStack Query decide que duas queryKey são iguais: a seri
 keywords: "comparação de queryKey, hashKey, queryHash, chave de cache do TanStack Query, ordem da queryKey no React Query, queryKeyHashFn, JSON.stringify chaves ordenadas, QueryCache"
 locale: pt-BR
 translationOf: '251230'
-sourceHash: 24fc2216b382a69ba99c1d4ca8676c6ef3f58966b132171d60acb75e1be1f38c
+sourceHash: 47c18317b91a4b6f5d16479d680433d97c9f8ee7a016da28cd3387dd9417f417
 ---
 
 Neste artigo, quero falar sobre **como o TanStack Query decide que duas queryKeys são a mesma chave**.
@@ -72,7 +72,7 @@ A ordenação das chaves só se aplica a **objetos simples**. No mesmo arquivo, 
 
 Do ponto de vista de quem usa, há dois resultados.
 
-**1. A ordem das chaves de um objeto é irrelevante.**
+### A ordem das chaves de um objeto é irrelevante
 
 ```tsx
 useQuery({ queryKey: ['todos', { status: 'done', page: 1 }], queryFn });
@@ -82,7 +82,7 @@ useQuery({ queryKey: ['todos', { page: 1, status: 'done' }], queryFn });
 
 Sem a ordenação de chaves, seria necessário lembrar a ordem das chaves toda vez que se usasse um literal de objeto.
 
-**2. A ordem dos elementos de um vetor é relevante.**
+### A ordem dos elementos de um vetor é relevante
 
 ```tsx
 useQuery({ queryKey: ['todos', status, page], queryFn });
@@ -191,9 +191,6 @@ Em resumo, o TanStack Query não compara as referências dos vetores queryKey. `
 Como esse critério se reflete na forma de escrever e gerenciar queryKeys, ou seja, o caminho dos vetores inline, passando pelas fábricas de chaves, até `queryOptions`, é o assunto de [queryKey](/260104).
 
 Da próxima vez que você colocar um objeto ou um `Map` em uma queryKey, espero que pare um instante para pensar em qual string ele vai virar na serialização.
-
-
-## Referências
 
 :::ref
 - [documentação] [TanStack Query, Chaves de consulta](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)

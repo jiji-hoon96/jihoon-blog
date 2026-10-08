@@ -59,11 +59,11 @@ Silesia Corpus 벤치마크 기준으로, ZSTD 기본 레벨(3)의 압축 속도
 
 BZIP2는 여러 단계의 변환을 거쳐 압축을 수행한다. 핵심 파이프라인은 다음과 같다.
 
-1. **RLE(Run-Length Encoding)** : 초기 데이터의 연속 반복을 줄임
-2. **BWT(Burrows-Wheeler Transform)** : 데이터를 압축하기 쉬운 형태로 재배열
-3. **MTF(Move-to-Front Transform)** : BWT의 출력을 숫자 배열로 변환
-4. **RLE** : MTF 결과의 반복을 다시 줄임
-5. **Huffman Coding** : 최종적으로 빈도 기반 부호화로 압축
+1. **RLE(Run-Length Encoding)**: 초기 데이터의 연속 반복을 줄임
+2. **BWT(Burrows-Wheeler Transform)**: 데이터를 압축하기 쉬운 형태로 재배열
+3. **MTF(Move-to-Front Transform)**: BWT의 출력을 숫자 배열로 변환
+4. **RLE**: MTF 결과의 반복을 다시 줄임
+5. **Huffman Coding**: 최종적으로 빈도 기반 부호화로 압축
 
 GZIP보다 높은 압축률을 제공하지만, 압축 속도와 해제 속도 모두 느리다. 고압축률이 필요하면서 속도가 덜 중요한 아카이빙 용도로 사용되어 왔다.
 

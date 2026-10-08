@@ -9,7 +9,7 @@ description: "Jev returns probabilities instead of text. Its confidence is arith
 keywords: 'Jev, TypeSafe AI, System One model, RLCD, model calibration, ECE, confidence threshold, decision model, Kev open source, Jev use cases'
 locale: en
 translationOf: '260922'
-sourceHash: 966cedd7c0143dde34129e34ea80c0b3cf6c838277523dae23929576711e8943
+sourceHash: 5c9dfaaf13880df9237ac0b3d8ee8acf63ea576d1e319a1de375d9a179acc499
 ---
 
 In this post, I want to talk about Jev, a model TypeSafe AI released last week that returns probabilities instead of text. This is for developers who want to put a threshold on a model's returned probability and handle cases automatically without a human check. By the end, you will know how Jev's `confidence` is calculated, how much calibration moves with the distribution, and a procedure for setting the threshold on your own data.
@@ -145,8 +145,8 @@ I do not have a Jev API key yet. Instead I **ran Kev-9B locally**, the reimpleme
 
 The evaluation sets were drawn from 18 Korean posts in this repository. The ground truth for a label is **which spelling this repository consistently uses for that word**. That means it is this blog's convention rather than a consensus of the Korean technical writing community, and on words where the two diverge the model can be right by the community standard and wrong by this one.
 
-- **The gate set, 102 sentences.** These are words the gate already knows. The positives are 23 **counterfactual sentences** in which words the body writes in English, such as `calendar`, `picker`, and `adapter`, were turned back into Korean transliterations; the negatives are 79 sentences that actually use the exceptions `write-post.md` spells out, such as `리렌더링` and `콜 스택`. On this set the current regular expression gate is right 100% of the time by definition.
-- **The held-out set, 60 sentences.** **These are words the gate has never seen.** This is what machine learning calls a :term[held-out]{key="held-out-set"} set. The positives are 30 sentences that turn `loader`, `mutation`, and `prefill`, which the body writes only in English, back into transliterations; the negatives are 30 sentences with `리듀서`, `스냅샷`, and `런타임`, which the body writes only in Korean. Here the regular expressions catch none of the positives.
+- **The gate set, 102 sentences**: These are words the gate already knows. The positives are 23 **counterfactual sentences** in which words the body writes in English, such as `calendar`, `picker`, and `adapter`, were turned back into Korean transliterations; the negatives are 79 sentences that actually use the exceptions `write-post.md` spells out, such as `리렌더링` and `콜 스택`. On this set the current regular expression gate is right 100% of the time by definition.
+- **The held-out set, 60 sentences**: **These are words the gate has never seen.** This is what machine learning calls a :term[held-out]{key="held-out-set"} set. The positives are 30 sentences that turn `loader`, `mutation`, and `prefill`, which the body writes only in English, back into transliterations; the negatives are 30 sentences with `리듀서`, `스냅샷`, and `런타임`, which the body writes only in Korean. Here the regular expressions catch none of the positives.
 
 ![Diagram of the 102-sentence gate set and 60-sentence held-out set, their positive and negative composition, and how the regex gate covers the gate set completely but catches none of the held-out positives](6.png?w=720)
 
@@ -286,6 +286,6 @@ Even without a key, the measuring part you can do today. Kev is published under 
 I would like you to count how many calls in the service you run ask a big model nothing but yes or no. Before you move those calls to a decision model, I would suggest measuring where the line has to go after the move. I kept that order, and that is why I could decide to leave the gate alone. When I get a Jev key I plan to run the same sets again, and if the conclusion changes then, I will write that down too.
 
 :::ref
-[paper] [Lambert et al., Tulu 3: naming RLVR](https://arxiv.org/abs/2411.15124)
-[repo] [themsquared/jev-benchmark, judging tool call risk](https://github.com/themsquared/jev-benchmark)
+- [paper] [Lambert et al., Tulu 3: naming RLVR](https://arxiv.org/abs/2411.15124)
+- [repo] [themsquared/jev-benchmark, judging tool call risk](https://github.com/themsquared/jev-benchmark)
 :::

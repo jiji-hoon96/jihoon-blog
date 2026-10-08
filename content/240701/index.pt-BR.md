@@ -9,7 +9,7 @@ description: "Como LZ77 e LZ78 diferem no uso do dicionário e na forma de esque
 keywords: "LZ77, LZ78, LZ77 vs LZ78, algoritmo LZ77, compressão com janela deslizante, LZW, como funciona o DEFLATE, compressão baseada em dicionário"
 locale: pt-BR
 translationOf: '240701'
-sourceHash: adffb2f465dace79a47b172dc53877d2d34bbfaa46c14978fa16575a00ae19df
+sourceHash: ddc4d9e1f3f50970b1b45c010136599e1ae4ffc77291be473b4b38679baa37a9
 ---
 
 Neste artigo, quero falar sobre **como LZ77 e LZ78 diferem**.
@@ -169,8 +169,6 @@ Como essa linhagem se reflete na escolha de um formato real, comparando velocida
 
 Da próxima vez que você descompactar um arquivo `.zip` ou `.gz`, espero que se lembre de que, lá dentro, circulam instruções como “volte tantos caracteres e copie tantos”.
 
-
-### Referências
 
 :::ref
 - [paper] [Storer, Szymanski, Data compression via textual substitution (1982)](https://doi.org/10.1145/322344.322346)

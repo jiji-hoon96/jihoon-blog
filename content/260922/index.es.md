@@ -9,7 +9,7 @@ description: 'Jev devuelve probabilidades en vez de texto. Su confidence no se a
 keywords: 'Jev, TypeSafe AI, modelo System One, RLCD, calibración de modelos, ECE, umbral de confidence, modelos de decisión, Kev open source, casos de uso de Jev'
 locale: es
 translationOf: '260922'
-sourceHash: 966cedd7c0143dde34129e34ea80c0b3cf6c838277523dae23929576711e8943
+sourceHash: 5c9dfaaf13880df9237ac0b3d8ee8acf63ea576d1e319a1de375d9a179acc499
 ---
 
 En este artículo quiero hablar de Jev, un modelo que TypeSafe AI presentó la semana pasada y que devuelve probabilidades en vez de texto. Está pensado para desarrolladores que quieren poner un umbral a la probabilidad que devuelve un modelo y procesar casos automáticamente sin revisión humana. Al terminar sabrás cómo se calcula el `confidence` de Jev, cuánto se mueve la calibración según la distribución y un procedimiento para fijar el umbral con tus propios datos.
@@ -145,8 +145,8 @@ Todavía no tengo una clave de API de Jev. En su lugar **ejecuté en local el Ke
 
 El conjunto de evaluación lo saqué de 18 artículos en coreano de este repositorio. El criterio de verdad de las etiquetas es **con qué grafía escribe este repositorio esa palabra de forma consistente**. Es decir, no es el consenso de la comunidad de documentación técnica coreana, sino la costumbre de este blog; en las palabras donde ambas cosas divergen, el modelo puede acertar según el criterio de la comunidad y fallar según este.
 
-- **Conjunto de la compuerta, 102 frases.** Son palabras que la compuerta ya conoce. Los positivos son 23 **frases contrafácticas** en las que palabras que el texto escribe en inglés, como `calendar`, `picker` o `adapter`, se han devuelto a su transcripción en hangul; los negativos son 79 frases en las que aparecen de verdad palabras que `write-post.md` declara como excepción, como `리렌더링` o `콜 스택`. Aquí la compuerta de expresiones regulares actual acierta el 100% por definición.
-- **Conjunto en reserva, 60 frases.** **Son palabras que la compuerta no ha visto nunca.** Es lo que en machine learning se llama conjunto :term[held-out]{key="held-out-set"}. Los positivos son 30 casos en los que `loader`, `mutation` y `prefill`, que el texto escribe solo en inglés, se han devuelto a su transcripción; los negativos son 30 casos con `리듀서`, `스냅샷` y `런타임`, que el texto escribe solo en hangul. Aquí la expresión regular no atrapa ni un solo positivo.
+- **Conjunto de la compuerta, 102 frases**: Son palabras que la compuerta ya conoce. Los positivos son 23 **frases contrafácticas** en las que palabras que el texto escribe en inglés, como `calendar`, `picker` o `adapter`, se han devuelto a su transcripción en hangul; los negativos son 79 frases en las que aparecen de verdad palabras que `write-post.md` declara como excepción, como `리렌더링` o `콜 스택`. Aquí la compuerta de expresiones regulares actual acierta el 100% por definición.
+- **Conjunto en reserva, 60 frases**: **Son palabras que la compuerta no ha visto nunca.** Es lo que en machine learning se llama conjunto :term[held-out]{key="held-out-set"}. Los positivos son 30 casos en los que `loader`, `mutation` y `prefill`, que el texto escribe solo en inglés, se han devuelto a su transcripción; los negativos son 30 casos con `리듀서`, `스냅샷` y `런타임`, que el texto escribe solo en hangul. Aquí la expresión regular no atrapa ni un solo positivo.
 
 ![Diagrama del conjunto compuerta de 102 frases y el conjunto reservado de 60 frases, su composición de positivos y negativos, y cómo la compuerta regex cubre todo el primero pero no atrapa ningún positivo del segundo](6.png?w=720)
 
@@ -286,6 +286,6 @@ Aunque no tengas clave, medir puede empezarse hoy mismo. Kev está publicado baj
 Me gustaría que contaras cuántas llamadas del servicio que operas le preguntan solo sí/no a un modelo grande. Antes de mover esas llamadas a un modelo de decisión, te recomiendo medir primero dónde habría que trazar la línea después de moverlas. Yo pude decidir no tocar la compuerta porque respeté ese orden. Cuando consiga una clave de Jev pienso volver a pasar el mismo conjunto, y si entonces cambia la conclusión, también lo escribiré.
 
 :::ref
-[paper] [Lambert et al., Tulu 3: el bautizo de RLVR](https://arxiv.org/abs/2411.15124)
-[repo] [themsquared/jev-benchmark, juicio de riesgo en llamadas a herramientas](https://github.com/themsquared/jev-benchmark)
+- [paper] [Lambert et al., Tulu 3: el bautizo de RLVR](https://arxiv.org/abs/2411.15124)
+- [repo] [themsquared/jev-benchmark, juicio de riesgo en llamadas a herramientas](https://github.com/themsquared/jev-benchmark)
 :::

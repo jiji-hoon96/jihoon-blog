@@ -9,7 +9,7 @@ description: 'React headless DatePicker「Kalyx」を作った理由と、Ark UI
 keywords: 'Kalyx, React DatePicker, headless DatePicker, React 日付 タイムゾーン, ISO 8601 UTC, 日付 1日ずれる, DST バグ, fast-check プロパティテスト, react-day-picker 比較'
 locale: ja
 translationOf: '260617'
-sourceHash: 80176614ac16b54692eaef49e0e57c5e4d771c737abd741e3e8905c5f4cdbe87
+sourceHash: 623e415de2fed4e1a482540920a8081dd7a4923f5cd41f61f749302cba79cc1d
 ---
 
 今回は、筆者が作ったReactのheadless DatePickerライブラリ **Kalyx** について書こうと思う。
@@ -44,9 +44,7 @@ react-datepickerとreact-day-pickerはネイティブの `Date` をやり取り�
 
 タイムゾーン対応が日付ライブラリの選択に縛られることもある。MUI X Date Pickers 9.13.0のアダプターコードを見ると、dayjs、Luxon、Momentのアダプターは `isTimezoneCompatible = true`、date-fns系は `false` だ。date-fnsを使うアプリが `timezone` propを使うには、日付ライブラリをもう1つ導入しなければならない。
 
-モードはpropの組み合わせに、値は解釈が実行環境に左右される `Date` に、タイムゾーン対応は日付ライブラリの選択に散らばっている。
-
-**1つの宣言で意図を書き表すのが難しかった。**
+モードはpropの組み合わせに、値は解釈が実行環境に左右される `Date` に、タイムゾーン対応は日付ライブラリの選択に散らばっている。**1つの宣言で意図を書き表すのが難しかった**。
 
 ### 作りながら学ぶ
 
@@ -267,9 +265,7 @@ MonthPickerのRootは、表示形式のデフォルト値を `yyyy-MM` に変え
 
 仕組みは違っても、破ったルールは1つだ。変換は方向ごとに決まった関数で1回だけ行う。
 
-この事故で、coreの往復プロパティテストは「代表的なゾーンいくつか」から「ランタイムが知るゾーンすべて」に広がった。（React側のコンポーネントテストは、まだ `America/New_York` のような代表ゾーンを使っている）
-
-**符号が変わる場所でだけ現れる欠陥は、サンプルでは捕まらない。**
+この事故で、coreの往復プロパティテストは「代表的なゾーンいくつか」から「ランタイムが知るゾーンすべて」に広がった。（React側のコンポーネントテストは、まだ `America/New_York` のような代表ゾーンを使っている）**符号が変わる場所でだけ現れる欠陥は、サンプルでは捕まらない**。
 
 ### Londonで遅い方に解決されていた01:30
 
@@ -283,9 +279,7 @@ MonthPickerのRootは、表示形式のデフォルト値を `yyyy-MM` に変え
 
 サイズはREADMEバッジに載せていたセールスポイントだった。負のオフセットのゾーンで1日ずつずれる日付ピッカーは、小さかろうが大きかろうが使えない。
 
-**小さいと正しいのどちらかを選ばなければならないなら、正しい方だ。**
-
-今の上限はぎりぎりだ。リポジトリの2026-09-11のバンドルバイトマップ文書によれば、`dist/index.cjs` をNodeのデフォルトgzipで測った値は20,259B、上限は20,480Bで、余裕は221Bだ。（依存関係を外部に残した自前ファイルのサイズなので、先の図とは別の量だ）次の機能は、まずバイトを回収しなければ入れられない。
+**小さいと正しいのどちらかを選ばなければならないなら、正しい方だ**。今の上限はぎりぎりだ。リポジトリの2026-09-11のバンドルバイトマップ文書によれば、`dist/index.cjs` をNodeのデフォルトgzipで測った値は20,259B、上限は20,480Bで、余裕は221Bだ。（依存関係を外部に残した自前ファイルのサイズなので、先の図とは別の量だ）次の機能は、まずバイトを回収しなければ入れられない。
 
 ## 最初の想定とは違う結論
 
@@ -305,10 +299,10 @@ pnpm add @kalyx/react
 
 :::ref
 
-[docs] [Kalyx公式ドキュメントサイト](https://kalyx-docs-site.vercel.app/)
+- [docs] [Kalyx公式ドキュメントサイト](https://kalyx-docs-site.vercel.app/)
 
-[docs] [MUI、Date and Time Pickers Timezone](https://mui.com/x/react-date-pickers/timezone/)
+- [docs] [MUI、Date and Time Pickers Timezone](https://mui.com/x/react-date-pickers/timezone/)
 
-[docs] [Floating UI公式ドキュメント](https://floating-ui.com/)
+- [docs] [Floating UI公式ドキュメント](https://floating-ui.com/)
 
 :::
