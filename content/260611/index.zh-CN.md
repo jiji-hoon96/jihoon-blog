@@ -8,7 +8,7 @@ description: "AI 编程工具的 Token 成本从哪里产生，又该如何降�
 keywords: 'AI Token 节省, Claude Code 成本, Token 成本优化, prompt caching, context engineering, subagent, MCP Token, Cursor Composer, model routing, context rot, LLM 成本优化'
 locale: zh-CN
 translationOf: '260611'
-sourceHash: 7ba5260860c9dbe77bef75ea47f33c6194058e67c70ccdaaf65ff06e824874e6
+sourceHash: 5c65e3eb331c1de5b140f5b74b6b6299868d5d98e88d8fe880877f3369372cc4
 ---
 
 这篇文章想聊一聊如何节省 AI Token。

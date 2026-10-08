@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: ja
 translationOf: '260529'
-sourceHash: bb7924b155b99b2e2f0c86c6ab970989ae0c36a6e40193617be6dd29adb326d3
+sourceHash: a8deda13246ed45566b723f969c3c12046709a55068c9d2bbec8d976fd7f8ec5
 categories: AI 開発ツール Claude MCP CodeGraph
 description: "CLAUDE.md・AGENTS.md・SKILL.md・Cursor rulesがいつ、どのようにエージェントに読み込まれるのかを整理する。CLAUDE.mdがuser messageとして注入される仕組みとコンテキストの忘却、ETH Zurichの研究をもとに、何を書くべきかの基準を示す。"
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, コンテキストファイル, AIコーディングエージェント, Claude Code, ETH Zurich AGENTS.md 研究"

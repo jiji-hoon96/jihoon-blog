@@ -9,7 +9,7 @@ description: 'Jev devuelve probabilidades en vez de texto. Su confidence no se a
 keywords: 'Jev, TypeSafe AI, modelo System One, RLCD, calibración de modelos, ECE, umbral de confidence, modelos de decisión, Kev open source, casos de uso de Jev'
 locale: es
 translationOf: '260922'
-sourceHash: 4e0faef6298c2abbc6fa4c9570b25c57aece40bdb704a3af617e5d5d945ea721
+sourceHash: a03e9433d3b511a0455856bd8e0acb6db6001086a5e61108b6894c90072622bf
 ---
 
 En este artículo quiero hablar de Jev, un modelo que TypeSafe AI presentó la semana pasada y que devuelve probabilidades en vez de texto. Está pensado para desarrolladores que quieren poner un umbral a la probabilidad que devuelve un modelo y procesar casos automáticamente sin revisión humana. Al terminar sabrás cómo se calcula el `confidence` de Jev, cuánto se mueve la calibración según la distribución y un procedimiento para fijar el umbral con tus propios datos.

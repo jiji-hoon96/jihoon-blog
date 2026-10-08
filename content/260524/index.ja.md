@@ -5,7 +5,7 @@ seoTitle: "MCPはfunction callingと何が違うのか: プロトコル構造と
 date: "2026-05-24"
 locale: ja
 translationOf: '260524'
-sourceHash: f5c56031068e65cfbee19861ae45e0809590a1961be8364a856a0caa02ffedcb
+sourceHash: efa35fa92ae2cbddd13e30ebadc6fcd8e7418c4b3ea6c3a4c1ace470c5095beb
 categories: AI 開発ツール Claude MCP CodeGraph
 description: "MCPがfunction callingとどう違うのかをプロトコル構造から整理する。6つのプリミティブ、stdioとStreamable HTTP、tools/listからtool_useループまでの流れ、Tool Poisoningなどのセキュリティ問題を扱う。"
 keywords: "MCP, Model Context Protocol, MCP function calling 違い, MCP プリミティブ, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP セキュリティ"

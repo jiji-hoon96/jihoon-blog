@@ -8,7 +8,7 @@ description: "AIコーディングツールのトークン費用はどこで発�
 keywords: 'AIトークン節約, Claude Code費用, トークンコスト削減, prompt caching, context engineering, subagent, MCPトークン, Cursor Composer, model routing, context rot, LLMコスト最適化'
 locale: ja
 translationOf: '260611'
-sourceHash: 7ba5260860c9dbe77bef75ea47f33c6194058e67c70ccdaaf65ff06e824874e6
+sourceHash: 5c65e3eb331c1de5b140f5b74b6b6299868d5d98e88d8fe880877f3369372cc4
 ---
 
 今回は、AIトークンを節約する方法について考えてみたい。

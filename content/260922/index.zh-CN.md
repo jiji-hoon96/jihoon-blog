@@ -9,7 +9,7 @@ description: '有个模型不返回文本，只返回概率。confidence 不是�
 keywords: 'Jev, TypeSafe AI, System One 模型, RLCD, 模型校准, ECE, confidence 阈值, 决策模型, Kev 开源, Jev 应用案例'
 locale: zh-CN
 translationOf: '260922'
-sourceHash: 4e0faef6298c2abbc6fa4c9570b25c57aece40bdb704a3af617e5d5d945ea721
+sourceHash: a03e9433d3b511a0455856bd8e0acb6db6001086a5e61108b6894c90072622bf
 ---
 
 这篇文章想聊聊上周 TypeSafe AI 公开的 Jev，一个不返回文本、只返回概率的模型。本文写给想给模型返回的概率设阈值、在没有人工确认的情况下自动处理的开发者。读完之后，你会知道 Jev 的 `confidence` 是怎么算出来的，校准会随分布变化多少，以及用自己的数据定阈值的步骤。

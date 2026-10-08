@@ -8,7 +8,7 @@ description: 'Measure AI coding token costs with a React POC and cut them using 
 keywords: 'save AI tokens, Claude Code cost, reduce token costs, prompt caching, context engineering, subagent, MCP tokens, Cursor Composer, model routing, context rot, LLM cost optimization'
 locale: en
 translationOf: '260611'
-sourceHash: 7ba5260860c9dbe77bef75ea47f33c6194058e67c70ccdaaf65ff06e824874e6
+sourceHash: 5c65e3eb331c1de5b140f5b74b6b6299868d5d98e88d8fe880877f3369372cc4
 ---
 
 In this post, I want to talk about how to save AI tokens.

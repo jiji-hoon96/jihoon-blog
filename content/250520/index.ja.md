@@ -9,7 +9,7 @@ description: "React Fiberアーキテクチャを、Stack ReconcilerからFiber�
 keywords: "React Fiber, React Fiberアーキテクチャ, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, Reactレンダリングの仕組み, Reactソースコード解析, Virtual DOM, Reconciliation, Lane優先度, フロントエンド面接"
 locale: ja
 translationOf: '250520'
-sourceHash: a7f912dab6e219c0f6a0434354cd27179f0020fd867d2f22fad5d7f6f6391393
+sourceHash: 7c51bf7ca46984a67c0251d6a653baac64a7e2f82a35f494ba73cea69b2f3463
 ---
 
 今回は、Reactの心臓部ともいえる**Fiberアーキテクチャ**について話したい。

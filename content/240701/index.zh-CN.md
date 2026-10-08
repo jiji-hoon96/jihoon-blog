@@ -8,7 +8,7 @@ description: "整理 LZ77 与 LZ78 处理字典的方式有何不同：滑动窗
 keywords: "LZ77, LZ78, LZ77 LZ78 区别, LZ77 算法, 滑动窗口压缩, LZW, DEFLATE 原理, 基于字典的压缩"
 locale: zh-CN
 translationOf: '240701'
-sourceHash: 52903051284734eb36f6b7918ae6ca4a2ff9c02f62fa2fa53411ac70e9539a71
+sourceHash: 9e352eeafc2f7c4dce1defdd07912f7b310a670699148fa366b843c7814bf731
 ---
 
 这篇文章想聊聊 **LZ77 与 LZ78 有何不同**。

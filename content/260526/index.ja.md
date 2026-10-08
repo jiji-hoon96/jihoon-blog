@@ -5,7 +5,7 @@ seoTitle: "AIコーディングエージェントのコード探索: Repomix、A
 date: "2026-05-26"
 locale: ja
 translationOf: '260526'
-sourceHash: 2efbc6c2bee1d73d457d75006378b5a689f2098be54a67edc2da20b38b07a9d0
+sourceHash: 12ae267abbf5802434861218465e4cbe69856a28051e657f3bd9b0f53a15084c
 categories: AI 開発ツール Claude MCP CodeGraph
 description: "AIコーディングエージェントが関連コードを探すコストを減らすツールを4つの階層に分けて比較する。Repomixのようなコンテキストパッキング、Aiderのtree-sitterリポジトリマップ、CodeGraphのナレッジグラフ、SerenaのようなLSPベースのツールを整理する。"
 keywords: "コードインテリジェンス, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider repo map, AIコーディングエージェント トークン削減"

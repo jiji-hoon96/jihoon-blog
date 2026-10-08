@@ -8,7 +8,7 @@ description: "キャリブレーションは正解率ではなく、自分が何
 keywords: "モデルキャリブレーション, ECE, expected calibration error, RLHF 過信, LLM 過信, キャリブレーション 正解率 違い, GPT-4 キャリブレーション, mode dropping"
 locale: ja
 translationOf: '260917'
-sourceHash: 18340456d15a5027169635513c42295af2aef16b38d6ff40e7038bf7b023886c
+sourceHash: a397a85a550dd467b12ceeb22cf4cfcbaf8ca6063b40977bce14a25562d911f0
 ---
 
 今回の記事では、モデルのキャリブレーションと、RLHF が生む過信について話してみたい。モデルが返す確率や確信度を、コードの中で判断基準として使いたい開発者のための記事だ。最後まで読めば、正解率とキャリブレーションがどう違うのか、ECE が何を測るのか、そして人の選好で仕上げたモデルがなぜ実際より自信ありげに話すのかを説明できるようになる。

@@ -5,7 +5,7 @@ seoTitle: "MCP 与 function calling 有何不同: 协议结构与调用流程"
 date: "2026-05-24"
 locale: zh-CN
 translationOf: '260524'
-sourceHash: f5c56031068e65cfbee19861ae45e0809590a1961be8364a856a0caa02ffedcb
+sourceHash: efa35fa92ae2cbddd13e30ebadc6fcd8e7418c4b3ea6c3a4c1ace470c5095beb
 categories: AI 开发工具 Claude MCP CodeGraph
 description: "从协议结构梳理 MCP（Model Context Protocol）与 function calling 的区别：六种 primitive、stdio 与 Streamable HTTP、从 tools/list 到 tool_use 循环的调用流程，以及 Tool Poisoning 等安全问题。"
 keywords: "MCP, Model Context Protocol, MCP 与 function calling 区别, MCP primitive, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP 安全"

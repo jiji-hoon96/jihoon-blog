@@ -9,7 +9,7 @@ description: "对比 ZIP、GZIP、ZSTD、BZIP2、XZ、Brotli 的结构、速度�
 keywords: "压缩算法对比, GZIP vs ZSTD, tar.gz vs zip, tar.zst, Brotli, 固实归档, 前端构建优化"
 locale: zh-CN
 translationOf: "240706"
-sourceHash: a779d871c60d83ac6c0b491f6e9d62a220def86005773dca744f99031cc7d1c7
+sourceHash: 132c3004808c90e13100237fdca4ad721e66d22703805a4c44767f41910fbb45
 ---
 
 这篇文章想聊聊软件中的压缩算法。

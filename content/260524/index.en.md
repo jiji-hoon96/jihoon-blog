@@ -5,7 +5,7 @@ seoTitle: "How MCP Differs from Function Calling: Protocol and Calls"
 date: "2026-05-24"
 locale: en
 translationOf: '260524'
-sourceHash: f5c56031068e65cfbee19861ae45e0809590a1961be8364a856a0caa02ffedcb
+sourceHash: efa35fa92ae2cbddd13e30ebadc6fcd8e7418c4b3ea6c3a4c1ace470c5095beb
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "How MCP differs from function calling: six primitives, stdio and Streamable HTTP, the tools/list to tool_use loop flow, and risks like Tool Poisoning."
 keywords: "MCP, Model Context Protocol, MCP vs function calling, MCP primitives, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP security"

@@ -9,7 +9,7 @@ description: "Como agentes carregam CLAUDE.md, AGENTS.md, SKILL.md e regras do C
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, regras do Cursor, copilot-instructions.md, arquivos de contexto, agente de programação com IA, Claude Code, estudo ETH Zurich AGENTS.md"
 locale: pt-BR
 translationOf: '260529'
-sourceHash: bb7924b155b99b2e2f0c86c6ab970989ae0c36a6e40193617be6dd29adb326d3
+sourceHash: a8deda13246ed45566b723f969c3c12046709a55068c9d2bbec8d976fd7f8ec5
 ---
 
 Neste post, quero falar sobre **os arquivos de contexto que os agentes de programação com IA leem**.

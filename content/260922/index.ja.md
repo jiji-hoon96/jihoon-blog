@@ -9,7 +9,7 @@ description: 'テキストの代わりに確率を返すモデルJevが公開さ
 keywords: 'Jev, TypeSafe AI, System Oneモデル, RLCD, モデルキャリブレーション, ECE, confidence しきい値, 意思決定モデル, Kev オープンソース, Jev 活用事例'
 locale: ja
 translationOf: '260922'
-sourceHash: 4e0faef6298c2abbc6fa4c9570b25c57aece40bdb704a3af617e5d5d945ea721
+sourceHash: a03e9433d3b511a0455856bd8e0acb6db6001086a5e61108b6894c90072622bf
 ---
 
 今回の記事では、先週 TypeSafe AI が公開した、テキストの代わりに確率を返すモデル Jev について話してみたい。モデルが返した確率にしきい値をかけて、人の確認なしに自動処理したい開発者のための記事だ。最後まで読めば、Jev の `confidence` がどう計算されるのか、キャリブレーションが分布によってどれだけ動くのか、そしてしきい値を自分のデータで決める手順が得られる。

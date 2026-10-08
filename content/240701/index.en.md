@@ -8,7 +8,7 @@ description: "How LZ77 and LZ78 handle their dictionaries differently, and why L
 keywords: "LZ77, LZ78, LZ77 vs LZ78, LZ77 algorithm, sliding window compression, LZW, how DEFLATE works, dictionary-based compression"
 locale: en
 translationOf: '240701'
-sourceHash: 52903051284734eb36f6b7918ae6ca4a2ff9c02f62fa2fa53411ac70e9539a71
+sourceHash: 9e352eeafc2f7c4dce1defdd07912f7b310a670699148fa366b843c7814bf731
 ---
 
 In this post, I want to talk about **how LZ77 and LZ78 differ**.

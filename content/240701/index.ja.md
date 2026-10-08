@@ -8,7 +8,7 @@ description: "LZ77とLZ78が辞書をどう扱うのかの違いを整理する�
 keywords: "LZ77, LZ78, LZ77 LZ78 違い, LZ77 アルゴリズム, スライディングウィンドウ 圧縮, LZW, DEFLATE 仕組み, 辞書式圧縮"
 locale: ja
 translationOf: '240701'
-sourceHash: 52903051284734eb36f6b7918ae6ca4a2ff9c02f62fa2fa53411ac70e9539a71
+sourceHash: 9e352eeafc2f7c4dce1defdd07912f7b310a670699148fa366b843c7814bf731
 ---
 
 今回は、**LZ77とLZ78がどう違うのか**について話してみたい。

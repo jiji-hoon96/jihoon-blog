@@ -469,8 +469,8 @@
   },
   "calibration": {
     "ko": {
-      "name": "캘리브레이션",
-      "definition": "모델이 말한 확률과 실제 적중률이 맞는 정도. 70%라고 한 것들이 실제로 열 번 중 일곱 번 맞으면 캘리브레이션이 잘 된 것이다"
+      "name": "calibration",
+      "definition": "모델이 말한 확률과 실제 적중률이 맞는 정도. 70%라고 한 것들이 실제로 열 번 중 일곱 번 맞으면 calibration이 잘 된 것이다"
     },
     "en": {
       "name": "calibration",

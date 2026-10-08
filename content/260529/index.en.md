@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: en
 translationOf: '260529'
-sourceHash: bb7924b155b99b2e2f0c86c6ab970989ae0c36a6e40193617be6dd29adb326d3
+sourceHash: a8deda13246ed45566b723f969c3c12046709a55068c9d2bbec8d976fd7f8ec5
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "How agents load CLAUDE.md, AGENTS.md, SKILL.md, and Cursor rules, why instructions get lost, and what an ETH Zurich study says to put in context files."
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, context files, AI coding agents, Claude Code, ETH Zurich AGENTS.md study"

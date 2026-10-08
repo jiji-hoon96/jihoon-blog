@@ -9,7 +9,7 @@ description: "ZIP、GZIP、ZSTD、BZIP2、XZ、Brotliの構造と速度、圧縮
 keywords: "圧縮アルゴリズム比較, GZIP vs ZSTD, tar.gz vs zip, tar.zst, Brotli, ソリッドアーカイブ, フロントエンドビルド最適化"
 locale: ja
 translationOf: "240706"
-sourceHash: a779d871c60d83ac6c0b491f6e9d62a220def86005773dca744f99031cc7d1c7
+sourceHash: 132c3004808c90e13100237fdca4ad721e66d22703805a4c44767f41910fbb45
 ---
 
 今回は、ソフトウェアの圧縮アルゴリズムについて話してみたい。

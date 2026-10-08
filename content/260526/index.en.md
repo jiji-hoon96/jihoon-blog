@@ -5,7 +5,7 @@ seoTitle: "AI Agent Code Search: Repomix, Aider, CodeGraph, Serena"
 date: "2026-05-26"
 locale: en
 translationOf: '260526'
-sourceHash: 2efbc6c2bee1d73d457d75006378b5a689f2098be54a67edc2da20b38b07a9d0
+sourceHash: 12ae267abbf5802434861218465e4cbe69856a28051e657f3bd9b0f53a15084c
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "Four tiers of tools that cut an AI agent's code search cost: context packing like Repomix, tree-sitter repo maps, CodeGraph's graph, and LSP-based Serena."
 keywords: "code intelligence, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider repo map, AI coding agent token savings"

@@ -9,7 +9,7 @@ description: "A source-based look at React Fiber: Stack Reconciler, Fiber nodes,
 keywords: "React Fiber, React Fiber architecture, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, React rendering, React source code analysis, Virtual DOM, Reconciliation, Lane priority, frontend interview"
 locale: en
 translationOf: '250520'
-sourceHash: a7f912dab6e219c0f6a0434354cd27179f0020fd867d2f22fad5d7f6f6391393
+sourceHash: 7c51bf7ca46984a67c0251d6a653baac64a7e2f82a35f494ba73cea69b2f3463
 ---
 
 In this post, I want to talk about the **Fiber architecture**, which could be called the heart of React.

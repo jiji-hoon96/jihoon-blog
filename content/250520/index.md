@@ -5,13 +5,13 @@ seoTitle: 'React Fiber 완전 정복: 아키텍처와 동시성 렌더링 원리
 date: '2025-05-20'
 updatedAt: "2026-10-08"
 categories: 프론트엔드 React
-description: "React Fiber 아키텍처를 Stack Reconciler부터 Fiber 노드 구조, 더블 버퍼링, Lane 우선순위, Work Loop, Render Phase와 Commit Phase, Concurrent Features까지 React 소스코드 기반으로 깊이 분석한다."
+description: "React Fiber를 Stack Reconciler부터 Fiber 노드, double buffering, Lane 우선순위, Work Loop, Render Phase와 Commit Phase, Concurrent Features까지 React 소스코드로 분석한다."
 keywords: "React Fiber, 리액트 파이버, React Fiber 아키텍처, Stack Reconciler, Concurrent Mode, React 18 동시성, useTransition, useDeferredValue, Suspense, React 렌더링 원리, React 소스코드 분석, Virtual DOM, Reconciliation, Lane 우선순위, 프론트엔드 면접"
 ---
 
 이번 포스팅에서는 React의 심장이라 할 수 있는 **Fiber 아키텍처**에 대한 이야기를 해보려고 한다.
 
-"작업 단위를 나눠서 처리한다"는 한 줄 정의는 알지만, 그것이 React 내부에서 어떻게 구현되는지 설명하기는 어려운 프론트엔드 개발자를 위한 글이다. 끝까지 읽으면 Fiber가 왜 등장했고 Fiber 노드가 어떻게 생겼으며, 더블 버퍼링과 Lane, Work Loop가 어떻게 맞물려 Concurrent Features를 가능하게 하는지 React 소스코드를 근거로 설명할 수 있다.
+"작업 단위를 나눠서 처리한다"는 한 줄 정의는 알지만, 그것이 React 내부에서 어떻게 구현되는지 설명하기는 어려운 프론트엔드 개발자를 위한 글이다. 끝까지 읽으면 Fiber가 왜 등장했고 Fiber 노드가 어떻게 생겼으며, double buffering과 Lane, Work Loop가 어떻게 맞물려 Concurrent Features를 가능하게 하는지 React 소스코드를 근거로 설명할 수 있다.
 
 필자가 React를 처음 접했을 때, **"Fiber"** 라는 단어는 면접 단골 질문 정도로만 인식되었다. "React의 렌더를 위해 작업 단위를 나눠서 처리"라는 한 줄짜리 정의를 외우고, 그게 전부인 줄 알았다. 하지만 실제로 React의 소스코드를 들여다보기 시작하면서, Fiber가 단순한 개념이 아니라 React 렌더링의 **모든 것**을 관장하는 런타임 아키텍처라는 사실을 깨닫게 되었다.
 
@@ -179,9 +179,9 @@ React는 이 구조를 기반으로 깊이 우선 탐색(DFS) 순서로 노드�
 이 필드는 Fiber의 가상 세계와 브라우저의 실제 DOM을 연결하는 다리 역할을 한다.
 
 
-## 더블 버퍼링: current 트리와 workInProgress 트리
+## Double buffering: current 트리와 workInProgress 트리
 
-Fiber를 이해하는 데 있어 빠뜨릴 수 없는 핵심 개념이 바로 **더블 버퍼링(Double Buffering)**이다.
+Fiber를 이해하는 데 있어 빠뜨릴 수 없는 핵심 개념이 바로 **double buffering**이다.
 
 이 개념을 이해하기 위해 게임 그래픽을 떠올려보자. 게임에서 화면을 그릴 때, 현재 화면에 직접 픽셀을 그리면 반쯤 그려진 프레임이 사용자에게 보이는 **화면 깜빡임(flicker)** 현상이 발생한다. 이를 방지하기 위해 게임 엔진은 **두 개의 버퍼**를 사용한다. 하나의 버퍼에 다음 프레임을 완전히 그린 후, 완성되면 화면에 표시되는 버퍼를 한 번에 교체하는 것이다.
 
@@ -221,7 +221,7 @@ function createWorkInProgress(current, pendingProps) {
 
 여기서 핵심을 짚어보자. `stateNode`(실제 DOM 노드)는 current와 workInProgress 사이에서 **공유**된다. Fiber 객체를 매번 새로 만드는 것이 아니라, 기존 alternate를 재사용하면서 변경된 필드만 업데이트한다. 이 덕분에 매 렌더마다 가비지 컬렉션(GC) 부담 없이 효율적으로 트리를 구성할 수 있는 것이다.
 
-만약 props나 state에 변경이 없다면? 해당 서브트리를 통째로 건너뛰는 **bailout 최적화**가 가능해진다. 게임의 더블 버퍼링이 프레임 단위의 최적화라면, Fiber의 더블 버퍼링은 **컴포넌트 단위의 최적화**까지 가능하게 만드는 것이다.
+만약 props나 state에 변경이 없다면? 해당 서브트리를 통째로 건너뛰는 **bailout 최적화**가 가능해진다. 게임의 double buffering이 프레임 단위의 최적화라면, Fiber의 double buffering은 **컴포넌트 단위의 최적화**까지 가능하게 만드는 것이다.
 
 
 ## pendingWorkPriority => Lanes
@@ -488,7 +488,7 @@ function completeUnitOfWork(unitOfWork) {
 순회를 정리하면 이렇다. **child를 따라 내려가고(beginWork) -> 리프에서 완료 후 sibling으로 이동 -> 형제가 없으면 return을 따라 올라감(completeWork)**. 이것이 Fiber의 깊이 우선 탐색 순서인 것이다.
 
 
-### Scheduler의 태스크 큐
+### Scheduler의 task queue
 
 React의 Scheduler 패키지는 내부적으로 **두 개의 min-heap(최소 힙)** 을 관리한다.
 
@@ -588,7 +588,7 @@ Commit Phase는 내부적으로 다음과 같은 세밀한 순서로 동작한�
 2. **Mutation Phase** : `commitMutationEffects()`
    - **실제 DOM 조작**이 수행되는 단계다. 새 노드 삽입, 기존 노드 수정, 불필요한 노드 삭제가 모두 여기서 일어난다. `componentWillUnmount`도 이 시점에 실행되는데, 아직 `current`가 이전 트리를 가리키고 있으므로 이전 상태를 읽을 수 있기 때문이다.
 3. **트리 교체** : `root.current = finishedWork`
-   - 더블 버퍼링의 핵심이다. workInProgress 트리가 current 트리로 승격된다. 이 교체가 Mutation 후, Layout 전에 실행되는 이유가 중요하다. `componentWillUnmount`는 **이전 트리**를 읽어야 하므로 Mutation 단계에서 실행되어야 하고, `componentDidMount`/`componentDidUpdate`는 **새 트리**를 읽어야 하므로 Layout 단계에서 실행되어야 하기 때문이다.
+   - double buffering의 핵심이다. workInProgress 트리가 current 트리로 승격된다. 이 교체가 Mutation 후, Layout 전에 실행되는 이유가 중요하다. `componentWillUnmount`는 **이전 트리**를 읽어야 하므로 Mutation 단계에서 실행되어야 하고, `componentDidMount`/`componentDidUpdate`는 **새 트리**를 읽어야 하므로 Layout 단계에서 실행되어야 하기 때문이다.
 4. **Layout Phase** : `commitLayoutEffects()`
    - DOM 변경이 완료된 후, 새 DOM 상태를 기반으로 하는 작업들이 실행된다.
       - `componentDidMount`, `componentDidUpdate` 실행
@@ -600,7 +600,7 @@ Commit Phase는 내부적으로 다음과 같은 세밀한 순서로 동작한�
 
 ## Concurrent Features와 Fiber
 
-지금까지 살펴본 Fiber의 모든 설계(더블 버퍼링, Lane 기반 우선순위, 중단 가능한 Work Loop)가 실제로 어떤 사용자 경험을 가능하게 만드는지, React 18 이후의 Concurrent Features를 통해 확인해보자.
+지금까지 살펴본 Fiber의 모든 설계(double buffering, Lane 기반 우선순위, 중단 가능한 Work Loop)가 실제로 어떤 사용자 경험을 가능하게 만드는지, React 18 이후의 Concurrent Features를 통해 확인해보자.
 
 ### useTransition
 
@@ -608,7 +608,7 @@ Commit Phase는 내부적으로 다음과 같은 세밀한 순서로 동작한�
 
 TransitionLane은 SyncLane이나 DefaultLane보다 우선순위가 낮기 때문에, 사용자 입력 같은 긴급 업데이트가 들어오면 transition 렌더링을 **중단**하고 긴급 업데이트를 먼저 처리할 수 있다. 이 동안 화면에는 `current` 트리(이전 상태)가 유지되고, transition은 workInProgress 트리에서 백그라운드로 진행된다.
 
-여기서 더블 버퍼링의 가치가 빛난다. 중단된 transition 렌더링은 workInProgress 트리에만 영향을 미치고, 사용자가 보는 화면(current 트리)은 전혀 손상되지 않는 것이다.
+여기서 double buffering의 가치가 빛난다. 중단된 transition 렌더링은 workInProgress 트리에만 영향을 미치고, 사용자가 보는 화면(current 트리)은 전혀 손상되지 않는 것이다.
 
 `isPending` 플래그는 이 transition이 아직 완료되지 않았음을 나타내어, 로딩 인디케이터를 보여주는 등의 처리가 가능하다.
 
@@ -641,7 +641,7 @@ React 18의 `renderToPipeableStream`은 Suspense 경계를 활용한다.
 
 이 글에서 다룬 내용을 한 문장으로 요약하면, **React Fiber는 재귀를 반복으로 바꾸고, 콜 스택을 힙으로 옮겨, 렌더링을 중단하고 재개할 수 있게 만든 아키텍처**다.
 
-이를 위해 linked list 기반의 트리 구조, 더블 버퍼링, Lane 기반 우선순위 시스템, MessageChannel 기반 스케줄러 등 수많은 정교한 설계가 조합되었다. 그리고 이 모든 것은 결국 **사용자가 느끼는 UI의 반응성을 극대화하는 것** 이라는 목표를 향하고 있다.
+이를 위해 linked list 기반의 트리 구조, double buffering, Lane 기반 우선순위 시스템, MessageChannel 기반 스케줄러 등 수많은 정교한 설계가 조합되었다. 그리고 이 모든 것은 결국 **사용자가 느끼는 UI의 반응성을 극대화하는 것** 이라는 목표를 향하고 있다.
 
 물론 Fiber의 내부 구현은 React 버전이 올라갈 때마다 계속 변화하고 있으며, 이 글에서 다룬 내용 역시 특정 시점의 스냅샷에 불과하다. 하지만 "작업을 나누고, 우선순위를 매기고, 중단하고 재개할 수 있다"는 Fiber의 핵심 철학만큼은 앞으로도 변하지 않을 것이라 생각한다.
 

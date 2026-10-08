@@ -9,7 +9,7 @@ description: "Comparamos estrutura, velocidade e taxa de ZIP, GZIP, ZSTD, BZIP2,
 keywords: "comparação de algoritmos de compressão, GZIP vs ZSTD, tar.gz vs zip, tar.zst, Brotli, arquivo sólido, otimização de build frontend"
 locale: pt-BR
 translationOf: "240706"
-sourceHash: a779d871c60d83ac6c0b491f6e9d62a220def86005773dca744f99031cc7d1c7
+sourceHash: 132c3004808c90e13100237fdca4ad721e66d22703805a4c44767f41910fbb45
 ---
 
 Neste artigo, quero falar sobre algoritmos de compressão de software.

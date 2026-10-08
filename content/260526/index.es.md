@@ -8,7 +8,7 @@ description: "Cuatro niveles de herramientas que abaratan la búsqueda de códig
 keywords: "inteligencia de código, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider repo map, ahorro de tokens agente de IA"
 locale: es
 translationOf: '260526'
-sourceHash: 2efbc6c2bee1d73d457d75006378b5a689f2098be54a67edc2da20b38b07a9d0
+sourceHash: 12ae267abbf5802434861218465e4cbe69856a28051e657f3bd9b0f53a15084c
 ---
 
 En esta publicación quiero hablar sobre **en qué se diferencian entre sí las herramientas que reducen el coste de que un agente de codificación con IA encuentre el código pertinente**.

@@ -8,7 +8,7 @@ description: "Calibration means knowing how often you will be right. How ECE mea
 keywords: "model calibration, ECE, expected calibration error, RLHF overconfidence, LLM overconfidence, calibration vs accuracy, GPT-4 calibration, mode dropping"
 locale: en
 translationOf: '260917'
-sourceHash: 18340456d15a5027169635513c42295af2aef16b38d6ff40e7038bf7b023886c
+sourceHash: a397a85a550dd467b12ceeb22cf4cfcbaf8ca6063b40977bce14a25562d911f0
 ---
 
 In this post, I want to talk about model calibration and the overconfidence RLHF creates. This is for developers who want to use the probability or confidence a model returns as a decision criterion in code. By the end, you will be able to explain how accuracy and calibration differ, what ECE measures, and why a model polished on human preference speaks more confidently than it should.

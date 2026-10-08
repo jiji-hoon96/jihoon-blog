@@ -9,7 +9,7 @@ description: "基于 React 源码，深入分析 React Fiber 架构，从 Stack 
 keywords: "React Fiber, React Fiber 架构, Stack Reconciler, Concurrent Mode, React 18 并发, useTransition, useDeferredValue, Suspense, React 渲染原理, React 源码分析, Virtual DOM, Reconciliation, Lane 优先级, 前端面试"
 locale: zh-CN
 translationOf: '250520'
-sourceHash: a7f912dab6e219c0f6a0434354cd27179f0020fd867d2f22fad5d7f6f6391393
+sourceHash: 7c51bf7ca46984a67c0251d6a653baac64a7e2f82a35f494ba73cea69b2f3463
 ---
 
 这篇文章想聊聊堪称 React 心脏的 **Fiber 架构**。

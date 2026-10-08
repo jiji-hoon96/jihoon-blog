@@ -5,7 +5,7 @@ seoTitle: "AI 编程智能体的代码检索成本: Repomix、Aider、CodeGraph�
 date: "2026-05-26"
 locale: zh-CN
 translationOf: '260526'
-sourceHash: 2efbc6c2bee1d73d457d75006378b5a689f2098be54a67edc2da20b38b07a9d0
+sourceHash: 12ae267abbf5802434861218465e4cbe69856a28051e657f3bd9b0f53a15084c
 categories: AI 开发工具 Claude MCP CodeGraph
 description: "将降低 AI 编程智能体查找相关代码成本的工具分为四个层级进行比较，梳理 Repomix 等上下文打包、Aider 的 tree-sitter 仓库地图、CodeGraph 知识图谱，以及 Serena 等基于 LSP 的工具分别能理解代码到什么程度。"
 keywords: "代码智能, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider repo map, AI 编程智能体 节省 token"

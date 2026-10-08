@@ -8,7 +8,7 @@ description: 'Meça custos de tokens com um React POC e reduza-os com prompt cac
 keywords: 'economizar tokens de IA, custo do Claude Code, Cursor Composer, React POC, prompt caching, context engineering, subagent, MCP, model routing, context rot'
 locale: pt-BR
 translationOf: '260611'
-sourceHash: 7ba5260860c9dbe77bef75ea47f33c6194058e67c70ccdaaf65ff06e824874e6
+sourceHash: 5c65e3eb331c1de5b140f5b74b6b6299868d5d98e88d8fe880877f3369372cc4
 ---
 
 Neste artigo, quero falar sobre como economizar tokens de IA.

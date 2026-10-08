@@ -8,7 +8,7 @@ description: "校准不是准确率，而是知道自己能答对百分之几的
 keywords: "模型校准, ECE, expected calibration error, RLHF 过度自信, LLM 过度自信, 校准 准确率 区别, GPT-4 校准, mode dropping"
 locale: zh-CN
 translationOf: '260917'
-sourceHash: 18340456d15a5027169635513c42295af2aef16b38d6ff40e7038bf7b023886c
+sourceHash: a397a85a550dd467b12ceeb22cf4cfcbaf8ca6063b40977bce14a25562d911f0
 ---
 
 这篇文章想聊聊模型的校准，以及 RLHF 带来的过度自信。本文写给想把模型返回的概率或确信度当作代码中判断标准的开发者。读完之后，你可以说明准确率和校准有什么不同、ECE 衡量的是什么，以及用人类偏好打磨过的模型为什么说话比实际更有自信。

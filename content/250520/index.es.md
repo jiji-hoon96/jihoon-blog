@@ -7,7 +7,7 @@ updatedAt: "2026-10-08"
 categories: frontend React
 locale: es
 translationOf: '250520'
-sourceHash: a7f912dab6e219c0f6a0434354cd27179f0020fd867d2f22fad5d7f6f6391393
+sourceHash: 7c51bf7ca46984a67c0251d6a653baac64a7e2f82a35f494ba73cea69b2f3463
 description: "Análisis de React Fiber desde el código fuente: Stack Reconciler, nodos Fiber, doble búfer, Lanes, Work Loop, render y commit, y Concurrent Features."
 keywords: "React Fiber, arquitectura de React Fiber, Stack Reconciler, Concurrent Mode, concurrencia en React 18, useTransition, useDeferredValue, Suspense, renderizado de React, análisis del código fuente de React, Virtual DOM, Reconciliation, prioridad por Lanes, entrevista de frontend"
 ---

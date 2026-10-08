@@ -8,7 +8,7 @@ description: "La calibración es saber qué porcentaje vas a acertar. Cómo la m
 keywords: "calibración de modelos, ECE, expected calibration error, exceso de confianza en RLHF, LLM sobreconfiados, calibración vs exactitud, calibración de GPT-4, mode dropping"
 locale: es
 translationOf: '260917'
-sourceHash: 18340456d15a5027169635513c42295af2aef16b38d6ff40e7038bf7b023886c
+sourceHash: a397a85a550dd467b12ceeb22cf4cfcbaf8ca6063b40977bce14a25562d911f0
 ---
 
 En este artículo quiero hablar de la calibración de los modelos y del exceso de confianza que genera RLHF. Está pensado para desarrolladores que quieren usar en su código, como criterio de decisión, la probabilidad o la confianza que devuelve un modelo. Al terminar podrás explicar en qué se diferencian la exactitud y la calibración, qué mide el ECE y por qué un modelo pulido con preferencias humanas habla con más seguridad de la que le corresponde.

@@ -8,7 +8,7 @@ description: "Como o MCP difere de function calling: seis primitivas, stdio e St
 keywords: "MCP, Model Context Protocol, MCP vs function calling, primitivas MCP, tools/list, Streamable HTTP, Tool Poisoning Attack, segurança MCP"
 locale: pt-BR
 translationOf: '260524'
-sourceHash: f5c56031068e65cfbee19861ae45e0809590a1961be8364a856a0caa02ffedcb
+sourceHash: efa35fa92ae2cbddd13e30ebadc6fcd8e7418c4b3ea6c3a4c1ace470c5095beb
 ---
 
 Neste post, quero falar sobre **como o MCP (Model Context Protocol) difere de function calling**.
