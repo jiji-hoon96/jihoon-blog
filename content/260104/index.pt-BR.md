@@ -9,7 +9,7 @@ description: "Como a gestão de queryKey no TanStack Query evoluiu de vetores in
 keywords: "queryKey, fábrica de chaves de consulta, queryKey do TanStack Query, regras para escrever queryKey, queryOptions, setQueryData, chaves de consulta de TkDodo, query-key-factory, React Query v5, invalidação de consultas"
 locale: pt-BR
 translationOf: '260104'
-sourceHash: 50857db5f010cd899635d01d412999ec0ecc8b8d295039fbaad49e0c10d51f58
+sourceHash: b801dce44f70d60f81790117fc82d189a0e094de05808ebffdb5c5e93fd7fb07
 ---
 
 Neste artigo, quero falar sobre a **queryKey do TanStack Query**.
@@ -99,7 +99,7 @@ Então, como o TanStack Query reconhece como a mesma chave um vetor criado de no
 
 Depois de entender que a queryKey é ao mesmo tempo o identificador do cache e um vetor de dependências, as regras de escrita decorrem naturalmente. As recomendações da documentação oficial podem ser resumidas assim.
 
-**Regra 1. queryKey precisa ser um vetor.**
+### queryKey precisa ser um vetor
 
 Mesmo que uma cadeia de caracteres funcione (ela é convertida internamente em um vetor), é melhor usar um vetor desde o início para manter a consistência.
 
@@ -111,7 +111,7 @@ useQuery({ queryKey: 'todos', queryFn });
 useQuery({ queryKey: ['todos'], queryFn });
 ```
 
-**Regra 2. Inclua em queryKey todas as variáveis das quais queryFn depende.**
+### Inclua em queryKey todas as variáveis das quais queryFn depende
 
 ```tsx
 // 잘못된 예: userId가 쿼리키에 없다
@@ -129,7 +129,7 @@ useQuery({
 
 O raciocínio é idêntico ao das dependências de `useEffect`. Todas as variáveis usadas dentro da função precisam estar na chave, isto é, no vetor de dependências. Se essa regra for violada, pode surgir um erro difícil de rastrear: o usuário muda, mas os dados do usuário anterior continuam aparecendo.
 
-**Regra 3. Organize os elementos do mais genérico para o mais específico.**
+### Organize os elementos do mais genérico para o mais específico
 
 ```tsx
 // 좋다
@@ -162,7 +162,7 @@ Até aqui, tratamos do funcionamento e do uso de queryKey. Agora podemos passar 
 Vou organizar em ordem cronológica as etapas pelas quais passei em projetos reais.
 
 
-### 1. Vetores declarados diretamente
+### Vetores declarados diretamente
 
 Esta é a forma mais simples. Dentro do componente, combinam-se textos fixos com valores das propriedades.
 
@@ -189,7 +189,7 @@ No início, isso pode ser suficiente.
 O problema aparece à medida que a base de código cresce. Quando se precisa invalidar dados em uma mutação que altera informações de um usuário, é necessário pesquisar toda vez: "Qual era a chave das consultas de usuário?" Alguns lugares acabam usando `['user', userId]`, enquanto outros usam `['users', userId]`, no plural. Como essas chaves ocupam posições totalmente diferentes no cache, a invalidação afeta apenas uma delas.
 
 
-### 2. Objeto de constantes
+### Objeto de constantes
 
 Para evitar erros de digitação, as chaves de consulta são reunidas em constantes.
 
@@ -211,7 +211,7 @@ useQuery({
 Os erros de digitação desaparecem, mas a responsabilidade de montar as chaves continua nos locais de uso. Alguém escreve a combinação `[QUERY_KEYS.USER, userId]` como `[QUERY_KEYS.USER, userId, 'detail']`, enquanto outra pessoa usa `['user', 'detail', userId]`. Chega um momento em que é necessário memorizar à parte qual convenção está correta.
 
 
-### 3. Fábrica de chaves de consulta
+### Fábrica de chaves de consulta
 
 Esse padrão foi concretizado no artigo [Chaves eficazes no React Query](https://tkdodo.eu/blog/effective-react-query-keys), de TkDodo. Define-se um objeto que cria as chaves de cada domínio, expressando a hierarquia por meio de funções.
 
@@ -250,7 +250,7 @@ src/
 Isso cria um modelo mental simples: "Para alterar algo em tarefas, basta olhar a pasta de tarefas". É uma aplicação fiel do princípio de manter juntas as partes que mudam juntas.
 
 
-### 4. @lukemorales/query-key-factory
+### @lukemorales/query-key-factory
 
 Ao escrever manualmente o terceiro padrão repetidas vezes, o código repetitivo se acumula. Além disso, quando surge a necessidade de combinar e gerenciar as chaves de vários domínios, faz falta uma interface padronizada. A biblioteca [@lukemorales/query-key-factory](https://github.com/lukemorales/query-key-factory) é o resultado da transformação desse padrão em biblioteca.
 
@@ -291,7 +291,7 @@ queryClient.invalidateQueries(queries.users.detail('abc'));   // 특정 항목
 Durante algum tempo, essa biblioteca foi usada praticamente como um padrão de mercado. (Eu também a usei bastante.) Mas a chegada de queryOptions mudou o cenário.
 
 
-### 5. queryOptions (API oficial da v5)
+### queryOptions (API oficial da v5)
 
 Uma das mudanças mais importantes do TanStack Query v5 foi a introdução da API `queryOptions`. Na migração da v4 para a v5, os argumentos de todos os hooks foram unificados em um único objeto. O verdadeiro objetivo dessa mudança era permitir que esse objeto fosse extraído como **uma unidade reutilizável**.
 
@@ -381,7 +381,7 @@ export const todoQueries = {
 
 Vejamos, um a um, os motivos pelos quais esse padrão funciona bem.
 
-**1. Ele oferece, ao mesmo tempo, uma hierarquia e inferência de tipos.**
+### Ele oferece, ao mesmo tempo, uma hierarquia e inferência de tipos
 
 `todoQueries.all()` e `todoQueries.lists()` retornam apenas vetores, enquanto `todoQueries.detail(1)` retorna, por meio de `queryOptions`, um objeto com a marca de tipo dos dados. Usa-se o vetor para invalidar e o objeto de opções para executar a consulta.
 
@@ -390,7 +390,7 @@ useQuery(todoQueries.detail(1));                                // 옵션 객체
 queryClient.invalidateQueries({ queryKey: todoQueries.all() }); // 배열
 ```
 
-**2. O componente pode sobrescrever parcialmente as opções.**
+### O componente pode sobrescrever parcialmente as opções
 
 Como o resultado de `queryOptions` é, no fim das contas, um objeto, algumas opções podem ser combinadas no momento da chamada.
 
@@ -403,7 +403,7 @@ const { data: title } = useQuery({
 
 Esse padrão é especialmente poderoso porque o tipo retornado por `select` é inferido automaticamente e o tipo de `data` é restringido para `string`. Do ponto de vista do componente, é possível selecionar apenas a parte necessária, mantendo a definição do domínio intacta em um só lugar.
 
-**3. Hooks personalizados que envolvem `useQuery` tornam-se cada vez menos necessários.**
+### Hooks personalizados que envolvem `useQuery` tornam-se cada vez menos necessários
 
 Na época da v4, um padrão comum era criar um hook personalizado para cada domínio.
 
@@ -500,8 +500,6 @@ Cada etapa foi uma resposta a um problema real enfrentado por alguém naquele mo
 
 Espero que quem leu este artigo também examine seu próprio projeto: como queryKey está espalhada pela base de código, como as invalidações são realizadas e se essa estrutura é adequada ao tamanho atual da equipe e à complexidade do domínio.
 
-
-## Referências
 
 :::ref
 - [documentação] [TanStack Query, Chaves de consulta](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)

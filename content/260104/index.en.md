@@ -9,7 +9,7 @@ description: "How TanStack Query queryKey management evolved from inline arrays 
 keywords: "queryKey, query key factory, TanStack Query queryKey, queryKey best practices, queryOptions, setQueryData, TkDodo query keys, query-key-factory, React Query v5, query invalidation"
 locale: en
 translationOf: '260104'
-sourceHash: 50857db5f010cd899635d01d412999ec0ecc8b8d295039fbaad49e0c10d51f58
+sourceHash: b801dce44f70d60f81790117fc82d189a0e094de05808ebffdb5c5e93fd7fb07
 ---
 
 In this post, I want to explore **TanStack Query's queryKey**.
@@ -99,7 +99,7 @@ So how does TanStack Query recognize an array that is created anew on every rend
 
 Once you understand that a queryKey is both the cache identifier and a dependency array, the rules for writing queryKeys follow naturally. The official recommendations can be summarized as follows.
 
-**Rule 1. A queryKey must be an array.**
+### A queryKey must be an array
 
 Passing a string still works because it is converted to an array internally. For consistency, however, it is better to use an array from the start.
 
@@ -111,7 +111,7 @@ useQuery({ queryKey: 'todos', queryFn });
 useQuery({ queryKey: ['todos'], queryFn });
 ```
 
-**Rule 2. Include every variable that the queryFn depends on in the queryKey.**
+### Include every variable that the queryFn depends on in the queryKey
 
 ```tsx
 // 잘못된 예: userId가 쿼리키에 없다
@@ -129,7 +129,7 @@ useQuery({
 
 The mental model is exactly the same as the dependency array in `useEffect`. Every variable used inside the function must be part of the key (= dependency). Violating this rule creates bugs that are difficult to trace, such as continuing to display the previous user's data after switching to another user.
 
-**Rule 3. Arrange the key from the most generic element to the most specific.**
+### Arrange the key from the most generic element to the most specific
 
 ```tsx
 // 좋다
@@ -162,7 +162,7 @@ So far, we have covered how queryKey works and how to use it. Now we can move on
 I will walk through the stages I have used in production, in chronological order.
 
 
-### 1. Inline arrays
+### Inline arrays
 
 This is the simplest form: combine fixed strings with prop values inside the component.
 
@@ -189,7 +189,7 @@ This is enough when you are just getting started.
 The problems begin as the codebase grows. When a mutation that updates user information needs to invalidate a query, you have to search for the answer to "What was the query key for user data again?" every time. Some places end up using `['user', userId]`, while others use `['users', userId]` in the plural. These are entirely different cache slots, so invalidation affects only one of them.
 
 
-### 2. A constant object
+### A constant object
 
 To prevent typos, gather query keys into constants.
 
@@ -211,7 +211,7 @@ useQuery({
 The typos disappear, but each call site is still responsible for assembling the key. One person may use `[QUERY_KEYS.USER, userId]`, another `[QUERY_KEYS.USER, userId, 'detail']`, and someone else `['user', 'detail', userId]`. Eventually, you need to memorize a separate convention just to know which form is correct.
 
 
-### 3. Query Key Factory
+### Query Key Factory
 
 This pattern was formalized in TkDodo's [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys). It defines an object that creates keys for each domain and expresses the hierarchy through functions.
 
@@ -250,7 +250,7 @@ src/
 This creates a simple mental model: "To change something about todos, I only need to look in the todos directory." It is a faithful application of the principle of keeping things that change together close together.
 
 
-### 4. @lukemorales/query-key-factory
+### @lukemorales/query-key-factory
 
 Writing the third pattern by hand every time accumulates boilerplate. And when you want to combine keys from multiple domains, the lack of a standardized interface becomes apparent. [@lukemorales/query-key-factory](https://github.com/lukemorales/query-key-factory) is the library form of this pattern.
 
@@ -291,7 +291,7 @@ queryClient.invalidateQueries(queries.users.detail('abc'));   // 특정 항목
 For a while, this library was effectively the standard. (I was a happy user for quite some time.) Then queryOptions changed the landscape.
 
 
-### 5. queryOptions (official in v5)
+### queryOptions (official in v5)
 
 One of the most important changes in TanStack Query v5 was the introduction of the `queryOptions` API. During the transition from v4 to v5, every hook's arguments were unified into a single object. The real purpose of this change was to make it possible to extract that object into **a reusable unit**.
 
@@ -381,7 +381,7 @@ export const todoQueries = {
 
 Let us unpack the strengths of this pattern one by one.
 
-**1. You get hierarchy and type inference at the same time.**
+### You get hierarchy and type inference at the same time
 
 `todoQueries.all()` and `todoQueries.lists()` return plain arrays, while `todoQueries.detail(1)` returns an object created through `queryOptions` with a data tag attached. Use the arrays for invalidation and the options object for query calls.
 
@@ -390,7 +390,7 @@ useQuery(todoQueries.detail(1));                                // 옵션 객체
 queryClient.invalidateQueries({ queryKey: todoQueries.all() }); // 배열
 ```
 
-**2. Components can partially override the options.**
+### Components can partially override the options
 
 The result of `queryOptions` is ultimately an object, so individual options can be composed at the call site.
 
@@ -403,7 +403,7 @@ const { data: title } = useQuery({
 
 What makes this especially powerful is that the return type of `select` is inferred automatically, narrowing the type of `data` to `string`. The component can select only the piece it needs while leaving the domain definition centralized.
 
-**3. Custom hooks wrapping `useQuery` gradually disappear.**
+### Custom hooks wrapping `useQuery` gradually disappear
 
 A common pattern in v4 was to create a custom hook for each domain.
 
@@ -500,8 +500,6 @@ Each stage was an answer to a real problem someone encountered at the time. So t
 
 I hope this article encourages you to examine your own project: how queryKeys are distributed throughout the codebase, how invalidation is performed, and whether that structure fits the current size of your team and the complexity of your domain.
 
-
-## References
 
 :::ref
 - [docs] [TanStack Query, Query Keys](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)

@@ -96,7 +96,7 @@ const { data } = useQuery({
 
 queryKey가 캐시의 식별자이자 의존성 배열이라는 점을 이해했다면, 작성 규칙도 자연스럽게 따라온다. 공식 문서가 권하는 규칙을 정리하면 다음과 같다.
 
-**규칙 1. queryKey는 반드시 배열이어야 한다.**
+### queryKey는 반드시 배열이어야 한다
 
 문자열로 넘겨도 동작은 한다(내부적으로 배열로 변환된다). 하지만 일관성을 위해 처음부터 배열로 쓰는 것이 좋다.
 
@@ -108,7 +108,7 @@ useQuery({ queryKey: 'todos', queryFn });
 useQuery({ queryKey: ['todos'], queryFn });
 ```
 
-**규칙 2. queryFn이 의존하는 모든 변수를 queryKey에 포함한다.**
+### queryFn이 의존하는 모든 변수를 queryKey에 포함한다
 
 ```tsx
 // 잘못된 예: userId가 쿼리키에 없다
@@ -126,7 +126,7 @@ useQuery({
 
 `useEffect`의 deps와 똑같은 사고방식이다. 함수 안에서 사용하는 변수는 모두 키(=의존성)에 들어가야 한다. 이걸 어기면 사용자가 다른 사용자로 바뀌었는데도 이전 사용자의 데이터가 그대로 보이는, 추적하기 어려운 버그가 생긴다.
 
-**규칙 3. 가장 generic한 것에서 가장 specific한 것 순서로 배치한다.**
+### 가장 generic한 것에서 가장 specific한 것 순서로 배치한다
 
 ```tsx
 // 좋다
@@ -159,7 +159,7 @@ queryClient.invalidateQueries({ queryKey: ['todos', 'list'] });
 필자가 실무에서 거쳐온 단계를 시간순으로 정리해보겠다.
 
 
-### 1. 인라인 배열
+### 인라인 배열
 
 가장 단순한 형태이다. 컴포넌트 안에서 고정 문자열과 props 값을 조합한다.
 
@@ -186,7 +186,7 @@ function PostList({ filter }: { filter: PostFilter }) {
 문제는 코드베이스가 커지면서 시작된다. 사용자 정보를 수정하는 mutation에서 무효화를 걸어야 하는데, "사용자 관련 쿼리 키가 뭐였더라?"를 매번 검색해서 찾아야 한다. 어떤 곳은 `['user', userId]`로 적어놓고, 어떤 곳은 `['users', userId]`(복수형)로 적어놓는 일이 생긴다. 둘은 완전히 다른 캐시 슬롯이라 무효화가 한쪽에만 적용된다. 
 
 
-### 2. 상수 객체
+### 상수 객체
 
 오타를 막기 위해 쿼리키를 상수로 모아둔다.
 
@@ -208,7 +208,7 @@ useQuery({
 오타는 사라진다. 그런데 여전히 키를 조립하는 책임은 사용처에 있다. `[QUERY_KEYS.USER, userId]`라는 조합을 누군가는 `[QUERY_KEYS.USER, userId, 'detail']`로 쓰고, 또 누군가는 `['user', 'detail', userId]`로 쓴다. 어떤 게 맞는지 컨벤션을 별도로 외워야 하는 시점이 온다.
 
 
-### 3. Query Key Factory
+### Query Key Factory
 
 이 패턴은 TkDodo의 [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys) 글에서 구체화되었다. 도메인별로 키를 만드는 객체를 정의하고, 계층 구조를 함수로 표현한다.
 
@@ -247,7 +247,7 @@ src/
 이렇게 하면 "todos에 뭘 수정하려면 todos 폴더만 보면 된다"는 단순한 멘탈 모델이 만들어진다. 함께 변하는 것을 함께 둔다는 원칙의 충실한 구현이다.
 
 
-### 4. @lukemorales/query-key-factory
+### @lukemorales/query-key-factory
 
 3번째 패턴을 매번 손으로 짜다 보면 보일러플레이트가 쌓인다. 그리고 여러 도메인의 키를 합쳐 관리하고 싶을 때 표준화된 인터페이스가 아쉬워진다. [@lukemorales/query-key-factory](https://github.com/lukemorales/query-key-factory)는 이 패턴을 라이브러리화한 결과물이다.
 
@@ -288,7 +288,7 @@ queryClient.invalidateQueries(queries.users.detail('abc'));   // 특정 항목
 이 라이브러리는 한동안 사실상 표준처럼 쓰였다. (필자도 한참 즐겨 썼다.) 그런데 queryOptions가 나오면서 상황이 달라졌다.
 
 
-### 5. queryOptions (v5 공식)
+### queryOptions (v5 공식)
 
 TanStack Query v5의 가장 중요한 변화 중 하나가 바로 `queryOptions` API의 도입이다. v4에서 v5로 넘어오면서 모든 hook의 인자가 단일 객체로 통일되었는데, 이 변화의 진짜 목적은 그 객체를 **재사용 가능한 단위**로 빼낼 수 있게 만드는 것이었다.
 
@@ -378,7 +378,7 @@ export const todoQueries = {
 
 이 패턴이 좋은 이유를 하나씩 풀어보자.
 
-**1. 계층 구조와 타입 추론을 동시에 얻는다.**
+### 계층 구조와 타입 추론을 동시에 얻는다
 
 `todoQueries.all()`이나 `todoQueries.lists()`는 그냥 배열을 반환하지만, `todoQueries.detail(1)`은 `queryOptions`를 통해 만들어진 데이터 태그가 붙은 객체를 반환한다. 무효화에는 배열을, 쿼리 호출에는 옵션 객체를 쓰면 된다.
 
@@ -387,7 +387,7 @@ useQuery(todoQueries.detail(1));                                // 옵션 객체
 queryClient.invalidateQueries({ queryKey: todoQueries.all() }); // 배열
 ```
 
-**2. 컴포넌트에서 옵션을 부분적으로 덮어쓸 수 있다.**
+### 컴포넌트에서 옵션을 부분적으로 덮어쓸 수 있다
 
 `queryOptions`의 결과는 결국 객체이니, 호출 시점에서 일부 옵션을 합성할 수 있다.
 
@@ -400,7 +400,7 @@ const { data: title } = useQuery({
 
 이 패턴이 특히 강력한 이유는, `select`의 반환 타입이 자동으로 추론되어 `data`의 타입이 `string`으로 좁혀진다는 점이다. 컴포넌트 입장에서는 필요한 부분만 골라쓰면서, 도메인 정의는 한 곳에 그대로 둘 수 있다.
 
-**3. `useQuery`를 감싼 커스텀 훅이 점점 사라진다.**
+### `useQuery`를 감싼 커스텀 훅이 점점 사라진다
 
 v4 시절의 일반적인 패턴은 도메인별 커스텀 훅을 만드는 것이었다.
 
@@ -497,8 +497,6 @@ queryOptions({
 
 이 글을 읽는 독자 분들도 자신의 프로젝트에서 한 번쯤 점검해보시길 바란다. queryKey가 코드 전체에 어떻게 흩어져 있는지, 무효화는 어떤 방식으로 이루어지고 있는지, 그리고 그 구조가 지금의 팀 규모와 도메인 복잡도에 맞는지를 말이다.
 
-
-## 참고 자료
 
 :::ref
 - [docs] [TanStack Query, Query Keys](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)

@@ -9,7 +9,7 @@ description: "TanStack Query の queryKey の管理方法が、インライン�
 keywords: "queryKey, クエリキーファクトリー, TanStack Query queryKey, queryKey 記述規則, queryOptions, setQueryData, TkDodo クエリキー, query-key-factory, React Query v5, クエリの無効化"
 locale: ja
 translationOf: '260104'
-sourceHash: 50857db5f010cd899635d01d412999ec0ecc8b8d295039fbaad49e0c10d51f58
+sourceHash: b801dce44f70d60f81790117fc82d189a0e094de05808ebffdb5c5e93fd7fb07
 ---
 
 今回は、**TanStack Query の queryKey**について掘り下げてみたい。
@@ -99,7 +99,7 @@ const { data } = useQuery({
 
 queryKey がキャッシュの識別子であり依存配列でもあることを理解すれば、記述規則も自然に見えてくる。公式ドキュメントが推奨する規則を整理すると、次のようになる。
 
-**規則1. queryKey は必ず配列にする。**
+### queryKey は必ず配列にする
 
 文字列を渡しても動作はする（内部で配列へ変換される）。ただし、一貫性を保つため、最初から配列で記述する方がよい。
 
@@ -111,7 +111,7 @@ useQuery({ queryKey: 'todos', queryFn });
 useQuery({ queryKey: ['todos'], queryFn });
 ```
 
-**規則2. queryFn が依存するすべての変数を queryKey に含める。**
+### queryFn が依存するすべての変数を queryKey に含める
 
 ```tsx
 // 잘못된 예: userId가 쿼리키에 없다
@@ -129,7 +129,7 @@ useQuery({
 
 `useEffect` の依存配列と同じ考え方だ。関数内で使う変数はすべてキー（＝依存関係）に含めなければならない。この規則を破ると、対象ユーザーが変わったにもかかわらず以前のユーザーのデータがそのまま表示されるような、追跡しにくい不具合が生じる。
 
-**規則3. 最も汎用的なものから最も具体的なものの順に配置する。**
+### 最も汎用的なものから最も具体的なものの順に配置する
 
 ```tsx
 // 좋다
@@ -162,7 +162,7 @@ queryClient.invalidateQueries({ queryKey: ['todos', 'list'] });
 筆者が実務でたどってきた段階を、時系列で整理する。
 
 
-### 1. インライン配列
+### インライン配列
 
 最も単純な形式だ。コンポーネント内で固定文字列とプロパティの値を組み合わせる。
 
@@ -189,7 +189,7 @@ function PostList({ filter }: { filter: PostFilter }) {
 問題は、コードベースが大きくなるにつれて現れる。ユーザー情報を更新するミューテーションで無効化を行いたくても、「ユーザー関連のクエリキーは何だったか」を毎回検索しなければならない。ある箇所では `['user', userId]`、別の箇所では `['users', userId]`（複数形）と書かれることも起きる。両者はまったく別のキャッシュスロットなので、無効化は片方にしか適用されない。
 
 
-### 2. 定数オブジェクト
+### 定数オブジェクト
 
 タイプミスを防ぐため、クエリキーを定数として一か所にまとめる。
 
@@ -211,7 +211,7 @@ useQuery({
 タイプミスはなくなる。しかし、キーを組み立てる責任は依然として利用側に残る。`[QUERY_KEYS.USER, userId]` という組み合わせを、ある人は `[QUERY_KEYS.USER, userId, 'detail']` と書き、別の人は `['user', 'detail', userId]` と書く。どれが正しいか、別途規約として覚えなければならない段階が訪れる。
 
 
-### 3. クエリキーファクトリー
+### クエリキーファクトリー
 
 このパターンは、TkDodo の[効果的な React Query のキー](https://tkdodo.eu/blog/effective-react-query-keys)という記事で具体化された。ドメインごとにキーを生成するオブジェクトを定義し、階層構造を関数で表現する。
 
@@ -250,7 +250,7 @@ src/
 こうすることで、「todos を変更するなら todos フォルダだけ見ればよい」という単純なメンタルモデルができる。ともに変化するものを同じ場所に置く、という原則を忠実に実践した形だ。
 
 
-### 4. @lukemorales/query-key-factory
+### @lukemorales/query-key-factory
 
 3番目のパターンを毎回手作業で書いていると、定型コードが増えていく。また、複数ドメインのキーを統合して管理したい場合、標準化されたインターフェースが欲しくなる。[@lukemorales/query-key-factory](https://github.com/lukemorales/query-key-factory) は、このパターンをライブラリとして実装したものだ。
 
@@ -291,7 +291,7 @@ queryClient.invalidateQueries(queries.users.detail('abc'));   // 특정 항목
 このライブラリは、しばらくの間、事実上の標準として使われていた。（筆者も長い間愛用していた。）しかし、queryOptions の登場によって状況が変わった。
 
 
-### 5. queryOptions（v5 公式）
+### queryOptions（v5 公式）
 
 TanStack Query v5 における最も重要な変更の一つが、`queryOptions` API の導入だ。v4 から v5 への移行で、すべてのフックの引数が単一のオブジェクトに統一された。この変更の真の目的は、そのオブジェクトを**再利用可能な単位**として切り出せるようにすることだった。
 
@@ -381,7 +381,7 @@ export const todoQueries = {
 
 このパターンが優れている理由を、一つずつ見ていこう。
 
-**1. 階層構造と型推論を同時に得られる。**
+### 階層構造と型推論を同時に得られる
 
 `todoQueries.all()` や `todoQueries.lists()` は単に配列を返すが、`todoQueries.detail(1)` は `queryOptions` によって作られた、データタグ付きのオブジェクトを返す。無効化には配列を、クエリの呼び出しにはオプションオブジェクトを使えばよい。
 
@@ -390,7 +390,7 @@ useQuery(todoQueries.detail(1));                                // 옵션 객체
 queryClient.invalidateQueries({ queryKey: todoQueries.all() }); // 배열
 ```
 
-**2. コンポーネントでオプションを部分的に上書きできる。**
+### コンポーネントでオプションを部分的に上書きできる
 
 `queryOptions` の結果は最終的にはオブジェクトなので、呼び出す時点で一部のオプションを合成できる。
 
@@ -403,7 +403,7 @@ const { data: title } = useQuery({
 
 このパターンが特に強力なのは、`select` の返り値の型が自動的に推論され、`data` の型が `string` に絞り込まれる点だ。コンポーネント側では必要な部分だけを選んで使いながら、ドメインの定義は一か所に保てる。
 
-**3. `useQuery` をラップするカスタムフックが次第に不要になる。**
+### `useQuery` をラップするカスタムフックが次第に不要になる
 
 v4 の頃は、ドメインごとにカスタムフックを作るのが一般的なパターンだった。
 
@@ -500,8 +500,6 @@ queryOptions({
 
 読者の皆さんも、自分のプロジェクトで一度確認してみてほしい。queryKey がコード全体にどのように散らばっているか、無効化がどのように行われているか、そしてその構造が現在のチーム規模とドメインの複雑さに合っているかを。
 
-
-## 参考資料
 
 :::ref
 - [ドキュメント] [TanStack Query：クエリキー](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)
