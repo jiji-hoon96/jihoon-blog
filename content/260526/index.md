@@ -11,7 +11,7 @@ keywords: "code intelligence, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, 
 
 이번 포스팅에서는 **AI 코딩 에이전트가 관련 코드를 찾는 비용을 줄이는 도구들이 서로 무엇이 다른지**에 대한 이야기를 해보려고 한다.
 
-큰 코드베이스에서 에이전트가 grep과 파일 읽기를 되풀이하며 토큰을 쓰는 것을 보고, Repomix나 CodeGraph, Serena 같은 도구 중 무엇을 붙여야 할지 고민하는 개발자를 위한 글이다. 끝까지 읽으면 이 도구들이 코드를 얼마나 깊이 이해하는지에 따라 어떻게 갈리는지, 그리고 각 방식이 탐색 비용을 어디서 줄이는지 구분할 수 있다. 이해의 깊이는 넷으로 나뉜다. 코드를 텍스트로 통째로 넣는 context packing, 심볼이 있다는 것까지 아는 tree-sitter repo map, 심볼 관계를 미리 저장해 두는 지식 그래프, 그 심볼이 무엇인지까지 아는 LSP다. 지식 그래프를 뺀 세 계층은 이 블로그 리포의 `src/` 로 직접 잰 결과를, 지식 그래프는 제작사의 벤치마크를 함께 싣는다.
+큰 코드베이스에서 에이전트가 grep과 파일 읽기를 되풀이하며 토큰을 쓰는 것을 보고, Repomix나 CodeGraph, Serena 같은 도구 중 무엇을 붙여야 할지 고민하는 개발자를 위한 글이다. 이 도구들은 코드를 얼마나 깊이 이해하는지에 따라 context packing, tree-sitter repo map, 지식 그래프, LSP의 네 계층으로 갈리고, 계층마다 탐색 비용을 줄이는 지점이 다르다. 지식 그래프는 제작사의 벤치마크를, 나머지 세 계층은 이 블로그 리포의 `src/` 로 직접 잰 결과를 싣는다.
 
 `codegraph`가 GitHub Trending에 오른 걸 보고 따라 설치해 본 뒤로, 필자는 새 도구를 볼 때마다 그것이 어떤 원리로 토큰을 아끼는지가 궁금했다. 이 글에 나오는 도구 상당수도 필자가 보통 weekly 기준으로 TypeScript와 Python을 골라 훑는 GitHub Trending에서 처음 알게 됐다.
 
@@ -22,7 +22,7 @@ keywords: "code intelligence, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, 
 
 다만 비용이라는 말이 가리키는 것이 하나가 아니다. 모델이 처리한 토큰, tool call 횟수, 그리고 작업이 끝난 뒤에도 context window에 남아 있는 토큰은 따로 움직인다. 이 글은 계층마다 이 셋 중 무엇을 줄이는지를 본다.
 
-필자는 이 시도들을 아래 네 개의 계층(tier)으로 나눠 본다. 업계에 정해진 분류가 아니라, 도구가 코드를 얼마나 깊이 이해하는지를 기준으로 필자가 정리한 구분이다. 필자가 직접 잰 값은 전부 이 리포의 커밋 `36e5cfa` 에서 2026-10-08 에 얻었고, 토큰은 tiktoken의 `o200k_base` 로 셌다. Claude의 tokenizer와는 값이 다르므로 절대값보다 비교에 쓴다.
+필자는 도구가 코드를 얼마나 깊이 이해하는지를 기준으로 이 시도들을 아래 네 개의 계층(tier)으로 나눠 본다. 업계에 정해진 분류는 없고, 이 구분은 필자가 정리한 것이다. 필자가 직접 잰 값은 전부 이 리포의 커밋 `36e5cfa` 에서 2026-10-08 에 얻었고, 토큰은 tiktoken의 `o200k_base` 로 셌다. Claude의 tokenizer와는 값이 다르므로 절대값보다 비교에 쓴다.
 
 
 ### Context packing
@@ -58,9 +58,11 @@ npx -y repomix@1.18.1 src --compress -o out.xml   # Total Tokens: 30,320 tokens
 
 **tree-sitter**는 오픈소스 파서 생성기이자 증분(incremental) 파싱 라이브러리다. [GitHub의 code navigation](https://docs.github.com/en/repositories/working-with-files/using-files/navigating-code-on-github)이 tree-sitter를 쓴다. 편집된 부분만 다시 파싱하므로, 에디터에서 한 줄을 고쳐도 파일 전체를 다시 파싱하지 않고 바뀐 트리만 고친다. 이 이점은 편집이 계속 일어나는 에디터의 것이다. 아래의 Aider는 파일 수정 시각으로 캐시를 두어 바뀌지 않은 파일을 다시 파싱하지 않는다.
 
-터미널에서 쓰는 AI 페어 프로그래밍 도구 **Aider**가 이 접근의 대표 사례다. tree-sitter로 파일마다 함수, 클래스, 메서드 정의와 참조를 뽑고, 파일을 노드로 하는 그래프를 만든다. A 파일이 B 파일에 정의된 식별자를 참조하면 A에서 B로 엣지가 생긴다. 이 그래프에 personalized PageRank(링크의 수와 무게로 노드 중요도를 매기되, 지정한 노드 쪽으로 점수를 기울이는 변형)를 돌려, 순위가 높은 파일의 정의와 시그니처를 토큰 예산만큼 넣는다.
+터미널에서 쓰는 AI 페어 프로그래밍 도구 **Aider**가 이 접근의 대표 사례다. Aider는 tree-sitter로 파일마다 함수, 클래스, 메서드의 정의와 참조를 뽑는다. 그리고 파일을 노드로 하는 그래프를 만든다. A 파일이 B 파일에 정의된 식별자를 참조하면 A에서 B로 엣지가 생긴다.
 
-무엇이 예산 안에 들어갈지는 지금의 대화에 따라 바뀐다. Aider의 [`repomap.py`](https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/repomap.py#L487-L525)에서 엣지 가중치는 참조 횟수의 제곱근에 배수를 곱한 값이다. 대화에 나온 식별자는 10배, 8자 이상인 camelCase나 snake_case 식별자도 10배, `_` 로 시작하는 식별자는 0.1배, 지금 채팅에 올린 파일에서 나가는 엣지는 50배다. 채팅에 올린 파일과 대화에서 언급한 파일은 PageRank의 personalization 점수도 받는다.
+이 그래프에서 중요한 파일을 고를 때 Aider는 PageRank를 쓴다. PageRank는 링크를 많이, 그리고 무겁게 받는 노드일수록 높은 점수를 주는 알고리즘이다. Aider가 쓰는 것은 그 변형인 personalized PageRank로, 지정한 노드 쪽으로 점수를 기울인다. 그렇게 순위가 높은 파일부터 정의와 시그니처를 토큰 예산만큼 넣는다.
+
+무엇이 예산 안에 들어갈지는 지금의 대화에 따라 바뀐다. Aider의 [`repomap.py`](https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/repomap.py#L487-L525)에서 엣지 가중치는 참조 횟수의 제곱근에 배수를 곱한 값이다. 대화에 나온 식별자는 10배, 8자 이상인 camelCase, snake_case, kebab-case 식별자도 10배다. `_` 로 시작하는 식별자와 5개를 넘는 파일에서 정의된 식별자는 각각 0.1배이고, 지금 채팅에 올린 파일에서 나가는 엣지는 50배다. 채팅에 올린 파일과 대화에서 언급한 파일은 PageRank의 personalization 점수도 받는다.
 
 예산도 고정값이 아니다. [Aider 문서](https://aider.chat/docs/repomap.html)는 `--map-tokens` 기본값을 1k로 적지만, [코드](https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/models.py#L782-L789)는 모델 입력 한도의 1/8을 1,024에서 4,096 사이로 자른다. 그리고 채팅에 파일이 없으면 `--map-multiplier-no-files`(기본 2)배까지 키운다. 이 리포의 `src/` 로 확인했다. 실행한 0.86.1과 위에 링크한 커밋은 랭킹 코드가 같다.
 
@@ -85,14 +87,14 @@ gpt-4o의 입력 한도는 128k라서 1/8이 4,096으로 잘렸고, 채팅이 �
 
 **AFT**(`cortexkit/aft`)는 읽기와 편집을 심볼 단위로 한다. 라인 번호 기반 편집은 대상 위의 코드가 움직이는 순간 깨지지만, AFT의 심볼 모드 편집은 함수를 이름으로 주소 지정하기 때문에 그 영향을 받지 않는다.
 
-같은 계층에서 짚을 만한 도구가 하나 더 있다. **ast-grep**(`ast-grep/ast-grep`)이다. tree-sitter 기반 구조 검색과 rewrite를 하는 CLI인데, 텍스트가 아니라 구문 트리의 노드를 매칭한다. 예를 들어 `console.log($A)` 패턴은 줄바꿈이나 공백이 어떻게 생겼든 인자 하나로 `console.log` 를 부르는 호출을 모두 잡는다. 잡는 것은 같은 구문 구조다. `$A` 의 타입이나 `console` 이 어디서 온 이름인지는 모른다. `ast-grep-mcp` 서버도 있어서 에이전트가 텍스트 grep 대신 구조 검색을 쓰게 만들 수 있다.
+같은 계층에서 짚을 만한 도구가 하나 더 있다. **ast-grep**(`ast-grep/ast-grep`)이다. tree-sitter 기반 구조 검색과 rewrite를 하는 CLI인데, 텍스트 대신 구문 트리의 노드를 매칭한다. 예를 들어 `console.log($A)` 패턴은 줄바꿈이나 공백이 어떻게 생겼든 인자 하나로 `console.log` 를 부르는 호출을 모두 잡는다. 잡는 것은 같은 구문 구조다. `$A` 의 타입이나 `console` 이 어디서 온 이름인지는 모른다. `ast-grep-mcp` 서버도 있어서 에이전트가 텍스트 grep 대신 구조 검색을 쓰게 만들 수 있다.
 
 
 ### Knowledge Graph
 
 세 번째 계층은 한 발 더 나아간다. **사전에 코드베이스 전체를 파싱해서 지식 그래프를 만들어 디스크에 저장**해두고, 에이전트는 저장해둔 그래프에 쿼리를 던지는 방식이다. 가장 화제가 되는 사례가 **CodeGraph** 라는 도구이다.
 
-[CodeGraph README](https://github.com/colbymchenry/codegraph/blob/b635dd467f0578926a9c01a37b9d28d2b26689f1/README.md)가 설명하는 구조는 단순하다. tree-sitter로 코드를 파싱해 심볼, 엣지, 파일 정보를 뽑고, 이것을 로컬 SQLite 데이터베이스에 저장한다. 이름 검색은 SQLite의 FTS5 인덱스로 한다. 에이전트는 MCP를 통해 이 그래프에 묻는다. 그리고 **이 추출은 LLM 요약이 아니라 구문 트리 파싱에서 결정론적으로 일어난다.**
+[CodeGraph README](https://github.com/colbymchenry/codegraph/blob/b635dd467f0578926a9c01a37b9d28d2b26689f1/README.md)가 설명하는 구조는 단순하다. tree-sitter로 코드를 파싱해 심볼, 엣지, 파일 정보를 뽑고, 이것을 로컬 SQLite 데이터베이스에 저장한다. 이름 검색은 SQLite의 FTS5 인덱스로 한다. 에이전트는 MCP를 통해 이 그래프에 묻는다. README가 설명하는 단계에는 LLM이 등장하지 않는다. 그래서 필자는 이 추출이 결정론적이라고 본다.
 
 여기 등장하는 **FTS5(SQLite Full-Text Search 5)** 는 SQLite의 가상 테이블 형태로 제공되는 전문 검색 확장이다. [SQLite 문서](https://www.sqlite.org/fts5.html)에 따르면 3.9.0(2015-10-14)부터 amalgamation에 포함됐고, `CREATE VIRTUAL TABLE ... USING fts5(...)` 로 테이블을 만들어 `MATCH` 연산자로 질의한다. Elasticsearch 같은 별도 검색 엔진을 띄우지 않고도 SQLite 파일 하나로 전문 검색 인덱스를 둘 수 있다.
 
@@ -100,15 +102,15 @@ gpt-4o의 입력 한도는 128k라서 1/8이 4,096으로 잘렸고, 채팅이 �
 
 다만 결정론적인 것과 빠짐없는 것은 다르다. 같은 README는 관례와 reflection에 기대는 프레임워크의 route 인식률을 Spring 83.3%, ASP.NET 83.9%로 적고, 이를 정적 분석의 한계(honest static-analysis ceiling)라고 부른다. 같은 코드에서 같은 결과가 나오지만, 그 결과에서 빠진 엣지가 있을 수 있다.
 
-벤치마크는 CodeGraph가 직접 잰 것이다. 같은 README의 2026-08-05 재측정은 Claude Opus 4.8을 headless로 돌려 7개 오픈소스 레포에 아키텍처 질문을 하나씩 던졌다. CodeGraph MCP를 켠 쪽이 평균 비용 44%, 처리 토큰 62%, tool call 88%를 줄였다. 이 재측정은 양쪽 모두 Bash로 `codegraph` CLI를 부르지 못하게 막았다. 막지 않은 harness에서는 도구 없는 쪽이 28회 중 26회 CLI를 찾아 썼고, README는 이전에 발표한 수치가 이 차단 없이 나왔다고 밝힌다. 이 글이 처음에 옮겼던 Opus 4.7 수치(35% 저렴, tool call 71% 감소)가 그 이전 수치다.
+벤치마크는 CodeGraph가 직접 잰 것이다. 같은 README의 2026-08-05 재측정은 Claude Opus 4.8을 headless로 돌려 7개 오픈소스 레포에 아키텍처 질문을 하나씩 던졌다. CodeGraph MCP를 켠 쪽이 평균 비용 44%, 처리 토큰 62%, tool call 88%를 줄였다. 이 재측정은 양쪽 모두 Bash로 `codegraph` CLI를 부르지 못하게 막았다. 막지 않은 harness에서는 도구 없는 쪽이 28회 중 26회 CLI를 찾아 썼고, README는 이전에 발표한 수치가 이 차단 없이 나왔다고 밝힌다.
 
 절감 폭은 레포 크기를 따르지 않았다. 도구 없는 쪽이 tool call을 28~43번 쓴 질문에서는 비용이 57~78% 줄었고, 7번으로 끝난 Gin에서는 거의 같았다. 파일이 약 11k개인 VS Code가 71%, 약 640개인 Excalidraw가 78%였다. 질문에 탐색이 많이 필요할수록 이득이 컸다.
 
-README는 반대 방향의 숫자도 적는다. 처리한 토큰은 줄지만, 여러 턴짜리 세션이 끝났을 때 context window에 남아 있는 retrieval 결과는 CodeGraph 쪽이 약 80% 많다. VS Code에서 67k 대 18k tokens다. 한 번에 원문을 촘촘히 돌려주고 그것이 창에 그대로 남기 때문이다. 이 계층은 tool call과 처리 토큰을 줄이는 대신 창에 남는 양을 늘린다.
+README는 반대 방향의 숫자도 적는다. 처리한 토큰은 줄지만, 여러 턴짜리 세션이 끝났을 때 context window에 남아 있는 retrieval 결과는 7개 레포를 통틀어 CodeGraph 쪽이 약 80% 많다. 레포마다 차이가 커서, VS Code 한 곳에서는 67k 대 18k tokens로 약 3.7배였다. 한 번에 원문을 촘촘히 돌려주고 그것이 창에 그대로 남기 때문이다. 이 계층은 tool call과 처리 토큰을 줄이는 대신 창에 남는 양을 늘린다.
 
 학계에도 같은 방향의 연구가 있다. [GraphCoder](https://arxiv.org/abs/2406.07003)(ASE 2024)는 control flow와 data/control dependence를 합친 Code Context Graph를 만들었고, [CodexGraph](https://aclanthology.org/2025.naacl-long.7/)(NAACL 2025)는 LLM 에이전트가 그래프 데이터베이스 쿼리를 직접 작성해 실행하게 했다. 동료 심사를 거치지 않은 preprint인 [Prometheus](https://arxiv.org/abs/2507.19942)는 tree-sitter 기반 지식 그래프에 working memory를 붙여 여러 언어의 이슈 해결에 적용했다.
 
-**Cursor**는 다른 길로 갔다가 방향을 바꿨다. [2026년 1월 Cursor 블로그](https://cursor.com/blog/secure-codebase-indexing)가 설명한 인덱싱은 구문 그래프가 아니라 **벡터 임베딩 기반 의미 검색**이었다. 로컬에서 파일을 chunk로 나누고, Merkle tree 해시로 서버와 동기화하고, 임베딩을 Turbopuffer라는 벡터 DB에 저장했다. 2026년 7월 Cursor의 Community Support Engineer는 [포럼](https://forum.cursor.com/t/what-do-you-think-about-cursor-removing-the-codebase-indexing-settings/165899)에서 "Semantic/embeddings indexing is being turned down in favor of grep-based retrieval" 이라고 답했다. 같은 스레드에서 다른 직원은 모델이 grep을 잘 쓰게 되면서 예전 의미 검색 경로가 더는 의미 있게 돕지 못했다고 썼다. 지금 [Cursor 문서](https://cursor.com/docs/context/codebase-indexing)는 Instant Grep이 인덱스를 로컬에서 만들고 질의하며, 코드베이스의 임베딩을 저장하지 않는다고 적는다.
+**Cursor**는 다른 길로 갔다가 방향을 바꿨다. [2026년 1월 Cursor 블로그](https://cursor.com/blog/secure-codebase-indexing)가 설명한 인덱싱은 구문 그래프가 아니라 **벡터 임베딩 기반 의미 검색**이었다. 로컬에서 파일을 chunk로 나누고, Merkle tree 해시로 서버와 동기화하고, chunk를 임베딩으로 바꿔 의미 검색에 썼다. 2026년 7월 Cursor의 Community Support Engineer는 [포럼](https://forum.cursor.com/t/what-do-you-think-about-cursor-removing-the-codebase-indexing-settings/165899)에서 "Semantic/embeddings indexing is being turned down in favor of grep-based retrieval" 이라고 답했다. 같은 스레드에서 다른 직원은 모델이 grep을 잘 쓰게 되면서 예전 의미 검색 경로가 더는 의미 있게 돕지 못했다고 썼다. 지금 [Cursor 문서](https://cursor.com/docs/context/codebase-indexing)는 Instant Grep이 인덱스를 로컬에서 만들고 질의하며, 코드베이스의 임베딩을 저장하지 않는다고 적는다.
 
 
 ### LSP
@@ -117,7 +119,7 @@ README는 반대 방향의 숫자도 적는다. 처리한 토큰은 줄지만, �
 
 **[LSP(Language Server Protocol)](https://microsoft.github.io/language-server-protocol/)** 는 에디터와 언어 분석 도구(코드 완성, 정의로 이동, 참조 찾기, 리팩토링 등) 사이의 통신을 표준화한 JSON-RPC 기반 개방형 프로토콜이다. 2016년 [Microsoft, Red Hat, Codenvy가 협력을 발표했다](https://www.redhat.com/en/about/press-releases/red-hat-codenvy-and-microsoft-collaborate-language-server-protocol). 핵심 아이디어는 "에디터마다 언어 분석기를 재구현하지 말고, 언어별 서버 하나를 두고 모든 에디터가 그 서버에 질의하자"는 것이다. rust-analyzer와 Python의 pyright가 LSP 서버이고, TypeScript는 자체 프로토콜을 쓰는 `tsserver` 를 LSP로 감싼 typescript-language-server를 쓴다.
 
-**Serena**(`oraios/serena`)가 이 계층에 속하는 MCP 서버다. 2026-10-08 기준 30,093 stars이고, 저장소는 2025년 3월에 만들어졌다. Serena의 핵심 아이디어는 한 줄로 요약된다. **에이전트에게 텍스트가 아니라 심볼을 보여주자.** 핵심 도구는 `find_symbol`, `find_referencing_symbols`, `get_symbols_overview` 등이다. 백엔드는 두 가지 중 하나를 선택할 수 있다. 기본값은 LSP를 구현한 언어 서버(무료/오픈소스), 다른 옵션은 JetBrains IDE의 코드 분석을 활용하는 유료 플러그인(무료 체험 제공)이다.
+**Serena**(`oraios/serena`)가 이 계층에 속하는 MCP 서버다. 2026-10-08 기준 30,093 stars이고, 저장소는 2025년 3월에 만들어졌다. Serena의 핵심 아이디어는 한 줄로 요약된다. **에이전트에게 코드를 심볼 단위로 보여주자.** 핵심 도구는 `find_symbol`, `find_referencing_symbols`, `get_symbols_overview` 등이다. 백엔드는 두 가지 중 하나를 선택할 수 있다. 기본값은 LSP를 구현한 언어 서버(무료/오픈소스), 다른 옵션은 JetBrains IDE의 코드 분석을 활용하는 유료 플러그인(무료 체험 제공)이다.
 
 이 리포에서 재 보면 차이가 어디서 나는지 보인다. 비공개 글을 거르는 `isHiddenPost`(`src/lib/filter-posts.ts:12`)의 사용처를 두 방식으로 찾았다. 텍스트 쪽은 grep이다.
 
@@ -126,7 +128,7 @@ README는 반대 방향의 숫자도 적는다. 처리한 토큰은 줄지만, �
 git grep -n isHiddenPost -- ':!content'   # 16줄, 파일 9개
 ```
 
-LSP 쪽은 typescript-language-server가 `textDocument/references` 에 답할 때 쓰는 TypeScript의 `findReferences` API를 직접 불렀다. Serena를 띄워서 잰 것은 아니다. LSP의 참조 찾기는 이름이 아니라 위치(파일과 줄, 열)로 묻는다. 그래서 Serena의 [`find_referencing_symbols`](https://github.com/oraios/serena/blob/3b99f8b024dafd58c962ea6e74f37c8a730ef532/src/serena/tools/symbol_tools.py#L169-L172)도 `name_path` 와 `relative_path` 를 함께 받는다. 이 예시라면 `find_referencing_symbols(name_path="isHiddenPost", relative_path="src/lib/filter-posts.ts")` 다.
+LSP 쪽은 typescript-language-server가 `textDocument/references` 에 답할 때 쓰는 TypeScript의 `findReferences` API를 직접 불렀다. Serena를 띄워서 잰 것은 아니다. LSP의 참조 찾기는 위치(파일과 줄, 열)로 묻는다. 그래서 Serena의 [`find_referencing_symbols`](https://github.com/oraios/serena/blob/3b99f8b024dafd58c962ea6e74f37c8a730ef532/src/serena/tools/symbol_tools.py#L169-L172)도 `name_path` 와 `relative_path` 를 함께 받는다. 이 예시라면 `find_referencing_symbols(name_path="isHiddenPost", relative_path="src/lib/filter-posts.ts")` 다.
 
 ```js
 // 리포 루트에서 실행한다: node - < refs.cjs
@@ -171,7 +173,7 @@ src/app/[lang]/[slug]/page.tsx:90
 
 코드 위치는 양쪽이 같은 11곳이었다. 이 이름은 리포에 하나뿐이라 grep도 코드 위치를 놓치거나 더 잡지 않았다. 차이는 나머지 5곳에서 났다. grep은 `CLAUDE.md` 와 명령 문서, 그 snapshot 속 설명 문장 5줄을 함께 돌려줬다.
 
-Serena는 참조마다 [앞뒤 1줄](https://github.com/oraios/serena/blob/3b99f8b024dafd58c962ea6e74f37c8a730ef532/src/serena/repl/api/lsp_api.py#L367-L369)을 붙여 돌려준다. 그래서 양쪽에 같은 기준을 적용해, 위치마다 `file:line` 과 앞뒤 1줄을 붙인 텍스트의 토큰을 셌다.
+Serena는 참조마다 [앞뒤 1줄](https://github.com/oraios/serena/blob/3b99f8b024dafd58c962ea6e74f37c8a730ef532/src/serena/repl/api/lsp_api.py#L367-L369)을 붙여 돌려준다. 그래서 양쪽에 같은 기준을 적용해, 위치마다 `file:line` 과 앞뒤 1줄을 붙인 텍스트의 토큰을 셌다. grep은 정의가 있는 줄도 매치로 돌려주므로, 참조 쪽도 정의를 빼지 않고 셌다.
 
 ```python
 # 리포 루트에서 실행한다: python3 count.py (tiktoken 0.13.0)
@@ -186,29 +188,29 @@ def tokens(locs):  # 위치마다 file:line 과 앞뒤 1줄을 붙여 센다
         total += len(enc.encode(f"{f}:{n}\n" + "\n".join(lines[max(0, n - 2):n + 1])))
     return total
 grep = [(l.split(":")[0], int(l.split(":")[1])) for l in run("git grep -n isHiddenPost -- ':!content'")]
-refs = [(l.rsplit(":", 1)[0], int(l.rsplit(":", 1)[1])) for l in run("node - < refs.cjs") if "(정의)" not in l]
+refs = [(l.rsplit(":", 1)[0], int(l.rsplit(":", 1)[1])) for l in (x.removesuffix(" (정의)") for x in run("node - < refs.cjs"))]
 code = [x for x in grep if x[0].startswith("src/")]
 print(f"grep {len(grep)}곳 {tokens(grep)} (코드 {len(code)}곳 {tokens(code)}) | 참조 {len(refs)}곳 {tokens(refs)}")
 ```
 
 ```text
 $ python3 count.py
-grep 16곳 1172 (코드 11곳 453) | 참조 10곳 423
+grep 16곳 1172 (코드 11곳 453) | 참조 11곳 453
 ```
 
 | 방식 | 위치 | tokens |
 |---|---|---|
 | grep | 16곳 (코드 11, 문서 5) | 1,172 (코드 453, 문서 719) |
-| findReferences (정의 제외) | 10곳 | 423 |
+| findReferences (정의 포함) | 11곳 | 453 |
 
-차이 749 tokens 중 719가 문서 5곳이다. 이 리포에서 LSP가 아낀 것은 코드 위치를 찾는 비용이 아니라 잡음 매치를 읽는 비용이다. 에이전트가 grep에 걸린 파일 9개를 통째로 읽는다면 grep 쪽은 47,737 tokens까지 늘고, 그중 43,318이 문서 5개다. 이것은 상한이다. `CLAUDE.md` 는 실제 세션에서 이미 context에 올라 있어 다시 읽지 않을 가능성이 높다. `isLocale` 처럼 흔한 이름이라면 코드 위치에서도 결과가 갈릴 수 있는데, 이번에는 재지 않았다.
+차이 719 tokens는 전부 문서 5곳에서 나왔다. 이 리포에서 LSP가 아낀 것은 코드 위치를 찾는 비용이 아니라 잡음 매치를 읽는 비용이다. 에이전트가 grep에 걸린 파일 9개를 통째로 읽는다면 읽는 양은 47,034 tokens이고, 그중 43,318이 문서 5개다. 이것은 상한이다. `CLAUDE.md` 는 실제 세션에서 이미 context에 올라 있어 다시 읽지 않을 가능성이 높다. `isLocale` 처럼 흔한 이름이라면 코드 위치에서도 결과가 갈릴 수 있다.
 
 Aider는 LSP를 쓰지 않으므로 함수와 클래스 수준의 인식까지만 한다. [OpenCode](https://opencode.ai/docs/lsp/)는 LSP 서버를 붙여 기본으로 진단 결과를 에이전트에 피드백한다. 정의, 참조, hover, call hierarchy를 묻는 `lsp` 도구는 [`OPENCODE_EXPERIMENTAL_LSP_TOOL=true`](https://opencode.ai/docs/tools/) 일 때만 켜진다. 어느 쪽이든 언어별로 좋은 LSP 서버가 있어야 한다는 조건이 붙는다.
 
 
 ## 마무리
 
-정리하면, 네 계층은 코드를 얼마나 깊이 이해하느냐에 따라 갈리고 줄이는 비용도 다르다. Context packing은 코드를 텍스트로 넘기고, `--compress` 를 줘도 구문까지만 남겨 들어가는 토큰을 줄인다. tree-sitter repo map은 심볼이 있다는 것까지 알고, 들어가는 토큰에 예산으로 상한을 두고, 그 안을 무엇으로 채울지는 그 순간의 대화가 정한다. 지식 그래프는 관계를 미리 저장해 tool call과 처리 토큰을 줄이지만, 제작사 측정으로는 창에 남는 양이 오히려 늘었다. LSP는 심볼이 무엇인지까지 알고, 이 리포에서는 grep이 함께 끌고 오는 잡음 매치를 걸러 처리할 토큰을 줄인 것이 절감의 대부분이었다.
+정리하면, 네 계층은 코드를 얼마나 깊이 이해하느냐에 따라 갈리고 줄이는 비용도 다르다. Context packing은 코드를 텍스트로 넘기고, `--compress` 를 줘도 구문까지만 남겨 들어가는 토큰을 줄인다. tree-sitter repo map은 심볼이 있다는 것까지 알고, 들어가는 토큰에 예산으로 상한을 두고, 그 안을 무엇으로 채울지는 그 순간의 대화가 정한다. 지식 그래프는 관계를 미리 저장해 tool call과 처리 토큰을 줄이지만, 제작사 측정으로는 창에 남는 양이 오히려 늘었다. LSP는 심볼이 무엇인지까지 알고, 이 리포에서는 grep이 함께 끌고 오는 잡음 매치를 걸러 처리할 토큰을 줄인 것이 절감의 전부였다.
 
 그래서 필자는 도구를 고를 때 계층의 깊이보다 지금 어떤 비용이 문제인지를 먼저 본다. 창이 작고 세션이 길면 남는 양을, 왕복이 느리면 tool call 수를, 문서와 코드가 같은 이름을 공유하는 리포라면 잡음 매치를 본다. Cursor가 의미 검색을 걷어내고 grep으로 돌아간 것도, 깊은 계층이 늘 낫지는 않다는 신호로 읽힌다.
 

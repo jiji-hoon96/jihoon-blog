@@ -5,11 +5,11 @@ seoTitle: "Cómo compara TanStack Query las queryKey: hashKey explicado"
 date: "2025-12-30"
 updatedAt: "2026-10-08"
 categories: frontend React TanStack-Query queryKey
-description: "Cómo TanStack Query trata arreglos queryKey nuevos como la misma clave con hashKey: el orden de claves no importa, el de arreglos sí, undefined se pierde."
+description: "Cómo TanStack Query decide que dos queryKey son iguales: la serialización con hashKey (orden de claves, undefined, Map) y la comparación de los filtros."
 keywords: "comparación de queryKey, hashKey, queryHash, clave de caché de TanStack Query, orden de queryKey en React Query, queryKeyHashFn, JSON.stringify claves ordenadas, QueryCache"
 locale: es
 translationOf: '251230'
-sourceHash: 47b793dc921cc4a4557e91344efd55785d4d646a3f8f86d04bd3566dea99e8c3
+sourceHash: ac741f2d85d62c63a48506c66ba0ada891e74b35304a1db40d0da4cb32e2578c
 ---
 
 En esta publicación quiero hablar sobre **cómo decide TanStack Query que dos queryKey son la misma clave**.
@@ -60,7 +60,7 @@ export function hashKey(queryKey: QueryKey | MutationKey): string {
 }
 ```
 
-Utiliza `JSON.stringify`, pero no sin más: introduce una [función de reemplazo](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter) que **ordena lexicográficamente las claves de los objetos planos** antes de serializarlos. En rigor, es el orden de unidades de código UTF-16, la comparación por defecto de `sort()`, así que las claves en mayúscula van antes que las de minúscula.
+Usa `JSON.stringify` con una [función de reemplazo](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter) que **ordena lexicográficamente las claves de los objetos planos** antes de serializarlos. En rigor, es el orden de unidades de código UTF-16, la comparación por defecto de `sort()`, así que las claves en mayúscula van antes que las de minúscula.
 
 Este ordenamiento es esencial porque la serialización a una cadena impone otra condición aún más estricta: **las entradas semánticamente iguales deben convertirse siempre en la misma cadena**. Sin embargo, `JSON.stringify` normal conserva el orden de las claves. Aunque `{ a: 1, b: 2 }` y `{ b: 2, a: 1 }` sean objetos semánticamente iguales, se serializan como cadenas diferentes y terminan ocupando espacios de caché distintos. Así volverían a solicitarse dos veces los mismos datos.
 
@@ -68,7 +68,7 @@ La técnica que evita sistemáticamente este problema es la **forma canónica (c
 
 El hecho de que los arreglos no se ordenen es la otra cara del mismo principio. En un arreglo, el propio orden contiene significado; ordenarlo supondría perder información. El orden de las claves de un objeto es accidental, mientras que el orden de los elementos de un arreglo es intencionado. `hashKey` trata ambos casos de forma deliberadamente distinta. Por eso el mantenedor TkDodo, en [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys), recomienda estructurar queryKey desde lo más genérico hasta lo más específico. Mientras el orden del arreglo aporte significado, el autor debe definirlo expresamente.
 
-Hay otro detalle que conviene señalar: el ordenamiento de claves solo se aplica a los **objetos planos**. `isPlainObject`, definida en el mismo archivo, no se limita a comprobar `typeof === 'object'`, sino que verifica incluso `Object.getPrototypeOf(o) === Object.prototype` para distinguir entre **literales de objeto puros** e **instancias de clase**. Por eso un literal como `{ foo: 1 }` se ordena, mientras que una instancia creada con `class User { ... }` pasa sin ordenarse. (De aquí surge el riesgo de que, si se introduce directamente una instancia de clase en queryKey, se genere un hash distinto del esperado debido a que `JSON.stringify` solo emite las propiedades enumerables.)
+Hay otro detalle que conviene señalar: el ordenamiento de claves solo se aplica a los **objetos planos**. `isPlainObject`, definida en el mismo archivo, comprueba `typeof === 'object'` y además `Object.getPrototypeOf(o) === Object.prototype` para distinguir entre **literales de objeto puros** e **instancias de clase**. Por eso un literal como `{ foo: 1 }` se ordena, mientras que una instancia creada con `class User { ... }` pasa sin ordenarse. (De aquí surge el riesgo de que, si se introduce directamente una instancia de clase en queryKey, se genere un hash distinto del esperado debido a que `JSON.stringify` solo emite las propiedades enumerables.)
 
 Este funcionamiento tiene dos consecuencias importantes.
 
@@ -125,11 +125,11 @@ Si se prueban otros valores de la misma manera, el resultado se resume así.
 | `Map`, `Set` | `{}` | cualquier `Map`, `Set` u objeto vacío, sea cual sea su contenido |
 | `Date` | una cadena ISO | la misma cadena ISO |
 | `BigInt` | lanza `TypeError` | ninguna |
-| referencia circular | lanza `RangeError` | ninguna |
+| referencia circular | lanza `RangeError` con un objeto plano y `TypeError` con un arreglo | ninguna |
 
 Los más peligrosos son `Map` y `Set`. En el código anterior, los datos guardados con la clave `new Map([['a', 1]])` se recuperaron al consultar con `new Map([['b', 2]])`. Como no hay error, tampoco hay ninguna pista de que la pantalla está mostrando datos equivocados.
 
-Solo dos casos aparecen como error: `BigInt` y las referencias circulares. Una referencia circular no termina con el mensaje habitual `Converting circular structure`, sino con `Maximum call stack size exceeded`. Como la función de reemplazo devuelve un objeto nuevo por cada objeto plano, parece que la detección de ciclos de `JSON.stringify` nunca vuelve a encontrar el mismo objeto. En cambio, `Date` se convierte en una cadena ISO mediante `toJSON`, y el mismo instante produce la misma clave, así que resulta seguro.
+Solo dos casos aparecen como error: `BigInt` y las referencias circulares. En las referencias circulares, el error depende de qué forma el ciclo. Un objeto plano que se apunta a sí mismo termina con `RangeError: Maximum call stack size exceeded`, mientras que un arreglo que se contiene a sí mismo, como en `arr.push(arr)`, termina con `TypeError: Converting circular structure to JSON`. Como la función de reemplazo devuelve un objeto nuevo por cada objeto plano, la detección de ciclos de `JSON.stringify` nunca vuelve a encontrar el mismo objeto; un arreglo, en cambio, la función de reemplazo lo devuelve tal cual, y el ciclo se detecta. Por su parte, `Date` se convierte en una cadena ISO mediante `toJSON`, y el mismo instante produce la misma clave, así que resulta seguro.
 
 Por eso lo más seguro es poner en una queryKey solo cadenas, números, booleanos, `null` y arreglos u objetos planos formados por ellos.
 
@@ -167,9 +167,9 @@ Por eso, en producción es mucho más seguro evitar la vía de escape y **conver
 Una vez puse un `Date` directamente en una clave y pasé mucho tiempo preguntándome: «¿Por qué se actualiza la caché si es el mismo instante?». Un `Date` que apunta al mismo instante se convierte en la misma cadena ISO aunque sea otra instancia, así que produce el mismo hash. Si cada vez salía una clave distinta, el instante en sí era distinto, aunque pareciera el mismo. Si se crea un `new Date()` durante el renderizado, cada renderizado recibe una hora distinta por milisegundos, y cada una se convierte en una clave nueva.
 
 
-## Búsqueda en caché y coincidencia de filtros
+## Cómo comparan claves los filtros
 
-La «misma clave» de la que se ha hablado hasta ahora significa que las cadenas hash son iguales, y el hash solo se usa en la búsqueda en caché y en los filtros con `exact: true`. Los filtros como `invalidateQueries` o `findAll` se comportan de otra forma por defecto. `partialMatchKey` compara de forma recursiva la estructura de la queryKey original, no la cadena hash. Los arreglos se comparan desde el principio y en los objetos solo se miran las claves escritas en el filtro. El siguiente código también lo ejecuté en el mismo entorno.
+Hay una forma más de juzgar si dos claves son iguales. La «misma clave» de la que se ha hablado hasta ahora significa que las cadenas hash son iguales, y el hash solo se usa en la búsqueda en caché y en los filtros con `exact: true`. Los filtros como `invalidateQueries` o `findAll` deciden por defecto con `partialMatchKey`, que compara de forma recursiva la estructura de la queryKey original, no la cadena hash. Los arreglos se comparan desde el principio y en los objetos solo se miran las claves escritas en el filtro. El siguiente código también lo ejecuté en el mismo entorno.
 
 ```js
 import { partialMatchKey } from '@tanstack/query-core'
@@ -186,7 +186,7 @@ Como esta coincidencia no pasa por el hash, sustituir `queryKeyHashFn` no la cam
 
 ## Conclusión
 
-En resumen, TanStack Query no compara las referencias de los arreglos queryKey. `hashKey` ordena las claves de los objetos planos mientras serializa con `JSON.stringify`, y la cadena resultante (`queryHash`) se usa como clave de un `Map`. Por eso el orden de las claves de un objeto no afecta a la caché, el orden de los elementos de un arreglo sí, y una propiedad cuyo valor es `undefined` equivale a una propiedad ausente. La mayoría de los valores que JSON no puede representar se convierten en otros sin ningún error, de modo que claves distintas pasan a ser la misma en silencio. Se puede cambiar la función hash con `queryKeyHashFn`, pero eso también descarta el ordenamiento de claves, así que es más seguro convertir los valores en serializables al construir la clave. También conviene recordar que los filtros, como los de invalidación, comparan la estructura de la queryKey y no el hash.
+En resumen, TanStack Query no compara las referencias de los arreglos queryKey. `hashKey` ordena las claves de los objetos planos mientras serializa con `JSON.stringify`, y la cadena resultante (`queryHash`) se usa como clave de un `Map`. Por eso el orden de las claves de un objeto no afecta a la caché, el orden de los elementos de un arreglo sí, y una propiedad cuyo valor es `undefined` equivale a una propiedad ausente. La mayoría de los valores que JSON no puede representar se convierten en otros sin ningún error, de modo que claves distintas pasan a ser la misma en silencio. Se puede cambiar la función hash con `queryKeyHashFn`, pero eso también descarta el ordenamiento de claves, así que es más seguro convertir los valores en serializables al construir la clave. También conviene recordar que los filtros, como los de invalidación, por defecto no pasan por el hash y comparan la estructura de la queryKey desde el principio.
 
 Cómo este criterio se traslada a la forma de escribir y gestionar las queryKey, es decir, el camino desde los arreglos en línea, pasando por las fábricas de claves, hasta `queryOptions`, se trata en [queryKey](/260104).
 

@@ -5,7 +5,7 @@ seoTitle: "TanStack Query queryKey 비교 원리: hashKey와 직렬화"
 date: "2025-12-30"
 updatedAt: "2026-10-08"
 categories: 프론트엔드 React TanStack-Query queryKey
-description: "TanStack Query가 렌더링마다 새로 만들어지는 queryKey 배열을 같은 키로 판단하는 방법을 hashKey 구현으로 정리한다. 객체 키 순서는 무관하고 배열 순서는 중요한 이유, undefined가 사라지는 동작, queryKeyHashFn의 한계까지 다룬다."
+description: "TanStack Query가 렌더링마다 새로 만들어지는 queryKey 배열을 같은 키로 판단하는 방식을 정리한다. hashKey 직렬화가 키 순서, undefined, Map 같은 값을 어떻게 바꾸는지와 필터가 키 구조를 비교하는 방식까지 다룬다."
 keywords: "queryKey 비교, hashKey, queryHash, TanStack Query 캐시 키, React Query queryKey 순서, queryKeyHashFn, JSON.stringify 키 정렬, QueryCache"
 ---
 
@@ -57,7 +57,7 @@ export function hashKey(queryKey: QueryKey | MutationKey): string {
 }
 ```
 
-`JSON.stringify`이긴 한데, 그냥 stringify가 아니라 [replacer 콜백](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter)을 끼워 **plain object의 키를 사전순으로 정렬**해서 직렬화한다. 정확히는 `sort()`의 기본 비교인 UTF-16 코드 단위 순서라서 대문자 키가 소문자 키보다 앞에 온다.
+`JSON.stringify`에 [replacer 콜백](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter)을 끼워 **plain object의 키를 사전순으로 정렬**한 뒤 직렬화한다. 정확히는 `sort()`의 기본 비교인 UTF-16 코드 단위 순서라서 대문자 키가 소문자 키보다 앞에 온다.
 
 이 정렬이 왜 본질적인가 하면, 문자열 직렬화에는 한 가지 더 강한 조건이 따라붙기 때문이다. **의미가 같은 입력은 언제나 같은 문자열로 변환되어야 한다.** 그런데 일반적인 `JSON.stringify`는 키 순서를 그대로 둔다. `{ a: 1, b: 2 }`와 `{ b: 2, a: 1 }`은 의미상 같은 객체인데도 서로 다른 문자열로 직렬화되고, 결국 둘은 서로 다른 캐시 슬롯이 된다. 이러면 같은 데이터를 두 번 요청하는 사태가 다시 발생한다.
 
@@ -65,7 +65,7 @@ export function hashKey(queryKey: QueryKey | MutationKey): string {
 
 배열을 정렬하지 않는 것도 같은 원리의 뒷면이다. 배열은 순서 자체에 의미가 실린 자료구조라서, 정렬해버리면 정보가 손실된다. 객체의 키 순서는 우연이고, 배열의 요소 순서는 의도이다. `hashKey`는 그 둘을 정확히 다르게 취급한다. 이래서 메인테이너 TkDodo가 [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys)에서 queryKey를 가장 일반적인 것부터 가장 구체적인 것 순서로 구성하라고 권하는 것이다. 배열의 순서가 의미를 짊어지는 한, 그 의미는 작성자가 직접 정해주어야 하기 때문이다.
 
-여기서 한 가지 더 짚어야 할 디테일이 있다. 키 정렬이 적용되는 대상은 **plain object** 뿐이라는 점이다. 같은 파일 안의 `isPlainObject`는 단순히 `typeof === 'object'`를 보는 게 아니라, `Object.getPrototypeOf(o) === Object.prototype`까지 검사해서 **순수 객체 리터럴**과 **클래스 인스턴스**를 가른다. 그래서 `{ foo: 1 }` 같은 리터럴은 정렬되지만, `class User { ... }`로 만든 인스턴스는 정렬 없이 통과한다. (queryKey에 클래스 인스턴스를 그대로 넣으면, `JSON.stringify`가 enumerable property만 뱉어내는 동작과 맞물려 의도와 다른 해시가 나올 수 있다는 함정이 여기서 나온다.)
+여기서 한 가지 더 짚어야 할 디테일이 있다. 키 정렬이 적용되는 대상은 **plain object** 뿐이라는 점이다. 같은 파일 안의 `isPlainObject`는 `typeof === 'object'`에 더해 `Object.getPrototypeOf(o) === Object.prototype`까지 검사해서 **순수 객체 리터럴**과 **클래스 인스턴스**를 가른다. 그래서 `{ foo: 1 }` 같은 리터럴은 정렬되지만, `class User { ... }`로 만든 인스턴스는 정렬 없이 통과한다. (queryKey에 클래스 인스턴스를 그대로 넣으면, `JSON.stringify`가 enumerable property만 뱉어내는 동작과 맞물려 의도와 다른 해시가 나올 수 있다는 함정이 여기서 나온다.)
 
 이 동작 방식에서 두 가지 중요한 결과가 나온다.
 
@@ -122,11 +122,11 @@ console.log(queryClient.getQueryData(['m', new Map([['b', 2]])])) // mapA
 | `Map`, `Set` | `{}` | 내용과 상관없이 모든 `Map`, `Set`, 빈 객체 |
 | `Date` | ISO 문자열 | 같은 ISO 문자열 |
 | `BigInt` | `TypeError`를 던진다 | 없음 |
-| 순환 참조 | `RangeError`를 던진다 | 없음 |
+| 순환 참조 | plain object는 `RangeError`, 배열은 `TypeError`를 던진다 | 없음 |
 
 가장 위험한 것은 `Map`과 `Set`이다. 위 코드에서 `new Map([['a', 1]])`을 키로 넣은 데이터가 `new Map([['b', 2]])`로 조회되어 나왔다. 에러가 없으니 다른 데이터를 화면에 그리고 있다는 단서도 없다.
 
-에러로 드러나는 것은 `BigInt`와 순환 참조 둘뿐이다. 순환 참조는 흔히 보는 `Converting circular structure` 메시지가 아니라 `Maximum call stack size exceeded`로 끝난다. replacer가 plain object마다 새 객체를 만들어 돌려주므로 `JSON.stringify`의 순환 감지가 같은 객체를 다시 만나지 못하는 것으로 보인다. 반대로 `Date`는 `toJSON`으로 ISO 문자열이 되어 같은 시각이면 같은 키가 되므로 오히려 안전하다.
+에러로 드러나는 것은 `BigInt`와 순환 참조 둘뿐이다. 순환 참조는 무엇이 순환하느냐에 따라 에러가 갈린다. 자기 자신을 가리키는 plain object는 `RangeError: Maximum call stack size exceeded`로 끝나고, `arr.push(arr)`처럼 자기 자신을 담은 배열은 `TypeError: Converting circular structure to JSON`으로 끝난다. replacer가 plain object마다 새 객체를 만들어 돌려주므로 `JSON.stringify`의 순환 감지가 같은 객체를 다시 만나지 못하고, 배열은 replacer가 그대로 돌려주므로 순환 감지에 걸린다. 반대로 `Date`는 `toJSON`으로 ISO 문자열이 되어 같은 시각이면 같은 키가 되므로 오히려 안전하다.
 
 그래서 queryKey에는 문자열, 숫자, 불리언, `null`과 이것들로 이루어진 배열과 plain object만 넣는 편이 안전하다.
 
@@ -164,9 +164,9 @@ console.log(queryClient.getQueryData(['todos', { page: 1, status: 'done' }])) //
 필자도 한 번 `Date`를 그대로 넣어두고 "왜 같은 시점인데 캐시가 갱신되지?"라며 한참을 헤맨 적이 있다. 같은 시각을 가리키는 `Date`는 인스턴스가 달라도 같은 ISO 문자열이 되므로 같은 해시를 만든다. 매번 다른 키가 나왔다면 같은 시점처럼 보여도 시각 자체가 달랐던 것이다. 렌더 중에 `new Date()`를 만들면 렌더마다 밀리초 단위로 다른 시각이 들어가고, 그때마다 새 키가 된다.
 
 
-## 캐시 조회와 필터 매칭
+## 필터의 키 비교
 
-지금까지 말한 "같은 키"는 해시 문자열이 같다는 뜻이고, 해시가 쓰이는 곳은 캐시 조회와 `exact: true` 필터다. `invalidateQueries`나 `findAll` 같은 필터의 기본 동작은 다르다. `partialMatchKey`가 해시 문자열이 아니라 원래 queryKey의 구조를 재귀로 비교한다. 배열은 앞에서부터 맞춰 보고, 객체는 필터 쪽에 적힌 키만 본다. 아래 코드도 같은 환경에서 돌렸다.
+두 키를 같다고 판단하는 방식은 하나 더 있다. 지금까지 말한 "같은 키"는 해시 문자열이 같다는 뜻이고, 해시가 쓰이는 곳은 캐시 조회와 `exact: true` 필터다. `invalidateQueries`나 `findAll` 같은 필터는 기본적으로 `partialMatchKey`로 판단하는데, 이 함수는 해시 문자열이 아니라 원래 queryKey의 구조를 재귀로 비교한다. 배열은 앞에서부터 맞춰 보고, 객체는 필터 쪽에 적힌 키만 본다. 아래 코드도 같은 환경에서 돌렸다.
 
 ```js
 import { partialMatchKey } from '@tanstack/query-core'
@@ -183,7 +183,7 @@ console.log(partialMatchKey(queryKey, ['todos', { status: 'todo' }])) // false
 
 ## 마무리
 
-정리하면, TanStack Query는 queryKey 배열의 참조를 비교하지 않는다. `hashKey`가 plain object의 키를 정렬하며 `JSON.stringify`로 만든 문자열(`queryHash`)을 `Map`의 키로 쓴다. 그래서 객체의 키 순서는 캐시에 영향을 주지 않고, 배열의 요소 순서는 영향을 주며, 값이 `undefined`인 속성은 없는 것과 같다. JSON이 표현하지 못하는 값은 대부분 에러 없이 다른 값으로 바뀌어, 서로 다른 키가 조용히 같은 키가 된다. `queryKeyHashFn`으로 해시 함수를 바꿀 수는 있지만 키 정렬까지 함께 버리게 되므로, 키를 만드는 시점에 직렬화 가능한 값으로 바꿔 넣는 편이 안전하다. 무효화 같은 필터는 해시가 아니라 queryKey의 구조로 비교한다는 점도 함께 기억해 두면 좋다.
+정리하면, TanStack Query는 queryKey 배열의 참조를 비교하지 않는다. `hashKey`가 plain object의 키를 정렬하며 `JSON.stringify`로 만든 문자열(`queryHash`)을 `Map`의 키로 쓴다. 그래서 객체의 키 순서는 캐시에 영향을 주지 않고, 배열의 요소 순서는 영향을 주며, 값이 `undefined`인 속성은 없는 것과 같다. JSON이 표현하지 못하는 값은 대부분 에러 없이 다른 값으로 바뀌어, 서로 다른 키가 조용히 같은 키가 된다. `queryKeyHashFn`으로 해시 함수를 바꿀 수는 있지만 키 정렬까지 함께 버리게 되므로, 키를 만드는 시점에 직렬화 가능한 값으로 바꿔 넣는 편이 안전하다. 무효화 같은 필터는 기본적으로 해시를 거치지 않고 queryKey의 구조를 앞에서부터 맞춰 본다는 점도 함께 기억해 두면 좋다.
 
 이 판단 기준이 queryKey를 어떻게 작성하고 관리할지로 이어지는 이야기, 즉 인라인 배열에서 query key factory를 거쳐 `queryOptions`까지 오게 된 흐름은 [queryKey](/260104)에서 다룬다.
 

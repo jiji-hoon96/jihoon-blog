@@ -6,7 +6,7 @@ date: "2026-05-26"
 updatedAt: "2026-10-08"
 locale: en
 translationOf: '260526'
-sourceHash: 9a33115d344f82b9a1e409d899e5e6da01038a2ca2503ea140cf69b7034b52c5
+sourceHash: 304a68bf926e1e4a57305879af694146757f66c9c9fc0156071532ede8230aff
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "Four tiers of tools that cut an AI agent's code search cost: context packing like Repomix, tree-sitter repo maps, CodeGraph's graph, and LSP-based Serena."
 keywords: "code intelligence, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider repo map, AI coding agent token savings"
@@ -14,7 +14,7 @@ keywords: "code intelligence, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, 
 
 In this post, I want to talk about **how the tools that cut an AI coding agent's cost of finding relevant code differ from one another**.
 
-This is for developers who have watched an agent burn tokens by repeating grep and file reads in a large codebase, and who are wondering which tool to add, such as Repomix, CodeGraph, or Serena. By the end, you will be able to tell how these tools differ by how deeply they understand code, and where each approach cuts the search cost. That depth falls into four levels: context packing, which puts the code in whole as text; tree-sitter repository maps, which know that a symbol exists; knowledge graphs, which store symbol relationships in advance; and LSP, which knows what that symbol is. For the three tiers other than the knowledge graph, I include what I measured directly on this blog's own `src/`; for the knowledge graph, I include its maker's benchmark.
+This is for developers who have watched an agent burn tokens by repeating grep and file reads in a large codebase, and who are wondering which tool to add, such as Repomix, CodeGraph, or Serena. These tools split into four tiers by how deeply they understand code (context packing, tree-sitter repository maps, knowledge graphs, and LSP), and each tier cuts the search cost in a different place. For the knowledge graph I include its maker's benchmark; for the other three tiers, what I measured directly on this blog's own `src/`.
 
 Ever since I saw `codegraph` on GitHub Trending and installed it myself, I have wondered, every time I come across a new tool, how exactly it saves tokens. Many of the tools in this post, too, I first came across on GitHub Trending, which I usually browse weekly, filtered to TypeScript and Python.
 
@@ -25,7 +25,7 @@ Before an agent changes any code, it first has to find where the relevant code l
 
 "Cost" does not point to one thing, though. Tokens the model processed, the number of tool calls, and tokens still sitting in the context window after the work is done all move separately. For each tier, this post looks at which of the three it cuts.
 
-I divide these attempts into the four tiers below. This is not an established industry classification; it is my own grouping, based on how deeply each tool understands code. Every value I measured myself was taken on 2026-10-08 at commit `36e5cfa` of this repository, and tokens were counted with tiktoken's `o200k_base`. The values differ from Claude's tokenizer, so use them for comparison rather than as absolute numbers.
+I divide these attempts into the four tiers below, based on how deeply each tool understands code. There is no established industry classification for this; the grouping is my own. Every value I measured myself was taken on 2026-10-08 at commit `36e5cfa` of this repository, and tokens were counted with tiktoken's `o200k_base`. The values differ from Claude's tokenizer, so use them for comparison rather than as absolute numbers.
 
 
 ### Context Packing
@@ -61,9 +61,11 @@ An **AST (Abstract Syntax Tree)** is a data structure that represents the struct
 
 **tree-sitter** is an open-source parser generator and incremental parsing library. [GitHub's code navigation](https://docs.github.com/en/repositories/working-with-files/using-files/navigating-code-on-github) uses tree-sitter. Because it reparses only the edited part, changing one line in an editor does not reparse the whole file; it fixes only the changed part of the tree. That advantage belongs to editors, where edits keep happening. Aider, below, keeps a cache keyed on file modification time so it does not reparse files that have not changed.
 
-**Aider**, an AI pair programming tool used in the terminal, is the representative example of this approach. It uses tree-sitter to extract definitions and references of functions, classes, and methods from each file, and builds a graph with files as nodes. When file A references an identifier defined in file B, an edge runs from A to B. It runs personalized PageRank on this graph (a variant that scores node importance by the number and weight of links, tilted toward chosen nodes), then fits the definitions and signatures of the top-ranked files into the token budget.
+**Aider**, an AI pair programming tool used in the terminal, is the representative example of this approach. Aider uses tree-sitter to extract definitions and references of functions, classes, and methods from each file. It then builds a graph with files as nodes. When file A references an identifier defined in file B, an edge runs from A to B.
 
-What goes into the budget changes with the current conversation. In Aider's [`repomap.py`](https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/repomap.py#L487-L525), an edge weight is the square root of the reference count times a multiplier. Identifiers mentioned in the conversation get 10x, camelCase or snake_case identifiers of 8 or more characters also get 10x, identifiers starting with `_` get 0.1x, and edges going out of files currently added to the chat get 50x. Files in the chat and files mentioned in the conversation also receive PageRank personalization scores.
+To pick the important files in this graph, Aider uses PageRank. PageRank is an algorithm that gives a node a higher score the more links it receives, and the heavier they are. Aider uses a variant called personalized PageRank, which tilts the scores toward chosen nodes. It then fits the definitions and signatures of the top-ranked files into the token budget.
+
+What goes into the budget changes with the current conversation. In Aider's [`repomap.py`](https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/repomap.py#L487-L525), an edge weight is the square root of the reference count times a multiplier. Identifiers mentioned in the conversation get 10x, and camelCase, snake_case, or kebab-case identifiers of 8 or more characters also get 10x. Identifiers starting with `_` and identifiers defined in more than 5 files each get 0.1x, and edges going out of files currently added to the chat get 50x. Files in the chat and files mentioned in the conversation also receive PageRank personalization scores.
 
 The budget is not fixed either. [Aider's documentation](https://aider.chat/docs/repomap.html) gives the `--map-tokens` default as 1k, but the [code](https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/models.py#L782-L789) clamps one eighth of the model's input limit to between 1,024 and 4,096. And when no files are in the chat, it grows up to `--map-multiplier-no-files` (default 2) times. I checked this with this repository's `src/`. The 0.86.1 release I ran and the commit linked above have the same ranking code.
 
@@ -95,7 +97,7 @@ There is one more tool worth noting in this tier: **ast-grep** (`ast-grep/ast-gr
 
 The third tier goes one step further. It **parses the entire codebase in advance, builds a knowledge graph, and stores it on disk**; the agent then sends queries to that stored graph. The most talked-about example is a tool called **CodeGraph**.
 
-The structure the [CodeGraph README](https://github.com/colbymchenry/codegraph/blob/b635dd467f0578926a9c01a37b9d28d2b26689f1/README.md) describes is simple. It parses code with tree-sitter to extract symbols, edges, and file information, and stores them in a local SQLite database. Name search goes through SQLite's FTS5 index. The agent asks this graph through MCP. And **this extraction happens deterministically from syntax tree parsing, not from LLM summaries.**
+The structure the [CodeGraph README](https://github.com/colbymchenry/codegraph/blob/b635dd467f0578926a9c01a37b9d28d2b26689f1/README.md) describes is simple. It parses code with tree-sitter to extract symbols, edges, and file information, and stores them in a local SQLite database. Name search goes through SQLite's FTS5 index. The agent asks this graph through MCP. The steps the README describes involve no LLM. So I take this extraction to be deterministic.
 
 **FTS5 (SQLite Full-Text Search 5)**, which appears here, is a full-text search extension provided as an SQLite virtual table. According to the [SQLite documentation](https://www.sqlite.org/fts5.html), it has been included in the amalgamation since 3.9.0 (2015-10-14); you create a table with `CREATE VIRTUAL TABLE ... USING fts5(...)` and query it with the `MATCH` operator. You can keep a full-text index in a single SQLite file without running a separate search engine such as Elasticsearch.
 
@@ -103,15 +105,15 @@ The word **deterministic** I just used means that the same code always produces 
 
 Deterministic is not the same as complete, though. The same README lists route recognition for frameworks that lean on convention and reflection at 83.3% for Spring and 83.9% for ASP.NET, and calls this the honest static-analysis ceiling. The same code gives the same result, but that result can be missing edges.
 
-The benchmark was measured by CodeGraph itself. The same README's 2026-08-05 re-measurement ran Claude Opus 4.8 headless and asked one architecture question each on 7 open-source repositories. The side with CodeGraph MCP enabled cut average cost by 44%, processed tokens by 62%, and tool calls by 88%. This re-measurement blocked both sides from calling the `codegraph` CLI through Bash. On a harness without that block, the side without the tool found and used the CLI in 26 of 28 runs, and the README states that earlier published figures were produced without the block. The Opus 4.7 figures this post first carried (35% cheaper, 71% fewer tool calls) are those earlier figures.
+The benchmark was measured by CodeGraph itself. The same README's 2026-08-05 re-measurement ran Claude Opus 4.8 headless and asked one architecture question each on 7 open-source repositories. The side with CodeGraph MCP enabled cut average cost by 44%, processed tokens by 62%, and tool calls by 88%. This re-measurement blocked both sides from calling the `codegraph` CLI through Bash. On a harness without that block, the side without the tool found and used the CLI in 26 of 28 runs, and the README states that earlier published figures were produced without the block.
 
 The size of the savings did not follow repository size. On questions where the side without the tool used 28 to 43 tool calls, cost fell by 57 to 78%, and on Gin, which finished in 7, it was about even. VS Code, with about 11k files, came in at 71%, and Excalidraw, with about 640, at 78%. The more searching a question needed, the bigger the gain.
 
-The README also records a number pointing the other way. Processed tokens go down, but at the end of a multi-turn session, the retrieval results still sitting in the context window are about 80% larger on the CodeGraph side. On VS Code it is 67k versus 18k tokens. It returns dense source text in one go, and that text stays in the window. This tier cuts tool calls and processed tokens, at the price of more left in the window.
+The README also records a number pointing the other way. Processed tokens go down, but at the end of a multi-turn session, the retrieval results still sitting in the context window are about 80% larger on the CodeGraph side across the 7 repositories. The gap varies by repository; on VS Code alone it is 67k versus 18k tokens, about 3.7 times. It returns dense source text in one go, and that text stays in the window. This tier cuts tool calls and processed tokens, at the price of more left in the window.
 
 Academia has research in the same direction. [GraphCoder](https://arxiv.org/abs/2406.07003) (ASE 2024) built a Code Context Graph combining control flow with data/control dependence, and [CodexGraph](https://aclanthology.org/2025.naacl-long.7/) (NAACL 2025) had LLM agents write and run graph database queries themselves. [Prometheus](https://arxiv.org/abs/2507.19942), a preprint that has not gone through peer review, attached working memory to a tree-sitter-based knowledge graph and applied it to issue resolution across multiple languages.
 
-**Cursor** took a different road and then changed course. The indexing described in the [January 2026 Cursor blog post](https://cursor.com/blog/secure-codebase-indexing) was not a syntax graph but **semantic search based on vector embeddings**. It split files into chunks locally, synced with the server via Merkle tree hashes, and stored embeddings in a vector DB called Turbopuffer. In July 2026, a Cursor Community Support Engineer replied on the [forum](https://forum.cursor.com/t/what-do-you-think-about-cursor-removing-the-codebase-indexing-settings/165899): "Semantic/embeddings indexing is being turned down in favor of grep-based retrieval". In the same thread, another staff member wrote that as models got good at using grep, the older semantic search path was no longer helping in a meaningful way. The [Cursor documentation](https://cursor.com/docs/context/codebase-indexing) now says Instant Grep builds and queries its index on your machine and does not store embeddings of your codebase.
+**Cursor** took a different road and then changed course. The indexing described in the [January 2026 Cursor blog post](https://cursor.com/blog/secure-codebase-indexing) was not a syntax graph but **semantic search based on vector embeddings**. It split files into chunks locally, synced with the server via Merkle tree hashes, and turned the chunks into embeddings for semantic search. In July 2026, a Cursor Community Support Engineer replied on the [forum](https://forum.cursor.com/t/what-do-you-think-about-cursor-removing-the-codebase-indexing-settings/165899): "Semantic/embeddings indexing is being turned down in favor of grep-based retrieval". In the same thread, another staff member wrote that as models got good at using grep, the older semantic search path was no longer helping in a meaningful way. The [Cursor documentation](https://cursor.com/docs/context/codebase-indexing) now says Instant Grep builds and queries its index on your machine and does not store embeddings of your codebase.
 
 
 ### LSP
@@ -120,7 +122,7 @@ The last tier **relies directly on a language server**. If tree-sitter knows "th
 
 **[LSP (Language Server Protocol)](https://microsoft.github.io/language-server-protocol/)** is an open, JSON-RPC-based protocol that standardizes communication between editors and language analysis tools (code completion, go to definition, find references, refactoring, and so on). In 2016, [Microsoft, Red Hat, and Codenvy announced a collaboration on it](https://www.redhat.com/en/about/press-releases/red-hat-codenvy-and-microsoft-collaborate-language-server-protocol). The core idea is "don't reimplement a language analyzer for every editor; keep one server per language and have every editor query it." rust-analyzer and Python's pyright are LSP servers, while TypeScript uses typescript-language-server, which wraps `tsserver` (which speaks its own protocol) in LSP.
 
-**Serena** (`oraios/serena`) is an MCP server in this tier. As of 2026-10-08 it has 30,093 stars, and the repository was created in March 2025. Serena's core idea fits in one line: **show the agent symbols, not text.** Its core tools include `find_symbol`, `find_referencing_symbols`, and `get_symbols_overview`. You can choose one of two backends. The default is a language server implementing LSP (free/open source); the other option is a paid plugin that uses JetBrains IDE code analysis (with a free trial).
+**Serena** (`oraios/serena`) is an MCP server in this tier. As of 2026-10-08 it has 30,093 stars, and the repository was created in March 2025. Serena's core idea fits in one line: **show the agent code as symbols.** Its core tools include `find_symbol`, `find_referencing_symbols`, and `get_symbols_overview`. You can choose one of two backends. The default is a language server implementing LSP (free/open source); the other option is a paid plugin that uses JetBrains IDE code analysis (with a free trial).
 
 Measuring on this repository shows where the difference comes from. I looked for usages of `isHiddenPost` (`src/lib/filter-posts.ts:12`), which filters out private posts, in two ways. The text side is grep.
 
@@ -129,7 +131,7 @@ Measuring on this repository shows where the difference comes from. I looked for
 git grep -n isHiddenPost -- ':!content'   # 16줄, 파일 9개
 ```
 
-On the LSP side, typescript-language-server answers `textDocument/references` with TypeScript's `findReferences` API, and I called that API directly. I did not measure by running Serena. LSP's find references asks by position (file, line, and column), not by name. That is why Serena's [`find_referencing_symbols`](https://github.com/oraios/serena/blob/3b99f8b024dafd58c962ea6e74f37c8a730ef532/src/serena/tools/symbol_tools.py#L169-L172) takes both `name_path` and `relative_path`. For this example, it is `find_referencing_symbols(name_path="isHiddenPost", relative_path="src/lib/filter-posts.ts")`.
+On the LSP side, typescript-language-server answers `textDocument/references` with TypeScript's `findReferences` API, and I called that API directly. I did not measure by running Serena. LSP's find references asks by position (file, line, and column). That is why Serena's [`find_referencing_symbols`](https://github.com/oraios/serena/blob/3b99f8b024dafd58c962ea6e74f37c8a730ef532/src/serena/tools/symbol_tools.py#L169-L172) takes both `name_path` and `relative_path`. For this example, it is `find_referencing_symbols(name_path="isHiddenPost", relative_path="src/lib/filter-posts.ts")`.
 
 ```js
 // 리포 루트에서 실행한다: node - < refs.cjs
@@ -174,7 +176,7 @@ src/app/[lang]/[slug]/page.tsx:90
 
 Both sides found the same 11 code locations. This name is unique in the repository, so grep neither missed nor added any code location. The difference came from the other 5. grep also returned 5 lines of explanatory text from `CLAUDE.md`, the command docs, and their snapshots.
 
-Serena returns each reference with [one line before and after](https://github.com/oraios/serena/blob/3b99f8b024dafd58c962ea6e74f37c8a730ef532/src/serena/repl/api/lsp_api.py#L367-L369). So I applied the same rule to both sides and counted the tokens of each location's `file:line` plus one line before and after.
+Serena returns each reference with [one line before and after](https://github.com/oraios/serena/blob/3b99f8b024dafd58c962ea6e74f37c8a730ef532/src/serena/repl/api/lsp_api.py#L367-L369). So I applied the same rule to both sides and counted the tokens of each location's `file:line` plus one line before and after. grep also returns the definition line as a match, so the reference side was counted with the definition included.
 
 ```python
 # 리포 루트에서 실행한다: python3 count.py (tiktoken 0.13.0)
@@ -189,29 +191,29 @@ def tokens(locs):  # 위치마다 file:line 과 앞뒤 1줄을 붙여 센다
         total += len(enc.encode(f"{f}:{n}\n" + "\n".join(lines[max(0, n - 2):n + 1])))
     return total
 grep = [(l.split(":")[0], int(l.split(":")[1])) for l in run("git grep -n isHiddenPost -- ':!content'")]
-refs = [(l.rsplit(":", 1)[0], int(l.rsplit(":", 1)[1])) for l in run("node - < refs.cjs") if "(정의)" not in l]
+refs = [(l.rsplit(":", 1)[0], int(l.rsplit(":", 1)[1])) for l in (x.removesuffix(" (정의)") for x in run("node - < refs.cjs"))]
 code = [x for x in grep if x[0].startswith("src/")]
 print(f"grep {len(grep)}곳 {tokens(grep)} (코드 {len(code)}곳 {tokens(code)}) | 참조 {len(refs)}곳 {tokens(refs)}")
 ```
 
 ```text
 $ python3 count.py
-grep 16곳 1172 (코드 11곳 453) | 참조 10곳 423
+grep 16곳 1172 (코드 11곳 453) | 참조 11곳 453
 ```
 
 | Method | Locations | tokens |
 |---|---|---|
 | grep | 16 (code 11, docs 5) | 1,172 (code 453, docs 719) |
-| findReferences (definition excluded) | 10 | 423 |
+| findReferences (definition included) | 11 | 453 |
 
-Of the 749-token difference, 719 comes from the 5 doc locations. What LSP saved in this repository was not the cost of finding code locations but the cost of reading noise matches. If the agent read all 9 files grep hit in full, the grep side would grow to 47,737 tokens, 43,318 of them from the 5 doc files. That is an upper bound. In a real session, `CLAUDE.md` is likely already in context and would not be read again. With a common name like `isLocale`, results could differ even in code locations, but I did not measure that this time.
+The whole 719-token difference comes from the 5 doc locations. What LSP saved in this repository was not the cost of finding code locations but the cost of reading noise matches. If the agent read all 9 files grep hit in full, it would read 47,034 tokens, 43,318 of them from the 5 doc files. That is an upper bound. In a real session, `CLAUDE.md` is likely already in context and would not be read again. With a common name like `isLocale`, results could differ even in code locations.
 
 Aider does not use LSP, so its awareness stops at the function and class level. [OpenCode](https://opencode.ai/docs/lsp/) attaches LSP servers and by default feeds diagnostics back to the agent. Its `lsp` tool, which asks for definitions, references, hover, and call hierarchy, is only enabled when [`OPENCODE_EXPERIMENTAL_LSP_TOOL=true`](https://opencode.ai/docs/tools/). Either way, there is the condition that each language needs a good LSP server.
 
 
 ## Wrapping Up
 
-To sum up, the four tiers split by how deeply they understand code, and they cut different costs. Context packing hands over code as text, and even with `--compress` it keeps only syntax, cutting the tokens going in. A tree-sitter repository map knows that a symbol exists puts a budget cap on the tokens going in, and lets the conversation at that moment decide what fills it. A knowledge graph stores relationships in advance and cuts tool calls and processed tokens, but by the vendor's measurement, what stays in the window actually grew. LSP knows what a symbol is, and in this repository most of its savings came from filtering out the noise matches grep drags along, which cut the tokens to process.
+To sum up, the four tiers split by how deeply they understand code, and they cut different costs. Context packing hands over code as text, and even with `--compress` it keeps only syntax, cutting the tokens going in. A tree-sitter repository map knows that a symbol exists, puts a budget cap on the tokens going in, and lets the conversation at that moment decide what fills it. A knowledge graph stores relationships in advance and cuts tool calls and processed tokens, but by the vendor's measurement, what stays in the window actually grew. LSP knows what a symbol is, and in this repository all of its savings came from filtering out the noise matches grep drags along, which cut the tokens to process.
 
 So when I pick a tool, I look first at which cost is the problem right now, rather than at how deep the tier goes. If the window is small and sessions are long, I look at what stays behind; if round trips are slow, at the number of tool calls; if docs and code share names in the repository, at noise matches. I read Cursor stripping out semantic search and going back to grep as a sign that the deeper tier is not always better.
 

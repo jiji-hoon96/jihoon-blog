@@ -9,14 +9,14 @@ description: "Tres casos en que reintentar en un fallback de react-error-boundar
 keywords: "ErrorBoundary no reintenta, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy error al cargar chunk, error en useSuspenseQuery, react-error-boundary"
 locale: es
 translationOf: '251128'
-sourceHash: 69901addb5820c18cdd362ff593f6e5f6d828a1efe5e78e7059cb26bf22b2e07
+sourceHash: 605b77497a1ba7812a26383b7083df57c4f4468c38c802877152ef315fa11f48
 ---
 
 En esta entrada quiero hablar de **por qué el botón de reintentar de un `ErrorBoundary` no hace nada**.
 
 Está pensada para desarrolladores frontend que pusieron un botón de reintentar en el fallback de `react-error-boundary` y, al pulsarlo, vuelven a ver la misma pantalla, y recoge los tres casos en que el estado del fallo se queda y cómo resolver cada uno. La respuesta corta: un `ErrorBoundary` solo restablece su propio estado, y el estado que provocó el fallo se queda en quien lanzó.
 
-Los ejemplos usan TanStack Query junto con `react-error-boundary`. Comprobé el comportamiento de las librerías abriendo su código instalado, y el código citado coincide carácter por carácter con los archivos compilados de `@tanstack/react-query` 5.104.1, `react-error-boundary` 6.1.6 y React 19.2.3 (cotejado el 2026-10-08).
+Los ejemplos usan TanStack Query junto con `react-error-boundary`. Comprobé el comportamiento de las librerías abriendo su código instalado, y el código citado tiene la misma estructura que los archivos compilados de `@tanstack/react-query` 5.104.1, `react-error-boundary` 6.1.6 y React 19.2.3 (cotejado el 2026-10-08). La sangría y los saltos de línea se ajustaron en algunos puntos para facilitar la lectura.
 
 
 ## Tres casos en los que reintentar no hace nada
@@ -61,7 +61,13 @@ const useClearResetErrorBoundary = (errorResetBoundary) => {
 };
 ```
 
-Así, un solo boolean basta para reintentar solo esta vez.
+Así, un solo boolean basta para reintentar solo esta vez. Paso a paso, un reintento ocurre así:
+
+1. `reset()` levanta la marca.
+2. El hook de la query remontado ve la marca durante el render y no apaga `retryOnMount`.
+3. `getHasError` también ve la marca y no lanza el error de la caché, así que la query vuelve a pedir.
+4. Ya montado en pantalla, `clearReset()` baja la marca en un effect.
+5. Con la marca bajada, los errores posteriores vuelven a quedar bloqueados.
 
 Basta con conectar este `reset` al `ErrorBoundary`, en su `onReset`. La documentación de TanStack Query y los comentarios del código también traen como ejemplo código que los conecta así.
 
@@ -133,7 +139,7 @@ throw payload._result;
 
 No vuelve a hacer `import()`. La llamada a `lazy()` ocurrió una vez en el nivel superior del módulo y ese `payload` se queda igual mientras viva la aplicación. Aunque sueltes el `ErrorBoundary` y se vuelva a montar, vuelve el mismo error.
 
-¿Y si se crea un `lazy` nuevo y se vuelve a llamar a `import()`? Hasta ahora lo impedía el navegador. El mapa de módulos recordaba el resultado fallido y no volvía a descargar la misma URL. Un [cambio en la especificación HTML](https://github.com/whatwg/html/pull/10327) que altera esto se fusionó el 2026-07-15. El estado por motor, comprobado el 2026-10-08: Firefox [lo incluyó en 155](https://bugzilla.mozilla.org/show_bug.cgi?id=2055211), publicado el 2026-09-01. WebKit [lo integró en main](https://bugs.webkit.org/show_bug.cgi?id=319492), pero no pude confirmar si ya está en una versión estable de Safari. Chrome sigue en Proposed en [chromestatus](https://chromestatus.com/feature/5214647044145152). Así que en Chrome un `import()` nuevo devuelve el mismo fallo.
+¿Y si se crea un `lazy` nuevo y se vuelve a llamar a `import()`? Hasta ahora lo impedía el navegador. El mapa de módulos recordaba el resultado fallido y no volvía a descargar la misma URL. Un [cambio en la especificación HTML](https://github.com/whatwg/html/pull/10327) que altera esto se fusionó el 2026-07-15. El estado por motor, comprobado el 2026-10-08: Firefox [lo incluyó en 155](https://bugzilla.mozilla.org/show_bug.cgi?id=2055211), publicado el 2026-09-01. WebKit [lo integró en main](https://bugs.webkit.org/show_bug.cgi?id=319492) el 2026-08-19, y el registro del bug no indica qué versión estable de Safari lo incluye. Chrome sigue en Proposed en [chromestatus](https://chromestatus.com/feature/5214647044145152). Así que en Chrome un `import()` nuevo devuelve el mismo fallo.
 
 Por eso recuperarse de este fallo es volver a descargar la página. Aunque los navegadores lleguen a volver a descargar, no todo se resuelve. Un fallo de carga de chunk puede venir de una red caída o, como explica la [documentación de Vite](https://vite.dev/guide/build#load-error-handling), de un despliegue nuevo que borró los chunks antiguos. Un chunk borrado sigue sin existir al pedirlo otra vez, así que en ese caso la recuperación sigue siendo recargar. Como no se puede fijar una sola causa, es mejor que el texto del fallback sugiera recargar en lugar de afirmar que salió una versión nueva.
 

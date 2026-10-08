@@ -6,7 +6,7 @@ date: "2026-05-24"
 updatedAt: "2026-10-08"
 locale: ja
 translationOf: '260524'
-sourceHash: 40b731774ee30c6a2b8287ddcb0a8bf0acc4f1476512e95a6310a8b8a18e50fa
+sourceHash: 2293f3e018d512db6374f7146c812d706079a5d30ab86c875e6a6dd19b522ea4
 categories: AI 開発ツール Claude MCP CodeGraph
 description: "MCPがfunction callingとどう違うのかをプロトコル構造から整理する。6つのプリミティブ、stdioとStreamable HTTP、tools/listからtool_useループまでの流れ、Tool Poisoningなどのセキュリティ問題を扱う。"
 keywords: "MCP, Model Context Protocol, MCP function calling 違い, MCP プリミティブ, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP セキュリティ"
@@ -42,7 +42,7 @@ MCPはJSON-RPC上に構築されたプロトコルだ。[JSON-RPC 2.0](https://w
 
 **クライアント側プリミティブ**
 
-- **Sampling**：サーバーから逆にクライアントのLLMへcompletionを要求できる仕組みで、クライアントとサーバーを双方向の構造にする
+- **Sampling**：サーバーから逆にクライアントのLLMへcompletionを要求できる仕組みで、クライアントとサーバーを双方向の構造にする。ツールの実行中に文章の生成が必要になったサーバーが、自前のAPIキーなしでクライアントの使うモデルを借りるための仕組みだ。2026-07-28改訂版では削除予定のdeprecatedになった
 - **Roots**：クライアントがサーバーへ「ここまでが作業可能な範囲」と伝えるワークスペース境界の情報
 - **Elicitation**：サーバーがツールの実行中に、構造化された形式でユーザーへ追加入力を求められる機能
 
@@ -131,7 +131,7 @@ console.log("tool_result:", JSON.stringify({ type: "tool_result", tool_use_id: t
 await client.close();
 ```
 
-`node post-demo.mjs`の出力は次のとおりだ。
+コードの途中で`clientT.send`を上書きしている2行は、クライアントが送るメッセージのメソッド名を表示するためだけに入れたもので、変換には関わらない。`node post-demo.mjs`の出力は次のとおりだ。
 
 ```text
 C->S initialize 2025-11-25
@@ -144,7 +144,7 @@ C->S tools/call
 tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type":"text","text":"Seoul: 15C, partly cloudy"}]}
 ```
 
-変換はフィールド名を変えるだけだ。MCPの`inputSchema`がAnthropicでは`input_schema`、OpenAIでは`parameters`になる。SDKがスキーマに`$schema`を付け足すことも出力からわかる。逆方向も短い。Anthropicの`tool_use.input`はオブジェクトなので、そのまま`tools/call`の`arguments`になる。上のOpenAI側の形はResponses APIの形式だ。OpenAIが返す呼び出しの`arguments`は[JSON文字列](https://developers.openai.com/api/docs/guides/function-calling)なので、渡す前に`JSON.parse`を一度通す必要がある。この部分はドキュメントで確認したもので、上のコードでは動かしていない。
+変換はフィールド名を変えるだけだ。MCPの`inputSchema`がAnthropicでは`input_schema`、OpenAIでは`parameters`になる。SDKがスキーマに`$schema`を付け足すことも出力からわかる。逆方向も短い。Anthropicの`tool_use.input`はオブジェクトなので、そのまま`tools/call`の`arguments`になる。上のOpenAI側の形はResponses APIの形式だ。OpenAIが返す呼び出しの`arguments`は[JSON文字列](https://developers.openai.com/api/docs/guides/function-calling)なので、渡す前に`JSON.parse`を一度通す必要がある。上のコードはAnthropic形式の`tool_use`ブロックしか作っていないので、このparseの段階は出力に現れない。
 
 
 ### MCPが加える4つのもの
@@ -154,9 +154,13 @@ tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type"
 - **動的な発見**：ビルド時にはツール一覧を知らず、実行時に`tools/list`で取得する。サーバーは`notifications/tools/list_changed`で、接続中に一覧が変わったことを知らせられる
 - **Stateful session**：`initialize`で接続を確立し、その中でリクエストがやり取りされる。専用の終了メッセージはなく、転送を閉じることがそのまま終了になる
 - **Tool以外のプリミティブ**：Resource・Prompt・Sampling・Roots・Elicitationをcapability negotiationで公開する。capability negotiationとは、`initialize`で双方が対応する機能を互いに知らせる段階だ
-- **双方向性**：サーバーがSamplingを使って、クライアントのLLMへ逆にcompletionを要求できる
+- **双方向性**：サーバーがSamplingを使って、クライアントのLLMへ逆にcompletionを要求できる（2026-07-28改訂版でdeprecated）
 
-ところが2026-10-08時点で、公式サイトでlatestとして開くのは[2026-07-28改訂版](https://modelcontextprotocol.io/specification/2026-07-28/changelog)で、ここでこのリストの半分が変わった。`initialize`と`notifications/initialized`からなるハンドシェイクとプロトコルレベルのセッションがなくなり、すべてのリクエストが`_meta`にプロトコルバージョンとクライアントcapabilitiesを載せる。サーバーは、対応バージョンとcapabilitiesを知らせる`server/discover`を必ず実装しなければならない（MUST）。SamplingとRootsはLoggingとともにdeprecatedになり、仕様はSamplingの代わりにLLMプロバイダーのAPIへ直接つなぐよう勧めている。サーバーが先に送っていたリクエストは、Multi Round-Trip Requestsというパターンに置き換えられた。
+ところが2026-10-08時点で、公式サイトでlatestとして開くのは[2026-07-28改訂版](https://modelcontextprotocol.io/specification/2026-07-28/changelog)で、ここでこのリストの半分が変わった。まず、`initialize`と`notifications/initialized`からなるハンドシェイクとプロトコルレベルのセッションがなくなった。代わりに、すべてのリクエストが`_meta`にプロトコルバージョンとクライアントcapabilitiesを載せる。このフィールドは、メッセージ本来の引数とは別にメタデータを付けるためにMCPが予約している場所だ。サーバーは`server/discover`を必ず実装しなければならない（MUST）。クライアントがほかのリクエストより先に呼び出し、サーバーが対応するプロトコルバージョン、capabilities、サーバー情報を受け取るRPCだ。
+
+サーバーが先に送っていたリクエストは、Multi Round-Trip Requests（MRTR）というパターンに置き換えられた。サーバーは別途リクエストを送る代わりに、追加の入力が必要だという中間結果（`input_required`）を返し、クライアントがその入力を埋めて元のリクエストを送り直す方式だ。
+
+SamplingとRootsはLoggingとともにdeprecatedになった。仕様に残っていて動作もするが新しい実装は採用すべきでないという意味で、仕様はSamplingの代わりにLLMプロバイダーのAPIへ直接つなぐよう勧めている。
 
 ただし、SDKの既定の動作はまだ古い方式だ。TypeScript SDK 1.32.1は最新バージョン定数が`2025-11-25`なので2026-07-28改訂版を知らず、2.3.1はこの改訂版に対応しているが、バージョン交渉の既定値が`legacy`だ。上の出力の1行目`initialize 2025-11-25`がその結果である。
 
@@ -167,7 +171,7 @@ tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type"
 
 この契約のうちどこまでがモデルに届くのかは、Anthropicの[MCP connector](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector)が示している。Messages APIがリモートのMCPサーバーに直接つなぐ機能だが、ドキュメントのLimitationsは、MCP仕様の機能のうち"only tool calls are currently supported"と書き、"Local STDIO servers cannot be connected directly"と書いている。同じドキュメントは、ローカルサーバーやMCPのprompt、resourceが必要なら、MCP SDKで接続を自分で管理しながらAnthropic SDKの変換helperを使うよう案内している。
 
-つまり、function callingのレイヤーでMCPを消費するとToolだけが残る。ResourceとPromptは、それを画面やコンテキストへ運ぶホストがあって初めて意味を持つ。OpenAIもfunction callingガイドで、MCPサーバーの機能をbuilt-in toolとして使う方法を紹介している。そちらがTool以外のプリミティブをどこまで受け付けるのかは、この記事では確認していない。
+つまり、function callingのレイヤーでMCPを消費するとToolだけが残る。ResourceとPromptは、それを画面やコンテキストへ運ぶホストがあって初めて意味を持つ。OpenAIもfunction callingガイドで、MCPサーバーの機能をbuilt-in toolとして使う方法を紹介している。OpenAIのRemote MCPガイドはツール一覧の取得と呼び出しの方法だけを説明し、ResourceやPromptに対応しているかどうかは書いていない。
 
 
 ### 動的な発見が開く攻撃面
@@ -180,7 +184,7 @@ tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type"
 
 - **Rug Pull**（Silent Redefinition）：ユーザーが承認した後に、サーバーがツール定義を変える攻撃だ。Invariant Labsが同じ記事で先に説明しており、Silent Redefinitionという名前はElena Crossの記事に由来し、[Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/)が2025年4月9日にそれを引用してまとめた。ツールは最初、正当なものとして始まる。ユーザーが確認・承認し、ワークフローへ統合する。数週間後、ツール定義がひそかに変更され、悪意ある指示が含まれるようになる。ユーザーは再承認を求められないため、動作はそのまま変わってしまう。
 
-Rug Pullが起きる場所は、動的な発見を可能にした`notifications/tools/list_changed`と同じだ。仕様は一覧が変わったことを知らせる方法を定めるだけで、変わった定義をユーザーに改めて見せることまでは求めていない。Willisonは、MCPクライアントが最初にツール説明をユーザーに見せ、説明が変わったら警告すべきだと書いている。変更後に再承認を取るのは、仕様ではなくホストの役目だ。
+Rug Pullが起きる場所は、動的な発見を可能にした`notifications/tools/list_changed`と同じだ。この名前は2025-11-25改訂版のもので、2026-07-28改訂版では先に見たとおり、opt-inしたクライアントだけがこの通知を受け取る。仕様は一覧が変わったことを知らせる方法を定めるだけで、変わった定義をユーザーに改めて見せることまでは求めていない。Willisonは、MCPクライアントが最初にツール説明をユーザーに見せ、説明が変わったら警告すべきだと書いている。変更後に再承認を取るのは、仕様ではなくホストの役目だ。
 
 
 ## まとめ

@@ -5,11 +5,11 @@ seoTitle: "How TanStack Query Compares queryKeys: hashKey Explained"
 date: "2025-12-30"
 updatedAt: "2026-10-08"
 categories: frontend React TanStack-Query queryKey
-description: "How TanStack Query treats new queryKey arrays as the same key via hashKey: object key order is ignored, array order matters, and undefined vanishes."
+description: "How TanStack Query judges new queryKey arrays equal: hashKey serialization (key order, undefined, Map, cycles) and how filters compare key structure."
 keywords: "queryKey comparison, hashKey, queryHash, TanStack Query cache key, React Query queryKey order, queryKeyHashFn, JSON.stringify sorted keys, QueryCache"
 locale: en
 translationOf: '251230'
-sourceHash: 47b793dc921cc4a4557e91344efd55785d4d646a3f8f86d04bd3566dea99e8c3
+sourceHash: ac741f2d85d62c63a48506c66ba0ada891e74b35304a1db40d0da4cb32e2578c
 ---
 
 In this post, I want to talk about **how TanStack Query decides that two queryKeys are the same key**.
@@ -60,7 +60,7 @@ export function hashKey(queryKey: QueryKey | MutationKey): string {
 }
 ```
 
-It does use `JSON.stringify`, but instead of stringifying directly, it supplies a [replacer callback](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter) that **sorts the keys of plain objects lexicographically** before serialization. Strictly speaking, this is UTF-16 code unit order, the default comparison of `sort()`, so uppercase keys come before lowercase ones.
+It uses `JSON.stringify` with a [replacer callback](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter) that **sorts the keys of plain objects lexicographically** before serialization. Strictly speaking, this is UTF-16 code unit order, the default comparison of `sort()`, so uppercase keys come before lowercase ones.
 
 This sorting is fundamental because string serialization carries an additional, stronger requirement: **semantically equivalent inputs must always produce the same string.** Ordinary `JSON.stringify`, however, preserves key order. `{ a: 1, b: 2 }` and `{ b: 2, a: 1 }` are semantically equivalent objects, but they serialize into different strings and therefore occupy different cache slots. That would bring back duplicate requests for the same data.
 
@@ -68,7 +68,7 @@ The technique that consistently prevents this is a **canonical form**. It forces
 
 The fact that arrays are not sorted is the other side of the same principle. An array is a data structure in which order itself carries meaning, so sorting it would destroy information. Object key order is incidental; array element order is intentional. `hashKey` treats the two accordingly. This is why maintainer TkDodo, in [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys), recommends structuring a queryKey from the most generic to the most specific. As long as array order carries meaning, the author must define that meaning directly.
 
-There is one more detail worth highlighting: key sorting applies only to **plain objects**. In the same file, `isPlainObject` does not merely check `typeof === 'object'`; it goes as far as checking `Object.getPrototypeOf(o) === Object.prototype` to distinguish **plain object literals** from **class instances**. As a result, a literal such as `{ foo: 1 }` is sorted, while an instance created with `class User { ... }` passes through unsorted. (This is where a subtle trap arises: if you put a class instance directly into a queryKey, its interaction with `JSON.stringify`, which outputs only enumerable properties, may produce a hash different from what you intended.)
+There is one more detail worth highlighting: key sorting applies only to **plain objects**. In the same file, `isPlainObject` checks `typeof === 'object'` and also `Object.getPrototypeOf(o) === Object.prototype` to distinguish **plain object literals** from **class instances**. As a result, a literal such as `{ foo: 1 }` is sorted, while an instance created with `class User { ... }` passes through unsorted. (This is where a subtle trap arises: if you put a class instance directly into a queryKey, its interaction with `JSON.stringify`, which outputs only enumerable properties, may produce a hash different from what you intended.)
 
 This behavior has two important consequences.
 
@@ -125,11 +125,11 @@ Running other values the same way gives the following summary.
 | `Map`, `Set` | `{}` | every `Map`, `Set`, and empty object, regardless of contents |
 | `Date` | an ISO string | the same ISO string |
 | `BigInt` | throws `TypeError` | none |
-| circular reference | throws `RangeError` | none |
+| circular reference | throws `RangeError` for a plain object, `TypeError` for an array | none |
 
 The most dangerous ones are `Map` and `Set`. In the code above, data stored under `new Map([['a', 1]])` came back when looked up with `new Map([['b', 2]])`. Since there is no error, there is also no clue that the screen is rendering the wrong data.
 
-Only two cases surface as errors: `BigInt` and circular references. A circular reference ends not with the familiar `Converting circular structure` message but with `Maximum call stack size exceeded`. Because the replacer returns a new object for every plain object, the cycle detection in `JSON.stringify` apparently never sees the same object twice. `Date`, on the other hand, becomes an ISO string through `toJSON`, so the same instant produces the same key, which actually makes it safe.
+Only two cases surface as errors: `BigInt` and circular references. For circular references, the error depends on what forms the cycle. A plain object that points to itself ends in `RangeError: Maximum call stack size exceeded`, while an array that contains itself, as in `arr.push(arr)`, ends in `TypeError: Converting circular structure to JSON`. Because the replacer returns a new object for every plain object, the cycle detection in `JSON.stringify` never sees the same object twice, whereas the replacer returns an array as is, so the cycle is caught. `Date`, on the other hand, becomes an ISO string through `toJSON`, so the same instant produces the same key, which actually makes it safe.
 
 So it is safest to put only strings, numbers, booleans, `null`, and arrays and plain objects made of them into a queryKey.
 
@@ -167,9 +167,9 @@ In production, it is therefore much safer to avoid the escape hatch and **conver
 I once placed a `Date` directly in a key and spent a long time wondering, "Why is the cache refreshing even though it is the same instant?" A `Date` that points to the same instant becomes the same ISO string even if it is a different instance, so it produces the same hash. If a different key came out every time, the time itself was different, even if it looked like the same instant. Creating a `new Date()` during render puts a time that differs by milliseconds into every render, and each one becomes a new key.
 
 
-## Cache Lookup and Filter Matching
+## How Filters Compare Keys
 
-The "same key" discussed so far means the hash strings are equal, and hashes are used only for cache lookup and `exact: true` filters. Filters such as `invalidateQueries` and `findAll` behave differently by default. `partialMatchKey` recursively compares the structure of the original queryKey rather than the hash string. Arrays are matched from the front, and objects are checked only for the keys written in the filter. I ran the code below in the same environment as well.
+There is one more way two keys are judged equal. The "same key" discussed so far means the hash strings are equal, and hashes are used only for cache lookup and `exact: true` filters. Filters such as `invalidateQueries` and `findAll` decide by default with `partialMatchKey`, which recursively compares the structure of the original queryKey rather than the hash string. Arrays are matched from the front, and objects are checked only for the keys written in the filter. I ran the code below in the same environment as well.
 
 ```js
 import { partialMatchKey } from '@tanstack/query-core'
@@ -186,7 +186,7 @@ Since this matching does not go through the hash, replacing `queryKeyHashFn` doe
 
 ## Conclusion
 
-In short, TanStack Query does not compare queryKey array references. Instead, `hashKey` sorts plain object keys while serializing with `JSON.stringify`, and the resulting string (`queryHash`) becomes the key of a `Map`. As a result, object key order does not affect the cache, array element order does, and a property whose value is `undefined` is the same as an absent one. Most values that JSON cannot represent turn into other values without any error, so different keys silently become the same key. You can swap the hash function with `queryKeyHashFn`, but that also throws away key sorting, so it is safer to convert values into serializable ones when building the key. It is also worth remembering that filters such as invalidation compare the structure of the queryKey, not the hash.
+In short, TanStack Query does not compare queryKey array references. Instead, `hashKey` sorts plain object keys while serializing with `JSON.stringify`, and the resulting string (`queryHash`) becomes the key of a `Map`. As a result, object key order does not affect the cache, array element order does, and a property whose value is `undefined` is the same as an absent one. Most values that JSON cannot represent turn into other values without any error, so different keys silently become the same key. You can swap the hash function with `queryKeyHashFn`, but that also throws away key sorting, so it is safer to convert values into serializable ones when building the key. It is also worth remembering that filters such as invalidation, by default, skip the hash and match the structure of the queryKey from the front.
 
 How this rule carries over to writing and managing queryKeys, that is, the path from inline arrays through query key factories to `queryOptions`, is covered in [queryKey](/260104).
 

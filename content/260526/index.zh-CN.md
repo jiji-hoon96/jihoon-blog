@@ -6,7 +6,7 @@ date: "2026-05-26"
 updatedAt: "2026-10-08"
 locale: zh-CN
 translationOf: '260526'
-sourceHash: 9a33115d344f82b9a1e409d899e5e6da01038a2ca2503ea140cf69b7034b52c5
+sourceHash: 304a68bf926e1e4a57305879af694146757f66c9c9fc0156071532ede8230aff
 categories: AI 开发工具 Claude MCP CodeGraph
 description: "将降低 AI 编程智能体查找相关代码成本的工具分为四个层级进行比较，梳理 Repomix 等上下文打包、Aider 的 tree-sitter 仓库地图、CodeGraph 知识图谱，以及 Serena 等基于 LSP 的工具分别能理解代码到什么程度。"
 keywords: "代码智能, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider repo map, AI 编程智能体 节省 token"
@@ -14,7 +14,7 @@ keywords: "代码智能, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider
 
 这篇文章想聊聊：**降低 AI 编程智能体查找相关代码成本的这些工具，彼此到底有什么不同**。
 
-本文写给这样的开发者：看到智能体在大型代码库中反复 grep 和读取文件、不断消耗 token，正在犹豫该接入 Repomix、CodeGraph、Serena 中的哪一种。读完之后，你能分辨这些工具如何按照对代码理解的深度区分开来，以及每种方式在哪里降低检索成本。理解的深度分为四种：把代码作为文本整体放入的 context packing、知道 symbol 存在的 tree-sitter repo map、预先保存 symbol 关系的知识图谱，以及连 symbol 是什么都知道的 LSP。除知识图谱外的三个层级，附上笔者用这个博客仓库的 `src/` 直接测得的结果；知识图谱则附上开发方的基准测试。
+本文写给这样的开发者：看到智能体在大型代码库中反复 grep 和读取文件、不断消耗 token，正在犹豫该接入 Repomix、CodeGraph、Serena 中的哪一种。这些工具按对代码理解的深度，分为 context packing、tree-sitter repo map、知识图谱、LSP 四个层级，每个层级降低检索成本的位置各不相同。知识图谱附上开发方的基准测试，其余三个层级附上笔者用这个博客仓库的 `src/` 直接测得的结果。
 
 自从看到 `codegraph` 登上 GitHub Trending 并跟着安装之后，笔者每次看到新工具，都会好奇它究竟靠什么原理节省 token。本文出现的工具，很多也是笔者在 GitHub Trending 上第一次看到的；笔者平时按 weekly 浏览，并筛选 TypeScript 和 Python。
 
@@ -25,7 +25,7 @@ keywords: "代码智能, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider
 
 不过，“成本”指的并不是一样东西。模型处理的 token、tool call 的次数，以及工作结束后仍留在 context window 里的 token，三者各自变化。本文逐个层级来看它减少的是这三者中的哪一个。
 
-笔者把这些尝试分为以下四个层级（tier）。这并不是业界既定的分类，而是笔者按照工具对代码理解的深度整理出的划分。笔者亲自测得的数值，都是 2026-10-08 在本仓库的提交 `36e5cfa` 上得到的，token 用 tiktoken 的 `o200k_base` 计数。它与 Claude 的 tokenizer 数值不同，因此用于比较，而不是当作绝对值。
+笔者按照工具对代码理解的深度，把这些尝试分为以下四个层级（tier）。业界并没有既定的分类，这一划分是笔者自己整理的。笔者亲自测得的数值，都是 2026-10-08 在本仓库的提交 `36e5cfa` 上得到的，token 用 tiktoken 的 `o200k_base` 计数。它与 Claude 的 tokenizer 数值不同，因此用于比较，而不是当作绝对值。
 
 
 ### 上下文打包
@@ -61,9 +61,11 @@ npx -y repomix@1.18.1 src --compress -o out.xml   # Total Tokens: 30,320 tokens
 
 **tree-sitter** 是一个开源 parser generator 与增量（incremental）解析库。[GitHub 的 code navigation](https://docs.github.com/en/repositories/working-with-files/using-files/navigating-code-on-github) 使用了 tree-sitter。由于它只重新解析被编辑的部分，在编辑器中改一行也不会重新解析整个文件，而只修补发生变化的那部分树。这个优势属于编辑不断发生的编辑器。下文的 Aider 则按文件修改时间做缓存，不会重新解析没有变化的文件。
 
-在终端中使用的 AI 结对编程工具 **Aider** 是这种方法的代表。它用 tree-sitter 从每个文件中提取函数、类、方法的定义与引用，并构建以文件为节点的图。当文件 A 引用了文件 B 中定义的标识符时，就会产生一条从 A 指向 B 的边。它在这张图上运行 personalized PageRank（按链接的数量与权重给节点打分，并让分数向指定节点倾斜的变体），再按 token 预算放入排名靠前的文件的定义与签名。
+在终端中使用的 AI 结对编程工具 **Aider** 是这种方法的代表。Aider 用 tree-sitter 从每个文件中提取函数、类、方法的定义与引用。然后构建以文件为节点的图。当文件 A 引用了文件 B 中定义的标识符时，就会产生一条从 A 指向 B 的边。
 
-预算里放进什么，会随当前对话而变化。在 Aider 的 [`repomap.py`](https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/repomap.py#L487-L525) 中，边的权重是引用次数的平方根乘以倍数。对话中出现的标识符乘 10，8 个字符以上的 camelCase 或 snake_case 标识符也乘 10，以 `_` 开头的标识符乘 0.1，从当前加入聊天的文件出发的边乘 50。加入聊天的文件和对话中提到的文件，还会得到 PageRank 的 personalization 分数。
+为了在这张图中挑出重要的文件，Aider 使用 PageRank。PageRank 是一种算法，节点收到的链接越多、越重，得分就越高。Aider 用的是它的变体 personalized PageRank，会让分数向指定节点倾斜。然后按 token 预算，从排名靠前的文件开始放入定义与签名。
+
+预算里放进什么，会随当前对话而变化。在 Aider 的 [`repomap.py`](https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/repomap.py#L487-L525) 中，边的权重是引用次数的平方根乘以倍数。对话中出现的标识符乘 10，8 个字符以上的 camelCase、snake_case 或 kebab-case 标识符也乘 10。以 `_` 开头的标识符和在超过 5 个文件中被定义的标识符各乘 0.1，从当前加入聊天的文件出发的边乘 50。加入聊天的文件和对话中提到的文件，还会得到 PageRank 的 personalization 分数。
 
 预算也不是固定值。[Aider 文档](https://aider.chat/docs/repomap.html) 写的 `--map-tokens` 默认值是 1k，但 [代码](https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/models.py#L782-L789) 会把模型输入上限的 1/8 截取到 1,024 到 4,096 之间。而且聊天中没有文件时，会放大到 `--map-multiplier-no-files`（默认 2）倍。笔者用本仓库的 `src/` 验证了这一点。实际运行的 0.86.1 与上面链接的提交，排序代码相同。
 
@@ -95,7 +97,7 @@ gpt-4o 的输入上限是 128k，所以 1/8 被截到 4,096；聊天为空，map
 
 第三个层级更进一步：**预先解析整个代码库，构建知识图谱并保存到磁盘**，智能体再向保存好的图谱发出查询。最受关注的例子是名为 **CodeGraph** 的工具。
 
-[CodeGraph README](https://github.com/colbymchenry/codegraph/blob/b635dd467f0578926a9c01a37b9d28d2b26689f1/README.md) 描述的结构很简单。用 tree-sitter 解析代码，提取 symbol、边与文件信息，并把它们保存到本地 SQLite 数据库中。名称搜索通过 SQLite 的 FTS5 索引完成。智能体通过 MCP 向这张图发问。而且，**这种提取不是来自 LLM 的摘要，而是从语法树解析中确定性地产生。**
+[CodeGraph README](https://github.com/colbymchenry/codegraph/blob/b635dd467f0578926a9c01a37b9d28d2b26689f1/README.md) 描述的结构很简单。用 tree-sitter 解析代码，提取 symbol、边与文件信息，并把它们保存到本地 SQLite 数据库中。名称搜索通过 SQLite 的 FTS5 索引完成。智能体通过 MCP 向这张图发问。README 描述的步骤中没有出现 LLM。因此笔者认为，这种提取是确定性的。
 
 这里出现的 **FTS5**（SQLite Full-Text Search 5）是 SQLite 以虚拟表形式提供的全文搜索扩展。根据 [SQLite 文档](https://www.sqlite.org/fts5.html)，它自 3.9.0（2015-10-14）起被纳入 amalgamation，可用 `CREATE VIRTUAL TABLE ... USING fts5(...)` 建表，再用 `MATCH` 运算符查询。无需另外启动 Elasticsearch 之类的搜索引擎，用一个 SQLite 文件就能持有全文索引。
 
@@ -103,15 +105,15 @@ gpt-4o 的输入上限是 128k，所以 1/8 被截到 4,096；聊天为空，map
 
 不过，确定性不等于没有遗漏。同一份 README 把依赖约定和反射的框架的路由识别率记为 Spring 83.3%、ASP.NET 83.9%，并称之为静态分析的上限（honest static-analysis ceiling）。相同的代码会得到相同的结果，但这个结果里可能缺了一些边。
 
-基准测试是 CodeGraph 自己测的。同一份 README 中 2026-08-05 的重新测量，以 headless 方式运行 Claude Opus 4.8，向 7 个开源仓库各提一个架构问题。启用 CodeGraph MCP 的一方，平均成本降低 44%，处理的 token 减少 62%，tool call 减少 88%。这次重新测量在双方都禁止通过 Bash 调用 `codegraph` CLI。在没有这一限制的测试框架中，不用该工具的一方在 28 次运行中有 26 次找到并用上了 CLI，README 也说明此前公布的数字是在没有这一限制的情况下得出的。本文最初引用的 Opus 4.7 数字（便宜 35%、tool call 减少 71%）就是那些较早的数字。
+基准测试是 CodeGraph 自己测的。同一份 README 中 2026-08-05 的重新测量，以 headless 方式运行 Claude Opus 4.8，向 7 个开源仓库各提一个架构问题。启用 CodeGraph MCP 的一方，平均成本降低 44%，处理的 token 减少 62%，tool call 减少 88%。这次重新测量在双方都禁止通过 Bash 调用 `codegraph` CLI。在没有这一限制的测试框架中，不用该工具的一方在 28 次运行中有 26 次找到并用上了 CLI，README 也说明此前公布的数字是在没有这一限制的情况下得出的。
 
 节省幅度并没有跟随仓库规模。在不用该工具的一方用了 28～43 次 tool call 的问题上，成本降低了 57～78%；而在 7 次就结束的 Gin 上，几乎持平。约 11k 个文件的 VS Code 是 71%，约 640 个文件的 Excalidraw 是 78%。问题需要的探索越多，收益越大。
 
-README 也记录了方向相反的数字。处理的 token 减少了，但在多轮会话结束时，仍留在 context window 中的 retrieval 结果，CodeGraph 一方多出约 80%。在 VS Code 上是 67k 对 18k tokens。原因是它一次返回密集的原文，而这些原文会原样留在窗口里。这一层级以窗口中留存更多为代价，减少了 tool call 和处理的 token。
+README 也记录了方向相反的数字。处理的 token 减少了，但在多轮会话结束时，仍留在 context window 中的 retrieval 结果，在 7 个仓库整体上 CodeGraph 一方多出约 80%。各仓库之间差距很大，仅 VS Code 一个仓库就是 67k 对 18k tokens，约 3.7 倍。原因是它一次返回密集的原文，而这些原文会原样留在窗口里。这一层级以窗口中留存更多为代价，减少了 tool call 和处理的 token。
 
 学术界也有同一方向的研究。[GraphCoder](https://arxiv.org/abs/2406.07003)（ASE 2024）构建了融合 control flow 与 data/control dependence 的 Code Context Graph，[CodexGraph](https://aclanthology.org/2025.naacl-long.7/)（NAACL 2025）让 LLM 智能体自己编写并执行图数据库查询。未经同行评审的预印本 [Prometheus](https://arxiv.org/abs/2507.19942) 在基于 tree-sitter 的知识图谱上加入 working memory，用于多种语言的 issue 解决。
 
-**Cursor** 走了另一条路，后来又改变了方向。[2026 年 1 月 Cursor 博客](https://cursor.com/blog/secure-codebase-indexing) 介绍的索引不是语法图，而是**基于向量嵌入的语义搜索**。它在本地把文件切成 chunk，用 Merkle tree 哈希与服务器同步，并把嵌入存进名为 Turbopuffer 的向量数据库。2026 年 7 月，Cursor 的 Community Support Engineer 在[论坛](https://forum.cursor.com/t/what-do-you-think-about-cursor-removing-the-codebase-indexing-settings/165899)上回答：“Semantic/embeddings indexing is being turned down in favor of grep-based retrieval”。同一帖子里，另一位员工写道，随着模型越来越会用 grep，以前的语义搜索路径已不再有实质帮助。现在的 [Cursor 文档](https://cursor.com/docs/context/codebase-indexing) 写着：Instant Grep 在本机构建并查询索引，不保存代码库的嵌入。
+**Cursor** 走了另一条路，后来又改变了方向。[2026 年 1 月 Cursor 博客](https://cursor.com/blog/secure-codebase-indexing) 介绍的索引不是语法图，而是**基于向量嵌入的语义搜索**。它在本地把文件切成 chunk，用 Merkle tree 哈希与服务器同步，并把 chunk 转成嵌入，用于语义搜索。2026 年 7 月，Cursor 的 Community Support Engineer 在[论坛](https://forum.cursor.com/t/what-do-you-think-about-cursor-removing-the-codebase-indexing-settings/165899)上回答：“Semantic/embeddings indexing is being turned down in favor of grep-based retrieval”。同一帖子里，另一位员工写道，随着模型越来越会用 grep，以前的语义搜索路径已不再有实质帮助。现在的 [Cursor 文档](https://cursor.com/docs/context/codebase-indexing) 写着：Instant Grep 在本机构建并查询索引，不保存代码库的嵌入。
 
 
 ### LSP
@@ -120,7 +122,7 @@ README 也记录了方向相反的数字。处理的 token 减少了，但在多
 
 **[LSP](https://microsoft.github.io/language-server-protocol/)**（Language Server Protocol）是一种基于 JSON-RPC 的开放协议，用来标准化编辑器与语言分析工具（代码补全、跳转到定义、查找引用、重构等）之间的通信。2016 年，[Microsoft、Red Hat、Codenvy 宣布了合作](https://www.redhat.com/en/about/press-releases/red-hat-codenvy-and-microsoft-collaborate-language-server-protocol)。核心思路是：“不要为每个编辑器重新实现语言分析器，而是每种语言放一个服务器，让所有编辑器都去问它。”rust-analyzer 和 Python 的 pyright 是 LSP 服务器，而 TypeScript 使用的是 typescript-language-server，它用 LSP 包装了使用自有协议的 `tsserver`。
 
-**Serena**（`oraios/serena`）是属于这一层级的 MCP server。截至 2026-10-08 有 30,093 stars，仓库创建于 2025 年 3 月。Serena 的核心思路可以用一句话概括：**给智能体看 symbol，而不是文本。** 主要工具有 `find_symbol`、`find_referencing_symbols`、`get_symbols_overview` 等。后端可以二选一：默认是实现了 LSP 的语言服务器（免费/开源），另一个选项是利用 JetBrains IDE 代码分析的付费插件（提供免费试用）。
+**Serena**（`oraios/serena`）是属于这一层级的 MCP server。截至 2026-10-08 有 30,093 stars，仓库创建于 2025 年 3 月。Serena 的核心思路可以用一句话概括：**以 symbol 为单位给智能体看代码。** 主要工具有 `find_symbol`、`find_referencing_symbols`、`get_symbols_overview` 等。后端可以二选一：默认是实现了 LSP 的语言服务器（免费/开源），另一个选项是利用 JetBrains IDE 代码分析的付费插件（提供免费试用）。
 
 在本仓库里测一下，就能看出差异从哪里来。笔者用两种方式查找了过滤非公开文章的 `isHiddenPost`（`src/lib/filter-posts.ts:12`）的使用位置。文本这一侧是 grep。
 
@@ -129,7 +131,7 @@ README 也记录了方向相反的数字。处理的 token 减少了，但在多
 git grep -n isHiddenPost -- ':!content'   # 16줄, 파일 9개
 ```
 
-LSP 这一侧，typescript-language-server 回答 `textDocument/references` 时用的是 TypeScript 的 `findReferences` API，笔者直接调用了这个 API。并不是启动 Serena 测出来的。LSP 的查找引用不是按名称问，而是按位置（文件、行、列）问。所以 Serena 的 [`find_referencing_symbols`](https://github.com/oraios/serena/blob/3b99f8b024dafd58c962ea6e74f37c8a730ef532/src/serena/tools/symbol_tools.py#L169-L172) 也要同时接收 `name_path` 和 `relative_path`。在这个例子里就是 `find_referencing_symbols(name_path="isHiddenPost", relative_path="src/lib/filter-posts.ts")`。
+LSP 这一侧，typescript-language-server 回答 `textDocument/references` 时用的是 TypeScript 的 `findReferences` API，笔者直接调用了这个 API。并不是启动 Serena 测出来的。LSP 的查找引用按位置（文件、行、列）来问。所以 Serena 的 [`find_referencing_symbols`](https://github.com/oraios/serena/blob/3b99f8b024dafd58c962ea6e74f37c8a730ef532/src/serena/tools/symbol_tools.py#L169-L172) 也要同时接收 `name_path` 和 `relative_path`。在这个例子里就是 `find_referencing_symbols(name_path="isHiddenPost", relative_path="src/lib/filter-posts.ts")`。
 
 ```js
 // 리포 루트에서 실행한다: node - < refs.cjs
@@ -174,7 +176,7 @@ src/app/[lang]/[slug]/page.tsx:90
 
 两侧找到的代码位置都是同样的 11 处。这个名字在仓库中只有一个，所以 grep 既没有漏掉也没有多抓代码位置。差异来自其余 5 处。grep 还一并返回了 `CLAUDE.md`、命令文档及其快照中的 5 行说明文字。
 
-Serena 会给每个引用附上[前后各 1 行](https://github.com/oraios/serena/blob/3b99f8b024dafd58c962ea6e74f37c8a730ef532/src/serena/repl/api/lsp_api.py#L367-L369)再返回。因此笔者对两侧采用同一标准，统计每个位置加上 `file:line` 和前后各 1 行之后的文本 token 数。
+Serena 会给每个引用附上[前后各 1 行](https://github.com/oraios/serena/blob/3b99f8b024dafd58c962ea6e74f37c8a730ef532/src/serena/repl/api/lsp_api.py#L367-L369)再返回。因此笔者对两侧采用同一标准，统计每个位置加上 `file:line` 和前后各 1 行之后的文本 token 数。grep 也会把定义所在的行当作匹配返回，所以引用一侧也把定义算在内。
 
 ```python
 # 리포 루트에서 실행한다: python3 count.py (tiktoken 0.13.0)
@@ -189,29 +191,29 @@ def tokens(locs):  # 위치마다 file:line 과 앞뒤 1줄을 붙여 센다
         total += len(enc.encode(f"{f}:{n}\n" + "\n".join(lines[max(0, n - 2):n + 1])))
     return total
 grep = [(l.split(":")[0], int(l.split(":")[1])) for l in run("git grep -n isHiddenPost -- ':!content'")]
-refs = [(l.rsplit(":", 1)[0], int(l.rsplit(":", 1)[1])) for l in run("node - < refs.cjs") if "(정의)" not in l]
+refs = [(l.rsplit(":", 1)[0], int(l.rsplit(":", 1)[1])) for l in (x.removesuffix(" (정의)") for x in run("node - < refs.cjs"))]
 code = [x for x in grep if x[0].startswith("src/")]
 print(f"grep {len(grep)}곳 {tokens(grep)} (코드 {len(code)}곳 {tokens(code)}) | 참조 {len(refs)}곳 {tokens(refs)}")
 ```
 
 ```text
 $ python3 count.py
-grep 16곳 1172 (코드 11곳 453) | 참조 10곳 423
+grep 16곳 1172 (코드 11곳 453) | 참조 11곳 453
 ```
 
 | 方式 | 位置 | tokens |
 |---|---|---|
 | grep | 16 处（代码 11，文档 5） | 1,172（代码 453，文档 719） |
-| findReferences（不含定义） | 10 处 | 423 |
+| findReferences（含定义） | 11 处 | 453 |
 
-749 tokens 的差距中，有 719 来自 5 处文档。在这个仓库里，LSP 省下的不是寻找代码位置的成本，而是阅读噪声匹配的成本。如果智能体把 grep 命中的 9 个文件整个读一遍，grep 一侧会增加到 47,737 tokens，其中 43,318 来自 5 个文档。这是上限。在实际会话中，`CLAUDE.md` 很可能已经在 context 中，不会再读一次。如果是 `isLocale` 这样常见的名字，连代码位置的结果都可能出现分歧，但这次没有测。
+719 tokens 的差距全部来自 5 处文档。在这个仓库里，LSP 省下的不是寻找代码位置的成本，而是阅读噪声匹配的成本。如果智能体把 grep 命中的 9 个文件整个读一遍，要读的量是 47,034 tokens，其中 43,318 来自 5 个文档。这是上限。在实际会话中，`CLAUDE.md` 很可能已经在 context 中，不会再读一次。如果是 `isLocale` 这样常见的名字，连代码位置的结果都可能出现分歧。
 
 Aider 不使用 LSP，所以只能识别到函数与类的层面。[OpenCode](https://opencode.ai/docs/lsp/) 接入 LSP 服务器，默认把诊断结果反馈给智能体。查询定义、引用、hover、call hierarchy 的 `lsp` 工具，只有在 [`OPENCODE_EXPERIMENTAL_LSP_TOOL=true`](https://opencode.ai/docs/tools/) 时才会启用。无论哪种，都附带一个条件：每种语言都需要有好的 LSP 服务器。
 
 
 ## 总结
 
-总之，四个层级按对代码理解的深度区分，减少的成本也各不相同。context packing 把代码作为文本交出去，即使加上 `--compress` 也只保留到语法，减少的是输入的 token。tree-sitter repo map 知道 symbol 存在，用预算给输入的 token 设上限，至于用什么填满这个上限，则由那一刻的对话决定。知识图谱预先保存关系，减少 tool call 和处理的 token，但按厂商自己的测量，留在窗口里的量反而增加了。LSP 连 symbol 是什么都知道，在这个仓库里，节省的大部分来自过滤掉 grep 一并带来的噪声匹配，从而减少了要处理的 token。
+总之，四个层级按对代码理解的深度区分，减少的成本也各不相同。context packing 把代码作为文本交出去，即使加上 `--compress` 也只保留到语法，减少的是输入的 token。tree-sitter repo map 知道 symbol 存在，用预算给输入的 token 设上限，至于用什么填满这个上限，则由那一刻的对话决定。知识图谱预先保存关系，减少 tool call 和处理的 token，但按厂商自己的测量，留在窗口里的量反而增加了。LSP 连 symbol 是什么都知道，在这个仓库里，节省的全部来自过滤掉 grep 一并带来的噪声匹配，从而减少了要处理的 token。
 
 所以，笔者在挑选工具时，比起层级有多深，会先看现在出问题的是哪一种成本。窗口小而会话长，就看留存的量；往返慢，就看 tool call 次数；如果仓库里文档和代码共用同样的名字，就看噪声匹配。笔者把 Cursor 拿掉语义搜索、回到 grep 这件事，也读作“层级越深不一定越好”的信号。
 

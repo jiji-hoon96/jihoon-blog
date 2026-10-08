@@ -9,7 +9,7 @@ description: "结合 React 的 PR 记录与在 Chrome 中实测的 setTimeout 4m
 keywords: "requestIdleCallback, MessageChannel, React Scheduler, setTimeout 4ms, React 调度器原理, shouldYieldToHost, requestAnimationFrame, React Fiber"
 locale: zh-CN
 translationOf: '250515'
-sourceHash: 2886d1f79bf522f36c50fa641be933949b9f29244460f6f2da25323d88f63148
+sourceHash: b2240aadc9a34dfdbdb5f30061426c525d49af520ebc5bb3ff62b6991bcf445c
 ---
 
 这篇文章想聊一聊 **React 为什么用 MessageChannel 而不是 requestIdleCallback 来调度工作**。
@@ -26,9 +26,11 @@ sourceHash: 2886d1f79bf522f36c50fa641be933949b9f29244460f6f2da25323d88f63148
 - **2019 年 7 月**：不再猜测下一次 vsync 并在帧末让出，而是以实验标志的形式加入了一个在 message 事件中工作 5ms 后让出的循环（[PR #16214](https://github.com/facebook/react/pull/16214)）。这个循环完全不使用 `requestAnimationFrame`。
 - **2019 年 11 月**：在性能测试显示 message 循环的 CPU 利用率更好的报告（[PR #16271](https://github.com/facebook/react/pull/16271)）之后，删除了 rAF 实现（[PR #17252](https://github.com/facebook/react/pull/17252)）。
 
-starvation 源于 `requestIdleCallback` 的定义。[W3C 规范](https://w3c.github.io/requestidlecallback/)规定，这个回调在浏览器完成帧工作后剩下的空闲期（idle period）中调用。页面繁忙时这样的空闲期很少出现，React 的工作也就相应被推迟。Dan Abramov 也在 2018 年 8 月的一条 issue 评论中写道，React 不再使用这个 API 的原因是"it's not as aggressive as we need"（[facebook/react#11171](https://github.com/facebook/react/issues/11171#issuecomment-417349573)）。
+笔者认为，这种 starvation 源于 `requestIdleCallback` 的定义。[W3C 规范](https://w3c.github.io/requestidlecallback/)规定，这个回调在浏览器完成帧工作后剩下的空闲期（idle period）中调用。页面繁忙时这样的空闲期很少出现，React 的工作也就相应被推迟。Dan Abramov 也在 2018 年 8 月的一条 issue 评论中写道，React 不再使用这个 API 的原因是"it's not as aggressive as we need"（[facebook/react#11171](https://github.com/facebook/react/issues/11171#issuecomment-417349573)）。
 
-之后放弃 `requestAnimationFrame` 方式的原因写在 PR #16214 的描述里。这种方式必须猜测下一次 vsync（与显示器刷新周期对应的信号）的时机，而且页面打开后刷新率上升可以检测到，下降却检测不到。message 循环无论处在 vsync 周期的哪个位置都每 5ms 让出一次，因此即使在高刷新率屏幕上也能保持主线程的响应性。现在 Scheduler 源码中的注释也写着，大多数任务不需要与帧边界对齐。
+之后放弃 `requestAnimationFrame` 方式的原因写在 PR #16214 的描述里。这种方式必须猜测下一次 vsync（与显示器刷新周期对应的信号）的时机。它一开始假定 30fps，把帧长设为 33.33ms；如果连续两个帧间隔都比它短，就把帧长缩短为两者中较长的那个。本帧的截止时间是帧开始的时刻加上这个长度（[PR #17252 之前的 SchedulerHostConfig.default.js](https://github.com/facebook/react/blob/6dc2734b41aef944e457eaa23ae218952fce0a54/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L305-L336)）。由于只有缩短帧长的规则，正如 PR 描述所说，页面打开后刷新率上升可以检测到，下降却检测不到。
+
+message 循环无论处在 vsync 周期的哪个位置都每 5ms 让出一次。PR 描述预期这样即使在刷新率非常高的屏幕上，主线程也能保持响应（"should keep the main thread responsive"）。现在 Scheduler 源码中的注释也写着，大多数任务不需要与帧边界对齐。
 
 ## MessageChannel
 
@@ -58,9 +60,11 @@ if (typeof localSetImmediate === 'function') {
 }
 ```
 
-这里有三个分支。如今的浏览器没有 `setImmediate`，所以会走第二个分支的 `MessageChannel`。第一个分支是为 Node.js 和 jsdom 准备的。按照源码注释，`MessageChannel` 会让 Node.js 进程无法退出，而 `setImmediate` 不会（[facebook/react#20756](https://github.com/facebook/react/issues/20756)）。所以在 Jest 中跟踪 Scheduler 时，走的不是 `MessageChannel` 而是 `setImmediate` 路径。
+这里有三个分支。如今的浏览器没有 `setImmediate`，所以会走第二个分支的 `MessageChannel`。按照源码注释，第一个分支是为 Node.js 和旧版 IE 准备的。同一段注释写道，`MessageChannel` 会让 Node.js 进程无法退出，而 `setImmediate` 不会（[facebook/react#20756](https://github.com/facebook/react/issues/20756)）。所以在 Jest 的 node 环境中跟踪 Scheduler 时，走的不是 `MessageChannel` 而是 `setImmediate` 路径。jsdom 环境则不同。从 Jest 27 起，`jest-environment-jsdom` 从全局中移除了 `setImmediate`（[jestjs/jest#11222](https://github.com/jestjs/jest/pull/11222)），所以不会进入第一个分支。
 
-Scheduler 这样调度下一轮的目的，是把主线程交还给浏览器。JavaScript 占着主线程时，浏览器既不能处理输入，也不能绘制画面。因此 Reconciler 每处理一个 Fiber 就询问一次 `shouldYield()`（[ReactFiberWorkLoop.js 第 3073 至 3078 行](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L3073-L3078)）。给出答案的 Scheduler `shouldYieldToHost()` 会检查本次消息任务开始后经过的时间是否超过了 `frameInterval`。这个值由 `SchedulerFeatureFlags.js` 中的 `frameYieldMs` 初始化，也就是 **5ms**（[第 11 行](https://github.com/facebook/react/blob/v19.3.0/packages/scheduler/src/SchedulerFeatureFlags.js#L11)）。5ms 不是工作切片的大小，而是检查是否让出的时间标准。如果渲染一个组件需要 20ms，这 20ms 不会被拆开。
+Scheduler 这样调度下一轮的目的，是把主线程交还给浏览器。JavaScript 占着主线程时，浏览器既不能处理输入，也不能绘制画面。不过，并不是所有渲染都会中途让出。React v19.3.0 的 Reconciler 在开始渲染时，会根据本次渲染的 lane 决定是否进行时间切片（[ReactFiberWorkLoop.js 第 1168 行](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L1168)）。只要包含 Sync、InputContinuous、Default lane，就不让出、一直渲染到底（[ReactFiberLane.js 第 684 行](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberLane.js#L684)）。进行时间切片、中途让出的是 Transition 和 Retry 这类渲染。
+
+在这类渲染中，Reconciler 每处理一个 Fiber 就询问一次 `shouldYield()`（[ReactFiberWorkLoop.js 第 3073 至 3078 行](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L3073-L3078)）。这个函数由 Scheduler 导出，实际的判断由 Scheduler 内部的 `shouldYieldToHost()` 完成。判断的依据是本次消息任务开始后经过的时间。这段时间一旦超过 `frameInterval`，就会让出。`frameInterval` 的初始值是 `SchedulerFeatureFlags.js` 中定义的 `frameYieldMs`，也就是 **5ms**（[第 11 行](https://github.com/facebook/react/blob/v19.3.0/packages/scheduler/src/SchedulerFeatureFlags.js#L11)）。5ms 不是工作切片的大小，而是检查是否让出的时间标准。如果渲染一个组件需要 20ms，这 20ms 不会被拆开。
 
 ## setTimeout 的 4ms 延迟
 
@@ -93,7 +97,7 @@ schedule();
 | `setTimeout(work, 0)` | 353 至 354ms | 21 |
 | 不拆分 | 200ms | 0 |
 
-`setTimeout` 这边在前六次调用之后，每个切片都多出 4.5ms 左右的空闲时间，同样的工作花了约 1.8 倍的时间。帧数更多是因为工作结束得晚、测量区间变长了，并不代表响应性更好。不拆分时工作在 200ms 内完成，但期间一帧也没有绘制。`MessageChannel` 在同样的 200ms 内完成工作，同时以约 60fps 持续输出帧。我没有在 Safari 和 Firefox 中测量。
+`setTimeout` 这边在前六次调用之后，每个切片都多出 4.5ms 左右的空闲时间，同样的工作花了约 1.8 倍的时间。帧数更多是因为工作结束得晚、测量区间变长了，并不代表响应性更好。不拆分时工作在 200ms 内完成，但期间一帧也没有绘制。`MessageChannel` 在同样的 200ms 内完成工作，同时以约 60fps 持续输出帧。
 
 
 ## 结语

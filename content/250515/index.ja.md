@@ -9,7 +9,7 @@ description: "React SchedulerがrequestIdleCallback、requestAnimationFrame、se
 keywords: "requestIdleCallback, MessageChannel, React Scheduler, setTimeout 4ms, Reactスケジューラーの仕組み, shouldYieldToHost, requestAnimationFrame, React Fiber"
 locale: ja
 translationOf: '250515'
-sourceHash: 2886d1f79bf522f36c50fa641be933949b9f29244460f6f2da25323d88f63148
+sourceHash: b2240aadc9a34dfdbdb5f30061426c525d49af520ebc5bb3ff62b6991bcf445c
 ---
 
 今回の記事では、**ReactがrequestIdleCallbackではなくMessageChannelで作業を予約する理由**について話してみたい。
@@ -26,9 +26,11 @@ Fiberの概念を説明するときには、`requestIdleCallback`で作業を分
 - **2019年7月**：次のvsyncを推測してフレームの終わりに譲る方式の代わりに、messageイベントの中で5ms働いて譲るループを実験フラグとして入れた（[PR #16214](https://github.com/facebook/react/pull/16214)）。このループは`requestAnimationFrame`をまったく使わない。
 - **2019年11月**：性能テストでmessageループのほうがCPU利用効率が良かったという報告（[PR #16271](https://github.com/facebook/react/pull/16271)）を経て、rAF実装を削除した（[PR #17252](https://github.com/facebook/react/pull/17252)）。
 
-starvationは`requestIdleCallback`の定義から生じる。[W3C仕様](https://w3c.github.io/requestidlecallback/)は、このコールバックをブラウザーがフレームの作業を終えて残ったアイドル期間（idle period）に呼ぶと定めている。ページが忙しければその期間はまれにしか来ず、Reactの作業はその分後回しになる。Dan Abramovも2018年8月のissueコメントで、ReactがこのAPIを使うのをやめた理由を「it's not as aggressive as we need」と書いている（[facebook/react#11171](https://github.com/facebook/react/issues/11171#issuecomment-417349573)）。
+筆者は、このstarvationは`requestIdleCallback`の定義から生じると見ている。[W3C仕様](https://w3c.github.io/requestidlecallback/)は、このコールバックをブラウザーがフレームの作業を終えて残ったアイドル期間（idle period）に呼ぶと定めている。ページが忙しければその期間はまれにしか来ず、Reactの作業はその分後回しになる。Dan Abramovも2018年8月のissueコメントで、ReactがこのAPIを使うのをやめた理由を「it's not as aggressive as we need」と書いている（[facebook/react#11171](https://github.com/facebook/react/issues/11171#issuecomment-417349573)）。
 
-その後の`requestAnimationFrame`方式を捨てた理由はPR #16214の本文にある。この方式は次のvsync（ディスプレイが画面を更新する周期に合わせた信号）のタイミングを推測しなければならず、ページを開いた後にリフレッシュレートが上がることは検知できても、下がることは検知できなかった。messageループはvsync周期のどこにいても5msごとに譲るため、リフレッシュレートの高い画面でもメインスレッドの応答性を保てる。現在のSchedulerのソースコメントも、ほとんどの作業はフレーム境界に合わせる必要がないと書いている。
+その後の`requestAnimationFrame`方式を捨てた理由はPR #16214の本文にある。この方式は次のvsync（ディスプレイが画面を更新する周期に合わせた信号）のタイミングを推測しなければならなかった。最初は30fpsを仮定してフレーム長を33.33msとし、連続する二つのフレーム間隔がどちらもそれより短ければ、二つのうち長いほうにフレーム長を縮めた。今回のフレームの締め切りは、フレームが始まった時刻にこの長さを足した値だった（[PR #17252直前のSchedulerHostConfig.default.js](https://github.com/facebook/react/blob/6dc2734b41aef944e457eaa23ae218952fce0a54/packages/scheduler/src/forks/SchedulerHostConfig.default.js#L305-L336)）。フレーム長を縮める規則しかなかったので、PR本文のとおり、ページを開いた後にリフレッシュレートが上がることは検知できても、下がることは検知できなかった。
+
+messageループはvsync周期のどこにいても5msごとに譲る。PR本文は、こうすればリフレッシュレートが非常に高い画面でもメインスレッドの応答性を保てるだろうと期待していた（「should keep the main thread responsive」）。現在のSchedulerのソースコメントも、ほとんどの作業はフレーム境界に合わせる必要がないと書いている。
 
 ## MessageChannel
 
@@ -58,9 +60,11 @@ if (typeof localSetImmediate === 'function') {
 }
 ```
 
-分岐は三つある。今のブラウザーには`setImmediate`がないので、二つ目の分岐の`MessageChannel`が選ばれる。一つ目の分岐はNode.jsとjsdomのためのものだ。ソースコメントによれば、`MessageChannel`はNode.jsプロセスが終了しないよう引き止めるが、`setImmediate`はそうしない（[facebook/react#20756](https://github.com/facebook/react/issues/20756)）。そのためJestでSchedulerを追うと、`MessageChannel`ではなく`setImmediate`の経路を通る。
+分岐は三つある。今のブラウザーには`setImmediate`がないので、二つ目の分岐の`MessageChannel`が選ばれる。ソースコメントによれば、一つ目の分岐はNode.jsと古いIEのためのものだ。同じコメントは、`MessageChannel`はNode.jsプロセスが終了しないよう引き止めるが、`setImmediate`はそうしないと書いている（[facebook/react#20756](https://github.com/facebook/react/issues/20756)）。そのためJestのnode環境でSchedulerを追うと、`MessageChannel`ではなく`setImmediate`の経路を通る。jsdom環境は違う。Jest 27から`jest-environment-jsdom`はグローバルから`setImmediate`を外したので（[jestjs/jest#11222](https://github.com/jestjs/jest/pull/11222)）、一つ目の分岐には入らない。
 
-Schedulerがこうして次の番を予約する目的は、メインスレッドをブラウザーに返すことである。JavaScriptがメインスレッドを握っている間、ブラウザーは入力を処理することも画面を描くこともできない。そのためReconcilerはFiberを一つ処理するたびに`shouldYield()`を尋ねる（[ReactFiberWorkLoop.js 3073〜3078行](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L3073-L3078)）。その答えを出すSchedulerの`shouldYieldToHost()`は、今回のメッセージタスクが始まってからの経過時間が`frameInterval`を超えたかを見る。この値は`SchedulerFeatureFlags.js`の`frameYieldMs`、つまり**5ms**で初期化される（[11行](https://github.com/facebook/react/blob/v19.3.0/packages/scheduler/src/SchedulerFeatureFlags.js#L11)）。5msは作業の断片の大きさではなく、譲るかどうかを確認する時間の基準である。コンポーネント一つのレンダリングに20msかかれば、その20msは分割されない。
+Schedulerがこうして次の番を予約する目的は、メインスレッドをブラウザーに返すことである。JavaScriptがメインスレッドを握っている間、ブラウザーは入力を処理することも画面を描くこともできない。ただし、すべてのレンダーが途中で譲るわけではない。React v19.3.0のReconcilerは、レンダーを始めるときに今回のレンダーのlaneを見て、時間を分割するかを決める（[ReactFiberWorkLoop.js 1168行](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L1168)）。Sync、InputContinuous、Defaultのlaneが含まれていれば、譲らずに最後までレンダーする（[ReactFiberLane.js 684行](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberLane.js#L684)）。時間を分割して途中で譲るのは、TransitionやRetryのようなレンダーだ。
+
+こうしたレンダーでは、ReconcilerはFiberを一つ処理するたびに`shouldYield()`を尋ねる（[ReactFiberWorkLoop.js 3073〜3078行](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L3073-L3078)）。この関数はSchedulerが公開しているもので、実際の判断はScheduler内の`shouldYieldToHost()`が行う。基準は、今回のメッセージタスクが始まってからの経過時間だ。その時間が`frameInterval`を超えると譲る。`frameInterval`の初期値は`SchedulerFeatureFlags.js`で定義された`frameYieldMs`、つまり**5ms**である（[11行](https://github.com/facebook/react/blob/v19.3.0/packages/scheduler/src/SchedulerFeatureFlags.js#L11)）。5msは作業の断片の大きさではなく、譲るかどうかを確認する時間の基準である。コンポーネント一つのレンダリングに20msかかれば、その20msは分割されない。
 
 ## setTimeoutの4ms遅延
 
@@ -93,7 +97,7 @@ schedule();
 | `setTimeout(work, 0)` | 353〜354ms | 21 |
 | 分割しない | 200ms | 0 |
 
-`setTimeout`のほうは、最初の6回の後から断片ごとに4.5ms前後の空き時間が付き、同じ作業に約1.8倍の時間がかかった。フレーム数が多いのは作業が遅く終わって測定区間が長くなったためで、応答性が良いという意味ではない。分割しなければ作業は200msで終わるが、その間フレームは一つも描かれない。`MessageChannel`は同じ200msのうちに作業を終えながら、約60fpsでフレームを出し続けた。SafariとFirefoxでは測っていない。
+`setTimeout`のほうは、最初の6回の後から断片ごとに4.5ms前後の空き時間が付き、同じ作業に約1.8倍の時間がかかった。フレーム数が多いのは作業が遅く終わって測定区間が長くなったためで、応答性が良いという意味ではない。分割しなければ作業は200msで終わるが、その間フレームは一つも描かれない。`MessageChannel`は同じ200msのうちに作業を終えながら、約60fpsでフレームを出し続けた。
 
 
 ## おわりに

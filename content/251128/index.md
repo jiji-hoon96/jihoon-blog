@@ -13,7 +13,7 @@ keywords: "ErrorBoundary 재시도 안 됨, QueryErrorResetBoundary, retryOnMoun
 
 `react-error-boundary` 의 fallback 에 재시도 버튼을 달았는데 눌러도 같은 화면이 다시 나오는 프론트엔드 개발자를 위해, 실패 상태가 남는 세 경우와 경우마다 푸는 방법을 정리한 글이다. 짧게 답하면 `ErrorBoundary` 는 자기 상태만 되돌리고 실패를 만든 상태는 던진 쪽에 그대로 남기 때문이다.
 
-예시는 TanStack Query 와 `react-error-boundary` 를 함께 쓰는 구성이다. 라이브러리의 동작은 설치본 소스를 열어 확인했고, 인용한 코드는 `@tanstack/react-query` 5.104.1, `react-error-boundary` 6.1.6, React 19.2.3 의 빌드 파일과 글자 단위로 같다(2026-10-08 대조).
+예시는 TanStack Query 와 `react-error-boundary` 를 함께 쓰는 구성이다. 라이브러리의 동작은 설치본 소스를 열어 확인했고, 인용한 코드는 `@tanstack/react-query` 5.104.1, `react-error-boundary` 6.1.6, React 19.2.3 의 빌드 파일과 구조가 같다(2026-10-08 대조). 들여쓰기와 줄 나눔은 읽기 쉽게 바꾼 곳이 있다.
 
 
 ## 재시도가 듣지 않는 세 경우
@@ -58,7 +58,13 @@ const useClearResetErrorBoundary = (errorResetBoundary) => {
 };
 ```
 
-그래서 boolean 하나로 이번 한 번만 다시 시도하게 된다.
+그래서 boolean 하나로 이번 한 번만 다시 시도하게 된다. 재시도 한 번을 순서대로 적으면 이렇다.
+
+1. `reset()` 이 표시를 세운다.
+2. 재마운트된 쿼리 훅이 렌더 중에 표시를 보고 `retryOnMount` 를 끄지 않는다.
+3. `getHasError` 도 표시를 보고 캐시의 에러를 던지지 않으므로, 쿼리가 다시 요청한다.
+4. 화면에 붙은 뒤 effect 의 `clearReset()` 이 표시를 내린다.
+5. 표시가 내려갔으므로 그 뒤의 에러에는 다시 잠금이 걸린다.
 
 이 `reset` 을 `ErrorBoundary` 의 `onReset` 에 이어 주면 된다. TanStack Query 의 문서와 소스 주석도 이렇게 잇는 코드를 예제로 싣고 있다.
 
@@ -130,7 +136,7 @@ throw payload._result;
 
 다시 `import()` 하지 않는다. `lazy()` 호출은 모듈 최상위에서 한 번 일어났고 그 `payload` 는 앱이 사는 동안 그대로다. `ErrorBoundary` 를 풀어 재마운트해도 같은 에러가 다시 온다.
 
-그렇다면 `lazy` 를 새로 만들어 `import()` 를 다시 부르면 어떨까. 지금까지는 브라우저가 막았다. 모듈 맵이 실패한 결과를 기억해서 같은 URL 을 다시 받지 않았다. 이 동작을 바꾸는 [HTML 명세 변경](https://github.com/whatwg/html/pull/10327)이 2026-07-15 에 병합됐다. 2026-10-08 에 확인한 엔진별 상태는 이렇다. Firefox 는 [155 에 반영해](https://bugzilla.mozilla.org/show_bug.cgi?id=2055211) 2026-09-01 에 출시했다. WebKit 은 [main 에 들어갔지만](https://bugs.webkit.org/show_bug.cgi?id=319492) Safari 안정판에 실렸는지는 확인하지 못했다. Chrome 은 [chromestatus](https://chromestatus.com/feature/5214647044145152) 에서 아직 Proposed 다. 그러니 Chrome 에서는 새 `import()` 도 같은 실패를 돌려준다.
+그렇다면 `lazy` 를 새로 만들어 `import()` 를 다시 부르면 어떨까. 지금까지는 브라우저가 막았다. 모듈 맵이 실패한 결과를 기억해서 같은 URL 을 다시 받지 않았다. 이 동작을 바꾸는 [HTML 명세 변경](https://github.com/whatwg/html/pull/10327)이 2026-07-15 에 병합됐다. 2026-10-08 에 확인한 엔진별 상태는 이렇다. Firefox 는 [155 에 반영해](https://bugzilla.mozilla.org/show_bug.cgi?id=2055211) 2026-09-01 에 출시했다. WebKit 은 2026-08-19 에 [main 에 들어갔고](https://bugs.webkit.org/show_bug.cgi?id=319492), 그 버그 기록에는 이 변경이 실린 Safari 안정판 버전이 적혀 있지 않다. Chrome 은 [chromestatus](https://chromestatus.com/feature/5214647044145152) 에서 아직 Proposed 다. 그러니 Chrome 에서는 새 `import()` 도 같은 실패를 돌려준다.
 
 그래서 이 실패의 복구는 페이지를 다시 받는 것이다. 브라우저가 다시 받아 주게 되어도 전부 풀리지는 않는다. 청크 로드 실패는 네트워크가 끊겨서도 나고, [Vite 문서](https://vite.dev/guide/build#load-error-handling)가 설명하듯 새 배포가 옛 청크를 지워서도 난다. 지워진 청크는 다시 요청해도 없으니 그 경우의 복구는 여전히 새로 고침이다. 원인을 하나로 단정할 수 없으므로 fallback 문구도 새 버전이 나왔다고 못박기보다 새로 고침을 권하는 편이 낫다.
 

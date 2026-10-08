@@ -39,7 +39,7 @@ MCP는 JSON-RPC 위에 만들어진 프로토콜이다. [JSON-RPC 2.0](https://w
 
 **클라이언트측 primitive**
 
-- **Sampling**: 서버가 거꾸로 클라이언트의 LLM에게 completion을 요청할 수 있게 해주는 메커니즘으로 클라이언트와 서버를 양방향 구조로 만든다.
+- **Sampling**: 서버가 거꾸로 클라이언트의 LLM에게 completion을 요청할 수 있게 해주는 메커니즘으로 클라이언트와 서버를 양방향 구조로 만든다. 서버가 도구를 실행하다 문장 생성이 필요할 때 자기 API 키 없이 클라이언트가 쓰는 모델을 빌리는 용도다. 2026-07-28 개정판에서는 제거 예정인 deprecated 상태가 되었다.
 - **Roots**: 클라이언트가 서버에게 "여기까지가 작업 가능한 범위"라고 알려주는 워크스페이스 경계 정보
 - **Elicitation**: 서버가 도구를 실행하는 도중에 사용자에게 추가 입력을 구조화된 형태로 요청할 수 있게 해주는 기능
 
@@ -128,7 +128,7 @@ console.log("tool_result:", JSON.stringify({ type: "tool_result", tool_use_id: t
 await client.close();
 ```
 
-`node post-demo.mjs` 의 출력은 이렇다.
+코드 중간에서 `clientT.send` 를 덮어쓴 두 줄은 클라이언트가 보내는 메시지의 메서드 이름을 찍으려고 넣은 것이고, 변환에는 관여하지 않는다. `node post-demo.mjs` 의 출력은 이렇다.
 
 ```text
 C->S initialize 2025-11-25
@@ -141,7 +141,7 @@ C->S tools/call
 tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type":"text","text":"Seoul: 15C, partly cloudy"}]}
 ```
 
-변환은 필드 이름을 바꾸는 것이 전부다. MCP의 `inputSchema` 가 Anthropic에서는 `input_schema`, OpenAI에서는 `parameters` 가 된다. SDK가 schema에 `$schema` 를 덧붙인다는 점도 출력에서 보인다. 반대 방향도 짧다. Anthropic의 `tool_use.input` 은 객체라서 그대로 `tools/call` 의 `arguments` 가 된다. 위 OpenAI 쪽 모양은 Responses API의 형식이다. OpenAI가 돌려주는 호출의 `arguments` 는 [JSON 문자열](https://developers.openai.com/api/docs/guides/function-calling)이라서 넘기기 전에 `JSON.parse` 를 한 번 거쳐야 한다. 이 부분은 문서로 확인했고 위 코드에서 돌리지는 않았다.
+변환은 필드 이름을 바꾸는 것이 전부다. MCP의 `inputSchema` 가 Anthropic에서는 `input_schema`, OpenAI에서는 `parameters` 가 된다. SDK가 schema에 `$schema` 를 덧붙인다는 점도 출력에서 보인다. 반대 방향도 짧다. Anthropic의 `tool_use.input` 은 객체라서 그대로 `tools/call` 의 `arguments` 가 된다. 위 OpenAI 쪽 모양은 Responses API의 형식이다. OpenAI가 돌려주는 호출의 `arguments` 는 [JSON 문자열](https://developers.openai.com/api/docs/guides/function-calling)이라서 넘기기 전에 `JSON.parse` 를 한 번 거쳐야 한다. 위 코드는 Anthropic 모양의 `tool_use` 블록만 만들었으므로 이 parse 단계는 출력에 나오지 않는다.
 
 
 ### MCP가 더하는 네 가지
@@ -151,9 +151,13 @@ tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type"
 - **동적 발견**: 빌드 타임에 도구 목록을 모르고 런타임에 `tools/list` 로 가져온다. 서버는 `notifications/tools/list_changed` 로 연결 도중 목록이 바뀌었다고 알릴 수 있다
 - **Stateful session**: `initialize` 로 연결을 맺고 그 안에서 요청이 오간다. 종료 메시지는 따로 없고, 전송을 닫는 것이 곧 종료다
 - **Tool 외 primitive**: Resource·Prompt·Sampling·Roots·Elicitation을 capability negotiation으로 노출한다. capability negotiation은 `initialize` 에서 양쪽이 지원하는 기능을 서로 알리는 단계다
-- **양방향성**: 서버가 Sampling으로 클라이언트의 LLM에게 completion을 거꾸로 요청할 수 있다
+- **양방향성**: 서버가 Sampling으로 클라이언트의 LLM에게 completion을 거꾸로 요청할 수 있다(2026-07-28 개정판에서 deprecated)
 
-그런데 2026-10-08 현재 공식 사이트에서 latest로 열리는 것은 [2026-07-28 개정판](https://modelcontextprotocol.io/specification/2026-07-28/changelog)이고, 여기서 이 목록의 절반이 바뀌었다. `initialize` 와 `notifications/initialized` 로 이루어진 handshake와 프로토콜 수준의 세션이 사라졌고, 매 요청이 `_meta` 에 프로토콜 버전과 클라이언트 capabilities를 싣는다. 서버는 지원 버전과 capabilities를 알리는 `server/discover` 를 반드시 구현해야 한다(MUST). Sampling과 Roots는 Logging과 함께 deprecated 되었고, 스펙은 Sampling 대신 LLM provider API에 직접 붙으라고 권한다. 서버가 먼저 보내던 요청은 Multi Round-Trip Requests라는 패턴으로 바뀌었다.
+그런데 2026-10-08 현재 공식 사이트에서 latest로 열리는 것은 [2026-07-28 개정판](https://modelcontextprotocol.io/specification/2026-07-28/changelog)이고, 여기서 이 목록의 절반이 바뀌었다. 먼저 `initialize` 와 `notifications/initialized` 로 이루어진 handshake와 프로토콜 수준의 세션이 사라졌다. 대신 매 요청이 `_meta` 에 프로토콜 버전과 클라이언트 capabilities를 싣는다. 이 필드는 메시지의 본래 인자와 별도로 메타데이터를 붙이도록 MCP가 예약해 둔 자리다. 서버는 `server/discover` 를 반드시 구현해야 한다(MUST). 클라이언트가 다른 요청보다 먼저 불러 서버가 지원하는 프로토콜 버전, capabilities, 서버 정보를 받아 오는 RPC다.
+
+서버가 먼저 보내던 요청은 Multi Round-Trip Requests(MRTR)라는 패턴으로 바뀌었다. 서버가 요청을 따로 보내는 대신 추가 입력이 필요하다는 중간 결과(`input_required`)를 돌려주고, 클라이언트가 그 입력을 채워 원래 요청을 다시 보내는 방식이다.
+
+Sampling과 Roots는 Logging과 함께 deprecated 되었다. 명세에 남아 동작은 하지만 새 구현은 채택하지 말라는 뜻이고, 스펙은 Sampling 대신 LLM provider API에 직접 붙으라고 권한다.
 
 다만 SDK의 기본 동작은 아직 옛 방식이다. TypeScript SDK 1.32.1은 최신 버전 상수가 `2025-11-25` 라서 2026-07-28 개정판을 모르고, 2.3.1은 이 개정판을 지원하지만 버전 협상 기본값이 `legacy` 다. 위 출력의 첫 줄 `initialize 2025-11-25` 가 그 결과다.
 
@@ -164,7 +168,7 @@ tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type"
 
 이 계약 중 어디까지가 모델에게 닿는지는 Anthropic의 [MCP connector](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector)가 보여 준다. Messages API가 원격 MCP 서버에 직접 붙는 기능인데, 문서의 Limitations는 MCP 명세의 기능 가운데 "only tool calls are currently supported" 라고 적고, "Local STDIO servers cannot be connected directly" 라고 적는다. 같은 문서는 로컬 서버나 MCP prompt, resource가 필요하면 MCP SDK로 연결을 직접 관리하면서 Anthropic SDK의 변환 helper를 쓰라고 안내한다.
 
-즉 function calling layer에서 MCP를 소비하면 Tool만 남는다. Resource와 Prompt는 그것을 화면이나 context로 옮겨 줄 호스트가 있어야 의미를 갖는다. OpenAI도 function calling 가이드에서 MCP 서버의 기능을 built-in tool로 쓰는 길을 소개한다. 그쪽이 Tool 외 primitive를 어디까지 받는지는 이 글에서 확인하지 않았다.
+즉 function calling layer에서 MCP를 소비하면 Tool만 남는다. Resource와 Prompt는 그것을 화면이나 context로 옮겨 줄 호스트가 있어야 의미를 갖는다. OpenAI도 function calling 가이드에서 MCP 서버의 기능을 built-in tool로 쓰는 길을 소개한다. OpenAI의 Remote MCP 가이드는 도구 목록을 가져오고 호출하는 방법만 설명하고, Resource나 Prompt를 지원하는지는 적지 않는다.
 
 
 ### 동적 발견이 여는 공격면
@@ -177,7 +181,7 @@ tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type"
 
 - **Rug Pull**(Silent Redefinition): 사용자가 승인한 뒤에 서버가 도구 정의를 바꾸는 공격이다. Invariant Labs가 같은 글에서 먼저 설명했고, Silent Redefinition이라는 이름은 Elena Cross의 글에서 왔으며, [Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/)이 2025년 4월 9일 이를 인용해 정리했다. 도구는 처음엔 합법적으로 시작된다. 사용자가 검토하고 승인하고 워크플로우에 통합한다. 몇 주 뒤, 도구 정의가 조용히 변경되어 악성 지시사항이 포함된다. 사용자는 재승인을 받지 않았으니 그대로 동작이 바뀐다.
 
-Rug Pull이 생기는 자리는 동적 발견을 가능하게 한 `notifications/tools/list_changed` 와 같다. 스펙은 목록이 바뀌었다고 알리는 방법을 정할 뿐, 바뀐 정의를 사용자에게 다시 보여 주라고 요구하지는 않는다. Willison은 MCP 클라이언트가 처음 도구 설명을 사용자에게 보여 주고, 설명이 바뀌면 경고해야 한다고 적었다. 변경 뒤에 재승인을 받는 일은 스펙이 아니라 호스트가 맡는다.
+Rug Pull이 생기는 자리는 동적 발견을 가능하게 한 `notifications/tools/list_changed` 와 같다. 이 이름은 2025-11-25 개정판의 것이고, 2026-07-28 개정판에서는 앞서 본 대로 opt-in 한 클라이언트만 이 알림을 받는다. 스펙은 목록이 바뀌었다고 알리는 방법을 정할 뿐, 바뀐 정의를 사용자에게 다시 보여 주라고 요구하지는 않는다. Willison은 MCP 클라이언트가 처음 도구 설명을 사용자에게 보여 주고, 설명이 바뀌면 경고해야 한다고 적었다. 변경 뒤에 재승인을 받는 일은 스펙이 아니라 호스트가 맡는다.
 
 
 ## 마무리

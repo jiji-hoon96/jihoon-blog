@@ -5,16 +5,16 @@ seoTitle: "LZ77 vs LZ78: Sliding Window, Explicit Dictionary, DEFLATE"
 date: "2024-07-01"
 updatedAt: "2026-10-08"
 categories: curiosities software
-description: "How LZ77 and LZ78 handle their dictionaries differently, and why LZSS, DEFLATE, ZIP, GZIP, and Zstd all ended up in the LZ77 family."
+description: "How LZ77 and LZ78 handle their dictionaries differently, how each forgets old data, and how DEFLATE, ZIP, GZIP, and Zstd descend from LZ77."
 keywords: "LZ77, LZ78, LZ77 vs LZ78, LZ77 algorithm, sliding window compression, LZW, how DEFLATE works, dictionary-based compression"
 locale: en
 translationOf: '240701'
-sourceHash: 68a931bfbbb2f07a9103f049f4bb4a87a117d1d96e3830974bb2d92d60b97852
+sourceHash: 3fe0bc5f9354bcd879485454d0b7f37acf77ad6e53d5a8ff9132076f428eb156
 ---
 
 In this post, I want to talk about **how LZ77 and LZ78 differ**.
 
-This post is for developers who use tools like zip, gzip, and zstd and have wondered how the dictionary-based compression inside them works. By the end, you will be able to explain how the two algorithms differ in handling their dictionaries and why nearly every mainstream compressor today descends from LZ77.
+This post is for developers who use tools like zip, gzip, and zstd and have wondered how the dictionary-based compression inside them works. By the end, you will be able to explain how the two algorithms differ in handling their dictionaries and which of the two today's mainstream compressors descend from.
 
 If you compare formats for compressing build artifacts, you eventually end up tracing them back to these two algorithms.
 
@@ -47,7 +47,17 @@ The algorithm checks whether the beginning of the look-ahead buffer has appeared
 
 For example, compressing the string `"banana_banana"` with the teaching encoder included later in this post produces five LZ77 tokens: `(0,0,b)` `(0,0,a)` `(0,0,n)` `(2,3,_)` `(7,5,a)`. The first three are characters seen for the first time, so they carry only a next character and no match. The second `"banana"` is handled by the single last token `(7,5,a)`. It means “go back seven characters, copy five, and append `a`.” It does not copy all six characters because this encoder always leaves the last character of the input in the next-character slot.
 
-In `(2,3,_)`, the length 3 is longer than the distance 2. With `ban` already written, the decoder starts copying from the `a` two characters back, and when it copies the third character it reads the `a` it has just written. That yields `ana`, and then `_` is appended. [RFC 1951](https://www.rfc-editor.org/rfc/rfc1951) specifies the same behavior: if the last two bytes are X and Y, `<length = 5, distance = 2>` appends X,Y,X,Y,X. This works because the dictionary is the data that has just been restored.
+In `(2,3,_)`, the length 3 is longer than the distance 2. With `ban` already written, the decoder starts copying from the `a` two characters back, and when it copies the third character it reads the `a` it has just written. That yields `ana`, and then `_` is appended. Followed one character at a time, it looks like this.
+
+| Step | Character read | Output |
+|---|---|---|
+| Start | none | `ban` |
+| Copy 1 | 2nd character, `a` | `bana` |
+| Copy 2 | 3rd character, `n` | `banan` |
+| Copy 3 | 4th character, `a` (written in copy 1) | `banana` |
+| Next character | `_` from the token | `banana_` |
+
+[RFC 1951](https://www.rfc-editor.org/rfc/rfc1951) specifies the same behavior: if the last two bytes are X and Y, `<length = 5, distance = 2>` appends X,Y,X,Y,X. This works because the dictionary is the data that has just been restored.
 
 In this approach, **the dictionary is not stored or transmitted separately.** The decoder reconstructs the search buffer itself while decompressing, so the dictionary is implicitly embedded in the data itself. Because references point to earlier data, decompression basically proceeds in order from the beginning. References, however, only reach as far back as the window. RFC 1951 limits DEFLATE references to at most 32K bytes back. That is why zlib provides `Z_FULL_FLUSH`, which resets the compression state, and [zlib.h](https://github.com/madler/zlib/blob/v1.3.1/zlib.h) says decompression can restart from that point, so it can be used when random access is needed. It also warns that using it too often can seriously degrade compression.
 
@@ -137,7 +147,7 @@ LZ78 (0,b) (0,a) (0,n) (2,n) (2,_) (1,a) (3,a) (7,) true
 사전 1:b 2:a 3:n 4:an 5:a_ 6:ba 7:na
 ```
 
-Both decoders in the code receive only tokens. That means **LZ78 does not transmit its dictionary either**. The decoder reads the tokens and adds entries in the same order as the encoder, so the same dictionary is rebuilt. Not transmitting the dictionary is something the two algorithms share. Where they part ways is **how they forget old content**. LZ77’s window slides forward and forgets old data automatically. An LZ78 dictionary only grows, so an implementation has to set a limit and, once the dictionary is full, either freeze it or clear it. The encoder in the 1978 paper also returns to its initial state after finishing a block and forgets all past history (p.533).
+Both decoders in the code receive only tokens. That means **LZ78 does not transmit its dictionary either**. The decoder reads the tokens and adds entries in the same order as the encoder, so the same dictionary is rebuilt. Not transmitting the dictionary is something the two algorithms share. Where they part ways is **how they forget old content**. LZ77’s window slides forward and forgets old data automatically. An LZ78 dictionary only grows, so an implementation has to set a limit and, once the dictionary is full, either freeze it or clear it.
 
 The best-known variation of LZ78 is **LZW** (Lempel-Ziv-Welch). Terry Welch published the improvement in 1984, and it was used by the GIF image format and the Unix `compress` utility with its `.Z` extension. Both implementations put a limit on the dictionary. The [GIF89a specification](https://www.w3.org/Graphics/GIF/spec-gif89a.txt) caps codes at 12 bits (a maximum value of 4095) and provides a separate Clear code that returns the dictionary to its initial state. According to the [ncompress man page](https://github.com/vapier/ncompress/blob/v5.0/compress.1), `compress` keeps watching the compression ratio once the code length reaches the `-b` limit (16 bits by default) and, if the ratio drops, discards the dictionary and rebuilds it from scratch.
 
@@ -149,19 +159,17 @@ Most mainstream compression algorithms we use today are **descendants of LZ77**.
 
 **LZSS**, published by Storer and Szymanski in 1982, is a variant that improved on LZ77. If a match was so short that a pointer would actually be longer than the original characters, the encoder outputs the “literal” original character instead of the pointer.
 
-**DEFLATE** was designed by Phil Katz for PKZIP 2, and its specification was written up as RFC 1951 in 1996. RFC 1951 describes DEFLATE as a combination of LZ77 and **Huffman coding**, an entropy-coding technique that gives shorter bit sequences to more frequent symbols. It inherited the LZSS idea of emitting short matches as literals, and it merges literals and match lengths into a single alphabet (0 to 285) distinguished by one Huffman code. ZIP's default compression method, GZIP, and PNG all use DEFLATE. In other words, most of the `.zip`, `.gz`, and `.png` files we handle every day are direct descendants of LZ77.
+**DEFLATE** was designed by Phil Katz for PKZIP 2, and its specification was written up as RFC 1951 in 1996. RFC 1951 describes DEFLATE as a combination of LZ77 and **Huffman coding**, an entropy-coding technique that gives shorter bit sequences to more frequent symbols. Its output is a mix of literals and (length, distance) pairs, and it merges literals and match lengths into a single alphabet (0 to 285) distinguished by one Huffman code. ZIP's default compression method, GZIP, and PNG all use DEFLATE. In other words, most of the `.zip`, `.gz`, and `.png` files we handle every day are direct descendants of LZ77.
 
-Later algorithms such as **LZMA** (used by 7-Zip and XZ), **LZ4**, and **Zstd** also begin with LZ77’s sliding-window idea and evolve the data structures for match searching and the methods used for entropy coding. The LZ78 family, by contrast, has not been used as the root of a new general-purpose compressor since LZW. LZW itself remains inside formats such as GIF.
+Later algorithms such as **LZMA** (used by 7-Zip and XZ), **LZ4**, and **Zstd** also begin with LZ77’s sliding-window idea and evolve the data structures for match searching and the methods used for entropy coding. The LZ78 family lives on as LZW inside formats such as GIF.
 
-Each paper showed asymptotic optimality under its own model. The 1977 paper showed that the compression ratio of LZ77 “uniformly approaches the lower bounds” attainable by codes designed with full knowledge of the source, and the 1978 paper showed, for individual sequences, that LZ78’s incremental parsing is asymptotically optimal. Because the models differ, these results alone cannot be used to compare the two. I see two reasons why the LZ77 family nevertheless survived.
-
-The first is the way of forgetting described above. With a window, a single size sets both the memory limit and the point at which data is forgotten. The LZ78 family had to decide separately, implementation by implementation, the dictionary limit and whether to freeze or clear it once full. The second is patents. According to the [history of PNG](http://www.libpng.org/pub/png/pnghist.html), on December 28, 1994, Unisys and CompuServe announced an agreement to collect royalties on GIF-supporting software based on the LZW patent, and the first PNG draft appeared on January 4, 1995. The method PNG chose was DEFLATE. RFC 1951 lists being implementable in a way not covered by patents among its design goals. The same RFC warns that many variations of LZ77 are patented, so the LZ77 family as a whole was not free of patents.
+Each paper showed asymptotic optimality under its own model. The 1977 paper showed that the compression ratio of LZ77 “uniformly approaches the lower bounds” attainable by codes designed with full knowledge of the source, and the 1978 paper showed, for individual sequences, that LZ78’s incremental parsing is asymptotically optimal. Because the models differ, these results alone cannot be used to compare the two.
 
 <hr>
 
 ## Conclusion
 
-LZ77 and LZ78 started from the same idea of replacing repeated patterns with short references. Neither transmits its dictionary, and in both the decoder rebuilds it, but they diverged on whether a reference points to a position in the data already seen or to the number of an entry in a separately built dictionary, and they also forget old content differently. The one that survived and became the root of later compressors was the LZ77 family. As I see it, the reason is that its memory limit was simple because the window forgets automatically as it slides, and that DEFLATE, designed on top of it to avoid patents, became the standard.
+LZ77 and LZ78 started from the same idea of replacing repeated patterns with short references. Neither transmits its dictionary, and in both the decoder rebuilds it, but they diverged on whether a reference points to a position in the data already seen or to the number of an entry in a separately built dictionary, and they also forget old content differently. The mainstream compressors that followed, from DEFLATE through LZMA, LZ4, and Zstd, descend from LZ77, while the LZ78 side lives on as LZW in formats such as GIF.
 
 How this lineage plays out in an actual format choice, comparing the speed and compression ratio of ZIP, GZIP, ZSTD, and XZ and deciding what to use for build artifacts, is covered in [Understanding Compression Algorithms](/240706).
 

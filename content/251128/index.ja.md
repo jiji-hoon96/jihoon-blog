@@ -9,14 +9,14 @@ description: "react-error-boundary の再試行ボタンを押しても同じ fa
 keywords: "ErrorBoundary 再試行が効かない, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy チャンク読み込み失敗, useSuspenseQuery エラー, react-error-boundary"
 locale: ja
 translationOf: '251128'
-sourceHash: 69901addb5820c18cdd362ff593f6e5f6d828a1efe5e78e7059cb26bf22b2e07
+sourceHash: 605b77497a1ba7812a26383b7083df57c4f4468c38c802877152ef315fa11f48
 ---
 
 今回の記事では、**`ErrorBoundary` の再試行ボタンがなぜ効かないのか**について話してみたい。
 
 `react-error-boundary` の fallback に再試行ボタンを付けたのに、押しても同じ画面がまた出てくるフロントエンド開発者に向けて、失敗の状態が残る三つの場合と、場合ごとの解き方をまとめた記事である。短く答えると、`ErrorBoundary` は自分の状態しか戻さず、失敗を生んだ状態は投げた側にそのまま残るからだ。
 
-例は TanStack Query と `react-error-boundary` を一緒に使う構成だ。ライブラリの動作はインストール済みのソースを開いて確かめ、引用したコードは `@tanstack/react-query` 5.104.1、`react-error-boundary` 6.1.6、React 19.2.3 のビルドファイルと一字一句同じだ（2026-10-08 に照合）。
+例は TanStack Query と `react-error-boundary` を一緒に使う構成だ。ライブラリの動作はインストール済みのソースを開いて確かめ、引用したコードは `@tanstack/react-query` 5.104.1、`react-error-boundary` 6.1.6、React 19.2.3 のビルドファイルと構造が同じだ（2026-10-08 に照合）。インデントと改行は読みやすさのために変えた箇所がある。
 
 
 ## 再試行が効かない三つの場合
@@ -61,7 +61,13 @@ const useClearResetErrorBoundary = (errorResetBoundary) => {
 };
 ```
 
-だから boolean ひとつで「今回一度だけ再試行する」動作になる。
+だから boolean ひとつで「今回一度だけ再試行する」動作になる。再試行一回を順に書くとこうなる。
+
+1. `reset()` が印を立てる。
+2. 再マウントされたクエリのフックがレンダー中に印を見て、`retryOnMount` を切らない。
+3. `getHasError` も印を見てキャッシュのエラーを投げないので、クエリが再リクエストする。
+4. 画面に載ったあと、effect の `clearReset()` が印を下ろす。
+5. 印が下りたので、その後のエラーには再び鍵がかかる。
 
 この `reset` を `ErrorBoundary` の `onReset` につないでやればよい。TanStack Query のドキュメントとソースのコメントも、このようにつなぐコードを例として載せている。
 
@@ -133,7 +139,7 @@ throw payload._result;
 
 もう一度 `import()` はしない。`lazy()` の呼び出しはモジュールの最上位で一度起き、その `payload` はアプリが生きているあいだそのままだ。`ErrorBoundary` を解いて再マウントしても、同じエラーがまた来る。
 
-それなら `lazy` を作り直して `import()` をもう一度呼べばどうか。これまではブラウザが止めていた。モジュールマップが失敗した結果を覚えていて、同じ URL を取り直さなかった。この動作を変える [HTML 仕様の変更](https://github.com/whatwg/html/pull/10327)が 2026-07-15 にマージされた。2026-10-08 に確認したエンジンごとの状況はこうだ。Firefox は [155 に入れて](https://bugzilla.mozilla.org/show_bug.cgi?id=2055211) 2026-09-01 にリリースした。WebKit は [main に入ったが](https://bugs.webkit.org/show_bug.cgi?id=319492)、Safari の安定版に載ったかは確認できなかった。Chrome は [chromestatus](https://chromestatus.com/feature/5214647044145152) でまだ Proposed だ。だから Chrome では新しい `import()` も同じ失敗を返す。
+それなら `lazy` を作り直して `import()` をもう一度呼べばどうか。これまではブラウザが止めていた。モジュールマップが失敗した結果を覚えていて、同じ URL を取り直さなかった。この動作を変える [HTML 仕様の変更](https://github.com/whatwg/html/pull/10327)が 2026-07-15 にマージされた。2026-10-08 に確認したエンジンごとの状況はこうだ。Firefox は [155 に入れて](https://bugzilla.mozilla.org/show_bug.cgi?id=2055211) 2026-09-01 にリリースした。WebKit は 2026-08-19 に [main に入り](https://bugs.webkit.org/show_bug.cgi?id=319492)、そのバグ記録にはこの変更を載せた Safari 安定版のバージョンが書かれていない。Chrome は [chromestatus](https://chromestatus.com/feature/5214647044145152) でまだ Proposed だ。だから Chrome では新しい `import()` も同じ失敗を返す。
 
 だからこの失敗の復旧は、ページをもう一度受け取ることだ。ブラウザが取り直してくれるようになっても、すべてが解けるわけではない。チャンクの読み込み失敗はネットワークが切れても起きるし、[Vite のドキュメント](https://vite.dev/guide/build#load-error-handling)が説明するように新しいデプロイが古いチャンクを消しても起きる。消えたチャンクはもう一度リクエストしても存在しないので、その場合の復旧はやはり再読み込みだ。原因をひとつに断定できないので、fallback の文言も新しいバージョンが出たと言い切るより再読み込みを勧めるほうがよい。
 

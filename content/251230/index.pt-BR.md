@@ -5,11 +5,11 @@ seoTitle: "Como o TanStack Query compara queryKeys: hashKey explicado"
 date: "2025-12-30"
 updatedAt: "2026-10-08"
 categories: frontend React TanStack-Query queryKey
-description: "Como o TanStack Query trata novos vetores queryKey como a mesma chave com hashKey: a ordem das chaves não importa, a do vetor sim, e undefined desaparece."
+description: "Como o TanStack Query decide que duas queryKey são iguais: a serialização com hashKey (ordem das chaves, undefined, Map) e a comparação dos filtros."
 keywords: "comparação de queryKey, hashKey, queryHash, chave de cache do TanStack Query, ordem da queryKey no React Query, queryKeyHashFn, JSON.stringify chaves ordenadas, QueryCache"
 locale: pt-BR
 translationOf: '251230'
-sourceHash: 47b793dc921cc4a4557e91344efd55785d4d646a3f8f86d04bd3566dea99e8c3
+sourceHash: ac741f2d85d62c63a48506c66ba0ada891e74b35304a1db40d0da4cb32e2578c
 ---
 
 Neste artigo, quero falar sobre **como o TanStack Query decide que duas queryKeys são a mesma chave**.
@@ -60,7 +60,7 @@ export function hashKey(queryKey: QueryKey | MutationKey): string {
 }
 ```
 
-Embora use `JSON.stringify`, não se trata de uma serialização comum: uma [função substituidora](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter) é fornecida para **ordenar lexicograficamente as chaves dos objetos simples** antes da serialização. A rigor, é a ordem de unidades de código UTF-16, a comparação padrão de `sort()`, então chaves maiúsculas vêm antes das minúsculas.
+Usa `JSON.stringify` com uma [função substituidora](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter) que **ordena lexicograficamente as chaves dos objetos simples** antes da serialização. A rigor, é a ordem de unidades de código UTF-16, a comparação padrão de `sort()`, então chaves maiúsculas vêm antes das minúsculas.
 
 Essa ordenação é essencial porque a serialização como texto exige uma condição ainda mais rigorosa: **entradas com o mesmo significado devem sempre ser convertidas no mesmo texto.** No entanto, `JSON.stringify` normalmente preserva a ordem das chaves. `{ a: 1, b: 2 }` e `{ b: 2, a: 1 }` são objetos semanticamente equivalentes, mas são serializados como textos diferentes e, por consequência, ocupam posições diferentes no cache. Isso faria com que os mesmos dados voltassem a ser solicitados duas vezes.
 
@@ -68,7 +68,7 @@ A técnica usada para evitar isso de forma consistente é a **forma canônica (c
 
 O fato de os vetores não serem ordenados é o outro lado do mesmo princípio. Como a própria ordem carrega significado nesse tipo de estrutura de dados, ordená-los causaria perda de informação. A ordem das chaves de um objeto é acidental; a ordem dos elementos de um vetor é intencional. `hashKey` trata corretamente esses dois casos de maneira distinta. Por isso, o mantenedor TkDodo, em [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys), recomenda estruturar queryKey do mais genérico para o mais específico. Enquanto a ordem do vetor carregar significado, cabe a quem escreve o código definir esse significado.
 
-Há mais um detalhe importante: a ordenação das chaves só se aplica a **objetos simples**. No mesmo arquivo, `isPlainObject` não verifica apenas `typeof === 'object'`; ela também verifica `Object.getPrototypeOf(o) === Object.prototype` para distinguir **literais de objeto puros** de **instâncias de classes**. Assim, um literal como `{ foo: 1 }` é ordenado, enquanto uma instância criada com `class User { ... }` segue adiante sem ordenação. (Daí surge uma armadilha: ao inserir diretamente uma instância de classe em queryKey, o comportamento de `JSON.stringify`, que só emite propriedades enumeráveis, pode produzir um hash diferente do esperado.)
+Há mais um detalhe importante: a ordenação das chaves só se aplica a **objetos simples**. No mesmo arquivo, `isPlainObject` verifica `typeof === 'object'` e também `Object.getPrototypeOf(o) === Object.prototype` para distinguir **literais de objeto puros** de **instâncias de classes**. Assim, um literal como `{ foo: 1 }` é ordenado, enquanto uma instância criada com `class User { ... }` segue adiante sem ordenação. (Daí surge uma armadilha: ao inserir diretamente uma instância de classe em queryKey, o comportamento de `JSON.stringify`, que só emite propriedades enumeráveis, pode produzir um hash diferente do esperado.)
 
 Esse funcionamento produz duas consequências importantes.
 
@@ -125,11 +125,11 @@ Testando outros valores da mesma forma, o resultado fica assim.
 | `Map`, `Set` | `{}` | qualquer `Map`, `Set` ou objeto vazio, seja qual for o conteúdo |
 | `Date` | uma string ISO | a mesma string ISO |
 | `BigInt` | lança `TypeError` | nenhuma |
-| referência circular | lança `RangeError` | nenhuma |
+| referência circular | lança `RangeError` para um objeto simples e `TypeError` para um vetor | nenhuma |
 
 Os mais perigosos são `Map` e `Set`. No código acima, os dados guardados com a chave `new Map([['a', 1]])` voltaram ao consultar com `new Map([['b', 2]])`. Como não há erro, também não há nenhuma pista de que a tela está exibindo dados errados.
 
-Só dois casos aparecem como erro: `BigInt` e referências circulares. Uma referência circular não termina com a mensagem comum `Converting circular structure`, mas com `Maximum call stack size exceeded`. Como a função substituidora devolve um objeto novo para cada objeto simples, aparentemente a detecção de ciclos de `JSON.stringify` nunca reencontra o mesmo objeto. Já `Date` vira uma string ISO por meio de `toJSON`, e o mesmo instante gera a mesma chave, o que o torna seguro.
+Só dois casos aparecem como erro: `BigInt` e referências circulares. Nas referências circulares, o erro depende do que forma o ciclo. Um objeto simples que aponta para si mesmo termina com `RangeError: Maximum call stack size exceeded`, enquanto um vetor que contém a si mesmo, como em `arr.push(arr)`, termina com `TypeError: Converting circular structure to JSON`. Como a função substituidora devolve um objeto novo para cada objeto simples, a detecção de ciclos de `JSON.stringify` nunca reencontra o mesmo objeto; já um vetor é devolvido como está pela função substituidora, e o ciclo é detectado. Já `Date` vira uma string ISO por meio de `toJSON`, e o mesmo instante gera a mesma chave, o que o torna seguro.
 
 Por isso, o mais seguro é colocar em uma queryKey apenas strings, números, booleanos, `null` e vetores e objetos simples formados por eles.
 
@@ -167,9 +167,9 @@ Por isso, na prática, é muito mais seguro evitar essa saída e **converter os 
 Uma vez coloquei um `Date` diretamente em uma chave e passei um bom tempo me perguntando: "Por que o cache está sendo atualizado se é o mesmo instante?". Um `Date` que aponta para o mesmo instante vira a mesma string ISO mesmo sendo outra instância, então gera o mesmo hash. Se saía uma chave diferente a cada vez, o horário em si era diferente, mesmo que parecesse o mesmo instante. Criar um `new Date()` durante a renderização coloca um horário diferente por milissegundos em cada renderização, e cada um vira uma chave nova.
 
 
-## Consulta ao cache e correspondência de filtros
+## Como os filtros comparam chaves
 
-A "mesma chave" de que falamos até aqui significa que as strings de hash são iguais, e o hash só é usado na consulta ao cache e em filtros com `exact: true`. Filtros como `invalidateQueries` e `findAll` se comportam de outro jeito por padrão. `partialMatchKey` compara recursivamente a estrutura da queryKey original, e não a string de hash. Vetores são comparados a partir do início, e nos objetos só são verificadas as chaves escritas no filtro. O código abaixo também foi executado no mesmo ambiente.
+Há mais uma forma de julgar se duas chaves são iguais. A "mesma chave" de que falamos até aqui significa que as strings de hash são iguais, e o hash só é usado na consulta ao cache e em filtros com `exact: true`. Filtros como `invalidateQueries` e `findAll` decidem por padrão com `partialMatchKey`, que compara recursivamente a estrutura da queryKey original, e não a string de hash. Vetores são comparados a partir do início, e nos objetos só são verificadas as chaves escritas no filtro. O código abaixo também foi executado no mesmo ambiente.
 
 ```js
 import { partialMatchKey } from '@tanstack/query-core'
@@ -186,7 +186,7 @@ Como essa correspondência não passa pelo hash, trocar `queryKeyHashFn` não a 
 
 ## Conclusão
 
-Em resumo, o TanStack Query não compara as referências dos vetores queryKey. `hashKey` ordena as chaves dos objetos simples enquanto serializa com `JSON.stringify`, e a string resultante (`queryHash`) é usada como chave de um `Map`. Por isso a ordem das chaves de um objeto não afeta o cache, a ordem dos elementos de um vetor afeta, e uma propriedade cujo valor é `undefined` equivale a uma propriedade ausente. A maioria dos valores que o JSON não consegue representar vira outro valor sem nenhum erro, e chaves diferentes passam silenciosamente a ser a mesma. É possível trocar a função de hash com `queryKeyHashFn`, mas isso também descarta a ordenação de chaves, então é mais seguro converter os valores em serializáveis ao montar a chave. Também vale lembrar que filtros, como os de invalidação, comparam a estrutura da queryKey, e não o hash.
+Em resumo, o TanStack Query não compara as referências dos vetores queryKey. `hashKey` ordena as chaves dos objetos simples enquanto serializa com `JSON.stringify`, e a string resultante (`queryHash`) é usada como chave de um `Map`. Por isso a ordem das chaves de um objeto não afeta o cache, a ordem dos elementos de um vetor afeta, e uma propriedade cujo valor é `undefined` equivale a uma propriedade ausente. A maioria dos valores que o JSON não consegue representar vira outro valor sem nenhum erro, e chaves diferentes passam silenciosamente a ser a mesma. É possível trocar a função de hash com `queryKeyHashFn`, mas isso também descarta a ordenação de chaves, então é mais seguro converter os valores em serializáveis ao montar a chave. Também vale lembrar que filtros, como os de invalidação, por padrão não passam pelo hash e comparam a estrutura da queryKey a partir do início.
 
 Como esse critério se reflete na forma de escrever e gerenciar queryKeys, ou seja, o caminho dos vetores inline, passando pelas fábricas de chaves, até `queryOptions`, é o assunto de [queryKey](/260104).
 

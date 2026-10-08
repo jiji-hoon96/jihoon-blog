@@ -5,11 +5,11 @@ seoTitle: "TanStack Query の queryKey 比較の仕組み: hashKey とシリア�
 date: "2025-12-30"
 updatedAt: "2026-10-08"
 categories: フロントエンド React TanStack-Query queryKey
-description: "TanStack Query がレンダリングのたびに新しく作られる queryKey 配列を同じキーと判定する仕組みを hashKey の実装で整理する。オブジェクトのキー順は無関係で配列の順序は重要な理由、undefined が消える動作、queryKeyHashFn の限界まで扱う。"
+description: "TanStack Query がレンダリングのたびに新しく作られる queryKey 配列を同じキーと判定する仕組みを整理する。hashKey のシリアライズがキー順、undefined、Map などの値をどう変えるか、フィルターがキーの構造をどう比較するかまで扱う。"
 keywords: "queryKey 比較, hashKey, queryHash, TanStack Query キャッシュキー, React Query queryKey 順序, queryKeyHashFn, JSON.stringify キーのソート, QueryCache"
 locale: ja
 translationOf: '251230'
-sourceHash: 47b793dc921cc4a4557e91344efd55785d4d646a3f8f86d04bd3566dea99e8c3
+sourceHash: ac741f2d85d62c63a48506c66ba0ada891e74b35304a1db40d0da4cb32e2578c
 ---
 
 今回は、**TanStack Query が二つの queryKey を同じキーと判定する仕組み**について話してみたい。
@@ -60,7 +60,7 @@ export function hashKey(queryKey: QueryKey | MutationKey): string {
 }
 ```
 
-`JSON.stringify` ではあるが、単純に文字列化しているわけではない。[置換関数のコールバック](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter)を挟み、**プレーンオブジェクトのキーを辞書順に並べ替えて**からシリアライズしている。正確には `sort()` の既定の比較である UTF-16 コード単位順なので、大文字のキーが小文字のキーより前に来る。
+`JSON.stringify` に[置換関数のコールバック](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter)を挟み、**プレーンオブジェクトのキーを辞書順に並べ替えて**からシリアライズする。正確には `sort()` の既定の比較である UTF-16 コード単位順なので、大文字のキーが小文字のキーより前に来る。
 
 この並べ替えが本質的なのは、文字列へのシリアライズには、さらに厳しい条件が伴うためだ。**意味が同じ入力は、常に同じ文字列へ変換されなければならない。** しかし、通常の `JSON.stringify` はキーの順序をそのまま維持する。`{ a: 1, b: 2 }` と `{ b: 2, a: 1 }` は意味上は同じオブジェクトなのに、異なる文字列へシリアライズされ、最終的に別々のキャッシュスロットとなる。その結果、同じデータを二度リクエストする事態が再び起きてしまう。
 
@@ -68,7 +68,7 @@ export function hashKey(queryKey: QueryKey | MutationKey): string {
 
 配列を並べ替えないのも、同じ原理の裏返しだ。配列は順序そのものに意味があるデータ構造なので、並べ替えると情報が失われる。オブジェクトのキー順は偶然だが、配列の要素順は意図である。`hashKey` は両者を明確に区別して扱う。メンテナーの TkDodo が [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys) で、queryKey を最も汎用的なものから最も具体的なものの順に構成するよう勧めているのは、このためだ。配列の順序が意味を担う以上、その意味は作成者が自ら定める必要がある。
 
-ここでもう一つ確認しておくべき点がある。キーの並べ替えが適用されるのは、**プレーンオブジェクト**だけだ。同じファイル内の `isPlainObject` は単に `typeof === 'object'` を見るのではなく、`Object.getPrototypeOf(o) === Object.prototype` まで検査し、**純粋なオブジェクトリテラル**と**クラスのインスタンス**を区別する。そのため、`{ foo: 1 }` のようなリテラルは並べ替えられる一方、`class User { ... }` で作成したインスタンスは並べ替えられず、そのまま処理される。（クラスのインスタンスをそのまま queryKey に含めると、`JSON.stringify` が列挙可能なプロパティだけを出力する挙動と相まって、意図しないハッシュが生成されることがある。）
+ここでもう一つ確認しておくべき点がある。キーの並べ替えが適用されるのは、**プレーンオブジェクト**だけだ。同じファイル内の `isPlainObject` は `typeof === 'object'` に加えて `Object.getPrototypeOf(o) === Object.prototype` まで検査し、**純粋なオブジェクトリテラル**と**クラスのインスタンス**を区別する。そのため、`{ foo: 1 }` のようなリテラルは並べ替えられる一方、`class User { ... }` で作成したインスタンスは並べ替えられず、そのまま処理される。（クラスのインスタンスをそのまま queryKey に含めると、`JSON.stringify` が列挙可能なプロパティだけを出力する挙動と相まって、意図しないハッシュが生成されることがある。）
 
 この仕組みから、二つの重要な結果が導かれる。
 
@@ -125,11 +125,11 @@ console.log(queryClient.getQueryData(['m', new Map([['b', 2]])])) // mapA
 | `Map`、`Set` | `{}` | 中身に関係なくすべての `Map`、`Set`、空オブジェクト |
 | `Date` | ISO 文字列 | 同じ ISO 文字列 |
 | `BigInt` | `TypeError` を投げる | なし |
-| 循環参照 | `RangeError` を投げる | なし |
+| 循環参照 | プレーンオブジェクトは `RangeError`、配列は `TypeError` を投げる | なし |
 
 最も危険なのは `Map` と `Set` だ。上のコードでは、`new Map([['a', 1]])` をキーにして入れたデータが `new Map([['b', 2]])` で取り出せた。エラーがないので、画面に別のデータを描いていることに気づく手がかりもない。
 
-エラーとして表に出るのは `BigInt` と循環参照の二つだけだ。循環参照はよく見る `Converting circular structure` のメッセージではなく `Maximum call stack size exceeded` で終わる。置換関数がプレーンオブジェクトごとに新しいオブジェクトを作って返すため、`JSON.stringify` の循環検出が同じオブジェクトに再び出会えないのだと考えられる。逆に `Date` は `toJSON` で ISO 文字列になり、同じ時刻なら同じキーになるので、むしろ安全だ。
+エラーとして表に出るのは `BigInt` と循環参照の二つだけだ。循環参照は、何が循環しているかによってエラーが分かれる。自分自身を指すプレーンオブジェクトは `RangeError: Maximum call stack size exceeded` で終わり、`arr.push(arr)` のように自分自身を含む配列は `TypeError: Converting circular structure to JSON` で終わる。置換関数がプレーンオブジェクトごとに新しいオブジェクトを作って返すため、`JSON.stringify` の循環検出は同じオブジェクトに再び出会えない。一方、配列は置換関数がそのまま返すので循環検出に引っかかる。逆に `Date` は `toJSON` で ISO 文字列になり、同じ時刻なら同じキーになるので、むしろ安全だ。
 
 そのため、queryKey には文字列、数値、真偽値、`null` と、それらからなる配列とプレーンオブジェクトだけを入れるのが安全だ。
 
@@ -167,9 +167,9 @@ console.log(queryClient.getQueryData(['todos', { page: 1, status: 'done' }])) //
 筆者も一度、`Date` をそのまま入れておいて「同じ時点なのに、なぜキャッシュが更新されるのか」と長いあいだ悩んだことがある。同じ時刻を指す `Date` は、インスタンスが違っても同じ ISO 文字列になるので同じハッシュを作る。毎回違うキーが出ていたなら、同じ時点に見えても時刻そのものが違っていたということだ。レンダリング中に `new Date()` を作ると、レンダリングごとにミリ秒単位で異なる時刻が入り、そのたびに新しいキーになる。
 
 
-## キャッシュ検索とフィルターのマッチング
+## フィルターのキー比較
 
-ここまで述べた「同じキー」とはハッシュ文字列が同じという意味で、ハッシュが使われるのはキャッシュの検索と `exact: true` のフィルターだ。`invalidateQueries` や `findAll` のようなフィルターの既定の動作は異なる。`partialMatchKey` がハッシュ文字列ではなく、元の queryKey の構造を再帰的に比較する。配列は先頭から照合し、オブジェクトはフィルター側に書かれたキーだけを見る。以下のコードも同じ環境で実行した。
+二つのキーを同じと判定する方法はもう一つある。ここまで述べた「同じキー」とはハッシュ文字列が同じという意味で、ハッシュが使われるのはキャッシュの検索と `exact: true` のフィルターだ。`invalidateQueries` や `findAll` のようなフィルターは既定で `partialMatchKey` によって判定し、この関数はハッシュ文字列ではなく、元の queryKey の構造を再帰的に比較する。配列は先頭から照合し、オブジェクトはフィルター側に書かれたキーだけを見る。以下のコードも同じ環境で実行した。
 
 ```js
 import { partialMatchKey } from '@tanstack/query-core'
@@ -186,7 +186,7 @@ console.log(partialMatchKey(queryKey, ['todos', { status: 'todo' }])) // false
 
 ## まとめ
 
-まとめると、TanStack Query は queryKey 配列の参照を比較しない。`hashKey` がプレーンオブジェクトのキーを並べ替えながら `JSON.stringify` で作った文字列（`queryHash`）を `Map` のキーとして使う。そのため、オブジェクトのキー順はキャッシュに影響せず、配列の要素の順序は影響し、値が `undefined` のプロパティは存在しないのと同じになる。JSON が表現できない値はほとんどがエラーなしで別の値に変わり、異なるキーが静かに同じキーになる。`queryKeyHashFn` でハッシュ関数を替えることはできるが、キーの並べ替えも一緒に捨てることになるので、キーを作る時点でシリアライズ可能な値に変換して入れるほうが安全だ。無効化のようなフィルターはハッシュではなく queryKey の構造で比較するという点も、あわせて覚えておくとよい。
+まとめると、TanStack Query は queryKey 配列の参照を比較しない。`hashKey` がプレーンオブジェクトのキーを並べ替えながら `JSON.stringify` で作った文字列（`queryHash`）を `Map` のキーとして使う。そのため、オブジェクトのキー順はキャッシュに影響せず、配列の要素の順序は影響し、値が `undefined` のプロパティは存在しないのと同じになる。JSON が表現できない値はほとんどがエラーなしで別の値に変わり、異なるキーが静かに同じキーになる。`queryKeyHashFn` でハッシュ関数を替えることはできるが、キーの並べ替えも一緒に捨てることになるので、キーを作る時点でシリアライズ可能な値に変換して入れるほうが安全だ。無効化のようなフィルターは既定でハッシュを通さず、queryKey の構造を先頭から照合するという点も、あわせて覚えておくとよい。
 
 この判定基準が queryKey をどう書き、どう管理するかにつながる話、つまりインライン配列からクエリキーファクトリーを経て `queryOptions` に至った流れは [queryKey](/260104) で扱う。
 

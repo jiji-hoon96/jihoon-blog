@@ -6,7 +6,7 @@ date: "2026-05-24"
 updatedAt: "2026-10-08"
 locale: zh-CN
 translationOf: '260524'
-sourceHash: 40b731774ee30c6a2b8287ddcb0a8bf0acc4f1476512e95a6310a8b8a18e50fa
+sourceHash: 2293f3e018d512db6374f7146c812d706079a5d30ab86c875e6a6dd19b522ea4
 categories: AI 开发工具 Claude MCP CodeGraph
 description: "从协议结构梳理 MCP（Model Context Protocol）与 function calling 的区别：六种 primitive、stdio 与 Streamable HTTP、从 tools/list 到 tool_use 循环的调用流程，以及 Tool Poisoning 等安全问题。"
 keywords: "MCP, Model Context Protocol, MCP 与 function calling 区别, MCP primitive, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP 安全"
@@ -42,7 +42,7 @@ MCP 是建立在 JSON-RPC 之上的协议。[JSON-RPC 2.0](https://www.jsonrpc.o
 
 **Client 侧 primitive**
 
-- **Sampling**：让 server 反向请求 client 的 LLM 生成 completion，从而在 client 与 server 之间建立双向结构
+- **Sampling**：让 server 反向请求 client 的 LLM 生成 completion，从而在 client 与 server 之间建立双向结构。它的用途是让 server 在执行工具时需要生成文本，可以不用自己的 API key，借用 client 所用的模型。在 2026-07-28 修订版中，它成为计划移除的 deprecated 状态
 - **Roots**：client 向 server 说明“可操作范围到这里为止”的 workspace 边界信息
 - **Elicitation**：server 在执行工具的过程中，以结构化形式向用户请求补充输入
 
@@ -131,7 +131,7 @@ console.log("tool_result:", JSON.stringify({ type: "tool_result", tool_use_id: t
 await client.close();
 ```
 
-`node post-demo.mjs` 的输出如下。
+代码中间覆盖 `clientT.send` 的两行，只是为了打印 client 发出的每条消息的方法名，与转换无关。`node post-demo.mjs` 的输出如下。
 
 ```text
 C->S initialize 2025-11-25
@@ -144,7 +144,7 @@ C->S tools/call
 tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type":"text","text":"Seoul: 15C, partly cloudy"}]}
 ```
 
-转换只不过是改字段名。MCP 的 `inputSchema` 在 Anthropic 中变成 `input_schema`，在 OpenAI 中变成 `parameters`。从输出中还能看到 SDK 会在 schema 里加上 `$schema`。反方向同样简短。Anthropic 的 `tool_use.input` 是对象，所以直接成为 `tools/call` 的 `arguments`。上面 OpenAI 一侧的形状是 Responses API 的格式。OpenAI 返回的调用中的 `arguments` 是 [JSON 字符串](https://developers.openai.com/api/docs/guides/function-calling)，因此在转交之前需要先经过一次 `JSON.parse`。这一部分是通过文档确认的，上面的代码中并没有运行。
+转换只不过是改字段名。MCP 的 `inputSchema` 在 Anthropic 中变成 `input_schema`，在 OpenAI 中变成 `parameters`。从输出中还能看到 SDK 会在 schema 里加上 `$schema`。反方向同样简短。Anthropic 的 `tool_use.input` 是对象，所以直接成为 `tools/call` 的 `arguments`。上面 OpenAI 一侧的形状是 Responses API 的格式。OpenAI 返回的调用中的 `arguments` 是 [JSON 字符串](https://developers.openai.com/api/docs/guides/function-calling)，因此在转交之前需要先经过一次 `JSON.parse`。上面的代码只构造了 Anthropic 形状的 `tool_use` 块，所以这个 parse 步骤不会出现在输出中。
 
 
 ### MCP 增加的四点
@@ -154,9 +154,13 @@ tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type"
 - **动态发现**：构建时并不知道工具列表，而是在运行时通过 `tools/list` 获取。server 可以通过 `notifications/tools/list_changed` 通知连接期间列表发生了变化
 - **Stateful session**：用 `initialize` 建立连接，请求在其中往来。没有专门的结束消息，关闭传输本身就是结束
 - **Tool 以外的 primitive**：通过 capability negotiation 暴露 Resource、Prompt、Sampling、Roots、Elicitation。capability negotiation 是在 `initialize` 中双方互相告知所支持功能的阶段
-- **双向性**：server 可以通过 Sampling 反向请求 client 的 LLM 生成 completion
+- **双向性**：server 可以通过 Sampling 反向请求 client 的 LLM 生成 completion（2026-07-28 修订版中已 deprecated）
 
-然而截至 2026-10-08，官方网站作为 latest 打开的是 [2026-07-28 修订版](https://modelcontextprotocol.io/specification/2026-07-28/changelog)，这份列表在其中变了一半。由 `initialize` 与 `notifications/initialized` 构成的 handshake 以及协议层面的 session 消失了，每个请求都在 `_meta` 中携带协议版本和 client capabilities。server 必须（MUST）实现用于告知所支持版本与 capabilities 的 `server/discover`。Sampling 和 Roots 与 Logging 一起被标为 deprecated，规范建议不要用 Sampling，而是直接对接 LLM provider 的 API。原先由 server 先发出的请求，被一种名为 Multi Round-Trip Requests 的模式取代。
+然而截至 2026-10-08，官方网站作为 latest 打开的是 [2026-07-28 修订版](https://modelcontextprotocol.io/specification/2026-07-28/changelog)，这份列表在其中变了一半。首先，由 `initialize` 与 `notifications/initialized` 构成的 handshake 以及协议层面的 session 消失了。取而代之的是，每个请求都在 `_meta` 中携带协议版本和 client capabilities。这个字段是 MCP 预留的位置，用于在消息本身的参数之外附加元数据。server 必须（MUST）实现 `server/discover`。这是 client 可以在其他请求之前调用的 RPC，用来获取 server 支持的协议版本、capabilities 和 server 信息。
+
+原先由 server 先发出的请求，被一种名为 Multi Round-Trip Requests（MRTR）的模式取代。server 不再单独发出请求，而是返回一个表示还需要额外输入的中间结果（`input_required`），client 补上这些输入后重新发送原来的请求。
+
+Sampling 和 Roots 与 Logging 一起被标为 deprecated。它们仍留在规范中并且可以工作，但新的实现不应采用，规范建议不要用 Sampling，而是直接对接 LLM provider 的 API。
 
 不过，SDK 的默认行为仍是旧方式。TypeScript SDK 1.32.1 的最新版本常量是 `2025-11-25`，因此并不知道 2026-07-28 修订版；2.3.1 支持这一修订版，但版本协商的默认值是 `legacy`。上面输出的第一行 `initialize 2025-11-25` 就是其结果。
 
@@ -167,7 +171,7 @@ tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type"
 
 这份约定中有多少能到达模型，Anthropic 的 [MCP connector](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector) 给出了答案。这是 Messages API 直接连接远程 MCP server 的功能，而文档的 Limitations 写道，在 MCP 规范的功能中 "only tool calls are currently supported"，并写道 "Local STDIO servers cannot be connected directly"。同一份文档还说明，如果需要本地 server 或 MCP 的 prompt、resource，就用 MCP SDK 自行管理连接，同时使用 Anthropic SDK 的转换 helper。
 
-也就是说，在 function calling 层消费 MCP 时，只剩下 Tool。Resource 和 Prompt 要有 host 把它们带到界面或 context 中才有意义。OpenAI 也在 function calling 指南中介绍了把 MCP server 的功能当作 built-in tool 使用的方式。那一侧对 Tool 以外的 primitive 支持到什么程度，本文没有确认。
+也就是说，在 function calling 层消费 MCP 时，只剩下 Tool。Resource 和 Prompt 要有 host 把它们带到界面或 context 中才有意义。OpenAI 也在 function calling 指南中介绍了把 MCP server 的功能当作 built-in tool 使用的方式。OpenAI 的 Remote MCP 指南只说明了如何列出和调用工具，没有写明是否支持 Resource 或 Prompt。
 
 
 ### 动态发现打开的攻击面
@@ -180,7 +184,7 @@ tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type"
 
 - **Rug Pull**（Silent Redefinition）：在用户批准之后，server 修改工具定义的攻击。Invariant Labs 在同一篇文章中最先描述了它，Silent Redefinition 这个名字来自 Elena Cross 的文章，[Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/) 在 2025 年 4 月 9 日引用并整理了它。工具起初完全合法，用户检查、批准并将它集成进 workflow。几周后，工具定义被悄悄修改，加入恶意指令。用户不会被要求重新批准，行为却已暗中改变。
 
-Rug Pull 发生的位置，与让动态发现成为可能的 `notifications/tools/list_changed` 相同。规范只规定了如何通知列表已变化，并没有要求把变化后的定义重新展示给用户。Willison 写道，MCP client 应当一开始就向用户展示工具描述，并在描述变化时发出警告。变更之后重新取得批准，是 host 的职责，而不是规范的职责。
+Rug Pull 发生的位置，与让动态发现成为可能的 `notifications/tools/list_changed` 相同。这个名称属于 2025-11-25 修订版；在 2026-07-28 修订版中，如前所述，只有 opt-in 的 client 才会收到这个通知。规范只规定了如何通知列表已变化，并没有要求把变化后的定义重新展示给用户。Willison 写道，MCP client 应当一开始就向用户展示工具描述，并在描述变化时发出警告。变更之后重新取得批准，是 host 的职责，而不是规范的职责。
 
 
 ## 总结

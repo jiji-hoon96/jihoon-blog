@@ -9,7 +9,7 @@ description: "Cómo difiere MCP de function calling: seis primitive types, stdio
 keywords: "MCP, Model Context Protocol, MCP vs function calling, primitivas MCP, tools/list, Streamable HTTP, Tool Poisoning Attack, seguridad MCP"
 locale: es
 translationOf: '260524'
-sourceHash: 40b731774ee30c6a2b8287ddcb0a8bf0acc4f1476512e95a6310a8b8a18e50fa
+sourceHash: 2293f3e018d512db6374f7146c812d706079a5d30ab86c875e6a6dd19b522ea4
 ---
 
 En esta publicación quiero hablar sobre **en qué se diferencia MCP (Model Context Protocol) de function calling**.
@@ -42,7 +42,7 @@ La visión general de la especificación 2025-11-25 divide lo que intercambian c
 
 **Primitivas del lado del cliente**
 
-- **Sampling**: un mecanismo que permite al servidor pedir en sentido inverso una completion al LLM del cliente, lo que vuelve bidireccional la relación entre cliente y servidor
+- **Sampling**: un mecanismo que permite al servidor pedir en sentido inverso una completion al LLM del cliente, lo que vuelve bidireccional la relación entre cliente y servidor. Sirve para que un servidor que necesita generar texto mientras ejecuta una herramienta use el modelo del cliente sin tener su propia clave de API. En la revisión 2026-07-28 quedó deprecated, es decir, con su eliminación prevista
 - **Roots**: información sobre los límites del espacio de trabajo con la que el cliente le dice al servidor «hasta aquí llega el área en la que puedes trabajar»
 - **Elicitation**: una función que permite al servidor pedir al usuario datos adicionales de forma estructurada mientras ejecuta una herramienta
 
@@ -131,7 +131,7 @@ console.log("tool_result:", JSON.stringify({ type: "tool_result", tool_use_id: t
 await client.close();
 ```
 
-La salida de `node post-demo.mjs` es esta.
+Las dos líneas del medio del código que sobrescriben `clientT.send` solo están para imprimir el nombre del método de cada mensaje que envía el cliente; no intervienen en la conversión. La salida de `node post-demo.mjs` es esta.
 
 ```text
 C->S initialize 2025-11-25
@@ -144,7 +144,7 @@ C->S tools/call
 tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type":"text","text":"Seoul: 15C, partly cloudy"}]}
 ```
 
-La conversión no es más que renombrar campos. El `inputSchema` de MCP pasa a ser `input_schema` en Anthropic y `parameters` en OpenAI. La salida también muestra que el SDK añade `$schema` al esquema. La dirección contraria es igual de corta. El `tool_use.input` de Anthropic es un objeto, así que entra tal cual en `tools/call` como sus `arguments`. La forma de OpenAI de arriba es el formato de la Responses API. Los `arguments` de una llamada que devuelve OpenAI son una [cadena JSON](https://developers.openai.com/api/docs/guides/function-calling), así que hay que pasarlos una vez por `JSON.parse` antes de entregarlos. Esta parte la comprobé en la documentación y no la ejecuté en el código de arriba.
+La conversión no es más que renombrar campos. El `inputSchema` de MCP pasa a ser `input_schema` en Anthropic y `parameters` en OpenAI. La salida también muestra que el SDK añade `$schema` al esquema. La dirección contraria es igual de corta. El `tool_use.input` de Anthropic es un objeto, así que entra tal cual en `tools/call` como sus `arguments`. La forma de OpenAI de arriba es el formato de la Responses API. Los `arguments` de una llamada que devuelve OpenAI son una [cadena JSON](https://developers.openai.com/api/docs/guides/function-calling), así que hay que pasarlos una vez por `JSON.parse` antes de entregarlos. El código de arriba solo construye un bloque `tool_use` con la forma de Anthropic, así que este paso de parse no aparece en la salida.
 
 
 ### Cuatro cosas que añade MCP
@@ -154,9 +154,13 @@ Entonces, ¿qué añade MCP a function calling? Según la revisión 2025-11-25, 
 - **Descubrimiento dinámico**: la lista de herramientas no se conoce en tiempo de compilación, sino que se obtiene en tiempo de ejecución con `tools/list`. El servidor puede avisar con `notifications/tools/list_changed` de que la lista cambió durante la conexión
 - **Stateful session**: la conexión se establece con `initialize` y las solicitudes se intercambian dentro de ella. No hay un mensaje de cierre específico; cerrar el transporte es el cierre
 - **Primitivas además de Tool**: Resource, Prompt, Sampling, Roots y Elicitation se exponen mediante capability negotiation. La capability negotiation es el paso de `initialize` en el que cada lado anuncia las funciones que admite
-- **Bidireccionalidad**: el servidor puede pedir en sentido inverso una completion al LLM del cliente mediante Sampling
+- **Bidireccionalidad**: el servidor puede pedir en sentido inverso una completion al LLM del cliente mediante Sampling (deprecated en la revisión 2026-07-28)
 
-Sin embargo, a fecha de 2026-10-08, la revisión que el sitio oficial abre como latest es la [revisión 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/changelog), y en ella cambió la mitad de esta lista. Desaparecieron el handshake formado por `initialize` y `notifications/initialized` y las sesiones a nivel de protocolo, y cada solicitud lleva en `_meta` la versión del protocolo y las capabilities del cliente. Los servidores MUST implementar `server/discover`, que anuncia sus versiones admitidas y sus capabilities. Sampling y Roots quedaron deprecated junto con Logging, y la especificación recomienda integrarse directamente con las API de los proveedores de LLM en lugar de usar Sampling. Las solicitudes que antes enviaba primero el servidor se sustituyeron por un patrón llamado Multi Round-Trip Requests.
+Sin embargo, a fecha de 2026-10-08, la revisión que el sitio oficial abre como latest es la [revisión 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/changelog), y en ella cambió la mitad de esta lista. Primero, desaparecieron el handshake formado por `initialize` y `notifications/initialized` y las sesiones a nivel de protocolo. En su lugar, cada solicitud lleva en `_meta` la versión del protocolo y las capabilities del cliente. Ese campo es un espacio que MCP reserva para adjuntar metadatos aparte de los parámetros propios del mensaje. Los servidores MUST implementar `server/discover`. Es la RPC que el cliente puede llamar antes de cualquier otra solicitud para obtener las versiones del protocolo, las capabilities y la información del servidor.
+
+Las solicitudes que antes enviaba primero el servidor se sustituyeron por un patrón llamado Multi Round-Trip Requests (MRTR). En lugar de enviar una solicitud aparte, el servidor devuelve un resultado intermedio que indica que necesita más datos (`input_required`), y el cliente completa esos datos y vuelve a enviar la solicitud original.
+
+Sampling y Roots quedaron deprecated junto con Logging. Siguen en la especificación y funcionan, pero las implementaciones nuevas no deberían adoptarlos, y la especificación recomienda integrarse directamente con las API de los proveedores de LLM en lugar de usar Sampling.
 
 Aun así, el comportamiento por defecto de los SDK sigue siendo el antiguo. El SDK de TypeScript 1.32.1 tiene `2025-11-25` como constante de versión más reciente y no conoce la revisión 2026-07-28, y la 2.3.1 admite esta revisión, pero su negociación de versión por defecto es `legacy`. La primera línea de la salida de arriba, `initialize 2025-11-25`, es el resultado.
 
@@ -167,7 +171,7 @@ Lo que queda de las cuatro, entonces, es el descubrimiento dinámico y las primi
 
 El [MCP connector](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector) de Anthropic muestra cuánto de este contrato llega al modelo. Es una función con la que la Messages API se conecta directamente a un servidor MCP remoto, y la sección Limitations de su documentación dice que, de las funciones de la especificación MCP, "only tool calls are currently supported", y que "Local STDIO servers cannot be connected directly". La misma documentación indica que, si necesitas servidores locales, prompts o resources de MCP, gestiones tú la conexión con un SDK de MCP y uses los helpers de conversión del SDK de Anthropic.
 
-Es decir, cuando MCP se consume en la capa de function calling, solo queda Tool. Resource y Prompt solo tienen sentido si hay un host que los lleve a la pantalla o al contexto. La guía de function calling de OpenAI también presenta una forma de usar la funcionalidad de un servidor MCP como built-in tool. Hasta dónde admite ese lado las primitivas además de Tool no se comprobó en este artículo.
+Es decir, cuando MCP se consume en la capa de function calling, solo queda Tool. Resource y Prompt solo tienen sentido si hay un host que los lleve a la pantalla o al contexto. La guía de function calling de OpenAI también presenta una forma de usar la funcionalidad de un servidor MCP como built-in tool. La guía Remote MCP de OpenAI solo explica cómo listar y llamar herramientas, y no dice si admite Resource o Prompt.
 
 
 ### La superficie de ataque del descubrimiento dinámico
@@ -180,7 +184,7 @@ Los dos ataques representativos nacen de que las definiciones de herramientas vi
 
 - **Rug Pull** (Silent Redefinition): un ataque en el que el servidor cambia la definición de una herramienta después de que el usuario la aprobó. Invariant Labs lo describió primero en la misma publicación, el nombre Silent Redefinition procede de un texto de Elena Cross, y [Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/) lo citó en su análisis del 9 de abril de 2025. La herramienta empieza siendo legítima. El usuario la revisa, la aprueba y la integra en su flujo de trabajo. Semanas después, la definición cambia silenciosamente e incluye instrucciones maliciosas. Como el usuario no tiene que volver a aprobarla, el comportamiento cambia sin más.
 
-Un Rug Pull ocurre en el mismo lugar que `notifications/tools/list_changed`, que es lo que hace posible el descubrimiento dinámico. La especificación solo define cómo avisar de que la lista cambió; no exige volver a mostrar al usuario la definición modificada. Willison escribió que los clientes MCP deberían mostrar a los usuarios las descripciones iniciales de las herramientas y alertarles si esas descripciones cambian. Pedir una nueva aprobación tras un cambio es tarea del host, no de la especificación.
+Un Rug Pull ocurre en el mismo lugar que `notifications/tools/list_changed`, que es lo que hace posible el descubrimiento dinámico. Ese nombre corresponde a la revisión 2025-11-25; en la revisión 2026-07-28, como vimos antes, solo los clientes que hicieron opt-in reciben esta notificación. La especificación solo define cómo avisar de que la lista cambió; no exige volver a mostrar al usuario la definición modificada. Willison escribió que los clientes MCP deberían mostrar a los usuarios las descripciones iniciales de las herramientas y alertarles si esas descripciones cambian. Pedir una nueva aprobación tras un cambio es tarea del host, no de la especificación.
 
 
 ## Conclusión

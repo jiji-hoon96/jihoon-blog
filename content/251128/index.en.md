@@ -9,14 +9,14 @@ description: "Three cases where retry in a react-error-boundary fallback brings 
 keywords: "ErrorBoundary retry not working, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy chunk load error, useSuspenseQuery error, react-error-boundary"
 locale: en
 translationOf: '251128'
-sourceHash: 69901addb5820c18cdd362ff593f6e5f6d828a1efe5e78e7059cb26bf22b2e07
+sourceHash: 605b77497a1ba7812a26383b7083df57c4f4468c38c802877152ef315fa11f48
 ---
 
 In this post, I want to talk about **why the retry button on an `ErrorBoundary` does nothing**.
 
 This is for frontend developers who put a retry button in a `react-error-boundary` fallback, only to see the same screen come back when they press it, and it lays out the three cases where the failed state remains and how to clear each one. The short answer: an `ErrorBoundary` only resets its own state, and the state that caused the failure stays with whatever threw.
 
-The examples use TanStack Query together with `react-error-boundary`. I checked the libraries' behavior by opening their installed source, and the quoted code matches the build files of `@tanstack/react-query` 5.104.1, `react-error-boundary` 6.1.6, and React 19.2.3 character for character (compared on 2026-10-08).
+The examples use TanStack Query together with `react-error-boundary`. I checked the libraries' behavior by opening their installed source, and the quoted code has the same structure as the build files of `@tanstack/react-query` 5.104.1, `react-error-boundary` 6.1.6, and React 19.2.3 (compared on 2026-10-08). Indentation and line breaks are adjusted in places for readability.
 
 
 ## Three cases where retry does nothing
@@ -61,7 +61,13 @@ const useClearResetErrorBoundary = (errorResetBoundary) => {
 };
 ```
 
-So a single boolean is enough to mean retry just this once.
+So a single boolean is enough to mean retry just this once. In order, one retry goes like this:
+
+1. `reset()` raises the flag.
+2. The remounted query hook sees the flag during render and does not turn off `retryOnMount`.
+3. `getHasError` also sees the flag and does not throw the cached error, so the query requests again.
+4. After the component is attached to the screen, `clearReset()` in an effect lowers the flag.
+5. With the flag lowered, later errors are locked again.
 
 You connect this `reset` to the `ErrorBoundary`'s `onReset`. TanStack Query's docs and source comments also show code that connects them this way as an example.
 
@@ -133,7 +139,7 @@ throw payload._result;
 
 It does not `import()` again. The `lazy()` call happened once at module top level, and that `payload` stays as it is for the life of the app. Release the `ErrorBoundary` and remount, and the same error comes back.
 
-Then why not create a new `lazy` and call `import()` again? Until now the browser blocked that. The module map remembered the failed result and did not fetch the same URL again. An [HTML spec change](https://github.com/whatwg/html/pull/10327) that changes this was merged on 2026-07-15. Engine status as checked on 2026-10-08: Firefox [shipped it in 155](https://bugzilla.mozilla.org/show_bug.cgi?id=2055211), released 2026-09-01. WebKit [landed it in main](https://bugs.webkit.org/show_bug.cgi?id=319492), but I could not confirm whether it is in a stable Safari release. Chrome is still Proposed on [chromestatus](https://chromestatus.com/feature/5214647044145152). So in Chrome, a fresh `import()` returns the same failure.
+Then why not create a new `lazy` and call `import()` again? Until now the browser blocked that. The module map remembered the failed result and did not fetch the same URL again. An [HTML spec change](https://github.com/whatwg/html/pull/10327) that changes this was merged on 2026-07-15. Engine status as checked on 2026-10-08: Firefox [shipped it in 155](https://bugzilla.mozilla.org/show_bug.cgi?id=2055211), released 2026-09-01. WebKit [landed it in main](https://bugs.webkit.org/show_bug.cgi?id=319492) on 2026-08-19, and the bug record does not name a stable Safari release that includes it. Chrome is still Proposed on [chromestatus](https://chromestatus.com/feature/5214647044145152). So in Chrome, a fresh `import()` returns the same failure.
 
 So recovering from this failure means fetching the page again. Even once browsers do refetch, not every case clears. A chunk load failure can come from a dropped network, or, as the [Vite docs](https://vite.dev/guide/build#load-error-handling) explain, from a new deployment deleting the old chunks. A deleted chunk is still missing when requested again, so in that case recovery is still a reload. Since you cannot pin down a single cause, the fallback text is better off suggesting a reload than asserting that a new version is out.
 

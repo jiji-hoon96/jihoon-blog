@@ -5,11 +5,11 @@ seoTitle: "TanStack Query 如何比较 queryKey：hashKey 与序列化"
 date: "2025-12-30"
 updatedAt: "2026-10-08"
 categories: 前端 React TanStack-Query queryKey
-description: "通过 hashKey 的实现，梳理 TanStack Query 如何把每次渲染新建的 queryKey 数组判定为同一个键：为什么对象键顺序无关、数组顺序重要、undefined 会消失，以及 queryKeyHashFn 的局限。"
+description: "梳理 TanStack Query 如何把每次渲染新建的 queryKey 数组判定为同一个键：hashKey 序列化如何改变键顺序、undefined、Map 等值，以及过滤器如何比较键的结构。"
 keywords: "queryKey 比较, hashKey, queryHash, TanStack Query 缓存键, React Query queryKey 顺序, queryKeyHashFn, JSON.stringify 键排序, QueryCache"
 locale: zh-CN
 translationOf: '251230'
-sourceHash: 47b793dc921cc4a4557e91344efd55785d4d646a3f8f86d04bd3566dea99e8c3
+sourceHash: ac741f2d85d62c63a48506c66ba0ada891e74b35304a1db40d0da4cb32e2578c
 ---
 
 这篇文章想聊一聊 **TanStack Query 如何判断两个 queryKey 是同一个键**。
@@ -60,7 +60,7 @@ export function hashKey(queryKey: QueryKey | MutationKey): string {
 }
 ```
 
-虽然用的是 `JSON.stringify`，但不是直接序列化，而是通过 [replacer callback](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter)，先将**普通对象的键按字典序排序**后再序列化。严格来说，这是 `sort()` 默认比较所用的 UTF-16 码元顺序，所以大写键会排在小写键前面。
+它在 `JSON.stringify` 中加入 [replacer callback](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter)，先将**普通对象的键按字典序排序**后再序列化。严格来说，这是 `sort()` 默认比较所用的 UTF-16 码元顺序，所以大写键会排在小写键前面。
 
 这种排序之所以至关重要，是因为字符串序列化还必须满足一个更强的条件：**语义相同的输入，必须始终转换为相同的字符串。** 但普通的 `JSON.stringify` 会保留键的原始顺序。`{ a: 1, b: 2 }` 和 `{ b: 2, a: 1 }` 在语义上是同一个对象，却会序列化为不同的字符串，最终落入两个不同的缓存槽。这样一来，相同的数据又会被请求两次。
 
@@ -68,7 +68,7 @@ export function hashKey(queryKey: QueryKey | MutationKey): string {
 
 不对数组排序，也是同一原则的另一面。数组是一种顺序本身承载语义的数据结构，一旦排序就会丢失信息。对象的键顺序是偶然的，数组的元素顺序则是有意的。`hashKey` 对二者作了准确区分。正因如此，维护者 TkDodo 在 [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys) 中建议按从最通用到最具体的顺序组织 queryKey。只要数组顺序承载语义，这层语义就必须由开发者亲自定义。
 
-还有一个细节值得说明：键排序只作用于**普通对象**。同一文件中的 `isPlainObject` 并不只是检查 `typeof === 'object'`，还会检查 `Object.getPrototypeOf(o) === Object.prototype`，以区分**纯对象字面量**和**类实例**。因此，`{ foo: 1 }` 这样的字面量会被排序，而通过 `class User { ... }` 创建的实例不会排序，直接进入下一步。（如果把类实例直接放进 queryKey，`JSON.stringify` 又只会输出可枚举属性，两者结合后可能得到违背预期的哈希值，这正是一个容易踩坑的地方。）
+还有一个细节值得说明：键排序只作用于**普通对象**。同一文件中的 `isPlainObject` 除了检查 `typeof === 'object'`，还会检查 `Object.getPrototypeOf(o) === Object.prototype`，以区分**纯对象字面量**和**类实例**。因此，`{ foo: 1 }` 这样的字面量会被排序，而通过 `class User { ... }` 创建的实例不会排序，直接进入下一步。（如果把类实例直接放进 queryKey，`JSON.stringify` 又只会输出可枚举属性，两者结合后可能得到违背预期的哈希值，这正是一个容易踩坑的地方。）
 
 这种工作方式会带来两个重要结果。
 
@@ -125,11 +125,11 @@ console.log(queryClient.getQueryData(['m', new Map([['b', 2]])])) // mapA
 | `Map`、`Set` | `{}` | 不论内容如何，所有 `Map`、`Set` 和空对象 |
 | `Date` | ISO 字符串 | 相同的 ISO 字符串 |
 | `BigInt` | 抛出 `TypeError` | 无 |
-| 循环引用 | 抛出 `RangeError` | 无 |
+| 循环引用 | 普通对象抛出 `RangeError`，数组抛出 `TypeError` | 无 |
 
 最危险的是 `Map` 和 `Set`。在上面的代码中，以 `new Map([['a', 1]])` 为键存入的数据，用 `new Map([['b', 2]])` 查出来了。因为没有错误，也就没有任何线索提示页面上画的是别的数据。
 
-会以错误形式暴露的只有 `BigInt` 和循环引用两种。循环引用不是以常见的 `Converting circular structure` 消息结束，而是以 `Maximum call stack size exceeded` 结束。由于 replacer 对每个普通对象都返回一个新对象，`JSON.stringify` 的循环检测似乎始终遇不到同一个对象。相反，`Date` 会通过 `toJSON` 变成 ISO 字符串，同一时刻就得到同一个键，所以反而是安全的。
+会以错误形式暴露的只有 `BigInt` 和循环引用两种。循环引用的错误取决于形成循环的是什么。指向自身的普通对象以 `RangeError: Maximum call stack size exceeded` 结束，而像 `arr.push(arr)` 这样包含自身的数组以 `TypeError: Converting circular structure to JSON` 结束。由于 replacer 对每个普通对象都返回一个新对象，`JSON.stringify` 的循环检测始终遇不到同一个对象；而数组会被 replacer 原样返回，因此会被循环检测捕获。相反，`Date` 会通过 `toJSON` 变成 ISO 字符串，同一时刻就得到同一个键，所以反而是安全的。
 
 因此，queryKey 中最好只放字符串、数字、布尔值、`null`，以及由它们组成的数组和普通对象。
 
@@ -167,9 +167,9 @@ console.log(queryClient.getQueryData(['todos', { page: 1, status: 'done' }])) //
 我也曾把 `Date` 直接放进键里，然后困惑了很久：“明明是同一时刻，为什么缓存会刷新？”指向同一时刻的 `Date` 即使是不同实例，也会变成相同的 ISO 字符串，因此生成相同的 hash。如果每次都得到不同的键，那么即使看起来是同一时刻，时间本身其实也不同。在渲染过程中创建 `new Date()`，每次渲染都会放入相差几毫秒的时间，每次都会成为新的键。
 
 
-## 缓存查找与过滤器匹配
+## 过滤器的键比较
 
-到目前为止所说的“同一个键”指的是 hash 字符串相同，而 hash 只用于缓存查找和 `exact: true` 过滤器。`invalidateQueries`、`findAll` 这类过滤器的默认行为不同。`partialMatchKey` 递归比较的是原始 queryKey 的结构，而不是 hash 字符串。数组从头开始比对，对象只看过滤器一侧写出的键。下面的代码同样在相同环境中运行。
+判断两个键相同的方式还有一种。到目前为止所说的“同一个键”指的是 hash 字符串相同，而 hash 只用于缓存查找和 `exact: true` 过滤器。`invalidateQueries`、`findAll` 这类过滤器默认用 `partialMatchKey` 判断，它递归比较的是原始 queryKey 的结构，而不是 hash 字符串。数组从头开始比对，对象只看过滤器一侧写出的键。下面的代码同样在相同环境中运行。
 
 ```js
 import { partialMatchKey } from '@tanstack/query-core'
@@ -186,7 +186,7 @@ console.log(partialMatchKey(queryKey, ['todos', { status: 'todo' }])) // false
 
 ## 总结
 
-总而言之，TanStack Query 并不比较 queryKey 数组的引用。`hashKey` 在用 `JSON.stringify` 序列化的同时对普通对象的键进行排序，得到的字符串（`queryHash`）被用作 `Map` 的键。因此，对象的键顺序不会影响缓存，数组元素的顺序会影响，值为 `undefined` 的属性等同于不存在。JSON 无法表示的值大多会在没有错误的情况下变成别的值，使不同的键悄无声息地变成同一个键。可以用 `queryKeyHashFn` 替换 hash 函数，但这样也会一并丢掉键排序，所以在创建键的时候就把值转换成可序列化的值会更安全。另外也值得记住，失效这类过滤器比较的是 queryKey 的结构，而不是 hash。
+总而言之，TanStack Query 并不比较 queryKey 数组的引用。`hashKey` 在用 `JSON.stringify` 序列化的同时对普通对象的键进行排序，得到的字符串（`queryHash`）被用作 `Map` 的键。因此，对象的键顺序不会影响缓存，数组元素的顺序会影响，值为 `undefined` 的属性等同于不存在。JSON 无法表示的值大多会在没有错误的情况下变成别的值，使不同的键悄无声息地变成同一个键。可以用 `queryKeyHashFn` 替换 hash 函数，但这样也会一并丢掉键排序，所以在创建键的时候就把值转换成可序列化的值会更安全。另外也值得记住，失效这类过滤器默认不经过 hash，而是从头比对 queryKey 的结构。
 
 这个判断标准如何延伸到 queryKey 的编写与管理，也就是从内联数组经过 query key factory 走到 `queryOptions` 的过程，会在 [queryKey](/260104) 中讨论。
 

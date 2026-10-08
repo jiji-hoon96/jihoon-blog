@@ -9,14 +9,14 @@ description: "用已安装的源码核对在 react-error-boundary 的 fallback �
 keywords: "ErrorBoundary 重试不起作用, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy 分块加载失败, useSuspenseQuery 错误, react-error-boundary"
 locale: zh-CN
 translationOf: '251128'
-sourceHash: 69901addb5820c18cdd362ff593f6e5f6d828a1efe5e78e7059cb26bf22b2e07
+sourceHash: 605b77497a1ba7812a26383b7083df57c4f4468c38c802877152ef315fa11f48
 ---
 
 这篇文章想聊聊 **`ErrorBoundary` 的重试按钮为什么不起作用**。
 
 本文写给在 `react-error-boundary` 的 fallback 上挂了重试按钮，却怎么按都回到同一个画面的前端开发者，整理了失败状态留下来的三种情况，以及每种情况该怎么解开。简单地说，`ErrorBoundary` 只撤回自己的状态，造成失败的状态还原样留在抛出的一方。
 
-例子采用 TanStack Query 与 `react-error-boundary` 一起使用的配置。库的行为是打开已安装的源码确认的，引用的代码与 `@tanstack/react-query` 5.104.1、`react-error-boundary` 6.1.6、React 19.2.3 的构建文件逐字一致（2026-10-08 比对）。
+例子采用 TanStack Query 与 `react-error-boundary` 一起使用的配置。库的行为是打开已安装的源码确认的，引用的代码与 `@tanstack/react-query` 5.104.1、`react-error-boundary` 6.1.6、React 19.2.3 的构建文件结构一致（2026-10-08 比对）。缩进和换行有几处为便于阅读做了调整。
 
 
 ## 重试不起作用的三种情况
@@ -61,7 +61,13 @@ const useClearResetErrorBoundary = (errorResetBoundary) => {
 };
 ```
 
-所以一个 boolean 就足以表达只重试这一次。
+所以一个 boolean 就足以表达只重试这一次。把一次重试按顺序写出来是这样的。
+
+1. `reset()` 立起标记。
+2. 重新挂载的查询 hook 在渲染中看到标记，不会关掉 `retryOnMount`。
+3. `getHasError` 也看到标记，不抛出缓存里的错误，于是查询重新请求。
+4. 挂到屏幕上之后，effect 里的 `clearReset()` 放下标记。
+5. 标记放下后，之后的错误会再次被锁住。
 
 把这个 `reset` 接到 `ErrorBoundary` 的 `onReset` 上就行。TanStack Query 的文档和源码注释也把这样连接的代码放成了例子。
 
@@ -133,7 +139,7 @@ throw payload._result;
 
 它不会再 `import()` 一次。`lazy()` 的调用在模块顶层只发生过一次，那个 `payload` 在应用活着的期间就一直保持原样。解开 `ErrorBoundary` 重新挂载，同样的错误还是会来。
 
-那么新建一个 `lazy`，再调用一次 `import()` 行不行？到目前为止是浏览器挡住了。模块映射记住了失败的结果，不会重新获取同一个 URL。改变这一行为的 [HTML 规范变更](https://github.com/whatwg/html/pull/10327)已于 2026-07-15 合并。2026-10-08 确认的各引擎状态如下。Firefox [在 155 中加入](https://bugzilla.mozilla.org/show_bug.cgi?id=2055211)，于 2026-09-01 发布。WebKit [已进入 main](https://bugs.webkit.org/show_bug.cgi?id=319492)，但没能确认是否已进入 Safari 稳定版。Chrome 在 [chromestatus](https://chromestatus.com/feature/5214647044145152) 上仍是 Proposed。所以在 Chrome 里，新的 `import()` 也会返回同样的失败。
+那么新建一个 `lazy`，再调用一次 `import()` 行不行？到目前为止是浏览器挡住了。模块映射记住了失败的结果，不会重新获取同一个 URL。改变这一行为的 [HTML 规范变更](https://github.com/whatwg/html/pull/10327)已于 2026-07-15 合并。2026-10-08 确认的各引擎状态如下。Firefox [在 155 中加入](https://bugzilla.mozilla.org/show_bug.cgi?id=2055211)，于 2026-09-01 发布。WebKit 于 2026-08-19 [进入 main](https://bugs.webkit.org/show_bug.cgi?id=319492)，该 bug 记录中没有写明包含这一变更的 Safari 稳定版版本。Chrome 在 [chromestatus](https://chromestatus.com/feature/5214647044145152) 上仍是 Proposed。所以在 Chrome 里，新的 `import()` 也会返回同样的失败。
 
 所以这种失败的恢复方式是把页面重新取一遍。即使浏览器以后会重新获取，也不是都能解开。分块加载失败可能来自网络中断，也可能如 [Vite 文档](https://vite.dev/guide/build#load-error-handling)所说，是新的部署删掉了旧分块。被删掉的分块再请求一次也还是不存在，所以那种情况下的恢复依然是刷新。既然没法断定唯一的原因，fallback 的文案与其断言新版本已发布，不如建议用户刷新。
 

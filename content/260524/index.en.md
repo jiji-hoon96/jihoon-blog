@@ -6,7 +6,7 @@ date: "2026-05-24"
 updatedAt: "2026-10-08"
 locale: en
 translationOf: '260524'
-sourceHash: 40b731774ee30c6a2b8287ddcb0a8bf0acc4f1476512e95a6310a8b8a18e50fa
+sourceHash: 2293f3e018d512db6374f7146c812d706079a5d30ab86c875e6a6dd19b522ea4
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "How MCP differs from function calling: six primitives, stdio and Streamable HTTP, the tools/list to tool_use loop flow, and risks like Tool Poisoning."
 keywords: "MCP, Model Context Protocol, MCP vs function calling, MCP primitives, tools/list, Streamable HTTP, Tool Poisoning Attack, MCP security"
@@ -42,7 +42,7 @@ The overview of the 2025-11-25 specification divides what clients and servers ex
 
 **Client-side primitives**
 
-- **Sampling**: a mechanism that allows the server to request a completion from the client’s LLM, making the client-server architecture bidirectional
+- **Sampling**: a mechanism that allows the server to request a completion from the client’s LLM, making the client-server architecture bidirectional. It lets a server that needs generated text while running a tool borrow the model the client uses, without an API key of its own. It was deprecated, that is, scheduled for removal, in the 2026-07-28 revision.
 - **Roots**: workspace boundary information through which the client tells the server, “This is the extent of the area you may work in”
 - **Elicitation**: a feature that allows the server to request additional user input in a structured form while executing a tool
 
@@ -131,7 +131,7 @@ console.log("tool_result:", JSON.stringify({ type: "tool_result", tool_use_id: t
 await client.close();
 ```
 
-The output of `node post-demo.mjs` is as follows.
+The two lines in the middle of the code that override `clientT.send` are there only to print the method name of each message the client sends; they play no part in the conversion. The output of `node post-demo.mjs` is as follows.
 
 ```text
 C->S initialize 2025-11-25
@@ -144,7 +144,7 @@ C->S tools/call
 tool_result: {"type":"tool_result","tool_use_id":"toolu_demo","content":[{"type":"text","text":"Seoul: 15C, partly cloudy"}]}
 ```
 
-The conversion is nothing more than renaming fields. MCP’s `inputSchema` becomes `input_schema` in Anthropic and `parameters` in OpenAI. The output also shows that the SDK adds `$schema` to the schema. The other direction is just as short. Anthropic’s `tool_use.input` is an object, so it goes straight into `tools/call` as its `arguments`. The OpenAI shape above is the Responses API format. The `arguments` of a call OpenAI returns is a [JSON-encoded string](https://developers.openai.com/api/docs/guides/function-calling), so it needs one pass through `JSON.parse` before being handed over. I confirmed this part from the documentation and did not run it in the code above.
+The conversion is nothing more than renaming fields. MCP’s `inputSchema` becomes `input_schema` in Anthropic and `parameters` in OpenAI. The output also shows that the SDK adds `$schema` to the schema. The other direction is just as short. Anthropic’s `tool_use.input` is an object, so it goes straight into `tools/call` as its `arguments`. The OpenAI shape above is the Responses API format. The `arguments` of a call OpenAI returns is a [JSON-encoded string](https://developers.openai.com/api/docs/guides/function-calling), so it needs one pass through `JSON.parse` before being handed over. The code above builds only an Anthropic-shaped `tool_use` block, so this parse step does not appear in the output.
 
 
 ### Four Things MCP Adds
@@ -154,9 +154,13 @@ So what does MCP add to function calling? Under the 2025-11-25 revision, there a
 - **Dynamic discovery**: the tool list is retrieved at runtime through `tools/list` rather than known at build time. The server can announce through `notifications/tools/list_changed` that the list has changed during a connection
 - **Stateful session**: a connection is established with `initialize`, and requests are exchanged within it. There is no dedicated shutdown message; closing the transport is the shutdown
 - **Primitives beyond Tool**: Resource, Prompt, Sampling, Roots, and Elicitation are exposed through capability negotiation. Capability negotiation is the step in `initialize` where each side announces the features it supports
-- **Bidirectionality**: the server can request a completion from the client’s LLM in reverse through Sampling
+- **Bidirectionality**: the server can request a completion from the client’s LLM in reverse through Sampling (deprecated in the 2026-07-28 revision)
 
-However, as of 2026-10-08, the revision the official site opens as latest is the [2026-07-28 revision](https://modelcontextprotocol.io/specification/2026-07-28/changelog), and half of this list changed there. The handshake made of `initialize` and `notifications/initialized` and protocol-level sessions are gone, and every request carries the protocol version and client capabilities in `_meta`. Servers MUST implement `server/discover`, which advertises their supported versions and capabilities. Sampling and Roots were deprecated along with Logging, and the specification recommends integrating directly with LLM provider APIs instead of Sampling. Requests the server used to send first were replaced by a pattern called Multi Round-Trip Requests.
+However, as of 2026-10-08, the revision the official site opens as latest is the [2026-07-28 revision](https://modelcontextprotocol.io/specification/2026-07-28/changelog), and half of this list changed there. First, the handshake made of `initialize` and `notifications/initialized` and protocol-level sessions are gone. Instead, every request carries the protocol version and client capabilities in `_meta`. That field is a slot MCP reserves for attaching metadata alongside a message’s regular parameters. Servers MUST implement `server/discover`. It is the RPC a client can call before any other request to get the server’s supported protocol versions, capabilities, and server information.
+
+Requests the server used to send first were replaced by a pattern called Multi Round-Trip Requests (MRTR). Instead of sending a separate request, the server returns an interim result saying it needs more input (`input_required`), and the client fills in that input and sends the original request again.
+
+Sampling and Roots were deprecated along with Logging. They remain in the specification and still work, but new implementations should not adopt them, and the specification recommends integrating directly with LLM provider APIs instead of Sampling.
 
 The SDKs’ default behavior, however, still follows the old way. TypeScript SDK 1.32.1 has `2025-11-25` as its latest version constant and does not know the 2026-07-28 revision, and 2.3.1 supports this revision but defaults to `legacy` version negotiation. The first line of the output above, `initialize 2025-11-25`, is the result.
 
@@ -167,7 +171,7 @@ What remains of the four, then, is dynamic discovery and the primitives beyond T
 
 Anthropic’s [MCP connector](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector) shows how much of this contract reaches the model. It is a feature in which the Messages API connects directly to a remote MCP server, and the Limitations section of its documentation says that of the MCP specification’s features, "only tool calls are currently supported", and that "Local STDIO servers cannot be connected directly". The same documentation advises that if you need local servers, MCP prompts, or resources, you manage the connection yourself with an MCP SDK and use the Anthropic SDK’s conversion helpers.
 
-In other words, when MCP is consumed at the function calling layer, only Tool remains. Resource and Prompt mean something only when there is a host to carry them into the screen or the context. OpenAI’s function calling guide also introduces a way to use the functionality of an MCP server as a built-in tool. How far that side accepts primitives beyond Tool was not checked in this post.
+In other words, when MCP is consumed at the function calling layer, only Tool remains. Resource and Prompt mean something only when there is a host to carry them into the screen or the context. OpenAI’s function calling guide also introduces a way to use the functionality of an MCP server as a built-in tool. OpenAI’s Remote MCP guide describes only how to list and call tools, and does not say whether Resource or Prompt is supported.
 
 
 ### The Attack Surface Dynamic Discovery Opens
@@ -180,7 +184,7 @@ Both representative attacks come from the fact that tool definitions travel at r
 
 - **Rug Pull** (Silent Redefinition): an attack in which the server changes a tool definition after the user has approved it. Invariant Labs described it first in the same post, the name Silent Redefinition comes from a post by Elena Cross, and [Simon Willison](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/) quoted it in his write-up on April 9, 2025. A tool begins as legitimate. The user reviews it, approves it, and integrates it into a workflow. Weeks later, the tool definition quietly changes to include malicious instructions. Because the user is not asked to approve it again, the behavior changes without warning.
 
-A Rug Pull happens in the same place as `notifications/tools/list_changed`, which is what makes dynamic discovery possible. The specification only defines how to announce that the list has changed; it does not require showing the changed definition to the user again. Willison wrote that MCP clients should show users the initial tool descriptions and alert them if those descriptions change. Getting re-approval after a change is the host’s job, not the specification’s.
+A Rug Pull happens in the same place as `notifications/tools/list_changed`, which is what makes dynamic discovery possible. That name belongs to the 2025-11-25 revision; in the 2026-07-28 revision, as seen above, only clients that opted in receive this notification. The specification only defines how to announce that the list has changed; it does not require showing the changed definition to the user again. Willison wrote that MCP clients should show users the initial tool descriptions and alert them if those descriptions change. Getting re-approval after a change is the host’s job, not the specification’s.
 
 
 ## Wrapping Up
