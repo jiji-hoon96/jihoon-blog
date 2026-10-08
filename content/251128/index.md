@@ -1,7 +1,7 @@
 ---
 emoji: 🔁
 title: "재시도 버튼이 안 듣는 이유"
-seoTitle: "ErrorBoundary 재시도가 안 될 때, QueryErrorResetBoundary 와 lazy"
+seoTitle: "React ErrorBoundary 재시도 버튼이 안 될 때 확인할 세 가지 원인"
 date: '2025-11-28'
 updatedAt: '2026-10-08'
 categories: 프론트엔드 React TanStack-Query 에러핸들링
@@ -99,8 +99,6 @@ resetErrorBoundary(...e) {
 `didCatch` 가 참일 때만 `onReset` 을 부르고 상태를 초기값 `d`(`didCatch: false`)로 되돌린다. `setState` 는 핸들러가 끝난 뒤에 렌더되므로, children 이 다시 마운트될 때는 `reset()` 이 세운 플래그가 이미 서 있다. 그래서 `onReset` 에 `reset` 을 잇기만 하면 된다.
 
 `QueryErrorResetBoundary` 로 감싸지 않고 `useQueryErrorResetBoundary()` 로 `reset` 을 꺼내 `onReset` 에 이어도 재시도는 동작한다. 감싼 경계가 없으면 이 훅이 모듈 전역의 기본값을 돌려주기 때문이다. 대신 [Suspense 가이드](https://tanstack.com/query/latest/docs/framework/react/guides/suspense)가 적은 대로 리셋이 전역에 걸리고, 앱 전체가 `isReset` 플래그 하나를 공유한다.
-
-이름에 `Query` 를 붙인 것도 의도다. `AsyncBoundary` 라고 부르면 어떤 비동기에나 쓸 수 있을 것처럼 읽히는데, 안에 `QueryErrorResetBoundary` 가 들어 있어서 그렇지 않다. 같은 이유로 `pendingFallback` 에 기본값을 두지 않았다. 기본값이 있으면 호출 지점 한 줄만 봐서는 무엇이 깔리는지 알 수 없다.
 
 ### reset 이 풀 수 없는 렌더 에러
 

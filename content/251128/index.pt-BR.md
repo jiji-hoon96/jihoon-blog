@@ -1,7 +1,7 @@
 ---
 emoji: 🔁
 title: "Por que o botão de tentar de novo não funciona"
-seoTitle: "ErrorBoundary não tenta de novo: QueryErrorResetBoundary"
+seoTitle: "Por que o retry do ErrorBoundary não funciona: 3 causas"
 date: '2025-11-28'
 updatedAt: '2026-10-08'
 categories: frontend React TanStack-Query tratamento-de-erros
@@ -9,7 +9,7 @@ description: "Três casos em que tentar de novo num fallback do react-error-boun
 keywords: "ErrorBoundary não tenta de novo, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy falha ao carregar chunk, erro no useSuspenseQuery, react-error-boundary"
 locale: pt-BR
 translationOf: '251128'
-sourceHash: 519f5b360dc478899cd12922bff90c3cf30f8d6159cb77aa7701b940a636385d
+sourceHash: fcf6001b4010f388052cef96f91df83091e0a33fd111de033ea9cf622021a566
 ---
 
 Neste post quero falar sobre **por que o botão de tentar de novo de um `ErrorBoundary` não funciona**.
@@ -102,8 +102,6 @@ resetErrorBoundary(...e) {
 Só quando `didCatch` é verdadeiro ele chama `onReset` e volta o estado para o valor inicial `d` (`didCatch: false`). `setState` é renderizado depois que o handler termina, então, quando os children remontam, a flag que `reset()` levantou já está de pé. Por isso basta ligar `onReset` a `reset`.
 
 Mesmo sem envolver com `QueryErrorResetBoundary`, se você pegar de `useQueryErrorResetBoundary()` o `reset` e ligá-lo ao `onReset`, a nova tentativa funciona. Sem uma fronteira envolvendo, o hook devolve um valor padrão global do módulo. Em troca, como o [guia de Suspense](https://tanstack.com/query/latest/docs/framework/react/guides/suspense) registra, o reset vale globalmente e o app inteiro compartilha uma única flag `isReset`.
-
-Colocar `Query` no nome também é proposital. Se você chamar de `AsyncBoundary`, lê-se como se servisse para qualquer assincronia, e não serve, porque tem um `QueryErrorResetBoundary` dentro. Pela mesma razão não dei valor padrão a `pendingFallback`. Com um valor padrão, olhando só a linha da chamada você não sabe o que está sendo colocado embaixo.
 
 ### O erro de render que o reset não consegue limpar
 

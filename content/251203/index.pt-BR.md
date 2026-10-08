@@ -9,7 +9,7 @@ description: "Quantos ErrorBoundary usar e onde, conferido no código instalado:
 keywords: "onde colocar ErrorBoundary, ErrorBoundary rotas aninhadas, design de ErrorBoundary, fallbackRender, useRouteError, revalidate, tratamento de erro com useSuspenseQuery, condição de retry no TanStack Query"
 locale: pt-BR
 translationOf: '251203'
-sourceHash: 4597e3854b16c9dc107815c3fc788c12d804a00e0aaff83ffe8ebee9ebcd3883
+sourceHash: 16f5ae7317fc183ba39c02ce385d4e9cc9f6b7fe4f9a13c084ebdfcccf712537
 ---
 
 Neste post quero falar sobre **quantos `ErrorBoundary` ter e onde colocá-los**. É para desenvolvedores frontend que montam telas com React Router e TanStack Query e vivem pesando se uma falha deve ser recebida pelo `ErrorBoundary` da rota, pelo `react-error-boundary` ou pelo `useQuery` com seu `isError`. Ao final, você terá um critério para decidir onde vai cada `ErrorBoundary` e um jeito de ajustar o fallback e a condição de retry a cada lugar.
@@ -87,7 +87,9 @@ Depois de dividir em quatro camadas, sobra uma última bifurcação. Para uma re
 
 De qualquer um dos dois jeitos você perde só aquela região e mantém o resto. O que muda não é quanto você perde, e sim **o que você desenha ali no lugar**.
 
-Subir para um `ErrorBoundary` reduz o código. Se você chama `useSuspenseQuery` dentro, aquele componente não tem nem `isPending` nem `isError`. A espera fica com o `Suspense` de fora e a falha com o `ErrorBoundary` de fora. O componente desenha só o caso em que há dados. O `QueryAsyncBoundary` abaixo é um componente que junta esse `Suspense` e esse `ErrorBoundary`.
+Subir para um `ErrorBoundary` reduz o código. Se você chama `useSuspenseQuery` dentro, aquele componente não tem nem `isPending` nem `isError`. A espera fica com o `Suspense` de fora e a falha com o `ErrorBoundary` de fora. O componente desenha só o caso em que há dados.
+
+O `QueryAsyncBoundary` abaixo é um componente que junta esse `Suspense` e esse `ErrorBoundary`. Dentro de `QueryErrorResetBoundary` ele coloca um `ErrorBoundary`, liga o seu `onReset` a `reset` e envolve o interior em `Suspense`. Colocar `Query` no nome é proposital. Se você chamar de `AsyncBoundary`, lê-se como se servisse para qualquer assincronia, e não serve, porque tem um `QueryErrorResetBoundary` dentro. Pela mesma razão não dei valor padrão a `pendingFallback`. Com um valor padrão, olhando só a linha da chamada você não sabe o que está sendo colocado embaixo.
 
 ```tsx
 <section>

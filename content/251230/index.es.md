@@ -1,7 +1,7 @@
 ---
 emoji: 🧮
 title: "Cómo se comparan las queryKey"
-seoTitle: "Cómo compara TanStack Query las queryKey: hashKey explicado"
+seoTitle: "queryKey en TanStack Query: hashKey y el orden de las claves"
 date: "2025-12-30"
 updatedAt: "2026-10-08"
 categories: frontend React TanStack-Query queryKey
@@ -9,7 +9,7 @@ description: "Cómo TanStack Query decide que dos queryKey son iguales: la seria
 keywords: "comparación de queryKey, hashKey, queryHash, clave de caché de TanStack Query, orden de queryKey en React Query, queryKeyHashFn, JSON.stringify claves ordenadas, QueryCache"
 locale: es
 translationOf: '251230'
-sourceHash: eb6c7f35301bbbf2a3de49ae01bc11db34acdbf37ad64f8884552b537142853a
+sourceHash: 24fc2216b382a69ba99c1d4ca8676c6ef3f58966b132171d60acb75e1be1f38c
 ---
 
 En esta publicación quiero hablar sobre **cómo decide TanStack Query que dos queryKey son la misma clave**.
@@ -18,14 +18,12 @@ Está dirigida a quienes usan TanStack Query y se han preguntado por qué una qu
 
 La queryKey es el arreglo que TanStack Query usa como base para gestionar la caché de consultas. La misma clave significa los mismos datos, y cuando `['user', userId]` cambia porque cambió su `userId`, se produce un fallo de caché y los datos se vuelven a obtener con fetch.
 
-Aquí surge una pregunta: ¿cómo determina TanStack Query que dos queryKey son «la misma clave»? Si las comparase simplemente con `===`, las referencias de los objetos serían distintas y se produciría un fallo de caché en cada ocasión.
-
 
 ## El interior de QueryCache
 
-Según [El interior de React Query](https://tkdodo.eu/blog/inside-react-query), de TkDodo, `QueryCache` no es más que **una estructura de datos mantenida en memoria**. Para ser más precisos, en la [implementación oficial](https://github.com/TanStack/query/blob/%40tanstack%2Fquery-core%405.104.1/packages/query-core/src/queryCache.ts) de v5 esa estructura no es un objeto plano, sino un `Map<string, Query>`. El campo tiene el tipo `QueryStore`, y el constructor le asigna un `new Map<string, Query>()`. Las entradas se guardan y se consultan con `queryHash` como clave. La clave es la forma serializada de queryKey (`queryHash`), y el valor es una instancia de la clase `Query`. El código y los resultados de este artículo se basan en `@tanstack/query-core` 5.104.1.
+Según [El interior de React Query](https://tkdodo.eu/blog/inside-react-query), de TkDodo, `QueryCache` no es más que **una estructura de datos mantenida en memoria**. En la [implementación oficial](https://github.com/TanStack/query/blob/%40tanstack%2Fquery-core%405.104.1/packages/query-core/src/queryCache.ts) de v5 esa estructura no es un objeto plano, sino un `Map<string, Query>`. El campo tiene el tipo `QueryStore`, y el constructor le asigna un `new Map<string, Query>()`. Las entradas se guardan y se consultan con `queryHash` como clave. La clave es la forma serializada de queryKey (`queryHash`), y el valor es una instancia de la clase `Query`. El código y los resultados de este artículo se basan en `@tanstack/query-core` 5.104.1.
 
-En versiones antiguas también se utilizaron objetos planos, pero en v5 se adoptó el `Map` nativo. `Map` nunca choca con claves heredadas de un prototipo y conserva el orden de inserción. En cuanto a la velocidad de búsqueda, la [especificación de ECMAScript](https://tc39.es/ecma262/#sec-map-objects) solo exige tiempos de acceso sublineales respecto al número de elementos, y V8 [lo implementa como una tabla hash](https://v8.dev/blog/hash-code). Es una elección razonable para una estructura de caché.
+A diferencia de los objetos planos que usaban las versiones antiguas, un `Map` nunca choca con claves heredadas de un prototipo.
 
 Lo que ocurre cada vez que se llama a `useQuery` es sencillo: **queryKey se convierte en un valor hash y este se utiliza para buscar en el mapa**. Si existe, se recupera la instancia de `Query` almacenada en caché; si no, se crea una nueva y se guarda con `set`.
 
@@ -45,7 +43,7 @@ La solución al problema causado por la igualdad referencial es sencilla: **conv
 
 ## Ordenamiento de claves en hashKey
 
-La función que genera el valor hash es `hashKey`. La implementación oficial, definida en [`packages/query-core/src/utils.ts`](https://github.com/TanStack/query/blob/%40tanstack%2Fquery-core%405.104.1/packages/query-core/src/utils.ts#L284-L295), es exactamente esta.
+La función que genera el valor hash es `hashKey`. La implementación oficial, definida en [`packages/query-core/src/utils.ts`](https://github.com/TanStack/query/blob/%40tanstack%2Fquery-core%405.104.1/packages/query-core/src/utils.ts#L284-L295), es esta.
 
 ```typescript
 export function hashKey(queryKey: QueryKey | MutationKey): string {
@@ -66,11 +64,11 @@ Usa `JSON.stringify` con una [función de reemplazo](https://developer.mozilla.o
 
 Este ordenamiento es esencial porque la serialización a una cadena impone otra condición aún más estricta: **las entradas semánticamente iguales deben convertirse siempre en la misma cadena**. Sin embargo, `JSON.stringify` normal conserva el orden de las claves. Aunque `{ a: 1, b: 2 }` y `{ b: 2, a: 1 }` sean objetos semánticamente iguales, se serializan como cadenas diferentes y terminan ocupando espacios de caché distintos. Así volverían a solicitarse dos veces los mismos datos.
 
-La técnica que evita sistemáticamente este problema es la **forma canónica (canonical form)**. Consiste en obligar a que las entradas semánticamente iguales correspondan siempre a una única representación. Ese es exactamente el motivo por el que la función de reemplazo de `hashKey` ordena las claves de los objetos planos. Hace que el resultado sea idéntico con independencia del orden de entrada, de modo que los objetos con el mismo significado se conviertan siempre en la misma cadena. La dirección contraria no está garantizada, como veremos más adelante.
+La técnica que evita sistemáticamente este problema es la **forma canónica (canonical form)**. Consiste en obligar a que las entradas semánticamente iguales correspondan siempre a una única representación. Ese es el motivo por el que la función de reemplazo de `hashKey` ordena las claves de los objetos planos. Hace que el resultado sea idéntico con independencia del orden de entrada, de modo que los objetos con el mismo significado se conviertan siempre en la misma cadena. La dirección contraria no está garantizada, como veremos más adelante.
 
-El hecho de que los arreglos no se ordenen es la otra cara del mismo principio. En un arreglo, el propio orden contiene significado; ordenarlo supondría perder información. El orden de las claves de un objeto es accidental, mientras que el orden de los elementos de un arreglo es intencionado. `hashKey` trata ambos casos de forma deliberadamente distinta. Que el mantenedor TkDodo recomiende en [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys) estructurar queryKey desde lo más genérico hasta lo más específico también se debe a que el orden del arreglo tiene significado. La razón que él da es la invalidación: las claves que comparten la parte inicial se pueden invalidar todas a la vez con `['todos']`. Esa comparación no la hace el hash, sino la coincidencia por prefijo que veremos más adelante.
+El hecho de que los arreglos no se ordenen es la otra cara del mismo principio. En un arreglo, el propio orden contiene significado; ordenarlo supondría perder información. El orden de las claves de un objeto es accidental, mientras que el orden de los elementos de un arreglo es intencionado. `hashKey` trata ambos casos de forma distinta. Que el mantenedor TkDodo recomiende en [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys) estructurar queryKey desde lo más genérico hasta lo más específico también se debe a que el orden del arreglo tiene significado. La razón que él da es la invalidación: las claves que comparten la parte inicial se pueden invalidar todas a la vez con `['todos']`. Esa comparación no la hace el hash, sino la coincidencia por prefijo que veremos más adelante.
 
-Hay otro detalle que conviene señalar: el ordenamiento de claves solo se aplica a los **objetos planos**. `isPlainObject`, definida en el mismo archivo, comprueba si `Object.prototype.toString` devuelve `[object Object]` y si el prototipo es `Object.prototype` (o `null`) para distinguir entre **literales de objeto puros** e **instancias de clase**. Por eso un literal como `{ foo: 1 }` se ordena, mientras que una instancia creada con `class User { ... }` pasa sin ordenarse. Si se introduce directamente una instancia de clase en queryKey, sus claves no se ordenan y se serializa en el orden en que se asignaron sus campos, así que valores iguales pueden producir hashes distintos.
+El ordenamiento de claves solo se aplica a los **objetos planos**. `isPlainObject`, definida en el mismo archivo, comprueba si `Object.prototype.toString` devuelve `[object Object]` y si el prototipo es `Object.prototype` (o `null`) para distinguir entre **literales de objeto puros** e **instancias de clase**. Por eso un literal como `{ foo: 1 }` se ordena, mientras que una instancia creada con `class User { ... }` pasa sin ordenarse. Si se introduce directamente una instancia de clase en queryKey, sus claves no se ordenan y se serializa en el orden en que se asignaron sus campos, así que valores iguales pueden producir hashes distintos.
 
 Visto desde quien lo usa, hay dos resultados.
 
@@ -131,6 +129,8 @@ Los más peligrosos son `Map` y `Set`. En el código anterior, los datos guardad
 
 Solo dos casos aparecen como error: `BigInt` y las referencias circulares. En las referencias circulares, el error depende de qué forma el ciclo. Un ciclo que pasa solo por objetos planos termina con `RangeError: Maximum call stack size exceeded`, mientras que uno que pasa aunque sea por un arreglo o una instancia de clase, como en `arr.push(arr)`, termina con `TypeError: Converting circular structure to JSON`. Como la función de reemplazo devuelve un objeto nuevo por cada objeto plano, la detección de ciclos de `JSON.stringify` nunca vuelve a encontrar el mismo objeto; los arreglos y las instancias de clase, en cambio, la función de reemplazo los devuelve tal cual, y el ciclo se detecta. Por su parte, `Date` se convierte en una cadena ISO mediante `toJSON`, así que en la consulta de la caché el mismo instante produce la misma clave y resulta relativamente seguro.
 
+Una vez puse un `Date` directamente en una clave y pasé mucho tiempo preguntándome: «¿Por qué se actualiza la caché si es el mismo instante?». Un `Date` que apunta al mismo instante se convierte en la misma cadena ISO aunque sea otra instancia, así que produce el mismo hash. Si cada vez salía una clave distinta, el instante en sí era distinto, aunque pareciera el mismo. Si se crea un `new Date()` durante el renderizado, cada renderizado recibe una hora distinta por milisegundos, y cada una se convierte en una clave nueva.
+
 Por eso lo más seguro es poner en una queryKey solo cadenas, números, booleanos, `null` y arreglos u objetos planos formados por ellos.
 
 
@@ -160,11 +160,9 @@ console.log(queryClient.getQueryData(['todos', { page: 1, status: 'done' }])) //
 
 La segunda salida significa que un `BigInt` y una cadena con el mismo número se convierten en la misma clave. La última salida es el efecto de perder el ordenamiento: los objetos que solo difieren en el orden de sus claves ya no se tratan como la misma clave.
 
-El lugar donde se registra también cambia el resultado. Si se registra en `QueryClient` mediante `defaultOptions` o con `setQueryDefaults`, como arriba, `setQueryData` y `getQueryData` también usan esa función. Ocurre porque ambas API combinan las opciones por defecto con `defaultQueryOptions` antes de calcular el hash. En cambio, si se escribe solo en la llamada a `useQuery`, las API imperativas usan el `hashKey` predeterminado y la misma clave se divide en dos entradas dentro de la caché. En la etapa beta de v3.2.0, ni siquiera el valor global se aplicaba a `setQueryData`. En el [Issue #1343](https://github.com/TanStack/query/issues/1343), el colaborador de TanStack Query boschni respondió que debería estar corregido en v3.2.0-beta.30, y quien lo reportó confirmó que funcionaba.
+El lugar donde se registra también cambia el resultado. Si se registra en `QueryClient` mediante `defaultOptions` o con `setQueryDefaults`, como arriba, `setQueryData` y `getQueryData` también usan esa función. Ocurre porque ambas API combinan las opciones por defecto con `defaultQueryOptions` antes de calcular el hash. En cambio, si se escribe solo en la llamada a `useQuery`, las API imperativas usan el `hashKey` predeterminado y la misma clave se divide en dos entradas dentro de la caché. En la etapa beta de v3.2.0, ni siquiera el valor global se aplicaba a `setQueryData`, y quien reportó el [Issue #1343](https://github.com/TanStack/query/issues/1343) confirmó que quedó corregido en v3.2.0-beta.30.
 
 Por eso, en producción es mucho más seguro evitar la vía de escape y **convertir los valores a una forma serializable al construir la queryKey**. Escribir tu propia función hash obliga a ocuparse tanto del ordenamiento de claves como del lugar donde se registra.
-
-Una vez puse un `Date` directamente en una clave y pasé mucho tiempo preguntándome: «¿Por qué se actualiza la caché si es el mismo instante?». Un `Date` que apunta al mismo instante se convierte en la misma cadena ISO aunque sea otra instancia, así que produce el mismo hash. Si cada vez salía una clave distinta, el instante en sí era distinto, aunque pareciera el mismo. Si se crea un `new Date()` durante el renderizado, cada renderizado recibe una hora distinta por milisegundos, y cada una se convierte en una clave nueva.
 
 
 ## Cómo comparan claves los filtros
@@ -188,7 +186,7 @@ Por eso no hay garantía de que las claves iguales por hash también lo sean en 
 
 ## Conclusión
 
-En resumen, TanStack Query no compara las referencias de los arreglos queryKey. `hashKey` ordena las claves de los objetos planos mientras serializa con `JSON.stringify`, y la cadena resultante (`queryHash`) se usa como clave de un `Map`. Por eso el orden de las claves de un objeto no afecta a la caché, el orden de los elementos de un arreglo sí, y una propiedad cuyo valor es `undefined` equivale, para el hash, a una propiedad ausente. La mayoría de los valores que JSON no puede representar se convierten en otros sin ningún error, de modo que claves distintas pasan a ser la misma en silencio. Se puede cambiar la función hash con `queryKeyHashFn`, pero eso también descarta el ordenamiento de claves, así que es más seguro convertir los valores en serializables al construir la clave. Los filtros, como los de invalidación, por defecto no pasan por el hash y comparan la estructura de la queryKey desde el principio, así que conviene no esperar que las claves iguales por hash lo sean también en un filtro.
+En resumen, TanStack Query no compara las referencias de los arreglos queryKey. `hashKey` ordena las claves de los objetos planos mientras serializa con `JSON.stringify`, y la cadena resultante (`queryHash`) se usa como clave de un `Map`. Por eso el orden de las claves de un objeto no afecta a la caché, el orden de los elementos de un arreglo sí, y una propiedad cuyo valor es `undefined` equivale, para el hash, a una propiedad ausente. La mayoría de los valores que JSON no puede representar se convierten en otros sin ningún error, de modo que claves distintas pasan a ser la misma en silencio. Se puede cambiar la función hash con `queryKeyHashFn`, pero eso también descarta el ordenamiento de claves, así que es más seguro convertir los valores en serializables al construir la clave. Los filtros, como los de invalidación, por defecto no pasan por el hash y comparan la estructura de la queryKey desde el principio, así que conviene no esperar que las claves iguales por hash lo sean también en un filtro. Al final, la búsqueda en caché compara el contenido de la clave mediante `hashKey` y los filtros comparan su parte inicial, así que si en queryKey solo se ponen valores simples cuyo significado no cambia al serializarse, ambas comparaciones se comportan como se espera.
 
 Cómo este criterio se traslada a la forma de escribir y gestionar las queryKey, es decir, el camino desde los arreglos en línea, pasando por las fábricas de claves, hasta `queryOptions`, se trata en [queryKey](/260104).
 

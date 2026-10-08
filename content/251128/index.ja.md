@@ -1,7 +1,7 @@
 ---
 emoji: 🔁
 title: "再試行ボタンが効かない理由"
-seoTitle: "ErrorBoundary の再試行が効かないとき、QueryErrorResetBoundary と lazy"
+seoTitle: "React ErrorBoundary の再試行ボタンが効かないときに確認する3つの原因"
 date: '2025-11-28'
 updatedAt: '2026-10-08'
 categories: フロントエンド React TanStack-Query エラーハンドリング
@@ -9,7 +9,7 @@ description: "react-error-boundary の再試行ボタンを押しても同じ fa
 keywords: "ErrorBoundary 再試行が効かない, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy チャンク読み込み失敗, useSuspenseQuery エラー, react-error-boundary"
 locale: ja
 translationOf: '251128'
-sourceHash: 519f5b360dc478899cd12922bff90c3cf30f8d6159cb77aa7701b940a636385d
+sourceHash: fcf6001b4010f388052cef96f91df83091e0a33fd111de033ea9cf622021a566
 ---
 
 今回の記事では、**`ErrorBoundary` の再試行ボタンがなぜ効かないのか**について話してみたい。
@@ -102,8 +102,6 @@ resetErrorBoundary(...e) {
 `didCatch` が真のときだけ `onReset` を呼び、状態を初期値 `d`（`didCatch: false`）に戻す。`setState` はハンドラーが終わったあとにレンダーされるので、children が再マウントされるときには `reset()` が立てたフラグがすでに立っている。だから `onReset` に `reset` をつなぐだけでよい。
 
 `QueryErrorResetBoundary` で囲まずに `useQueryErrorResetBoundary()` から `reset` を取り出して `onReset` につないでも再試行は動く。囲む境界がなければ、このフックがモジュール全体のデフォルト値を返すからだ。そのかわり [Suspense ガイド](https://tanstack.com/query/latest/docs/framework/react/guides/suspense)が書くとおりリセットはグローバルにかかり、アプリ全体がひとつの `isReset` フラグを共有する。
-
-名前に `Query` を付けたのも意図だ。`AsyncBoundary` と呼ぶと、どんな非同期にも使えるように読めるが、中に `QueryErrorResetBoundary` が入っているのでそうではない。同じ理由で `pendingFallback` に既定値を置かなかった。既定値があると、呼び出し地点の一行だけを見ても何が敷かれるのか分からない。
 
 ### reset が解けないレンダーのエラー
 

@@ -9,7 +9,7 @@ description: "在使用 React Router 与 TanStack Query 的页面里，用已安
 keywords: "ErrorBoundary 放在哪里, 嵌套路由 ErrorBoundary, ErrorBoundary 设计, fallbackRender, useRouteError, revalidate, useSuspenseQuery 错误处理, TanStack Query retry 条件"
 locale: zh-CN
 translationOf: '251203'
-sourceHash: 4597e3854b16c9dc107815c3fc788c12d804a00e0aaff83ffe8ebee9ebcd3883
+sourceHash: 16f5ae7317fc183ba39c02ce385d4e9cc9f6b7fe4f9a13c084ebdfcccf712537
 ---
 
 这篇文章想聊聊 **`ErrorBoundary` 要放几个、放在哪里**。本文写给用 React Router 和 TanStack Query 搭页面、总在纠结失败该由路由的 `ErrorBoundary`、`react-error-boundary` 还是 `useQuery` 的 `isError` 来接的前端开发者。读完之后，你会得到决定 `ErrorBoundary` 放在哪里的标准，以及让每个位置的 fallback 和重试条件对得上的方法。
@@ -87,7 +87,9 @@ function findNearestBoundary(matches, routeId) {
 
 无论哪一种，丢掉的都只是那个区域，其余的都保得住。分出高下的不是丢掉的范围，而是**在那个位置改画什么**。
 
-抬到 `ErrorBoundary` 上，代码会变少。在里面调用 `useSuspenseQuery`，那个组件里既没有 `isPending` 也没有 `isError`。等待由外面的 `Suspense` 接，失败由外面的 `ErrorBoundary` 接。组件只画有数据的情况。下面的 `QueryAsyncBoundary` 是把那个 `Suspense` 和 `ErrorBoundary` 合在一起的组件。
+抬到 `ErrorBoundary` 上，代码会变少。在里面调用 `useSuspenseQuery`，那个组件里既没有 `isPending` 也没有 `isError`。等待由外面的 `Suspense` 接，失败由外面的 `ErrorBoundary` 接。组件只画有数据的情况。
+
+下面的 `QueryAsyncBoundary` 是把那个 `Suspense` 和 `ErrorBoundary` 合在一起的组件。它在 `QueryErrorResetBoundary` 里放了 `ErrorBoundary`，把 `onReset` 接到 `reset` 上，再用 `Suspense` 包住里面。名字里加上 `Query` 是有意的。叫 `AsyncBoundary` 的话，读起来像是任何异步都能用，其实不是，因为里面装着 `QueryErrorResetBoundary`。出于同样的理由，我没有给 `pendingFallback` 设默认值。有了默认值，只看调用处那一行就不知道垫在下面的是什么。
 
 ```tsx
 <section>

@@ -1,7 +1,7 @@
 ---
 emoji: 🔁
 title: "Why the Retry Button Does Nothing"
-seoTitle: "ErrorBoundary Retry Not Working: QueryErrorResetBoundary"
+seoTitle: "ErrorBoundary Retry Button Not Working? 3 Causes to Check"
 date: '2025-11-28'
 updatedAt: '2026-10-08'
 categories: frontend React TanStack-Query error-handling
@@ -9,7 +9,7 @@ description: "Three cases where retry in a react-error-boundary fallback brings 
 keywords: "ErrorBoundary retry not working, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy chunk load error, useSuspenseQuery error, react-error-boundary"
 locale: en
 translationOf: '251128'
-sourceHash: 519f5b360dc478899cd12922bff90c3cf30f8d6159cb77aa7701b940a636385d
+sourceHash: fcf6001b4010f388052cef96f91df83091e0a33fd111de033ea9cf622021a566
 ---
 
 In this post, I want to talk about **why the retry button on an `ErrorBoundary` does nothing**.
@@ -102,8 +102,6 @@ resetErrorBoundary(...e) {
 Only when `didCatch` is true does it call `onReset` and set the state back to the initial value `d` (`didCatch: false`). `setState` renders after the handler finishes, so by the time the children remount, the flag that `reset()` raised is already up. That is why it is enough to wire `onReset` to `reset`.
 
 Even without wrapping in `QueryErrorResetBoundary`, if you take `useQueryErrorResetBoundary()` and pass its `reset` to `onReset`, retry works. With no enclosing boundary, the hook returns a module-global default. The cost, as the [Suspense guide](https://tanstack.com/query/latest/docs/framework/react/guides/suspense) notes, is that the reset applies globally and the whole app shares one `isReset` flag.
-
-Putting `Query` in the name is deliberate too. Call it `AsyncBoundary` and it reads as usable for any async work, which it is not, because `QueryErrorResetBoundary` sits inside it. For the same reason I gave `pendingFallback` no default value. With a default, a single line at the call site does not tell you what gets laid down.
 
 ### The render error reset cannot clear
 

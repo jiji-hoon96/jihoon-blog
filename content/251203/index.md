@@ -84,7 +84,9 @@ function findNearestBoundary(matches, routeId) {
 
 어느 쪽이든 그 영역만 잃고 나머지는 지킨다. 갈리는 것은 잃는 범위가 아니라 **그 자리에 무엇을 대신 그리느냐**다.
 
-`ErrorBoundary` 로 올리면 코드가 줄어든다. 안에서 `useSuspenseQuery` 를 부르면 그 컴포넌트에는 `isPending` 도 `isError` 도 없다. 대기는 바깥 `Suspense` 가, 실패는 바깥 `ErrorBoundary` 가 받는다. 컴포넌트는 데이터가 있는 경우만 그린다. 아래의 `QueryAsyncBoundary` 는 그 `Suspense` 와 `ErrorBoundary` 를 한데 묶은 컴포넌트다.
+`ErrorBoundary` 로 올리면 코드가 줄어든다. 안에서 `useSuspenseQuery` 를 부르면 그 컴포넌트에는 `isPending` 도 `isError` 도 없다. 대기는 바깥 `Suspense` 가, 실패는 바깥 `ErrorBoundary` 가 받는다. 컴포넌트는 데이터가 있는 경우만 그린다.
+
+아래의 `QueryAsyncBoundary` 는 그 `Suspense` 와 `ErrorBoundary` 를 한데 묶은 컴포넌트다. `QueryErrorResetBoundary` 안에 `ErrorBoundary` 를 두고 `onReset` 에 `reset` 을 이은 다음, 그 안을 `Suspense` 로 감쌌다. 이름에 `Query` 를 붙인 것은 의도다. `AsyncBoundary` 라고 부르면 어떤 비동기에나 쓸 수 있을 것처럼 읽히는데, 안에 `QueryErrorResetBoundary` 가 들어 있어서 그렇지 않다. 같은 이유로 `pendingFallback` 에 기본값을 두지 않았다. 기본값이 있으면 호출 지점 한 줄만 봐서는 무엇이 깔리는지 알 수 없다.
 
 ```tsx
 <section>

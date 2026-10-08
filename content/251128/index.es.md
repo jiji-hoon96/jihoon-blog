@@ -1,7 +1,7 @@
 ---
 emoji: 🔁
 title: "Por qué el botón de reintentar no hace nada"
-seoTitle: "ErrorBoundary no reintenta: QueryErrorResetBoundary y lazy"
+seoTitle: "Por qué no funciona el botón de reintentar de ErrorBoundary"
 date: '2025-11-28'
 updatedAt: '2026-10-08'
 categories: frontend React TanStack-Query manejo-de-errores
@@ -9,7 +9,7 @@ description: "Tres casos en que reintentar en un fallback de react-error-boundar
 keywords: "ErrorBoundary no reintenta, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy error al cargar chunk, error en useSuspenseQuery, react-error-boundary"
 locale: es
 translationOf: '251128'
-sourceHash: 519f5b360dc478899cd12922bff90c3cf30f8d6159cb77aa7701b940a636385d
+sourceHash: fcf6001b4010f388052cef96f91df83091e0a33fd111de033ea9cf622021a566
 ---
 
 En esta entrada quiero hablar de **por qué el botón de reintentar de un `ErrorBoundary` no hace nada**.
@@ -102,8 +102,6 @@ resetErrorBoundary(...e) {
 Solo cuando `didCatch` es verdadero llama a `onReset` y devuelve el estado al valor inicial `d` (`didCatch: false`). `setState` se renderiza cuando termina el handler, así que cuando los children se vuelven a montar, la bandera que levantó `reset()` ya está arriba. Por eso basta con conectar `onReset` a `reset`.
 
 Aunque no envuelvas con `QueryErrorResetBoundary`, si tomas de `useQueryErrorResetBoundary()` su `reset` y lo conectas a `onReset`, el reintento funciona. Sin un límite que lo envuelva, el hook devuelve un valor por defecto global del módulo. A cambio, como indica la [guía de Suspense](https://tanstack.com/query/latest/docs/framework/react/guides/suspense), el reset se aplica globalmente y toda la aplicación comparte una sola bandera `isReset`.
-
-Ponerle `Query` en el nombre también es intencionado. Si lo llamas `AsyncBoundary` se lee como si sirviera para cualquier asincronía, y no es así, porque dentro lleva `QueryErrorResetBoundary`. Por la misma razón no le puse valor por defecto a `pendingFallback`. Con un valor por defecto, mirando solo la línea de la llamada no sabes qué se está poniendo debajo.
 
 ### El error de render que reset no puede limpiar
 

@@ -1,7 +1,7 @@
 ---
 emoji: 🔁
 title: "重试按钮为什么不起作用"
-seoTitle: "ErrorBoundary 重试不起作用时：QueryErrorResetBoundary、queryFn 与 lazy"
+seoTitle: "React ErrorBoundary 重试按钮不起作用时要检查的三个原因"
 date: '2025-11-28'
 updatedAt: '2026-10-08'
 categories: 前端 React TanStack-Query 错误处理
@@ -9,7 +9,7 @@ description: "用已安装的源码核对在 react-error-boundary 的 fallback �
 keywords: "ErrorBoundary 重试不起作用, QueryErrorResetBoundary, retryOnMount, resetErrorBoundary, onReset, React.lazy 分块加载失败, useSuspenseQuery 错误, react-error-boundary"
 locale: zh-CN
 translationOf: '251128'
-sourceHash: 519f5b360dc478899cd12922bff90c3cf30f8d6159cb77aa7701b940a636385d
+sourceHash: fcf6001b4010f388052cef96f91df83091e0a33fd111de033ea9cf622021a566
 ---
 
 这篇文章想聊聊 **`ErrorBoundary` 的重试按钮为什么不起作用**。
@@ -102,8 +102,6 @@ resetErrorBoundary(...e) {
 只有 `didCatch` 为真时，它才调用 `onReset`，并把状态恢复为初始值 `d`（`didCatch: false`）。`setState` 会在处理函数结束后才渲染，所以 children 重新挂载时，`reset()` 立起的标志已经立着了。因此只要给 `onReset` 接上 `reset` 就行。
 
 即使不用 `QueryErrorResetBoundary` 包裹，从 `useQueryErrorResetBoundary()` 取出 `reset` 接到 `onReset` 上，重试也能生效。没有外层边界时，这个 hook 会返回模块级的全局默认值。代价是，正如 [Suspense 指南](https://tanstack.com/query/latest/docs/framework/react/guides/suspense)所写，重置会作用于全局，整个应用共享同一个 `isReset` 标志。
-
-名字里加上 `Query` 也是有意的。叫 `AsyncBoundary` 的话，读起来像是任何异步都能用，其实不是，因为里面装着 `QueryErrorResetBoundary`。出于同样的理由，我没有给 `pendingFallback` 设默认值。有了默认值，只看调用处那一行就不知道垫在下面的是什么。
 
 ### reset 解不开的渲染错误
 

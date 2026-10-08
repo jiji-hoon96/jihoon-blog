@@ -9,7 +9,7 @@ description: "React Router と TanStack Query を使う画面で、ErrorBoundary
 keywords: "React ErrorBoundary 配置, ネストルート ErrorBoundary, ErrorBoundary 設計, fallbackRender, useRouteError, revalidate, useSuspenseQuery エラー処理, TanStack Query retry 条件"
 locale: ja
 translationOf: '251203'
-sourceHash: 4597e3854b16c9dc107815c3fc788c12d804a00e0aaff83ffe8ebee9ebcd3883
+sourceHash: 16f5ae7317fc183ba39c02ce385d4e9cc9f6b7fe4f9a13c084ebdfcccf712537
 ---
 
 今回の記事では、**`ErrorBoundary` をいくつ置き、どこに置くのか**について話してみたい。React Router と TanStack Query で画面を作りながら、失敗をルートの `ErrorBoundary`、`react-error-boundary`、`useQuery` の `isError` のどこで受けるかに悩んでいるフロントエンド開発者に向けた記事である。最後まで読めば、`ErrorBoundary` を置く場所を決める基準と、場所ごとに fallback と再試行の条件を合わせる方法が得られる。
@@ -87,7 +87,9 @@ function findNearestBoundary(matches, routeId) {
 
 どちらにしてもその領域だけを失い、残りは守られる。分かれるのは失う範囲ではなく、**その場所に何を代わりに描くか**だ。
 
-`ErrorBoundary` に引き上げるとコードが減る。中で `useSuspenseQuery` を呼べば、そのコンポーネントには `isPending` も `isError` もない。待機は外側の `Suspense` が、失敗は外側の `ErrorBoundary` が受ける。コンポーネントはデータがある場合だけを描く。下の `QueryAsyncBoundary` は、その `Suspense` と `ErrorBoundary` をひとつにまとめたコンポーネントだ。
+`ErrorBoundary` に引き上げるとコードが減る。中で `useSuspenseQuery` を呼べば、そのコンポーネントには `isPending` も `isError` もない。待機は外側の `Suspense` が、失敗は外側の `ErrorBoundary` が受ける。コンポーネントはデータがある場合だけを描く。
+
+下の `QueryAsyncBoundary` は、その `Suspense` と `ErrorBoundary` をひとつにまとめたコンポーネントだ。`QueryErrorResetBoundary` の中に `ErrorBoundary` を置いて `onReset` に `reset` をつなぎ、その中を `Suspense` で包んである。名前に `Query` を付けたのは意図的だ。`AsyncBoundary` と呼ぶと、どんな非同期にも使えるように読めるが、中に `QueryErrorResetBoundary` が入っているのでそうではない。同じ理由で `pendingFallback` に既定値を置かなかった。既定値があると、呼び出し地点の一行だけを見ても何が敷かれるのか分からない。
 
 ```tsx
 <section>

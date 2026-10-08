@@ -1,7 +1,7 @@
 ---
 emoji: 🧮
 title: "queryKey 比较原理"
-seoTitle: "TanStack Query 如何比较 queryKey：hashKey 与序列化"
+seoTitle: "TanStack Query 如何比较 queryKey：hashKey 序列化与键顺序"
 date: "2025-12-30"
 updatedAt: "2026-10-08"
 categories: 前端 React TanStack-Query queryKey
@@ -9,7 +9,7 @@ description: "梳理 TanStack Query 如何把每次渲染新建的 queryKey 数�
 keywords: "queryKey 比较, hashKey, queryHash, TanStack Query 缓存键, React Query queryKey 顺序, queryKeyHashFn, JSON.stringify 键排序, QueryCache"
 locale: zh-CN
 translationOf: '251230'
-sourceHash: eb6c7f35301bbbf2a3de49ae01bc11db34acdbf37ad64f8884552b537142853a
+sourceHash: 24fc2216b382a69ba99c1d4ca8676c6ef3f58966b132171d60acb75e1be1f38c
 ---
 
 这篇文章想聊一聊 **TanStack Query 如何判断两个 queryKey 是同一个键**。
@@ -18,14 +18,12 @@ sourceHash: eb6c7f35301bbbf2a3de49ae01bc11db34acdbf37ad64f8884552b537142853a
 
 queryKey 是 TanStack Query 管理查询缓存时所依据的数组。相同的键意味着相同的数据；当 `['user', userId]` 因为其中的 `userId` 变化而改变时，就会缓存未命中并重新 fetch。
 
-这里自然会产生一个疑问：TanStack Query 如何判断 queryKey 是“同一个键”？如果只是用 `===` 比较，对象引用会不同，那岂不是每次都会缓存未命中？
-
 
 ## QueryCache 内部
 
-根据 TkDodo 的 [Inside React Query](https://tkdodo.eu/blog/inside-react-query)，`QueryCache` 归根结底只是**保存在内存中的一个数据结构**。更准确地说，在 v5 的[官方实现](https://github.com/TanStack/query/blob/%40tanstack%2Fquery-core%405.104.1/packages/query-core/src/queryCache.ts)中，这个数据结构不是普通对象，而是 `Map<string, Query>`。字段类型是 `QueryStore`，构造函数中赋值为 `new Map<string, Query>()`。存储和查询都以 `queryHash` 为键。键是 queryKey 的序列化形式（`queryHash`），值是 `Query` 类的实例。本文的代码和运行结果以 `@tanstack/query-core` 5.104.1 为准。
+根据 TkDodo 的 [Inside React Query](https://tkdodo.eu/blog/inside-react-query)，`QueryCache` 归根结底只是**保存在内存中的一个数据结构**。在 v5 的[官方实现](https://github.com/TanStack/query/blob/%40tanstack%2Fquery-core%405.104.1/packages/query-core/src/queryCache.ts)中，这个数据结构不是普通对象，而是 `Map<string, Query>`。字段类型是 `QueryStore`，构造函数中赋值为 `new Map<string, Query>()`。存储和查询都以 `queryHash` 为键。键是 queryKey 的序列化形式（`queryHash`），值是 `Query` 类的实例。本文的代码和运行结果以 `@tanstack/query-core` 5.104.1 为准。
 
-旧版本也曾使用普通对象，但到 v5 已统一为原生 `Map`。`Map` 不会与从原型继承的键冲突，并且能保留插入顺序。至于查找速度，[ECMAScript 规范](https://tc39.es/ecma262/#sec-map-objects)只要求访问时间相对元素数量是 sublinear 的，而 V8 [用哈希表来实现它](https://v8.dev/blog/hash-code)。作为缓存数据结构，这是稳妥的选择。
+与旧版本使用的普通对象不同，`Map` 不会与从原型继承的键冲突。
 
 每次调用 `useQuery` 时发生的事情很简单：**把 queryKey 转换成哈希值，再用这个哈希值在 Map 中查找。** 如果存在，就取出缓存的 `Query` 实例；如果不存在，就创建新的实例并 `set` 进去。
 
@@ -45,7 +43,7 @@ m.get(['user', 1]); // undefined. 새로 만든 배열은 다른 참조다
 
 ## hashKey 的键排序
 
-生成哈希值的函数是 `hashKey`。[`packages/query-core/src/utils.ts`](https://github.com/TanStack/query/blob/%40tanstack%2Fquery-core%405.104.1/packages/query-core/src/utils.ts#L284-L295) 中的官方实现正是如此。
+生成哈希值的函数是 `hashKey`。[`packages/query-core/src/utils.ts`](https://github.com/TanStack/query/blob/%40tanstack%2Fquery-core%405.104.1/packages/query-core/src/utils.ts#L284-L295) 中的官方实现如下。
 
 ```typescript
 export function hashKey(queryKey: QueryKey | MutationKey): string {
@@ -66,11 +64,11 @@ export function hashKey(queryKey: QueryKey | MutationKey): string {
 
 这种排序之所以至关重要，是因为字符串序列化还必须满足一个更强的条件：**语义相同的输入，必须始终转换为相同的字符串。** 但普通的 `JSON.stringify` 会保留键的原始顺序。`{ a: 1, b: 2 }` 和 `{ b: 2, a: 1 }` 在语义上是同一个对象，却会序列化为不同的字符串，最终落入两个不同的缓存槽。这样一来，相同的数据又会被请求两次。
 
-稳定避免这一问题的技术叫作 **canonical form（规范形式）**：强制语义相同的输入始终对应唯一的一种表示。`hashKey` 的 replacer 对普通对象的键进行排序，正是出于这个原因。无论输入顺序如何，都让输出保持一致，使语义相同的对象总是变成同一个字符串。反方向并不保证，这一点后面会讲到。
+稳定避免这一问题的技术叫作 **canonical form（规范形式）**：强制语义相同的输入始终对应唯一的一种表示。`hashKey` 的 replacer 对普通对象的键进行排序，就是出于这个原因。无论输入顺序如何，都让输出保持一致，使语义相同的对象总是变成同一个字符串。反方向并不保证，这一点后面会讲到。
 
-不对数组排序，也是同一原则的另一面。数组是一种顺序本身承载语义的数据结构，一旦排序就会丢失信息。对象的键顺序是偶然的，数组的元素顺序则是有意的。`hashKey` 对二者作了准确区分。维护者 TkDodo 在 [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys) 中建议按从最通用到最具体的顺序组织 queryKey，也是因为数组顺序承载语义。他给出的理由是失效：前半部分相同的键可以用一个 `['todos']` 一次性失效。这种比较不是由哈希完成的，而是由后面会看到的 prefix 匹配负责。
+不对数组排序，也是同一原则的另一面。数组是一种顺序本身承载语义的数据结构，一旦排序就会丢失信息。对象的键顺序是偶然的，数组的元素顺序则是有意的。`hashKey` 对二者作了区分。维护者 TkDodo 在 [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys) 中建议按从最通用到最具体的顺序组织 queryKey，也是因为数组顺序承载语义。他给出的理由是失效：前半部分相同的键可以用一个 `['todos']` 一次性失效。这种比较不是由哈希完成的，而是由后面会看到的 prefix 匹配负责。
 
-还有一个细节值得说明：键排序只作用于**普通对象**。同一文件中的 `isPlainObject` 会检查 `Object.prototype.toString` 的结果是否为 `[object Object]`，以及原型是否为 `Object.prototype`（或 `null`），以区分**纯对象字面量**和**类实例**。因此，`{ foo: 1 }` 这样的字面量会被排序，而通过 `class User { ... }` 创建的实例不会排序，直接进入下一步。如果把类实例直接放进 queryKey，由于键不会排序，它会按字段赋值的顺序序列化，即使值相同也可能得到不同的哈希值。
+键排序只作用于**普通对象**。同一文件中的 `isPlainObject` 会检查 `Object.prototype.toString` 的结果是否为 `[object Object]`，以及原型是否为 `Object.prototype`（或 `null`），以区分**纯对象字面量**和**类实例**。因此，`{ foo: 1 }` 这样的字面量会被排序，而通过 `class User { ... }` 创建的实例不会排序，直接进入下一步。如果把类实例直接放进 queryKey，由于键不会排序，它会按字段赋值的顺序序列化，即使值相同也可能得到不同的哈希值。
 
 从使用者的角度看，结果有两个。
 
@@ -131,6 +129,8 @@ console.log(queryClient.getQueryData(['m', new Map([['b', 2]])])) // mapA
 
 会以错误形式暴露的只有 `BigInt` 和循环引用两种。循环引用的错误取决于形成循环的是什么。循环只经过普通对象时以 `RangeError: Maximum call stack size exceeded` 结束，而像 `arr.push(arr)` 这样只要经过一个数组或类实例，就以 `TypeError: Converting circular structure to JSON` 结束。由于 replacer 对每个普通对象都返回一个新对象，`JSON.stringify` 的循环检测始终遇不到同一个对象；而数组和类实例会被 replacer 原样返回，因此会被循环检测捕获。相反，`Date` 会通过 `toJSON` 变成 ISO 字符串，所以在缓存查询中同一时刻就得到同一个键，相对安全。
 
+我曾把 `Date` 直接放进键里，然后困惑了很久：“明明是同一时刻，为什么缓存会刷新？”指向同一时刻的 `Date` 即使是不同实例，也会变成相同的 ISO 字符串，因此生成相同的 hash。如果每次都得到不同的键，那么即使看起来是同一时刻，时间本身其实也不同。在渲染过程中创建 `new Date()`，每次渲染都会放入精确到毫秒的不同时间，每次都会成为新的键。
+
 因此，queryKey 中最好只放字符串、数字、布尔值、`null`，以及由它们组成的数组和普通对象。
 
 
@@ -160,11 +160,9 @@ console.log(queryClient.getQueryData(['todos', { page: 1, status: 'done' }])) //
 
 第二个输出表示，`BigInt` 和装着同一个数字的字符串会变成同一个键。最后一个输出是失去键排序的结果：只有键顺序不同的对象不再被视为同一个键。
 
-注册的位置也会改变结果。像上面那样通过 `QueryClient` 的 `defaultOptions` 或 `setQueryDefaults` 注册时，`setQueryData` 和 `getQueryData` 也会使用这个函数。这是因为这两个 API 在计算 hash 之前会通过 `defaultQueryOptions` 合并默认选项。反之，如果只写在 `useQuery` 调用上，命令式 API 会使用默认的 `hashKey`，同一个键会在缓存中分成两个槽位。在 v3.2.0 的 beta 阶段，连全局默认值都不会应用到 `setQueryData`。在 [Issue #1343](https://github.com/TanStack/query/issues/1343) 中，TanStack Query 贡献者 boschni 回复应该已在 v3.2.0-beta.30 修复，报告者也确认了可以正常工作。
+注册的位置也会改变结果。像上面那样通过 `QueryClient` 的 `defaultOptions` 或 `setQueryDefaults` 注册时，`setQueryData` 和 `getQueryData` 也会使用这个函数。这是因为这两个 API 在计算 hash 之前会通过 `defaultQueryOptions` 合并默认选项。反之，如果只写在 `useQuery` 调用上，命令式 API 会使用默认的 `hashKey`，同一个键会在缓存中分成两个槽位。在 v3.2.0 的 beta 阶段，连全局默认值都不会应用到 `setQueryData`，[Issue #1343](https://github.com/TanStack/query/issues/1343) 的报告者确认了这一问题已在 v3.2.0-beta.30 修复。
 
 因此在实践中，与其使用逃生口，不如**在创建 queryKey 时就把值转换成可序列化的形式**，这样要安全得多。自己写 hash 函数，就得同时照顾键排序和注册位置。
-
-我也曾把 `Date` 直接放进键里，然后困惑了很久：“明明是同一时刻，为什么缓存会刷新？”指向同一时刻的 `Date` 即使是不同实例，也会变成相同的 ISO 字符串，因此生成相同的 hash。如果每次都得到不同的键，那么即使看起来是同一时刻，时间本身其实也不同。在渲染过程中创建 `new Date()`，每次渲染都会放入精确到毫秒的不同时间，每次都会成为新的键。
 
 
 ## 过滤器的键比较
@@ -188,7 +186,7 @@ console.log(partialMatchKey(queryKey, ['todos', { status: 'todo' }])) // false
 
 ## 总结
 
-总而言之，TanStack Query 并不比较 queryKey 数组的引用。`hashKey` 在用 `JSON.stringify` 序列化的同时对普通对象的键进行排序，得到的字符串（`queryHash`）被用作 `Map` 的键。因此，对象的键顺序不会影响缓存，数组元素的顺序会影响，值为 `undefined` 的属性在哈希中等同于不存在。JSON 无法表示的值大多会在没有错误的情况下变成别的值，使不同的键悄无声息地变成同一个键。可以用 `queryKeyHashFn` 替换 hash 函数，但这样也会一并丢掉键排序，所以在创建键的时候就把值转换成可序列化的值会更安全。失效这类过滤器默认不经过 hash，而是从头比对 queryKey 的结构，所以不要指望哈希相同的键在过滤器中也相同。
+总而言之，TanStack Query 并不比较 queryKey 数组的引用。`hashKey` 在用 `JSON.stringify` 序列化的同时对普通对象的键进行排序，得到的字符串（`queryHash`）被用作 `Map` 的键。因此，对象的键顺序不会影响缓存，数组元素的顺序会影响，值为 `undefined` 的属性在哈希中等同于不存在。JSON 无法表示的值大多会在没有错误的情况下变成别的值，使不同的键悄无声息地变成同一个键。可以用 `queryKeyHashFn` 替换 hash 函数，但这样也会一并丢掉键排序，所以在创建键的时候就把值转换成可序列化的值会更安全。失效这类过滤器默认不经过 hash，而是从头比对 queryKey 的结构，所以不要指望哈希相同的键在过滤器中也相同。归根结底，缓存查找通过 `hashKey` 比较键的内容，过滤器比较键的前半部分，所以只要 queryKey 里只放序列化后含义不变的简单值，两种比较就都会按预期工作。
 
 这个判断标准如何延伸到 queryKey 的编写与管理，也就是从内联数组经过 query key factory 走到 `queryOptions` 的过程，会在 [queryKey](/260104) 中讨论。
 
