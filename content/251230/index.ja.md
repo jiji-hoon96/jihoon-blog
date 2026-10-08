@@ -9,7 +9,7 @@ description: "TanStack Query がレンダリングのたびに新しく作られ
 keywords: "queryKey 比較, hashKey, queryHash, TanStack Query キャッシュキー, React Query queryKey 順序, queryKeyHashFn, JSON.stringify キーのソート, QueryCache"
 locale: ja
 translationOf: '251230'
-sourceHash: ac741f2d85d62c63a48506c66ba0ada891e74b35304a1db40d0da4cb32e2578c
+sourceHash: eb6c7f35301bbbf2a3de49ae01bc11db34acdbf37ad64f8884552b537142853a
 ---
 
 今回は、**TanStack Query が二つの queryKey を同じキーと判定する仕組み**について話してみたい。
@@ -23,7 +23,7 @@ queryKey は、TanStack Query がクエリキャッシュを管理する基準�
 
 ## QueryCache の内部
 
-TkDodo の [React Query の内部](https://tkdodo.eu/blog/inside-react-query)によれば、`QueryCache` は結局のところ、**メモリ上に保持される一つのデータ構造**にすぎない。より正確には、v5 の[公式実装](https://github.com/TanStack/query/blob/%40tanstack%2Fquery-core%405.104.1/packages/query-core/src/queryCache.ts)で使われているデータ構造は、プレーンオブジェクトではなく `Map<string, Query>` だ。クラス内で `#queries = new Map<string, Query>()` と宣言され、すべての書き込みと読み込みは `#queries.set(query.queryHash, query)` と `#queries.get(queryHash)` を通じて行われる。キーは queryKey をシリアライズした形式（`queryHash`）、値は `Query` クラスのインスタンスである。この記事のコードと実行結果は `@tanstack/query-core` 5.104.1 を基準にしている。
+TkDodo の [React Query の内部](https://tkdodo.eu/blog/inside-react-query)によれば、`QueryCache` は結局のところ、**メモリ上に保持される一つのデータ構造**にすぎない。より正確には、v5 の[公式実装](https://github.com/TanStack/query/blob/%40tanstack%2Fquery-core%405.104.1/packages/query-core/src/queryCache.ts)で使われているデータ構造は、プレーンオブジェクトではなく `Map<string, Query>` だ。フィールドの型は `QueryStore` で、コンストラクターで `new Map<string, Query>()` を代入する。保存と検索は `queryHash` をキーにして行う。キーは queryKey をシリアライズした形式（`queryHash`）、値は `Query` クラスのインスタンスである。この記事のコードと実行結果は `@tanstack/query-core` 5.104.1 を基準にしている。
 
 古いバージョンではプレーンオブジェクトが使われていた時期もあったが、v5 ではネイティブの `Map` へ移行した。`Map` はプロトタイプから継承したキーとぶつかることがなく、挿入順を保持する。検索速度については、[ECMAScript 仕様](https://tc39.es/ecma262/#sec-map-objects)が要素数に対して sublinear なアクセス時間しか要求しておらず、V8 は[ハッシュテーブルで実装している](https://v8.dev/blog/hash-code)。キャッシュのデータ構造としては無難な選択だ。
 
@@ -39,11 +39,13 @@ m.set(['user', 1], 'alice');
 m.get(['user', 1]); // undefined. 새로 만든 배열은 다른 참조다
 ```
 
-ところが、React コンポーネントで `useQuery({ queryKey: ['user', userId] })` と記述すると、**レンダリングのたびに新しい配列インスタンスが作られる。** 最初のレンダリングと二度目のレンダリングで使われる queryKey 配列は、内容が同じでもメモリ上では別のオブジェクトだ。もしキャッシュが参照等価性に依存していたら、同じデータを参照するコンポーネントがレンダリングのたびにキャッシュミスを起こすという悲惨な事態になっていただろう。
+ところが、React コンポーネントで `useQuery({ queryKey: ['user', userId] })` と記述すると、**レンダリングのたびに新しい配列インスタンスが作られる。** 最初のレンダリングと二度目のレンダリングで使われる queryKey 配列は、内容が同じでもメモリ上では別のオブジェクトだ。もしキャッシュが参照等価性に依存していたら、同じデータを参照するコンポーネントがレンダリングのたびにキャッシュミスを起こしていただろう。
 
 参照等価性によって生じる問題の解決策は単純だ。**参照等価性を構造的等価性へ変換すること**である。queryKey の内容だけから決定論的な文字列を作り、その文字列を Map のキーとして使う。そうすれば、「内容が同じなら同じキー」という期待どおりの意味論を取り戻せる。`JSON.stringify` は、その変換を行う最も単純な手段にすぎない。
 
-ここで中心となるのが、ハッシュ値を作る関数 `hashKey` だ。[`packages/query-core/src/utils.ts`](https://github.com/TanStack/query/blob/%40tanstack%2Fquery-core%405.104.1/packages/query-core/src/utils.ts#L284-L295) に定義された公式実装は、正確には次のようになっている。
+## hashKey のキーの並べ替え
+
+ハッシュ値を作る関数は `hashKey` だ。[`packages/query-core/src/utils.ts`](https://github.com/TanStack/query/blob/%40tanstack%2Fquery-core%405.104.1/packages/query-core/src/utils.ts#L284-L295) に定義された公式実装は、正確には次のようになっている。
 
 ```typescript
 export function hashKey(queryKey: QueryKey | MutationKey): string {
@@ -64,13 +66,13 @@ export function hashKey(queryKey: QueryKey | MutationKey): string {
 
 この並べ替えが本質的なのは、文字列へのシリアライズには、さらに厳しい条件が伴うためだ。**意味が同じ入力は、常に同じ文字列へ変換されなければならない。** しかし、通常の `JSON.stringify` はキーの順序をそのまま維持する。`{ a: 1, b: 2 }` と `{ b: 2, a: 1 }` は意味上は同じオブジェクトなのに、異なる文字列へシリアライズされ、最終的に別々のキャッシュスロットとなる。その結果、同じデータを二度リクエストする事態が再び起きてしまう。
 
-これを一貫して防ぐ手法が、**正準形**だ。意味上同じ入力が、常に一意な一つの表現に対応するよう強制する。`hashKey` の置換関数がプレーンオブジェクトのキーを並べ替える理由は、まさにこれだ。どの順序で入力されても出力が同じになるようにし、シリアライズの結果とオブジェクトの意味を一対一で結びつける。言い換えれば、キーの順序だけが異なり中身が同じオブジェクトを一つのまとまりとみなし、そのまとまりを代表する表現としてキーを並べ替えた形を一つ選ぶ操作である。
+これを一貫して防ぐ手法が、**正準形**だ。意味上同じ入力が、常に一意な一つの表現に対応するよう強制する。`hashKey` の置換関数がプレーンオブジェクトのキーを並べ替える理由は、まさにこれだ。どの順序で入力されても出力が同じになるようにして、意味が同じオブジェクトが常に同じ文字列になるようにする。逆方向は保証されないという点は後で扱う。
 
-配列を並べ替えないのも、同じ原理の裏返しだ。配列は順序そのものに意味があるデータ構造なので、並べ替えると情報が失われる。オブジェクトのキー順は偶然だが、配列の要素順は意図である。`hashKey` は両者を明確に区別して扱う。メンテナーの TkDodo が [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys) で、queryKey を最も汎用的なものから最も具体的なものの順に構成するよう勧めているのは、このためだ。配列の順序が意味を担う以上、その意味は作成者が自ら定める必要がある。
+配列を並べ替えないのも、同じ原理の裏返しだ。配列は順序そのものに意味があるデータ構造なので、並べ替えると情報が失われる。オブジェクトのキー順は偶然だが、配列の要素順は意図である。`hashKey` は両者を明確に区別して扱う。メンテナーの TkDodo が [Effective React Query Keys](https://tkdodo.eu/blog/effective-react-query-keys) で、queryKey を最も汎用的なものから最も具体的なものの順に構成するよう勧めているのも、配列の順序が意味を持つからだ。彼が挙げる理由は無効化である。先頭部分が同じキーを `['todos']` 一つでまとめて無効化できる。この比較を担うのはハッシュではなく、後で見る prefix マッチングだ。
 
-ここでもう一つ確認しておくべき点がある。キーの並べ替えが適用されるのは、**プレーンオブジェクト**だけだ。同じファイル内の `isPlainObject` は `typeof === 'object'` に加えて `Object.getPrototypeOf(o) === Object.prototype` まで検査し、**純粋なオブジェクトリテラル**と**クラスのインスタンス**を区別する。そのため、`{ foo: 1 }` のようなリテラルは並べ替えられる一方、`class User { ... }` で作成したインスタンスは並べ替えられず、そのまま処理される。（クラスのインスタンスをそのまま queryKey に含めると、`JSON.stringify` が列挙可能なプロパティだけを出力する挙動と相まって、意図しないハッシュが生成されることがある。）
+ここでもう一つ確認しておくべき点がある。キーの並べ替えが適用されるのは、**プレーンオブジェクト**だけだ。同じファイル内の `isPlainObject` は、`Object.prototype.toString` の結果が `[object Object]` かどうかと、プロトタイプが `Object.prototype`（または `null`）かどうかを検査し、**純粋なオブジェクトリテラル**と**クラスのインスタンス**を区別する。そのため、`{ foo: 1 }` のようなリテラルは並べ替えられる一方、`class User { ... }` で作成したインスタンスは並べ替えられず、そのまま処理される。クラスのインスタンスをそのまま queryKey に入れると、キーが並べ替えられないのでフィールドを代入した順にシリアライズされ、値が同じでも異なるハッシュになることがある。
 
-この仕組みから、二つの重要な結果が導かれる。
+使う側から見ると、結果は二つある。
 
 **1. オブジェクトのキー順は問わない。**
 
@@ -80,7 +82,7 @@ useQuery({ queryKey: ['todos', { page: 1, status: 'done' }], queryFn });
 // 두 쿼리는 같은 캐시 슬롯을 공유한다
 ```
 
-キーを並べ替えてからシリアライズするためだ。この仕組みがなければ、オブジェクトリテラルを使うたびにキーの順序を覚えておかなければならなかっただろう。
+キーの並べ替えがなければ、オブジェクトリテラルを使うたびにキーの順序を覚えておかなければならなかっただろう。
 
 **2. 配列の要素順は重要である。**
 
@@ -89,8 +91,6 @@ useQuery({ queryKey: ['todos', status, page], queryFn });
 useQuery({ queryKey: ['todos', page, status], queryFn });
 // 두 쿼리는 다른 캐시이다
 ```
-
-配列は順序そのものに意味があるデータ構造だからだ。`JSON.stringify` も配列の順序は維持する。
 
 
 ## シリアライズが変える値
@@ -125,11 +125,11 @@ console.log(queryClient.getQueryData(['m', new Map([['b', 2]])])) // mapA
 | `Map`、`Set` | `{}` | 中身に関係なくすべての `Map`、`Set`、空オブジェクト |
 | `Date` | ISO 文字列 | 同じ ISO 文字列 |
 | `BigInt` | `TypeError` を投げる | なし |
-| 循環参照 | プレーンオブジェクトは `RangeError`、配列は `TypeError` を投げる | なし |
+| 循環参照 | 循環がプレーンオブジェクトだけでつながれば `RangeError`、配列かクラスのインスタンスを経由すれば `TypeError` を投げる | なし |
 
 最も危険なのは `Map` と `Set` だ。上のコードでは、`new Map([['a', 1]])` をキーにして入れたデータが `new Map([['b', 2]])` で取り出せた。エラーがないので、画面に別のデータを描いていることに気づく手がかりもない。
 
-エラーとして表に出るのは `BigInt` と循環参照の二つだけだ。循環参照は、何が循環しているかによってエラーが分かれる。自分自身を指すプレーンオブジェクトは `RangeError: Maximum call stack size exceeded` で終わり、`arr.push(arr)` のように自分自身を含む配列は `TypeError: Converting circular structure to JSON` で終わる。置換関数がプレーンオブジェクトごとに新しいオブジェクトを作って返すため、`JSON.stringify` の循環検出は同じオブジェクトに再び出会えない。一方、配列は置換関数がそのまま返すので循環検出に引っかかる。逆に `Date` は `toJSON` で ISO 文字列になり、同じ時刻なら同じキーになるので、むしろ安全だ。
+エラーとして表に出るのは `BigInt` と循環参照の二つだけだ。循環参照は、何が循環しているかによってエラーが分かれる。循環がプレーンオブジェクトだけでつながっていれば `RangeError: Maximum call stack size exceeded` で終わり、`arr.push(arr)` のように配列かクラスのインスタンスを一つでも経由すれば `TypeError: Converting circular structure to JSON` で終わる。置換関数がプレーンオブジェクトごとに新しいオブジェクトを作って返すため、`JSON.stringify` の循環検出は同じオブジェクトに再び出会えない。一方、配列とクラスのインスタンスは置換関数がそのまま返すので循環検出に引っかかる。逆に `Date` は `toJSON` で ISO 文字列になるので、キャッシュの検索では同じ時刻なら同じキーになり、比較的安全だ。
 
 そのため、queryKey には文字列、数値、真偽値、`null` と、それらからなる配列とプレーンオブジェクトだけを入れるのが安全だ。
 
@@ -138,7 +138,7 @@ console.log(queryClient.getQueryData(['m', new Map([['b', 2]])])) // mapA
 
 この制約には逃げ道がある。TanStack Query は `queryKeyHashFn` というオプションで、**ハッシュ関数自体を差し替えられる**ようにしている。内部では `hashQueryKeyByOptions(queryKey, options)` が、オプションに `queryKeyHashFn` があればそれを、なければ既定の `hashKey` を呼ぶように分岐している。
 
-差し替えるとは、`hashKey` を丸ごと置き換えるという意味だ。先に見たキーの並べ替えも一緒に消えるので、並べ替えが必要なら自分で実装しなければならない。このオプションが本当に必要なのは、`BigInt` のように既定のシリアライズが例外を投げる値だ。以下のコードも同じ環境で実行した。
+差し替えるとは、`hashKey` を丸ごと置き換えるという意味だ。先に見たキーの並べ替えも一緒に消えるので、並べ替えが必要なら自分で実装しなければならない。このオプションが役に立つのは、`BigInt` のように既定のシリアライズが例外を投げる値だ。以下のコードも同じ環境で実行した。
 
 ```js
 import { QueryClient } from '@tanstack/query-core'
@@ -160,7 +160,7 @@ console.log(queryClient.getQueryData(['todos', { page: 1, status: 'done' }])) //
 
 二つ目の出力は、`BigInt` と同じ数を持つ文字列が同じキーになるという意味だ。最後の出力はキーの並べ替えが消えた結果で、キーの順序だけが違うオブジェクトをもう同じキーとは見なさない。
 
-登録する場所も結果を変える。上のように `QueryClient` の `defaultOptions` や `setQueryDefaults` で登録すると、`setQueryData` と `getQueryData` もその関数を使う。二つの API がハッシュする前に `defaultQueryOptions` で既定のオプションをマージするためだ。一方、`useQuery` の呼び出しにだけ書くと命令型 API は既定の `hashKey` を使い、同じキーがキャッシュの中で二つのスロットに分かれる。v3.2.0 のベータ版の頃には、グローバルの既定値も `setQueryData` に適用されなかった。[Issue #1343](https://github.com/TanStack/query/issues/1343) でメンテナーが v3.2.0-beta.30 で直っているはずだと答え、報告者が動作を確認した。
+登録する場所も結果を変える。上のように `QueryClient` の `defaultOptions` や `setQueryDefaults` で登録すると、`setQueryData` と `getQueryData` もその関数を使う。二つの API がハッシュする前に `defaultQueryOptions` で既定のオプションをマージするためだ。一方、`useQuery` の呼び出しにだけ書くと命令型 API は既定の `hashKey` を使い、同じキーがキャッシュの中で二つのスロットに分かれる。v3.2.0 のベータ版の頃には、グローバルの既定値も `setQueryData` に適用されなかった。[Issue #1343](https://github.com/TanStack/query/issues/1343) で TanStack Query のコントリビューター boschni が v3.2.0-beta.30 で直っているはずだと答え、報告者が動作を確認した。
 
 そのため実務では、逃げ道を使うよりも **queryKey を作る時点でシリアライズ可能な形に変換して入れるほう**がはるかに安全だ。ハッシュ関数を自分で書くと、キーの並べ替えと登録場所の両方を気にかけなければならないからだ。
 
@@ -183,10 +183,12 @@ console.log(partialMatchKey(queryKey, ['todos', { status: 'todo' }])) // false
 
 ハッシュを通らないので、`queryKeyHashFn` を差し替えてもこのマッチングは変わらない。先の例のように並べ替えのないハッシュ関数を登録した `QueryClient` では、キーの順序だけが違うオブジェクトを `exact: true` では見つけられないが、prefix マッチングでは見つけられる。
 
+そのため、ハッシュで同じキーがフィルターでも同じになるという保証はない。`['user', undefined]` で作ったクエリは `['user', null]` フィルターの prefix マッチングに引っかからず、`NaN` を含むキーは自分自身ともマッチしない。逆に `Date` や `Map` をフィルターに入れると、列挙するプロパティがないため、同じ位置にあるどの `Date` やオブジェクトともマッチする。
+
 
 ## まとめ
 
-まとめると、TanStack Query は queryKey 配列の参照を比較しない。`hashKey` がプレーンオブジェクトのキーを並べ替えながら `JSON.stringify` で作った文字列（`queryHash`）を `Map` のキーとして使う。そのため、オブジェクトのキー順はキャッシュに影響せず、配列の要素の順序は影響し、値が `undefined` のプロパティは存在しないのと同じになる。JSON が表現できない値はほとんどがエラーなしで別の値に変わり、異なるキーが静かに同じキーになる。`queryKeyHashFn` でハッシュ関数を替えることはできるが、キーの並べ替えも一緒に捨てることになるので、キーを作る時点でシリアライズ可能な値に変換して入れるほうが安全だ。無効化のようなフィルターは既定でハッシュを通さず、queryKey の構造を先頭から照合するという点も、あわせて覚えておくとよい。
+まとめると、TanStack Query は queryKey 配列の参照を比較しない。`hashKey` がプレーンオブジェクトのキーを並べ替えながら `JSON.stringify` で作った文字列（`queryHash`）を `Map` のキーとして使う。そのため、オブジェクトのキー順はキャッシュに影響せず、配列の要素の順序は影響し、値が `undefined` のプロパティはハッシュでは存在しないのと同じになる。JSON が表現できない値はほとんどがエラーなしで別の値に変わり、異なるキーが静かに同じキーになる。`queryKeyHashFn` でハッシュ関数を替えることはできるが、キーの並べ替えも一緒に捨てることになるので、キーを作る時点でシリアライズ可能な値に変換して入れるほうが安全だ。無効化のようなフィルターは既定でハッシュを通さず、queryKey の構造を先頭から照合するので、ハッシュで同じキーがフィルターでも同じだと期待しないほうがよい。
 
 この判定基準が queryKey をどう書き、どう管理するかにつながる話、つまりインライン配列からクエリキーファクトリーを経て `queryOptions` に至った流れは [queryKey](/260104) で扱う。
 
