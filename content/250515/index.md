@@ -3,48 +3,99 @@ emoji: ⏱️
 title: "React가 MessageChannel을 쓰는 이유"
 seoTitle: "React Scheduler는 왜 requestIdleCallback 대신 MessageChannel을 쓸까"
 date: "2025-05-15"
+updatedAt: "2026-10-08"
 categories: 프론트엔드 React
-description: "React Scheduler가 requestIdleCallback, requestAnimationFrame, setTimeout 대신 MessageChannel로 작업을 예약하는 이유를 호출 빈도, 브라우저 호환성, setTimeout의 4ms 지연으로 정리한다."
+description: "React Scheduler가 requestIdleCallback, requestAnimationFrame, setTimeout 대신 MessageChannel로 작업을 예약하는 이유를 React PR 기록과 setTimeout 4ms 지연의 Chrome 실측으로 정리한다."
 keywords: "requestIdleCallback, MessageChannel, React Scheduler, setTimeout 4ms, React 스케줄러 원리, shouldYieldToHost, requestAnimationFrame, React Fiber"
 ---
 
 이번 포스팅에서는 **React가 requestIdleCallback 대신 MessageChannel로 작업을 예약하는 이유**에 대한 이야기를 해보려고 한다.
 
-Fiber를 공부하다가 "브라우저가 한가할 때 조금씩 일한다"는 설명을 읽었는데, 정작 React 소스코드에서는 `MessageChannel`을 만나 헷갈렸던 프론트엔드 개발자를 위한 글이다. 답부터 적으면, `requestIdleCallback`은 너무 드물게 호출되고 브라우저마다 동작이 달랐으며, `setTimeout`은 중첩되면 4ms 지연이 붙는다. 그래서 React의 Scheduler 패키지는 지연 없이 다음 매크로태스크를 예약할 수 있는 `MessageChannel`을 쓴다.
+Fiber를 공부하다가 "브라우저가 한가할 때 조금씩 일한다"는 설명을 읽었는데, 정작 React 소스코드에서는 `MessageChannel`을 만나 헷갈렸던 프론트엔드 개발자를 위한 글이다. 답부터 적으면, `requestIdleCallback`은 React가 원하는 만큼 자주 불리지 않았고, `setTimeout`은 중첩되면 4ms 넘는 지연이 붙는다. 그래서 React의 Scheduler 패키지는 브라우저에서 인위적인 지연 없이 다음 매크로태스크를 예약할 수 있는 `MessageChannel`을 쓴다. 그 4ms가 실제로 얼마나 큰지는 필자가 Chrome에서 직접 잰 숫자로 확인한다.
 
 
 ## requestIdleCallback을 버린 이유
 
-Fiber의 개념을 설명할 때는 `requestIdleCallback`으로 작업을 나눠 실행하는 코드를 흔히 쓴다. 브라우저가 할 일이 없을 때마다 작업 단위를 하나씩 처리하는 모델이다. 하지만 실제 React는 이를 사용하지 않는다. 이유는 세 가지다.
+Fiber의 개념을 설명할 때는 `requestIdleCallback`으로 작업을 나눠 실행하는 코드를 흔히 쓴다. 브라우저가 할 일이 없을 때마다 작업 단위를 하나씩 처리하는 모델이다. React도 처음에는 이 API를 실제로 썼고, 지금의 모양에 이르기까지 PR 몇 개를 거쳤다.
 
-- **호출 빈도가 너무 낮다** : 진정한 "유휴 시간(브라우저가 할 일이 없는 시간)"에만 호출되어, 바쁜 페이지에서는 React 작업이 무한정 지연될 수 있다. Dan Abramov도 "requestIdleCallback is called too infrequently to be useful for scheduling React work"라고 언급한 바 있다.
-- **브라우저 호환성 문제** : Safari는 오랫동안 이를 구현하지 않았고, 브라우저마다 동작이 달랐다.
-- **20ms 상한** : idle deadline의 상한이 있어 React가 원하는 수준의 예측 가능한 타이밍 제어가 불가능했다.
+- **2017년 1월** : 네이티브 `requestIdleCallback`을 쓰되, 없는 브라우저에서는 `requestAnimationFrame`과 `postMessage`로 흉내 낸 polyfill을 쓰게 했다([PR #8833](https://github.com/facebook/react/pull/8833)). Safari처럼 이 API가 없는 브라우저는 처음부터 polyfill이 맡았다. Safari 정식판에는 [2026년 10월 현재도 이 API가 없다](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback#browser_compatibility).
+- **2018년 3월과 4월** : 네이티브 API가 있어도 polyfill을 쓰는 플래그를 넣었다. Andrew Clark는 PR 본문에 그동안 겪어 온 starvation(작업이 실행 기회를 얻지 못하고 계속 밀리는 현상) 문제를 이유로 적었다([PR #12385](https://github.com/facebook/react/pull/12385)). 한 달 뒤 플래그를 지우고 polyfill로 굳혔다([PR #12648](https://github.com/facebook/react/pull/12648)).
+- **2019년 7월** : 다음 vsync를 추측해 프레임 끝에서 양보하던 방식 대신, message 이벤트 안에서 5ms 일하고 양보하는 루프를 실험 플래그로 넣었다([PR #16214](https://github.com/facebook/react/pull/16214)). 이 루프는 `requestAnimationFrame`을 아예 쓰지 않는다.
+- **2019년 11월** : 성능 테스트에서 message 루프 쪽 CPU 활용이 더 낫게 나왔다는 보고([PR #16271](https://github.com/facebook/react/pull/16271))를 거쳐 rAF 구현을 지웠다([PR #17252](https://github.com/facebook/react/pull/17252)).
 
-그 다음으로 `requestAnimationFrame` + 프레임 예산 추정 방식을 시도했지만, React의 작업이 vsync(모니터가 수직 귀선을 완료한 시점에 맞춰 프레임 출력을 동기화하는 기술) 주기에 맞출 필요가 없다는 판단하에 이 역시 폐기되었다.
+starvation은 `requestIdleCallback`의 정의에서 나온다. [W3C 명세](https://w3c.github.io/requestidlecallback/)는 이 콜백을 브라우저가 프레임 작업을 마치고 남은 유휴 기간(idle period)에 부른다고 정한다. 페이지가 바쁘면 그 기간이 드물게 오고, React 작업은 그만큼 밀린다. Dan Abramov도 2018년 8월 이슈 댓글에서 React가 이 API를 그만 쓴 이유를 "it's not as aggressive as we need"라고 적었다([facebook/react#11171](https://github.com/facebook/react/issues/11171#issuecomment-417349573)).
+
+그 뒤의 `requestAnimationFrame` 방식을 버린 이유는 PR #16214 본문에 있다. 이 방식은 다음 vsync(디스플레이가 화면을 갱신하는 주기에 맞춘 신호) 시점을 추측해야 했고, 페이지가 열린 뒤 주사율이 올라가는 것은 감지해도 내려가는 것은 감지하지 못했다. message 루프는 vsync 주기 어디에 있든 5ms마다 양보하므로 주사율이 높은 화면에서도 메인 스레드의 반응성을 지킬 수 있다. 지금의 Scheduler 소스 주석도 대부분의 작업은 프레임 경계에 맞출 필요가 없다고 적는다.
 
 ## MessageChannel
 
-최종적으로 React는 **MessageChannel**을 선택했다.
+최종적으로 React는 **MessageChannel**을 선택했다. 아래는 React v19.3.0의 [Scheduler.js 530~562행](https://github.com/facebook/react/blob/v19.3.0/packages/scheduler/src/forks/Scheduler.js#L530-L562)이고, 주석은 줄였다.
 
 ```js
-if (typeof MessageChannel !== 'undefined') {
+let schedulePerformWorkUntilDeadline;
+if (typeof localSetImmediate === 'function') {
+  // Node.js and old IE.
+  schedulePerformWorkUntilDeadline = () => {
+    localSetImmediate(performWorkUntilDeadline);
+  };
+} else if (typeof MessageChannel !== 'undefined') {
+  // DOM and Worker environments.
+  // We prefer MessageChannel because of the 4ms setTimeout clamping.
   const channel = new MessageChannel();
+  const port = channel.port2;
   channel.port1.onmessage = performWorkUntilDeadline;
-  schedulePerformWorkUntilDeadline = () => channel.port2.postMessage(null);
+  schedulePerformWorkUntilDeadline = () => {
+    port.postMessage(null);
+  };
 } else {
-  schedulePerformWorkUntilDeadline = () => setTimeout(performWorkUntilDeadline, 0);
+  // We should only fallback here in non-browser environments.
+  schedulePerformWorkUntilDeadline = () => {
+    localSetTimeout(performWorkUntilDeadline, 0);
+  };
 }
 ```
 
-Scheduler의 `shouldYieldToHost()`는 작업 시작 이후 경과 시간이 `frameInterval`(기본 **5ms**, `SchedulerFeatureFlags.js`에서 정의)을 초과했는지를 확인하여 메인 스레드에 제어권을 돌려줄지 결정한다.
+분기는 셋이다. 지금의 브라우저에는 `setImmediate`가 없으므로 두 번째 분기의 `MessageChannel`이 잡힌다. 첫 분기는 Node.js와 jsdom을 위한 것이다. 소스 주석에 따르면 `MessageChannel`은 Node.js 프로세스가 끝나지 않게 붙잡지만 `setImmediate`는 그러지 않는다([facebook/react#20756](https://github.com/facebook/react/issues/20756)). 그래서 Jest에서 Scheduler를 따라가 보면 `MessageChannel`이 아니라 `setImmediate` 경로를 탄다.
 
-왜 `setTimeout`이 아닌 `MessageChannel`일까? `setTimeout`은 HTML 스펙에 따라 5회 이상 중첩되면 **최소 4ms의 지연**이 강제된다. 반면 `MessageChannel`은 이런 제한 없이 다음 이벤트 루프 틱에서 즉시 매크로태스크로 실행된다. 5ms 단위로 작업을 쪼개는 Fiber에게 4ms의 인위적 지연은 치명적이기 때문이다.
+Scheduler가 이렇게 다음 차례를 예약하는 목적은 메인 스레드를 브라우저에 돌려주는 것이다. 자바스크립트가 메인 스레드를 쥐고 있는 동안 브라우저는 입력을 처리하지도, 화면을 그리지도 못한다. 그래서 Reconciler는 Fiber 하나를 처리할 때마다 `shouldYield()`를 묻는다([ReactFiberWorkLoop.js 3073~3078행](https://github.com/facebook/react/blob/v19.3.0/packages/react-reconciler/src/ReactFiberWorkLoop.js#L3073-L3078)). 그 답을 내는 Scheduler의 `shouldYieldToHost()`는 이번 메시지 태스크가 시작된 뒤 지난 시간이 `frameInterval`을 넘었는지 본다. 이 값은 `SchedulerFeatureFlags.js`의 `frameYieldMs`, 즉 **5ms**로 초기화된다([11행](https://github.com/facebook/react/blob/v19.3.0/packages/scheduler/src/SchedulerFeatureFlags.js#L11)). 5ms는 작업 조각의 크기가 아니라 양보를 검사하는 시간 기준이다. 컴포넌트 하나를 렌더링하는 데 20ms가 걸리면 그 20ms는 쪼개지지 않는다.
+
+## setTimeout의 4ms 지연
+
+양보한 뒤 다음 조각을 예약하는 데 왜 `setTimeout`이 아닌 `MessageChannel`을 쓸까? HTML 명세의 [타이머 초기화 단계](https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timer-initialisation-steps)는 중첩 깊이가 5를 넘은 `setTimeout`의 지연이 4ms보다 짧으면 4ms로 올린다. 필자가 Chrome에서 `setTimeout(fn, 0)`을 스스로 다시 거는 체인을 재 보니 1~6번째 호출의 간격은 0~0.1ms였고, 7번째부터 4.4~4.6ms가 붙었다. `MessageChannel`의 메시지에는 이런 최소 지연이 없다. 메시지는 태스크 큐에 들어갈 뿐이라 그 사이에 브라우저가 입력 처리나 렌더링을 끼워 넣을 수 있고, Scheduler는 바로 그 틈을 노린다.
+
+4ms는 작아 보이지만 5ms마다 양보하는 루프에서는 이야기가 다르다. 200ms 분량의 일을 5ms 조각 40개로 나누고, 다음 조각을 `MessageChannel`과 `setTimeout(work, 0)`으로 각각 예약해 봤다. 개발자 도구 콘솔에 붙여 넣으면 그대로 돈다.
+
+```js
+function busy(ms) { const s = performance.now(); while (performance.now() - s < ms) {} }
+const ch = new MessageChannel();
+let done = 0, frames = 0;
+const raf = () => { frames++; if (done < 200) requestAnimationFrame(raf); };
+const start = performance.now();
+const work = () => {
+  busy(5); done += 5;
+  if (done < 200) schedule();
+  else console.log(Math.round(performance.now() - start), 'ms,', frames, 'frames');
+};
+ch.port1.onmessage = work;
+const schedule = () => ch.port2.postMessage(null); // setTimeout(work, 0) 로 바꿔 비교
+requestAnimationFrame(raf);
+schedule();
+```
+
+2026-10-08에 macOS의 Chrome 154.0.8037.98(headless)에서 세 가지를 세 번씩 돌린 결과다. 표의 세 번째 줄은 `busy(5); done += 5;`를 `busy(200); done += 200;`으로 바꿔 일을 쪼개지 않은 것이다.
+
+| 다음 조각 예약 | 끝날 때까지 | 그동안 그린 프레임 |
+|---|---|---|
+| `MessageChannel` | 200ms | 12~13 |
+| `setTimeout(work, 0)` | 353~354ms | 21 |
+| 쪼개지 않음 | 200ms | 0 |
+
+`setTimeout` 쪽은 앞의 여섯 번 뒤로 조각마다 4.5ms 안팎의 빈 시간이 붙어, 같은 일에 약 1.8배의 시간이 걸렸다. 프레임 수가 더 많은 것은 일이 늦게 끝나 재는 구간이 길어졌기 때문이고, 반응성이 더 좋다는 뜻은 아니다. 쪼개지 않으면 일은 200ms에 끝나지만 그동안 프레임이 하나도 그려지지 않는다. `MessageChannel`은 같은 200ms 안에 일을 끝내면서 약 60fps로 프레임을 계속 내보냈다. Safari와 Firefox에서는 재지 않았다.
 
 
 ## 마치며
 
-정리하면, React에 필요했던 것은 브라우저가 한가해질 때까지 기다리는 API가 아니라 짧게 일하고 곧바로 다음 차례를 예약할 수 있는 API였다. `requestIdleCallback`은 너무 드물게 불렸고, `requestAnimationFrame`은 React 작업이 맞출 필요가 없는 vsync 주기에 묶였으며, `setTimeout`은 4ms 지연을 붙였다. 그 조건을 만족한 것이 `MessageChannel`이다.
+정리하면, React에 필요했던 것은 브라우저가 한가해질 때까지 기다리는 API가 아니라 짧게 일하고 곧바로 다음 차례를 예약할 수 있는 API였다. `requestIdleCallback`은 유휴 기간에만 불려 React 작업이 밀렸고, `requestAnimationFrame` 방식은 vsync 시점을 추측해야 했으며, `setTimeout`은 중첩되면 조각마다 4ms 넘게 쉬게 만들었다. 그 조건을 만족한 것이 `MessageChannel`이다.
 
 이 Scheduler가 나눠 실행하는 작업 단위인 Fiber 노드가 어떻게 생겼고 Work Loop가 그것을 어떻게 순회하는지는 [React Fiber 완전 정복](/250520)에서 다룬다. 이 글을 읽는 독자 분들도 React 소스코드에서 `MessageChannel`을 다시 만나면, 그 자리에 왜 그것이 있는지 한 번쯤 떠올려 보기를 바란다.
 
@@ -52,6 +103,5 @@ Scheduler의 `shouldYieldToHost()`는 작업 시작 이후 경과 시간이 `fra
 ## 출처
 
 :::ref
-- [repo] [React 소스코드, Scheduler.js](https://github.com/facebook/react/blob/main/packages/scheduler/src/forks/Scheduler.js)
-- [docs] [WHATWG, HTML Standard, Timers](https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timers)
+- [repo] [React 16.0 직전의 ReactDOMFrameScheduling.js](https://github.com/facebook/react/blob/3019210df2b486416ed94d7b9becffaf254e81c4/src/renderers/shared/ReactDOMFrameScheduling.js)
 :::

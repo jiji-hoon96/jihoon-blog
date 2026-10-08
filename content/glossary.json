@@ -496,7 +496,7 @@
   "ece": {
     "ko": {
       "name": "ECE",
-      "definition": "expected calibration error. 확률 구간마다 「말한 확률」과 「실제 적중률」의 차이를 표본 비율로 가중해 평균한 값. 0이 완벽이다"
+      "definition": "expected calibration error. 확률 구간마다 말한 확률과 실제 적중률의 차이를 표본 비율로 가중해 평균한 값. 0이 완벽이다"
     },
     "en": {
       "name": "ECE",

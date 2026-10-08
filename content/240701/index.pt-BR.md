@@ -3,12 +3,13 @@ emoji: 🧬
 title: "A diferença entre LZ77 e LZ78"
 seoTitle: "LZ77 vs LZ78: janela deslizante, dicionário e DEFLATE"
 date: "2024-07-01"
+updatedAt: "2026-10-08"
 categories: curiosidades software
 description: "Como LZ77 e LZ78 diferem no uso do dicionário e por que, via LZSS e DEFLATE, ZIP, GZIP e Zstd acabaram todos na família LZ77."
 keywords: "LZ77, LZ78, LZ77 vs LZ78, algoritmo LZ77, compressão com janela deslizante, LZW, como funciona o DEFLATE, compressão baseada em dicionário"
 locale: pt-BR
 translationOf: '240701'
-sourceHash: 9e352eeafc2f7c4dce1defdd07912f7b310a670699148fa366b843c7814bf731
+sourceHash: 68a931bfbbb2f07a9103f049f4bb4a87a117d1d96e3830974bb2d92d60b97852
 ---
 
 Neste artigo, quero falar sobre **como LZ77 e LZ78 diferem**.
@@ -25,7 +26,7 @@ Compressão sem perdas, ou lossless compression, é um método que permite recon
 
 A ideia central é **aproveitar a redundância estatística presente nos dados**. Ao substituir padrões repetidos por representações mais curtas, reduzimos o tamanho total.
 
-Entre essas técnicas, os métodos **baseados em dicionário (Dictionary-Based)** formam uma das famílias mais usadas. Aqui, dicionário não é um livro de definições, mas uma tabela de consulta que associa trechos vistos anteriormente a códigos curtos. O **LZ77**, apresentado por Abraham Lempel e Jacob Ziv no artigo de 1977 **"A Universal Algorithm for Sequential Data Compression"**, publicado na IEEE Transactions on Information Theory, e o **LZ78**, publicado no ano seguinte, são os ancestrais dessa família. As letras “LZ” vêm dos sobrenomes dos pesquisadores. Quase todos os algoritmos posteriores baseados em dicionário, como DEFLATE, LZMA, LZ4 e Zstd, têm suas raízes nesses dois. (Não é exagero dizer que boa parte da árvore genealógica da compressão converge em Lempel e Ziv.)
+Entre essas técnicas, os métodos **baseados em dicionário (Dictionary-Based)** formam uma família muito usada. Aqui, dicionário não é um livro de definições, mas uma tabela de consulta que associa trechos vistos anteriormente a códigos curtos. O **LZ77**, apresentado por Jacob Ziv e Abraham Lempel no artigo de 1977 [A Universal Algorithm for Sequential Data Compression](https://doi.org/10.1109/TIT.1977.1055714), publicado na IEEE Transactions on Information Theory, e o **LZ78**, publicado no ano seguinte como [Compression of Individual Sequences via Variable-Rate Coding](https://doi.org/10.1109/TIT.1978.1055934), são os ancestrais dessa família. As letras “LZ” vêm dos sobrenomes dos pesquisadores. Os algoritmos posteriores baseados em dicionário, como DEFLATE, LZMA, LZ4 e Zstd, têm suas raízes nesses dois.
 
 Um exemplo simples ajuda. Se a palavra “Linux” aparecer cem vezes em um texto, o compressor pode registrá-la no dicionário na primeira ocorrência e substituir as seguintes por uma referência curta que signifique “entrada número 1”. “Linux” ocupa cinco bytes, enquanto o ponteiro pode exigir menos, reduzindo o tamanho do conjunto.
 
@@ -44,9 +45,11 @@ A janela é dividida em duas áreas.
 
 O algoritmo procura saber se o início do buffer de antecipação já apareceu em algum ponto do buffer de busca. Quando encontra o mesmo padrão, codifica a correspondência em uma tupla **(distância, comprimento, próximo caractere)**. A distância indica quantos caracteres é preciso voltar para encontrar o começo do trecho, e o comprimento informa quantos caracteres coincidem.
 
-Imagine compactar a string `"banana_banana"` com LZ77. Ao chegar ao segundo `"banana"`, o algoritmo está efetivamente dizendo: **“Volte sete caracteres e copie os próximos seis.”** Assim, uma string de seis bytes pode ser representada por apenas dois números.
+Por exemplo, ao compactar a string `"banana_banana"` com o codificador didático incluído mais adiante neste artigo, saem cinco tokens LZ77: `(0,0,b)` `(0,0,a)` `(0,0,n)` `(2,3,_)` `(7,5,a)`. Os três primeiros são caracteres vistos pela primeira vez, então carregam apenas o próximo caractere, sem correspondência. O segundo `"banana"` é resolvido por um único token, o último, `(7,5,a)`. Ele significa “volte sete caracteres, copie cinco e acrescente `a`”. Ele não copia os seis caracteres porque este codificador sempre deixa o último caractere da entrada na posição de próximo caractere.
 
-O ponto principal é que **não é necessário armazenar nem transmitir o dicionário separadamente**. O decodificador reconstrói o buffer de busca naturalmente durante a descompressão, de modo que o dicionário fica implícito nos próprios dados. A contrapartida é que a descompressão precisa avançar sequencialmente desde o início. Em princípio, não é possível começar em um ponto arbitrário no meio do arquivo.
+Em `(2,3,_)`, o comprimento 3 é maior que a distância 2. Com `ban` já escrito, o decodificador começa a copiar a partir do `a` dois caracteres atrás e, ao copiar o terceiro caractere, lê de novo o `a` que acabou de escrever. Assim sai `ana`, e depois `_` é acrescentado. A [RFC 1951](https://www.rfc-editor.org/rfc/rfc1951) especifica o mesmo comportamento: se os dois últimos bytes forem X e Y, `<length = 5, distance = 2>` acrescenta X,Y,X,Y,X. Isso funciona porque o dicionário é justamente o dado recém-restaurado.
+
+Nessa abordagem, **o dicionário não é armazenado nem transmitido separadamente.** O decodificador reconstrói sozinho o buffer de busca durante a descompressão, de modo que o dicionário fica implícito nos próprios dados. Como as referências apontam para dados anteriores, a descompressão, em princípio, avança em ordem desde o início. No entanto, as referências só alcançam até onde vai a janela. A RFC 1951 limita as referências do DEFLATE a no máximo 32K bytes para trás. Por isso o zlib oferece `Z_FULL_FLUSH`, que reinicia o estado de compressão, e o [zlib.h](https://github.com/madler/zlib/blob/v1.3.1/zlib.h) diz que a descompressão pode recomeçar a partir desse ponto, então ele serve quando se precisa de acesso aleatório. O mesmo texto avisa que usá-lo com muita frequência pode degradar seriamente a compressão.
 
 O tamanho da janela tem uma relação direta de compromisso com a taxa de compressão. Uma janela maior consegue referenciar padrões mais distantes e tende a comprimir melhor, mas aumenta o custo da busca e o uso de memória.
 
@@ -58,27 +61,107 @@ Ao contrário do LZ77, o LZ78 **constrói um dicionário explícito** durante a 
 
 O LZ78 produz unidades na forma **(índice do dicionário, próximo caractere)**. O codificador encontra a entrada mais longa que coincide, emite o índice junto ao caractere que quebra a correspondência e adiciona **“a entrada encontrada mais o novo caractere”** ao dicionário. Assim, o dicionário cresce aos poucos durante o processamento.
 
-A variação mais famosa do LZ78 é o **LZW** (Lempel-Ziv-Welch). Terry Welch publicou essa melhoria em 1984, e ela foi usada no formato de imagem GIF e no utilitário Unix `compress`, com a extensão `.Z`. (O LZW já esteve no centro de uma disputa de patentes, episódio que contribuiu para o surgimento do PNG.)
+Ao compactar o mesmo `"banana_banana"` com LZ78, saem oito tokens e o dicionário acumula sete entradas. Os tokens são `(0,b)` `(0,a)` `(0,n)` `(2,n)` `(2,_)` `(1,a)` `(3,a)` `(7,)`, e o dicionário é `1:b` `2:a` `3:n` `4:an` `5:a_` `6:ba` `7:na`. O segundo `"banana"` se divide em três tokens que produzem `ba`, `na` e `na`. É a parte que o LZ77 resolveu com um único token. Uma entrada do dicionário do LZ78 cresce apenas um caractere por vez, então uma entrada longa só surge depois de ver a mesma palavra várias vezes. O último token, `(7,)`, é o caso em que a entrada termina e não há próximo caractere. Este codificador não empacota os tokens em bits, então o número de tokens não serve para comparar taxas de compressão.
+
+As duas sequências de tokens podem ser reproduzidas com o código abaixo. É o resultado de salvá-lo em um arquivo e rodar `node lz.mjs` em 2026-10-08 no macOS 26.6.2 com Node v24.16.0.
+
+```js
+// LZ77: (거리, 길이, 다음 문자). 가장 긴 일치를 고르고, 겹친 복사를 허용한다
+function lz77(s, win = 4096) {
+  const out = []
+  let i = 0
+  while (i < s.length) {
+    let best = { d: 0, l: 0 }
+    for (let j = Math.max(0, i - win); j < i; j++) {
+      let l = 0
+      // 입력의 마지막 글자는 매치에 넣지 않고 다음 문자로 남긴다
+      while (i + l < s.length - 1 && s[j + l] === s[i + l]) l++
+      if (l > best.l) best = { d: i - j, l }
+    }
+    out.push([best.d, best.l, s[i + best.l]])
+    i += best.l + 1
+  }
+  return out
+}
+
+// LZ78: (사전 인덱스, 다음 문자). 인덱스 0 은 빈 문자열이다
+function lz78(s) {
+  const dict = new Map()
+  const out = []
+  let w = ''
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]
+    if (dict.has(w + c)) {
+      if (i < s.length - 1) { w += c; continue }
+      out.push([dict.get(w + c), '']) // 입력이 끝나 다음 문자가 없다
+      break
+    }
+    out.push([w ? dict.get(w) : 0, c])
+    dict.set(w + c, dict.size + 1)
+    w = ''
+  }
+  return { out, dict: [...dict.keys()] }
+}
+
+// 두 디코더 모두 토큰만 받는다. 사전은 전달받지 않는다
+function unlz77(tokens) {
+  let o = ''
+  for (const [d, l, c] of tokens) {
+    for (let k = 0; k < l; k++) o += o[o.length - d] // 방금 쓴 글자도 다시 읽는다
+    o += c
+  }
+  return o
+}
+function unlz78(tokens) {
+  const dict = ['']
+  let o = ''
+  for (const [i, c] of tokens) {
+    const entry = dict[i] + c
+    o += entry
+    dict.push(entry) // 인코더와 같은 순서로 사전을 다시 쌓는다
+  }
+  return o
+}
+
+const s = 'banana_banana'
+const a = lz77(s)
+const b = lz78(s)
+console.log('LZ77', a.map(([d, l, c]) => `(${d},${l},${c})`).join(' '), unlz77(a) === s)
+console.log('LZ78', b.out.map(([i, c]) => `(${i},${c})`).join(' '), unlz78(b.out) === s)
+console.log('사전', b.dict.map((e, k) => `${k + 1}:${e}`).join(' '))
+```
+
+```text
+LZ77 (0,0,b) (0,0,a) (0,0,n) (2,3,_) (7,5,a) true
+LZ78 (0,b) (0,a) (0,n) (2,n) (2,_) (1,a) (3,a) (7,) true
+사전 1:b 2:a 3:n 4:an 5:a_ 6:ba 7:na
+```
+
+Os dois decodificadores do código recebem apenas tokens. Isso significa que **o LZ78 também não transmite o dicionário**. O decodificador lê os tokens e adiciona entradas na mesma ordem que o codificador, então o mesmo dicionário é reconstruído. Não transmitir o dicionário é algo que os dois algoritmos têm em comum; onde eles se separam é na **forma de esquecer o conteúdo antigo**. A janela do LZ77 avança e esquece os dados antigos por conta própria. O dicionário do LZ78 só cresce, então a implementação precisa definir um limite e, quando ele enche, congelá-lo ou esvaziá-lo. O codificador do artigo de 1978 também volta ao estado inicial ao terminar um bloco e esquece todo o histórico anterior (p.533).
+
+A variação mais conhecida do LZ78 é o **LZW** (Lempel-Ziv-Welch). Terry Welch publicou essa melhoria em 1984, e ela foi usada no formato GIF e no utilitário Unix `compress`, associado à extensão `.Z`. As duas implementações colocaram um limite no dicionário. A [especificação GIF89a](https://www.w3.org/Graphics/GIF/spec-gif89a.txt) limita os códigos a 12 bits (valor máximo 4095) e define à parte um Clear code que devolve o dicionário ao estado inicial. Segundo a [página de manual do ncompress](https://github.com/vapier/ncompress/blob/v5.0/compress.1), o `compress` acompanha a taxa de compressão depois que o comprimento do código atinge o limite de `-b` (16 bits por padrão) e, se a taxa cair, descarta o dicionário e o reconstrói do zero.
 
 <hr>
 
 ### De qual família descendem os algoritmos modernos?
 
-Curiosamente, quase todos os algoritmos de compressão dominantes hoje são **descendentes do LZ77**.
+A maioria dos algoritmos de compressão predominantes hoje é **descendente do LZ77**.
 
-O **LZSS**, publicado por Storer e Szymanski em 1982, aprimorou o LZ77 adicionando um indicador de um bit para distinguir se cada saída é um literal, isto é, um caractere original, ou um par comprimento-distância. Quando uma correspondência é curta demais e a referência custaria mais, o codificador simplesmente mantém o caractere original.
+O **LZSS**, publicado por Storer e Szymanski em 1982, é uma variante que aprimorou o LZ77. Quando uma correspondência é tão curta que o ponteiro ficaria até mais longo que os caracteres originais, ele emite o “literal” (o caractere original) no lugar do ponteiro.
 
-Em 1993, Phil Katz combinou o LZSS com a **codificação de Huffman**, que atribui sequências de bits mais curtas aos símbolos mais frequentes, e criou o **DEFLATE**. ZIP, GZIP e PNG usam DEFLATE. Ou seja, os arquivos `.zip`, `.gz` e `.png` que manipulamos todos os dias são descendentes diretos do LZ77.
+O **DEFLATE** foi projetado por Phil Katz para o PKZIP 2, e sua especificação foi consolidada em 1996 como RFC 1951. A RFC 1951 descreve o DEFLATE como a combinação do LZ77 com a **codificação de Huffman**, que atribui sequências de bits mais curtas aos símbolos mais frequentes. Ele herdou do LZSS a ideia de emitir correspondências curtas como literais, e junta literais e comprimentos de correspondência em um único alfabeto (0 a 285), distinguido por um único código de Huffman. O método de compressão padrão do ZIP, assim como GZIP e PNG, usam esse DEFLATE. Ou seja, a maioria dos arquivos `.zip`, `.gz` e `.png` que manipulamos todos os dias é descendente direta do LZ77.
 
-Algoritmos posteriores como **LZMA** (7-Zip e XZ), **LZ4** e **Zstd** também partem da janela deslizante do LZ77 e evoluem as estruturas de busca e os métodos de codificação de entropia. A família LZ78, por outro lado, praticamente deixou o cenário principal depois do LZW.
+Algoritmos posteriores como **LZMA** (usado pelo 7-Zip e pelo XZ), **LZ4** e **Zstd** também partem da janela deslizante do LZ77 e evoluem as estruturas de busca de correspondências e as técnicas de codificação de entropia. A família LZ78, por outro lado, não serviu de raiz para nenhum novo compressor de uso geral desde o LZW. O próprio LZW continua presente dentro de formatos como o GIF.
 
-Foi provado que os dois algoritmos têm capacidade teórica equivalente **quando todo o conjunto de dados é descompactado**. Ainda assim, o LZ77 sobreviveu porque **incorporar o dicionário aos dados tornou o projeto mais flexível para implementar e estender**. O tamanho da janela, os algoritmos de busca e o codificador de entropia posterior podiam ser combinados livremente, deixando espaço para evoluir com as necessidades de cada época.
+Cada artigo demonstrou otimalidade assintótica dentro do próprio modelo. O artigo de 1977 mostrou que a taxa de compressão do LZ77 “uniformly approaches the lower bounds” (aproxima-se uniformemente dos limites inferiores) atingíveis por códigos projetados conhecendo a fonte de antemão, e o artigo de 1978 mostrou, para sequências individuais, que o incremental parsing do LZ78 é assintoticamente ótimo. Como os modelos são diferentes, esses resultados sozinhos não permitem comparar os dois. Ainda assim, vejo duas razões para a família LZ77 ter sobrevivido.
+
+A primeira é a forma de esquecer vista acima. Com uma janela, um único tamanho define ao mesmo tempo o limite de memória e o momento de esquecer. A família LZ78 precisava decidir separadamente, em cada implementação, o limite do dicionário e se o congelaria ou esvaziaria quando ficasse cheio. A segunda são as patentes. Segundo a [história do PNG](http://www.libpng.org/pub/png/pnghist.html), em 28 de dezembro de 1994 a Unisys e a CompuServe anunciaram um acordo para cobrar royalties de softwares compatíveis com GIF com base na patente do LZW, e em 4 de janeiro de 1995 saiu o primeiro rascunho do PNG. O que esse PNG escolheu foi o DEFLATE. A RFC 1951 listou entre seus objetivos de projeto poder ser implementado de um modo não coberto por patentes. A mesma RFC avisa que muitas variações do LZ77 são patenteadas, então a família LZ77 como um todo não estava livre de patentes.
 
 <hr>
 
 ## Conclusão
 
-LZ77 e LZ78 partiram da mesma ideia, substituir padrões repetidos por referências curtas, mas divergiram quanto a manter o dicionário dentro dos dados ou construí-lo à parte. Embora sua capacidade teórica seja equivalente, quem sobreviveu foi o LZ77, cujo tamanho de janela, busca de correspondências e codificador de entropia podiam ser trocados.
+LZ77 e LZ78 partiram da mesma ideia de substituir padrões repetidos por referências curtas. Nenhum dos dois transmite o dicionário e, em ambos, o decodificador o reconstrói, mas eles se separaram em se uma referência aponta para uma posição nos dados já percorridos ou para o número de uma entrada de um dicionário construído à parte, e também esquecem o conteúdo antigo de formas diferentes. Quem sobreviveu e se tornou a raiz dos compressores posteriores foi a família LZ77. A meu ver, o motivo é que seu limite de memória era simples porque a janela esquece sozinha à medida que avança, e que o DEFLATE, projetado sobre ela para evitar patentes, virou o padrão.
 
 Como essa linhagem se reflete na escolha de um formato real, comparando velocidade e taxa de compressão de ZIP, GZIP, ZSTD e XZ e decidindo o que usar para artefatos de build, está em [Entendendo algoritmos de compressão](/240706).
 
@@ -88,6 +171,8 @@ Da próxima vez que você descompactar um arquivo `.zip` ou `.gz`, espero que se
 ### Referências
 
 :::ref
-- [paper] [Ziv, Lempel, A Universal Algorithm for Sequential Data Compression (1977)](https://doi.org/10.1109/TIT.1977.1055714)
-- [paper] [Ziv, Lempel, Compression of Individual Sequences via Variable-Rate Coding (1978)](https://doi.org/10.1109/TIT.1978.1055934)
+- [paper] [Storer, Szymanski, Data compression via textual substitution (1982)](https://doi.org/10.1145/322344.322346)
+- [paper] [Welch, A Technique for High-Performance Data Compression (1984)](https://doi.org/10.1109/MC.1984.1659158)
+- [docs] [PKWARE, APPNOTE.TXT: .ZIP File Format Specification](https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT)
+- [docs] [W3C, Portable Network Graphics (PNG) Specification (Third Edition)](https://www.w3.org/TR/png-3/)
 :::

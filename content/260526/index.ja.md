@@ -3,114 +3,217 @@ emoji: 🔎
 title: "コードインテリジェンスの4つの階層"
 seoTitle: "AIコーディングエージェントのコード探索: Repomix、Aider、CodeGraph、Serena比較"
 date: "2026-05-26"
+updatedAt: "2026-10-08"
 locale: ja
 translationOf: '260526'
-sourceHash: 12ae267abbf5802434861218465e4cbe69856a28051e657f3bd9b0f53a15084c
+sourceHash: 9a33115d344f82b9a1e409d899e5e6da01038a2ca2503ea140cf69b7034b52c5
 categories: AI 開発ツール Claude MCP CodeGraph
 description: "AIコーディングエージェントが関連コードを探すコストを減らすツールを4つの階層に分けて比較する。Repomixのようなコンテキストパッキング、Aiderのtree-sitterリポジトリマップ、CodeGraphのナレッジグラフ、SerenaのようなLSPベースのツールを整理する。"
 keywords: "コードインテリジェンス, CodeGraph, Serena MCP, tree-sitter, LSP, Repomix, Aider repo map, AIコーディングエージェント トークン削減"
 ---
 
-今回の記事では、**AIコーディングエージェントが関連コードを探すコストを減らすツールが、互いにどう違うのか**について話してみたい。
+今回の投稿では、**AIコーディングエージェントが関連コードを探すコストを減らすツール同士が、互いに何が違うのか**について話してみようと思う。
 
-大規模なコードベースでエージェントがgrepとファイル読み込みを繰り返してトークンを消費するのを見て、RepomixやCodeGraph、Serenaのようなツールのうちどれを導入すべきか迷っている開発者に向けた記事だ。最後まで読めば、これらのツールがコードをどれだけ深く理解するかによってどう分かれるのか、そしてそれぞれの方式が探索コストをどこで減らすのかを見分けられるようになる。理解の深さは4つに分かれる。コードをテキストとして丸ごと入れるコンテキストパッキング、シンボルが存在することまでを知るtree-sitterリポジトリマップ、シンボルの関係をあらかじめ保存しておくナレッジグラフ、そしてそのシンボルが何であるかまで知るLSPだ。
+大きなコードベースでエージェントがgrepとファイル読み込みを繰り返してトークンを使うのを見て、Repomix、CodeGraph、Serenaのようなツールのうちどれを組み込むべきか悩んでいる開発者に向けた記事だ。最後まで読めば、これらのツールがコードをどれだけ深く理解するかによってどう分かれるのか、そしてそれぞれの方式が探索コストをどこで減らすのかを区別できるようになる。理解の深さは4つに分かれる。コードをテキストとして丸ごと入れるcontext packing、シンボルが存在することまでを知るtree-sitter repo map、シンボルの関係をあらかじめ保存しておくナレッジグラフ、そしてそのシンボルが何であるかまで知るLSPだ。ナレッジグラフを除く3つの階層ではこのブログのリポジトリの `src/` で直接測った結果を、ナレッジグラフでは開発元のベンチマークを併せて載せる。
 
-`codegraph`がGitHub Trendingに上がっているのを見て自分でもインストールしてみて以来、筆者は新しいツールを見るたびに、それがどのような仕組みでトークンを節約しているのかが気になっていた。
+`codegraph`がGitHub Trendingに載ったのを見て真似してインストールしてみて以来、筆者は新しいツールを見るたびに、それがどんな原理でトークンを節約しているのかが気になっていた。この記事に出てくるツールの多くも、筆者が普段weekly単位でTypeScriptとPythonに絞って眺めているGitHub Trendingで初めて知ったものだ。
 
 
 ## コードインテリジェンスツール
 
-大規模なコードベースでは、AIエージェントのコストの大半が、コードの変更そのものではなく、**関連コードがどこにあるかを探すこと**に費やされる。すべてのタスクがgrep → read → filter → 再びgrepという反復から始まれば、トークン、時間、ツール呼び出しを浪費する。コードインテリジェンスツールは、この検索コストを減らすためのさまざまな試みだ。
+エージェントはコードを直す前に、まず関連コードがどこにあるかを探す。grepで探し、ファイルを読み、絞り込み、またgrepするループだ。後で見るCodeGraphのベンチマークでは、ツールなしで答えた側は質問1つにtool callを最大43回使った。コードインテリジェンスツールは、この探索コストを減らそうとする試みである。
 
-筆者はこれらの試みを、以下の4つの階層（tier）に分けて見ている。業界で定まった分類ではなく、ツールがコードをどれだけ深く理解するかを基準に筆者が整理した区分だ。
+ただし、「コスト」という言葉が指すものは1つではない。モデルが処理したトークン、tool callの回数、そして作業が終わった後もcontext windowに残っているトークンは、それぞれ別々に動く。この記事では、各階層がこの3つのうち何を減らすのかを見る。
+
+筆者はこれらの試みを、以下の4つの階層(tier)に分けて捉えている。業界で決まった分類ではなく、ツールがコードをどれだけ深く理解するかを基準に筆者が整理した区分だ。筆者が直接測った値はすべてこのリポジトリのコミット `36e5cfa` で2026-10-08に得たもので、トークンはtiktokenの `o200k_base` で数えた。Claudeのトークナイザーとは値が異なるので、絶対値よりも比較に使う。
 
 
 ### コンテキストパッキング
 
-最も単純な解決策は、「**すべてを一つのコンテキストウィンドウへ入れてしまおう**」という発想だ。グラフも作らず、インデックスも構築しない。リポジトリ全体を一つのテキストの塊に直列化し、そのままモデルへ渡す。
+最も単純な解決策は、「**全部を1つのcontext windowに入れてしまおう**」という発想だ。グラフも作らず、インデックスも作らない。リポジトリ全体をテキストの塊としてシリアライズし、モデルに丸ごと渡す。
 
-代表的なツールに**Repomix**がある。リポジトリ全体を、ClaudeのXMLパースに最適化された構造へパッキングする。CLI、Web、Extension、MCPサーバーをすべて備え、この分野で最も充実したエコシステムを持つ。
+代表的なツールが**Repomix**だ。デフォルトの出力形式はXMLで、READMEはAnthropicのXMLタグに関するドキュメントへのリンクを載せている。CLI、Web、ブラウザ拡張、MCPサーバーまで揃っている。
 
-**GitIngest**は、摩擦のない使い勝手で知られている。GitHub URLの`github.com`を`gitingest.com`へ一語だけ変更すれば、そのリポジトリ全体が一つのテキストページに変換される。（例：`github.com/facebook/react` → `gitingest.com/facebook/react`。）ブラウザのアドレスバーで一語変えるだけなので、別途インストールする必要もない。一度きりの素早い探索に特化している。
+**GitIngest**は摩擦ゼロの使いやすさで知られている。GitHubのURLで `github.com` を `gitingest.com` に1語だけ置き換えると、そのリポジトリ全体が1枚のテキストページに変換される。(例: `github.com/facebook/react` → `gitingest.com/facebook/react`。) ブラウザのアドレスバーで単語を1つ変えるだけなので、別途インストールする必要もない。1回きりの素早い探索に特化している。
 
-**code2prompt**（Mufeed VH作）はRust製のCLIで、テンプレートシステムによるカスタマイズ性に強みがある。
+**code2prompt**(Mufeed VH作)はRustベースのCLIで、テンプレートシステムによるカスタマイズに強みがある。
 
-興味深い派生形として、**rtk**（`rtk-ai/rtk`、約55k stars）にも触れておきたい。前述のツールが「リポジトリ全体を一度にパッキング」するのに対し、rtkは**CLIコマンドの出力そのものをリアルタイムに圧縮**するツールだ。Rust製の単一バイナリで、Claude Code・Cursor・Copilot・Gemini CLI・Codexなど、13のツールのshell hookへ自動登録される。エージェントが`git status`を呼び出すと、内部で`rtk git status`へrewriteされる。（ユーザーがワークフローを変える必要がないことが、最大の違いだ。）100以上のコマンドにsmart filtering・grouping・truncation・deduplicationのヒューリスティクスを適用し、出力トークンを60〜90%削減する。公式サイトの一文が、このカテゴリをよく要約している。**「70% of your bill is noise the LLM doesn't need.」** 前述のツールが「入力されるコンテキスト」の量を減らすものなら、rtkは「tool callの結果として戻るコンテキスト」の量を減らすものだ。
+**rtk**(`rtk-ai/rtk`)は少し方向が違う。上のツールがリポジトリ全体を一度にパッキングするのに対し、rtkはエージェントが実行したCLIコマンドの出力を圧縮する。Rustで作られた単一バイナリで、Claude Code、Cursor、Copilot、Gemini CLI、Codexなど複数のエージェントのhookに登録され、エージェントが `git status` を呼び出すと `rtk git status` に置き換えて実行する。100以上のコマンドにfiltering、grouping、truncation、deduplicationを適用する。このhookはBashのtool callにしかかからない。Claude Codeの `Read`、`Grep`、`Glob` はそのまま素通りする。
 
-ただし、この階層の限界は明確である。**大規模なリポジトリではトークン上限に達する。** そして、コードを「テキストの塊」として渡すだけで、シンボル間の関係や構造的な理解は存在しない。
+減る量は注意して読む必要がある。[rtkのREADME](https://github.com/rtk-ai/rtk/blob/8533612180c60efbcb5827c7db4e910aba096705/README.md#L66-L70)は、Bashの出力を最大90%減らすと書きつつ、それが請求額を90%減らすという意味ではないとすぐに付け加えている。コマンドの出力はモデルから見れば入力トークンの一部で、入力トークンは請求額の一部なので、段階ごとに薄まる。[公式サイト](https://www.rtk-ai.app/)が掲げる数字は、rtkが置き換えて実行したコマンド基準で平均56%だ。上のツールが入っていくテキストを減らすのだとすれば、rtkはtool callの結果として戻ってくるテキストを減らす。
+
+この階層の限界は、**大きなリポジトリはトークン上限に引っかかる**ことだ。このブログの `src/` のファイル109個をパッキングするだけで94,596 tokensになる。Repomixはこの問題に `--compress` で答える。[README](https://github.com/yamadashy/repomix/blob/8d6429121e98ed178e4d3a975c2bdbbecc958c4a/README.md#L797-L831)によれば、Tree-sitterで関数とクラスのシグネチャを残し、実装の本体を捨てる。
+
+```bash
+# repomix 1.18.1, 이 리포 커밋 36e5cfa, 2026-10-08
+npx -y repomix@1.18.1 src -o out.xml              # Total Tokens: 94,596 tokens
+npx -y repomix@1.18.1 src --compress -o out.xml   # Total Tokens: 30,320 tokens
+```
+
+68%減った。コメントはそのまま残るので、JSDocが長い `visit-counter.ts` は1,642から約1,220 tokensへと26%しか減らなかった。圧縮版に残るのはファイルごとの構文で、誰が誰を呼ぶかといった関係はない。そのため、この階層と次の階層の境界は、構文を見るかどうかよりも、関係を問えるかどうかにある。
 
 
 ### tree-sitterリポジトリマップ
 
-次の階層は、**tree-sitter**を使ってコード構造を解析しつつ、独立したインデックスサーバーは立てない方式だ。
+次の階層は、**tree-sitter**を活用してコードの構造を解析しつつ、別途インデックスサーバーは立ち上げない方式だ。
 
-**AST（Abstract Syntax Tree、抽象構文木）**は、ソースコードの構造を木として表現するデータ構造だ。コンパイラの構文解析段階で得られるもので、空白・セミコロン・括弧などの表面的な詳細を取り除き、変数・演算子・関数呼び出し・制御フローなど、意味のある要素だけをノードとして残す。コードインテリジェンスツールによる精密な解析は、最終的にはすべてAST上で行われる。
+**AST**(Abstract Syntax Tree、抽象構文木)は、ソースコードの構造を木で表したデータ構造だ。コンパイラの構文解析の結果物で、括弧やセミコロンのような表面的な情報を捨て、変数、演算子、関数呼び出しのような要素だけをノードとして残す。ところが、この階層のツールが使うtree-sitterが作るのは**CST**(Concrete Syntax Tree)だ。[tree-sitter公式ドキュメント](https://tree-sitter.github.io/tree-sitter/)もconcrete syntax treeを作ると書いている。括弧や句読点までノードとして残した木で、以下のツールが扱うのもこの木だ。
 
-**tree-sitter**は、オープンソースのパーサージェネレーターであり、増分（incremental）パースライブラリでもある。GitHubのコードナビゲーション、Neovim、Zed、Helixなどで採用されている。最大の特徴は、**編集された部分だけを再パースする**ことだ。エディタで1行を変更してもファイル全体を再パースせず、変更されたツリーだけをpatchする。そのため応答が速く、AIエージェントがコードを素早く調べる用途にも適している。
+**tree-sitter**は、オープンソースのパーサジェネレータであり、インクリメンタル(incremental)パースライブラリだ。[GitHubのcode navigation](https://docs.github.com/en/repositories/working-with-files/using-files/navigating-code-on-github)がtree-sitterを使っている。編集された部分だけを再パースするので、エディタで1行を直してもファイル全体を再パースせず、変わった部分の木だけを直す。この利点は、編集が絶えず起きるエディタのものだ。以下のAiderは、ファイルの更新時刻でキャッシュを持ち、変わっていないファイルを再パースしない。
 
-ターミナルで使うAIペアプログラミングツールの**Aider**が、このアプローチの代表例だ。tree-sitterを使ってソースファイルから関数・クラス・メソッドなどのシンボル定義を抽出し、ファイルをノード、ファイル間の依存関係をエッジとするグラフを作る。そして、そのグラフにPageRank系のランキングアルゴリズム（ページへ入るリンクの数と質から、ページの重要度を評価するアルゴリズム）を適用し、トークン予算に合わせて主要な定義とシグネチャだけを抽出する。（デフォルトの`--map-tokens=1024`では、1kトークンのリポジトリマップを作る。）
+ターミナルで使うAIペアプログラミングツール**Aider**が、このアプローチの代表例だ。tree-sitterでファイルごとに関数、クラス、メソッドの定義と参照を抽出し、ファイルをノードとするグラフを作る。ファイルAがファイルBで定義された識別子を参照すると、AからBへエッジができる。このグラフにpersonalized PageRank(リンクの数と重みでノードの重要度を決めつつ、指定したノードの側へスコアを傾ける変種)をかけ、順位の高いファイルの定義とシグネチャをトークン予算の分だけ入れる。
 
-**AFT**（`cortexkit/aft`）は、このアプローチをさらに精密に発展させた。AFTの公式READMEの表現をそのまま訳すと、次のようになる。**「500行のファイルを読むと、約375トークンかかる。しかし、エージェントがたいてい一つの関数しか必要としない場合、`aft_zoom`へシンボル名を渡せば、その関数とわずかなコンテキストだけが返る。約40トークンで済む。」** また、行番号ベースの編集は対象より上のコードが動いた瞬間に壊れるが、AFTのシンボルモード編集は関数を名前で指定するため安定している。
+何が予算に入るかは、いまの会話によって変わる。Aiderの[`repomap.py`](https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/repomap.py#L487-L525)では、エッジの重みは参照回数の平方根に倍率を掛けた値だ。会話に出た識別子は10倍、8文字以上のcamelCaseやsnake_caseの識別子も10倍、`_` で始まる識別子は0.1倍、いまチャットに追加したファイルから出ていくエッジは50倍になる。チャットに追加したファイルと会話で言及したファイルは、PageRankのpersonalizationスコアも受け取る。
 
-同じ階層でもう一つ、補足として紹介したいツールがある。**ast-grep**（`ast-grep/ast-grep`、約13.9k stars）だ。tree-sitterベースの構造検索・rewriting CLIで、一般的なgrepとの決定的な違いは、テキストではなくCST（Concrete Syntax Tree）パターンでマッチする点にある。たとえば`console.log($A)`パターンを検索すると、テキストの見た目に関係なく、同じ意味構造を持つすべての呼び出しを正確に検出する。独立した`ast-grep-mcp`サーバーもあり、AIエージェントにテキストgrepの代わりに構造検索を使わせられる。
+予算も固定値ではない。[Aiderのドキュメント](https://aider.chat/docs/repomap.html)は `--map-tokens` のデフォルトを1kと書いているが、[コード](https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/models.py#L782-L789)はモデルの入力上限の1/8を1,024から4,096の間に切り詰める。そしてチャットにファイルがなければ `--map-multiplier-no-files`(デフォルト2)倍まで広げる。このリポジトリの `src/` で確かめた。実行した0.86.1と上でリンクしたコミットは、ランキングのコードが同じだ。
+
+```bash
+# aider-chat 0.86.1, 리포 루트에서 시작한다, 2026-10-08
+mkdir /tmp/aidermap && cp -R src /tmp/aidermap/ && cd /tmp/aidermap && git init -q && git add -A && git commit -qm init
+# 키는 더미 값이다. --show-repo-map 은 map 만 출력하고 LLM 을 부르지 않는다
+export OPENAI_API_KEY=dummy
+AIDER="uvx --python 3.12 --from aider-chat==0.86.1 aider --no-check-update --analytics-disable --no-gitignore --model gpt-4o"
+$AIDER --show-repo-map                                              # Repo-map: using 4096 tokens
+$AIDER --map-tokens 1024 --show-repo-map                            # Repo-map: using 1024 tokens
+$AIDER --map-tokens 1024 --show-repo-map src/lib/filter-posts.ts    # 이 파일을 채팅에 올린 상태
+```
+
+| 条件 | Aiderが決めた予算 | 出力されたmap | 含まれたファイル |
+|---|---|---|---|
+| デフォルト、チャットにファイルなし | 4,096 | 7,370 tokens | 61個 |
+| `--map-tokens 1024`、チャットにファイルなし | 1,024 | 2,019 tokens | 27個 |
+| `--map-tokens 1024`、`filter-posts.ts` をチャットに追加 | 1,024 | 983 tokens | 12個 |
+
+gpt-4oの入力上限は128kなので1/8が4,096に切り詰められ、チャットが空なのでその2倍以内でmapが出た。ファイルを1つチャットに追加すると、mapは予算内に縮み、前の27個のうち10個だけが残った場所に `PostList.tsx` と `SearchModal.tsx` が新たに入った。repo mapはリポジトリの固定された要約ではなく、その瞬間の会話に合わせた抜粋だ。
+
+**AFT**(`cortexkit/aft`)は、読み込みと編集をシンボル単位で行う。行番号ベースの編集は対象より上のコードが動いた瞬間に壊れるが、AFTのシンボルモードの編集は関数を名前で指定するので、その影響を受けない。
+
+同じ階層でもう1つ触れておきたいツールがある。**ast-grep**(`ast-grep/ast-grep`)だ。tree-sitterベースの構造検索とrewriteを行うCLIで、テキストではなく構文木のノードをマッチングする。たとえば `console.log($A)` というパターンは、改行や空白がどうなっていても、引数1つで `console.log` を呼ぶ呼び出しをすべて捉える。捉えるのは同じ構文構造だ。`$A` の型や、`console` がどこから来た名前なのかは知らない。`ast-grep-mcp` サーバーもあるので、エージェントにテキストgrepの代わりに構造検索を使わせることができる。
 
 
 ### Knowledge Graph
 
-第3の階層は、さらに一歩先へ進む。**あらかじめコードベース全体をパースしてナレッジグラフを作り、ディスクへ保存**しておき、エージェントは保存済みのグラフへクエリを投げる方式だ。最も話題になっている例が、**CodeGraph**というツールである。
+3つ目の階層はさらに一歩進む。**事前にコードベース全体をパースしてナレッジグラフを作り、ディスクに保存**しておき、エージェントは保存しておいたグラフにクエリを投げる方式だ。最も話題になっている例が**CodeGraph**というツールである。
 
-アーキテクチャは意外に単純だ。**tree-sitter**でコードをパースし、抽出したシンボル・エッジ・ファイル情報をSQLiteのFTS5全文検索へ保存し、そのナレッジグラフをMCP経由でAIエージェントへ公開する。ここで押さえておきたいのは、**この抽出のすべてがLLMによる要約ではなく、ASTパースによって決定論的に行われる**点だ。つまり、ハルシネーションが入り込む余地がない。
+[CodeGraphのREADME](https://github.com/colbymchenry/codegraph/blob/b635dd467f0578926a9c01a37b9d28d2b26689f1/README.md)が説明する構造は単純だ。tree-sitterでコードをパースしてシンボル、エッジ、ファイル情報を抽出し、それをローカルのSQLiteデータベースに保存する。名前検索はSQLiteのFTS5インデックスで行う。エージェントはMCPを通じてこのグラフに問い合わせる。そして**この抽出はLLMの要約ではなく、構文木のパースから決定論的に行われる。**
 
-ここに登場する**FTS5（SQLite Full-Text Search 5）**は、SQLiteの仮想テーブルとして提供される全文検索拡張機能だ。SQLite 3.9.0（2015-10-14）からamalgamationに含まれ、`CREATE VIRTUAL TABLE ... USING fts5(...)`でテーブルを作成し、`MATCH`演算子でクエリする。Elasticsearchのような独立した検索エンジンを立ち上げなくても、SQLiteファイル一つで全文インデックスを運用できることが決定的な利点であり、CodeGraphが「100%ローカル動作」を掲げられる理由の一つでもある。
+ここで登場する**FTS5**(SQLite Full-Text Search 5)は、SQLiteの仮想テーブルの形で提供される全文検索拡張だ。[SQLiteのドキュメント](https://www.sqlite.org/fts5.html)によれば、3.9.0(2015-10-14)からamalgamationに含まれており、`CREATE VIRTUAL TABLE ... USING fts5(...)` でテーブルを作り、`MATCH` 演算子で問い合わせる。Elasticsearchのような別の検索エンジンを立てなくても、SQLiteファイル1つで全文検索インデックスを持てる。
 
-そして、先ほど使った**決定論的**（deterministic）という言葉は、同じコードを入れれば常に同じ結果が出るという意味だ。LLMがコードを要約してグラフを作ると、同じコードでも結果が変わることがあり、ハルシネーションが混じる危険がある。一方、ASTを直接パースすれば、言語の文法が定めた規則どおりにのみシンボル関係を抽出するため、そうした解釈が入り込む余地がない。CodeGraphでこの原則が中核を成しているのはそのためだ。
+いま使った**決定論的**(deterministic)という言葉は、同じコードを入れれば常に同じ結果が出るという意味だ。LLMがコードを要約してグラフを作ると、同じコードでも結果が変わりうるし、ハルシネーションが混ざる危険がある。一方、構文木を直接パースすれば言語の文法が定めた規則どおりにだけシンボルの関係を抽出するので、そうした解釈が入り込む余地がない。
 
-ベンチマークも印象的だ。Claude Opus 4.7をヘッドレスで実行し、CodeGraph MCPを有効にした場合と無効にした場合を比較した。公式READMEの平均値では、**コストが35%下がり**、**トークン使用量が57%減り**、**46%高速化し**、**ツール呼び出しは71%減少**した。しかも、この効果はコードベースの規模に比例して大きくなる。Tokioのような大規模リポジトリでは、コスト82%減、トークン86%減、速度71%向上、ツール呼び出し92%減まで測定された。（CodeGraphがなければ、エージェントはgrep／find／Readを広範囲にfan-outするが、CodeGraphがあれば、そのすべてを1回のインデックスクエリで置き換えられる。）
+ただし、決定論的であることと漏れがないことは別だ。同じREADMEは、慣習やリフレクションに頼るフレームワークのルート認識率をSpring 83.3%、ASP.NET 83.9%と記し、これを静的解析の限界(honest static-analysis ceiling)と呼んでいる。同じコードからは同じ結果が出るが、その結果から抜け落ちたエッジがありうる。
 
-学術的な背景も深い。**GraphCoder**（ASE 2024）は、control flowとdata／control dependenceを統合したCode Context Graphを作った。**CodexGraph**（NAACL 2025）は、LLMエージェントがグラフデータベースのクエリを直接作成・実行できるようにした。**Prometheus**は、tree-sitterベースのナレッジグラフと統合メモリを組み合わせ、多言語のIssue解決へ応用した。この方向性は、学術界と産業界が同時に収束しつつある明確なパターンだ。
+ベンチマークはCodeGraph自身が測ったものだ。同じREADMEの2026-08-05の再測定では、Claude Opus 4.8をheadlessで動かし、7つのオープンソースリポジトリにアーキテクチャの質問を1つずつ投げた。CodeGraph MCPを有効にした側が、平均コストを44%、処理トークンを62%、tool callを88%減らした。この再測定では、両側ともBashで `codegraph` CLIを呼べないようにブロックした。ブロックしないハーネスでは、ツールなしの側が28回中26回CLIを見つけて使っており、READMEは以前に発表した数値がこのブロックなしで出たものだと明かしている。この記事が最初に載せたOpus 4.7の数値(35%安価、tool call 71%減)は、その以前の数値だ。
 
-ここで、興味深い派生形を一つ見てみよう。**Cursorのインデックス機能**は、前述とは異なる道を選んでいる。ASTグラフではなく、**ベクトル埋め込みベースのセマンティック検索**だ。ローカルでファイルを関数・クラス単位のチャンクへ分割し、Merkle treeのハッシュでサーバーと同期し、埋め込みだけをTurbopufferというベクトルDBへ保存する。（元のソースコードをクラウドに保存しないことが、重要なプライバシーモデルだ。）クエリ時には質問を埋め込みへ変換し、nearest-neighbor検索を実行する。そこで得たファイルパスと行範囲をローカルで再び読み、LLMへ渡す。**「正確なシンボル」ではなく「意味的に関連するコード」**を探す方向であるため、精度は低いものの自然言語クエリに強い。CodeGraphとCursorのインデックス機能は、同じ問題（検索コスト）を異なる前提で解いているのだ。
+削減幅はリポジトリの大きさに従わなかった。ツールなしの側がtool callを28〜43回使った質問ではコストが57〜78%減り、7回で終わったGinではほぼ同じだった。ファイル約11k個のVS Codeが71%、約640個のExcalidrawが78%だった。質問に探索が多く必要なほど、得るものが大きかった。
+
+READMEは逆方向の数字も記している。処理したトークンは減るが、複数ターンのセッションが終わった時点でcontext windowに残っているretrieval結果は、CodeGraph側が約80%多い。VS Codeでは67k対18k tokensだ。一度に原文を密に返し、それがウィンドウにそのまま残るからだ。この階層はtool callと処理トークンを減らす代わりに、ウィンドウに残る量を増やす。
+
+学術界にも同じ方向の研究がある。[GraphCoder](https://arxiv.org/abs/2406.07003)(ASE 2024)はcontrol flowとdata/control dependenceを統合したCode Context Graphを作り、[CodexGraph](https://aclanthology.org/2025.naacl-long.7/)(NAACL 2025)はLLMエージェントがグラフデータベースのクエリを自ら書いて実行するようにした。査読を経ていないプレプリントである[Prometheus](https://arxiv.org/abs/2507.19942)は、tree-sitterベースのナレッジグラフにworking memoryを付け、複数言語のイシュー解決に適用した。
+
+**Cursor**は別の道を進み、その後方向を変えた。[2026年1月のCursorブログ](https://cursor.com/blog/secure-codebase-indexing)が説明したインデックスは、構文グラフではなく**ベクトル埋め込みベースのセマンティック検索**だった。ローカルでファイルをchunkに分け、Merkle treeのハッシュでサーバーと同期し、埋め込みをTurbopufferというベクトルDBに保存していた。2026年7月、CursorのCommunity Support Engineerは[フォーラム](https://forum.cursor.com/t/what-do-you-think-about-cursor-removing-the-codebase-indexing-settings/165899)で「Semantic/embeddings indexing is being turned down in favor of grep-based retrieval」と答えた。同じスレッドで別のスタッフは、モデルがgrepをうまく使えるようになるにつれ、以前のセマンティック検索の経路はもう意味のある形で役立たなくなったと書いた。現在の[Cursorのドキュメント](https://cursor.com/docs/context/codebase-indexing)は、Instant Grepがインデックスをローカルで作って問い合わせ、コードベースの埋め込みを保存しないと記している。
 
 
 ### LSP
 
-最後の階層は、**言語サーバーへ直接依存**する方式だ。tree-sitterが「シンボルが存在すること」を知るのに対し、LSPは「そのシンボルが何であるか」を知る。
+最後の階層は、**言語サーバーに直接依存**する方式だ。tree-sitterが「シンボルが存在すること」を知っているとすれば、LSPは「そのシンボルが何であるか」を知っている。
 
-**LSP（Language Server Protocol）**は、コードエディタ／IDEと「言語インテリジェンスツール」（コード補完、定義へ移動、参照の検索、リファクタリングなど）の間の通信を標準化した、JSON-RPCベースのオープンプロトコルだ。2016年にMicrosoft・Red Hat・Codenvyが共同で標準化した。中心的な発想は、「エディタごとに言語解析器を再実装せず、言語ごとにサーバーを一つ用意し、すべてのエディタがそのサーバーへ問い合わせよう」というものだ。（TypeScriptサーバー、Rust analyzer、Pythonのpyrightなどは、すべてLSPサーバーである。）
+**[LSP](https://microsoft.github.io/language-server-protocol/)**(Language Server Protocol)は、エディタと言語解析ツール(コード補完、定義へ移動、参照の検索、リファクタリングなど)の間の通信を標準化した、JSON-RPCベースのオープンプロトコルだ。2016年に[Microsoft、Red Hat、Codenvyが協力を発表した](https://www.redhat.com/en/about/press-releases/red-hat-codenvy-and-microsoft-collaborate-language-server-protocol)。核となる発想は、「エディタごとに言語解析器を作り直すのではなく、言語ごとにサーバーを1つ置き、すべてのエディタがそのサーバーに問い合わせよう」というものだ。rust-analyzerやPythonのpyrightがLSPサーバーで、TypeScriptは独自プロトコルを使う `tsserver` をLSPで包んだtypescript-language-serverを使う。
 
-具体例で違いを見てみよう。TypeScriptのLSPは、`UserService`が`IUserService`インターフェースを実装していること、どのジェネリック型パラメーターを受け取るのか、どのようなオーバーロードがあるのか、どの戻り値の型を持つのかを知っている。tree-sitterは、そこまでは理解できない。
+**Serena**(`oraios/serena`)がこの階層に属するMCPサーバーだ。2026-10-08時点で30,093 starsで、リポジトリは2025年3月に作られた。Serenaの核となる発想は一行にまとめられる。**エージェントにテキストではなくシンボルを見せよう。** 主なツールは `find_symbol`、`find_referencing_symbols`、`get_symbols_overview` などだ。バックエンドは2つのうち1つを選べる。デフォルトはLSPを実装した言語サーバー(無料/オープンソース)、もう1つはJetBrains IDEのコード解析を活用する有料プラグイン(無料トライアルあり)だ。
 
-Serenaは、まさにこの階層に位置するツールだ。
+このリポジトリで測ってみると、差がどこから生まれるのかが見える。非公開記事を除外する `isHiddenPost`(`src/lib/filter-posts.ts:12`)の使用箇所を、2つの方法で探した。テキスト側はgrepだ。
 
-**Serena**（`oraios/serena`）は、MCPサーバーの中でもコーディングエージェントに関連して最も頻繁に言及されるツールの一つだ。2026年5月時点で約24.7k starsを獲得し、およそ1年でニッチなツールから事実上の標準コードMCPへと成長した。
+```bash
+# 커밋 36e5cfa, 2026-10-08. 이 글도 같은 이름을 담고 있어 content/ 는 뺐다
+git grep -n isHiddenPost -- ':!content'   # 16줄, 파일 9개
+```
 
-Serenaの中心的なアイデアは、一言で要約できる。**エージェントにはテキストではなく、シンボルを見せよう。**
+LSP側では、typescript-language-serverが `textDocument/references` に答えるときに使うTypeScriptの `findReferences` APIを直接呼んだ。Serenaを起動して測ったわけではない。LSPの参照検索は、名前ではなく位置(ファイルと行、列)で問い合わせる。そのためSerenaの[`find_referencing_symbols`](https://github.com/oraios/serena/blob/3b99f8b024dafd58c962ea6e74f37c8a730ef532/src/serena/tools/symbol_tools.py#L169-L172)も `name_path` と `relative_path` を一緒に受け取る。この例なら `find_referencing_symbols(name_path="isHiddenPost", relative_path="src/lib/filter-posts.ts")` になる。
 
-少し詳しく説明しよう。`calculateTotal`関数のすべての使用箇所を探すとする。一般的なテキストベースのツール（grepやReadなど）は、次のように動く。
+```js
+// 리포 루트에서 실행한다: node - < refs.cjs
+const path = require('path')
+const ts = require('typescript')
+const cfg = ts.getParsedCommandLineOfConfigFile('tsconfig.json', {}, { ...ts.sys, onUnRecoverableConfigFileDiagnostic() {} })
+const service = ts.createLanguageService({
+  getScriptFileNames: () => cfg.fileNames,
+  getScriptVersion: () => '0',
+  getScriptSnapshot: f => ts.sys.fileExists(f) ? ts.ScriptSnapshot.fromString(ts.sys.readFile(f)) : undefined,
+  getCurrentDirectory: () => process.cwd(),
+  getCompilationSettings: () => cfg.options,
+  getDefaultLibFileName: o => ts.getDefaultLibFilePath(o),
+  fileExists: ts.sys.fileExists,
+  readFile: ts.sys.readFile,
+})
+const file = 'src/lib/filter-posts.ts'
+// 이름이 아니라 정의가 있는 위치(파일과 오프셋)로 묻는다
+const pos = ts.sys.readFile(file).indexOf('isHiddenPost')
+for (const group of service.findReferences(file, pos) ?? []) {
+  for (const ref of group.references) {
+    const { line } = service.getProgram().getSourceFile(ref.fileName).getLineAndCharacterOfPosition(ref.textSpan.start)
+    console.log(`${path.relative(process.cwd(), ref.fileName)}:${line + 1}${ref.isDefinition ? ' (정의)' : ''}`)
+  }
+}
+```
 
-コードベース全体を`calculateTotal`でgrepする。次に、一致したすべての行番号を集め、各ファイルを一定の行範囲だけ読んでコンテキストを作る。変数名、文字列リテラル、コメントに偶然含まれた一致まで、すべて拾ってしまう。
+```text
+$ node - < refs.cjs   # typescript 5.9.3, Node 24.16.0
+src/lib/filter-posts.ts:12 (정의)
+src/lib/filter-posts.ts:24
+src/lib/post-navigation.ts:2
+src/lib/post-navigation.ts:6
+src/app/[lang]/[slug]/opengraph-image.tsx:7
+src/app/[lang]/[slug]/opengraph-image.tsx:38
+src/app/[lang]/[slug]/page.tsx:5
+src/app/[lang]/[slug]/page.tsx:47
+src/app/[lang]/[slug]/page.tsx:67
+src/app/[lang]/[slug]/page.tsx:74
+src/app/[lang]/[slug]/page.tsx:90
+```
 
-LSPベースのSerenaは、`find_referencing_symbols("calculateTotal")`を1回呼び出すだけで、変数名やコメントの一致といったノイズを含まず、正確なシンボル参照だけを返す。
+コードの位置は両側とも同じ11か所だった。この名前はリポジトリに1つしかないので、grepもコードの位置を取りこぼしたり余計に拾ったりしなかった。差は残りの5か所で生まれた。grepは `CLAUDE.md` やコマンドのドキュメント、そのスナップショットにある説明文5行も一緒に返した。
 
-Serenaの主要ツールには、`find_symbol`、`find_referencing_symbols`、`get_symbols_overview`などがある。バックエンドは2つから選べる。デフォルトはLSPを実装した言語サーバー（無料／オープンソース）、もう一つはJetBrains IDEのコード解析を利用する有料プラグイン（無料トライアルあり）だ。
+Serenaは参照ごとに[前後1行](https://github.com/oraios/serena/blob/3b99f8b024dafd58c962ea6e74f37c8a730ef532/src/serena/repl/api/lsp_api.py#L367-L369)を付けて返す。そこで両側に同じ基準を当て、位置ごとに `file:line` と前後1行を付けたテキストのトークンを数えた。
 
-Serenaが急速に採用された本当の理由は、**トークンの節約**にある。テキストgrepとファイルreadのループは多くのトークンを消費するが、LSPへの正確な問い合わせ1回なら、ほとんど消費しない。コードベースが大きいほど、その差は広がる。
+```python
+# 리포 루트에서 실행한다: python3 count.py (tiktoken 0.13.0)
+import subprocess, tiktoken
+enc = tiktoken.get_encoding("o200k_base")
+def run(cmd):
+    return subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout.splitlines()
+def tokens(locs):  # 위치마다 file:line 과 앞뒤 1줄을 붙여 센다
+    total = 0
+    for f, n in locs:
+        lines = open(f).read().splitlines()
+        total += len(enc.encode(f"{f}:{n}\n" + "\n".join(lines[max(0, n - 2):n + 1])))
+    return total
+grep = [(l.split(":")[0], int(l.split(":")[1])) for l in run("git grep -n isHiddenPost -- ':!content'")]
+refs = [(l.rsplit(":", 1)[0], int(l.rsplit(":", 1)[1])) for l in run("node - < refs.cjs") if "(정의)" not in l]
+code = [x for x in grep if x[0].startswith("src/")]
+print(f"grep {len(grep)}곳 {tokens(grep)} (코드 {len(code)}곳 {tokens(code)}) | 참조 {len(refs)}곳 {tokens(refs)}")
+```
 
-AiderはLSPを使わず、独自にファイルを解析するため、関数・クラスレベルの認識までしかできない。一方、**OpenCode**のようなツールのLSP統合は、より深い型認識を提供するが、言語ごとに優れたLSPサーバーへ依存するという限界がある。
+```text
+$ python3 count.py
+grep 16곳 1172 (코드 11곳 453) | 참조 10곳 423
+```
 
+| 方式 | 位置 | tokens |
+|---|---|---|
+| grep | 16か所(コード11、ドキュメント5) | 1,172(コード453、ドキュメント719) |
+| findReferences(定義を除く) | 10か所 | 423 |
 
-## GitHub Trending
+差の749 tokensのうち719がドキュメント5か所だ。このリポジトリでLSPが節約したのは、コードの位置を探すコストではなく、ノイズのマッチを読むコストだった。エージェントがgrepに引っかかったファイル9個を丸ごと読むなら、grep側は47,737 tokensまで増え、そのうち43,318がドキュメント5個だ。これは上限だ。`CLAUDE.md` は実際のセッションではすでにcontextに載っていて、改めて読まない可能性が高い。`isLocale` のようなありふれた名前なら、コードの位置でも結果が分かれうるが、今回は測っていない。
 
-![今月のGitHub Trendingのリポジトリ一覧。一番上にcolbymchenry/codegraphがある](1.webp)
-
-最後にもう一つ。前述のツールの多くを筆者が初めて知ったきっかけは、**GitHub Trending**だった。誰がどのようなツールを作り、何が急速に人気を集めているのかを、一目で確認できる場所だ。
-
-`github.com/trending`を開くと、today、this week、this monthという3つの期間で確認できる。言語とカテゴリによるフィルタリングも可能だ。（筆者は通常、weekly + TypeScript / Pythonで確認し、ときどき全言語へ広げている。）
+AiderはLSPを使わないので、関数とクラスのレベルの認識までにとどまる。[OpenCode](https://opencode.ai/docs/lsp/)はLSPサーバーをつなぎ、デフォルトで診断結果をエージェントにフィードバックする。定義、参照、hover、call hierarchyを問い合わせる `lsp` ツールは、[`OPENCODE_EXPERIMENTAL_LSP_TOOL=true`](https://opencode.ai/docs/tools/) のときだけ有効になる。いずれにせよ、言語ごとに良いLSPサーバーが必要だという条件が付く。
 
 
 ## まとめ
 
-まとめると、4つの階層は、関連コードを探すコストという同じ問題を、コードをどれだけ深く理解するかによって異なる方法で解いている。コンテキストパッキングはコードをテキストとして渡すだけで、tree-sitterリポジトリマップはシンボルが存在することまでを知り、ナレッジグラフはその関係をあらかじめ保存しておき、LSPはシンボルが何であるかまで知る。下の階層へ行くほどインデックスや言語サーバーのような準備が増える。ただし、CodeGraphのベンチマークが示したのは、ナレッジグラフの階層をツールなしで探索する場合と比べた結果だ。その比較ではコードベースが大きいほど削減幅が大きかったが、ほかの階層も同じ幅でコストを減らすのかは、このベンチマークからはわからない。
+まとめると、4つの階層はコードをどれだけ深く理解するかで分かれ、減らすコストも異なる。context packingはコードをテキストとして渡し、`--compress` を付けても構文までしか残さず、入っていくトークンを減らす。tree-sitter repo mapはシンボルが存在することまでを知り、入っていくトークンに予算で上限を設け、その中を何で埋めるかはその瞬間の会話が決める。ナレッジグラフは関係をあらかじめ保存してtool callと処理トークンを減らすが、ベンダーの測定ではウィンドウに残る量がむしろ増えた。LSPはシンボルが何であるかまで知り、このリポジトリではgrepが一緒に引き連れてくるノイズのマッチを取り除いて処理するトークンを減らしたことが、削減の大部分だった。
+
+だから筆者はツールを選ぶとき、階層の深さよりも、いまどのコストが問題なのかを先に見る。ウィンドウが小さくセッションが長いなら残る量を、往復が遅いならtool callの回数を、ドキュメントとコードが同じ名前を共有するリポジトリならノイズのマッチを見る。Cursorがセマンティック検索を外してgrepに戻ったことも、深い階層が常に良いわけではないというサインとして読める。
 
 これらのツールがエージェントのコード探索コストを減らすものだとすれば、エージェントが最初から知っておくべきプロジェクトのルールをどのファイルにどれだけ書くかは、また別の問題だ。その話は[コンテキストファイル](/260529)で扱う。
 
@@ -118,8 +221,7 @@ AiderはLSPを使わず、独自にファイルを解析するため、関数・
 ## 参考資料
 
 :::ref
-- [repo] [rtk-ai/rtk](https://github.com/rtk-ai/rtk)
-- [repo] [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)
-- [repo] [oraios/serena](https://github.com/oraios/serena)
 - [repo] [cortexkit/aft](https://github.com/cortexkit/aft)
+- [repo] [ast-grep/ast-grep](https://github.com/ast-grep/ast-grep)
+- [repo] [ast-grep/ast-grep-mcp](https://github.com/ast-grep/ast-grep-mcp)
 :::

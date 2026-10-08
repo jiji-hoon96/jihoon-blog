@@ -3,15 +3,16 @@ emoji: 🎯
 title: "Calibration and RLHF Overconfidence"
 seoTitle: "Model Calibration and ECE: Why RLHF Makes LLMs Overconfident"
 date: "2026-09-17"
+updatedAt: "2026-10-08"
 categories: AI Calibration
-description: "Calibration means knowing how often you will be right. How ECE measures it, and why RLHF makes models overconfident, via GPT-4's ECE 0.007 vs 0.074."
+description: "Calibration means knowing how often you will be right. How ECE measures it, and why RLHF models claim more than they hit, via GPT-4's ECE 0.007 vs 0.074."
 keywords: "model calibration, ECE, expected calibration error, RLHF overconfidence, LLM overconfidence, calibration vs accuracy, GPT-4 calibration, mode dropping"
 locale: en
 translationOf: '260917'
-sourceHash: a397a85a550dd467b12ceeb22cf4cfcbaf8ca6063b40977bce14a25562d911f0
+sourceHash: 49ed0ee2c63e8214912bd2e8702b4a5ff1a07417b0f21e7b16c4c1c4b211c9d5
 ---
 
-In this post, I want to talk about model calibration and the overconfidence RLHF creates. This is for developers who want to use the probability or confidence a model returns as a decision criterion in code. By the end, you will be able to explain how accuracy and calibration differ, what ECE measures, and why a model polished on human preference speaks more confidently than it should.
+In this post, I want to talk about model calibration and the overconfidence RLHF creates. This is for developers who want to use the probability or confidence a model returns as a decision criterion in code. By the end, you will be able to explain how accuracy and calibration differ, what ECE measures, why the probabilities of a model polished on human preference drift from its actual hit rate, and how much of the cause is actually known.
 
 I had to sort out these concepts first while testing Jev, a decision model released by TypeSafe AI. Instead of sentences, Jev returns a probability for each option, and it puts calibration forward as its training objective. To weigh that claim, I first needed to know what calibration is and why it drifts in existing models.
 
@@ -19,29 +20,74 @@ I had to sort out these concepts first while testing Jev, a decision model relea
 
 First you have to separate accuracy from :term[calibration]{key="calibration"}. Accuracy is what percentage you get right; calibration is whether you know what percentage you will get right. If you gather only the days a forecast said a 70% chance of rain and it actually rained seven times out of ten, that forecast is well calibrated. That does not mean it is accurate. It means it knows its own limits. **A model that gets only 60% right scores full marks on calibration if it says 60% about itself.**
 
-The metric for that gap is :term[ECE]{key="ece"} (expected calibration error). For each probability bin it takes the difference between the "stated probability" and the "actual hit rate," weights it by that bin's share of the samples, and averages; 0 is perfect.
+The scale can drift in two directions. When the probability a model states is higher than its actual hit rate, that is overconfidence; when it is lower, underconfidence. Put the stated probability on the horizontal axis and the actual hit rate of each probability bin on the vertical axis, and you can see at a glance where the two split. A plot drawn this way is called a reliability diagram.
+
+![The horizontal axis is confidence, the probability the model states, and the vertical axis is accuracy, the actual hit rate. The dashed diagonal is perfect calibration; the orange curve sagging below it is overconfidence, and the region above the diagonal is underconfidence](1.png?w=720)
+
+A point on the diagonal means the model got right as often as it said. The further the curve sags below the diagonal, the less it gets right relative to the probability it states.
+
+The metric for that gap is :term[ECE]{key="ece"} (expected calibration error). Following the definition in [Guo et al. 2017](https://arxiv.org/abs/1706.04599), for each probability bin it takes the difference between the "stated probability" and the "actual hit rate," weights it by that bin's share of the samples, and averages; 0 is perfect. The code below transcribes that formula as is. It compares a model that gets 6 of 10 questions right when it says 0.6 every time and when it says 0.95 every time.
+
+```js
+// Guo et al. 2017 의 식 (3). 확률 구간은 등간격 10개
+function ece(preds, M = 10) {
+  const bins = Array.from({ length: M }, () => ({ n: 0, hit: 0, conf: 0 }))
+  for (const { p, correct } of preds) {
+    const b = bins[Math.min(M - 1, Math.floor(p * M))]
+    b.n++
+    b.hit += correct ? 1 : 0
+    b.conf += p
+  }
+  return bins.reduce(
+    (sum, b) => (b.n ? sum + (b.n / preds.length) * Math.abs(b.hit / b.n - b.conf / b.n) : sum),
+    0,
+  )
+}
+
+// 10문제 중 6문제를 맞힌다
+const answers = Array.from({ length: 10 }, (_, i) => ({ correct: i < 6 }))
+console.log(ece(answers.map((a) => ({ ...a, p: 0.6 }))).toFixed(3)) // 매번 0.6 이라고 말할 때
+console.log(ece(answers.map((a) => ({ ...a, p: 0.95 }))).toFixed(3)) // 매번 0.95 라고 말할 때
+```
+
+This is the result of running it with Node v24.16.0 on 2026-10-08.
+
+```text
+0.000
+0.350
+```
+
+Accuracy is 0.6 in both cases. Only the stated probability changed, yet ECE rises from 0 to 0.35. But because the formula takes an absolute value, ECE measures only the size of the gap, not its direction. A model that says 0.25 every time and still gets 6 questions right also gets an ECE of exactly 0.35. Whether it is overconfidence or underconfidence, you have to look at the reliability diagram.
 
 ## The RLHF objective
 
-Then why does a model polished with human feedback drift off this scale? The answer is in the lineage of :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback). The skeleton of building a reward model out of human preference comparisons came from [Christiano et al.'s 2017 paper](https://arxiv.org/abs/1706.03741), [Stiennon et al. applied it to language models in 2020](https://arxiv.org/abs/2009.01325), and InstructGPT extended it to instruction following. The three papers share a single objective function. **Produce the output a human rater prefers.**
+Then why does a model polished with human feedback drift off this scale? First we need to see what :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback) optimizes. The skeleton of building a reward model out of human preference comparisons came from [Deep reinforcement learning from human preferences](https://arxiv.org/abs/1706.03741), which worked on Atari games and MuJoCo robot simulations. The first to apply it to language models was [Ziegler et al. 2019](https://arxiv.org/abs/1909.08593); [Learning to summarize from human feedback](https://arxiv.org/abs/2009.01325) scaled it up on summarization, and [InstructGPT](https://arxiv.org/abs/2203.02155) extended it to instruction following. This lineage shares a single objective. **Produce the output a human rater prefers.** The value actually pushed up is the score of a reward model that imitates human preference. InstructGPT added a KL penalty that keeps the model from straying too far from the model first tuned with supervised learning (the SFT model), but what it pushes up is still that score.
 
-For a chatbot, human preference is the right objective. The trouble is that people prefer a confident answer to a hedging one. So the model picks up the habit of speaking decisively even when things are ambiguous. The TypeSafe documentation calls this [mode dropping](https://docs.typesafe.ai/introduction/machine-learning-primer): preference optimization pushes the model toward favoring a particular style and suppresses the probability of the other possible outputs.
+For a chatbot, human preference is the right objective. The trouble is that this preference leans toward a confident tone. [Zhou et al. 2024](https://arxiv.org/abs/2401.06730) showed that the annotators who build preference data dislike expressions that reveal uncertainty, and [Leng et al. 2025](https://arxiv.org/abs/2410.09724) showed that reward models give higher scores to answers stating high confidence regardless of their actual quality. Both results concern the confidence a model states in words (verbalized confidence). The [TypeSafe documentation](https://docs.typesafe.ai/introduction/machine-learning-primer) also notes that RLHF can reward confident-sounding hallucinations. Separately, the same documentation says preference optimization causes mode dropping. That is the phenomenon where the model learns to favor a particular style while suppressing the probability of other possible outputs.
 
 ## GPT-4's calibration curves
 
-OpenAI wrote the same thing in its own report. Figure 8 of the [GPT-4 technical report](https://arxiv.org/abs/2303.08774) places the calibration curves of the pre-trained model and the post-trained model side by side, and the caption reads:
-
-![Figure 8 of the GPT-4 Technical Report. The pre-trained model on the left hugs the diagonal with ECE 0.007; the post-PPO model on the right falls well below it with ECE 0.074](1.png?w=720)
-
-Source: OpenAI, GPT-4 Technical Report (arXiv:2303.08774), Figure 8.
+A drift in the same direction has been observed in token probabilities too. Figure 8 in the main body of the [GPT-4 technical report](https://arxiv.org/pdf/2303.08774v6#page=12) places the reliability diagrams of the pre-trained model and the post-trained model side by side, and the caption reads:
 
 > Right: Calibration plot of the post-trained GPT-4 model on the same subset of MMLU. The post-training hurts calibration significantly.
 
-By the numbers printed on the figure, the pre-trained model's ECE is **0.007** and that of the model tuned with PPO (the reinforcement learning algorithm RLHF uses to update the model toward higher reward-model scores) is **0.074**. More than ten times worse. The ability to know what percentage it would get right was shaved off in the course of being polished to satisfy people.
+The horizontal axis is the probability (logprob) the model assigned to each of the choices A, B, C, and D on MMLU multiple-choice questions, and the vertical axis is the actual hit rate in that bin. By the numbers printed on Figure 8, the pre-trained model's ECE is **0.007** and that of the model tuned with PPO (the reinforcement learning algorithm RLHF uses to update the model toward higher reward-model scores) is **0.074**. More than ten times worse.
+
+The right-hand (PPO) panel of Figure 8 is not as smooth as the curve in the concept diagram above. Bars at 0.4 and above sit below the diagonal, but the bins between 0.1 and 0.3 actually sit above it. The bars between 0.1 and 0.9 are bunched flat at an actual hit rate between 0.3 and 0.5, so as the probability the model states goes up, the hit rate barely follows. Those underconfident bins are mixed into the 0.074 as well. And as Guo et al. point out, a reliability diagram does not show how many samples fall in each bin, so the distance of a bar from the diagonal is not proportional to the share that bin contributes to ECE. This figure also differs from the definition in the code above, which measures the probability of the single chosen answer, in that it puts the probabilities of all four choices into the bins. So I do not compare 0.074 with the 0.35 from the code above on the same scale.
+
+So why did it get worse? The report's main text says only that the pre-trained model was well calibrated and that calibration was reduced after post-training; it does not state a cause. A clue lies in Anthropic's [Kadavath et al. 2022](https://arxiv.org/abs/2207.05221). The RLHF policies they trained from their own language models looked very poorly calibrated at face value, and the paper explained this as RL fine-tuning collapsing predictions toward the behaviors that receive the most reward. Yet applying a single temperature, T=2.5, to every evaluation largely fixed the calibration problems on three evaluations. Temperature is a value that divides the logits; when it is greater than 1, it leaves the order of answers intact and only flattens the probability distribution. I read the fact that one value largely fixed it as meaning the drift was not concentrated in a few bins but was the whole distribution narrowed to one side. The paper also added the caveat that more intensive RL training might distort calibration in ways that cannot be fixed like this.
+
+This is a result on Anthropic's models, so it cannot be carried over directly as the cause of Figure 8. The studies in the previous section also dealt with confidence stated in words, so I could not find a primary source that directly links people liking a confident tone to the drift in token probabilities.
+
+## The probability your code receives
+
+The probability in Figure 8 is a token log probability. To receive the same kind of value, following the [OpenAI API specification](https://github.com/openai/openai-openapi/blob/506aff0a8099581b50e119b87f8f2692cdad043f/openapi.yaml), you set `logprobs` to `true` in a Chat Completions request and use `top_logprobs` to choose, between 0 and 20, how many candidates to receive at each token position. A value you get by having the model state a confidence number along with its answer is confidence stated in words, and it is a different value from the token probability.
+
+Studies of the two values compare different pairs. [Tian et al. 2023](https://arxiv.org/abs/2305.14975) reported that inside RLHF models such as ChatGPT, GPT-4, and Claude, confidence stated in words was typically better calibrated than conditional probabilities, often reducing ECE by a relative 50% or so across three benchmarks. Leng et al., seen above, reported that compared with pre-RLHF models, RLHF models are more overconfident in the confidence they state in words. The two results can both hold. And 0.074 is the value the 2023 GPT-4 post-trained model produced on a subset of MMLU, so it cannot be carried over as is to the models you call through the API today. Whichever probability you use, you need to measure it again on your own data.
 
 ## Wrapping up
 
-To sum up, calibration is not about what percentage you get right but whether you know what percentage you will get right, and ECE is the number that measures the gap. RLHF aims at the output people prefer, and because people prefer confident answers, the model ends up speaking decisively even when things are ambiguous. In GPT-4, the cost showed up as ECE going from 0.007 to 0.074.
+To sum up, calibration is not about what percentage you get right but whether you know what percentage you will get right, and ECE is the number that measures the size of the gap. For the direction, you have to look at the reliability diagram. RLHF pushes up the score of a reward model that imitates human preference, and that optimization narrows predictions toward what earns the most reward. There is also research showing that people and reward models rate answers stated with confidence more highly. In GPT-4, ECE went from 0.007 to 0.074 after post-training, but OpenAI did not go as far as stating the cause.
 
 Whether the probabilities of Jev, a decision model that puts calibration forward as its training objective, are actually honest is covered in [Decision Models, Jev and Kev](/260922).
 
