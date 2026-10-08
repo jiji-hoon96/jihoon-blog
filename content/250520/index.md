@@ -73,7 +73,7 @@ function performWork(deadline) {
 
 위 코드는 Fiber의 초기 개념 모델을 보여준다. 핵심은 `while` 루프 안에서 한 번에 하나의 작업 단위(unit of work)만 처리하고, 시간이 부족하면 루프를 빠져나와 브라우저에게 제어권을 돌려준다는 것이다.
 
-다만 이 예시는 개념을 보여주려고 `requestIdleCallback`을 쓴 것이고, 실제 React는 이를 사용하지 않는다. 이 API는 브라우저가 정말 한가할 때만 호출되어 바쁜 페이지에서는 React 작업이 한없이 밀릴 수 있고, 브라우저마다 지원과 동작도 달랐다. 그래서 React의 Scheduler 패키지는 `MessageChannel`로 다음 매크로태스크를 예약해 작업을 이어 가고, 그 사이사이 메인 스레드에 제어권을 돌려준다. `setTimeout`이 아니라 `MessageChannel`을 고른 이유는 [React가 MessageChannel을 쓰는 이유](/250515)에 따로 정리해 두었다.
+다만 이 예시는 개념을 보여주려고 `requestIdleCallback`을 쓴 것이고, 실제 React는 이를 사용하지 않는다. 이 API는 브라우저가 정한 유휴 기간에만 불리므로, 메인 스레드가 바쁜 페이지에서는 React 작업이 계속 밀릴 수 있다고 필자는 본다. 그래서 React의 Scheduler 패키지는 `MessageChannel`로 다음 매크로태스크를 예약해 작업을 이어 가고, 그 사이사이 메인 스레드에 제어권을 돌려준다. `setTimeout`이 아니라 `MessageChannel`을 고른 이유는 [React가 MessageChannel을 쓰는 이유](/250515)에 따로 정리해 두었다.
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">
@@ -384,20 +384,17 @@ function workLoopSync() {
   }
 }
 
-// 동시성 렌더링: 시간 제한 내에서 작업을 나누어 처리
-function workLoopConcurrent(nonIdle) {
-  if (workInProgress !== null) {
-    const yieldAfter = now() + (nonIdle ? 25 : 5);
-    do {
-      performUnitOfWork(workInProgress);
-    } while (workInProgress !== null && now() < yieldAfter);
+// 동시성 렌더링: Scheduler가 양보하라고 할 때까지 처리
+function workLoopConcurrentByScheduler() {
+  while (workInProgress !== null && !shouldYield()) {
+    performUnitOfWork(workInProgress);
   }
 }
 ```
 
-두 함수의 차이를 주목하라. `workLoopSync`는 `workInProgress`가 `null`이 될 때까지 **무조건** 돈다. 반면 `workLoopConcurrent`는 **시간 제한**을 두고, 시간이 초과되면 루프를 빠져나온다.
+두 함수의 차이를 주목하라. `workLoopSync`는 `workInProgress`가 `null`이 될 때까지 **무조건** 돈다. 반면 `workLoopConcurrentByScheduler`는 Fiber 하나를 처리할 때마다 `shouldYield()`를 묻고, Scheduler가 양보하라고 답하면 루프를 빠져나온다.
 
-여기서 흥미로운 것은 yield 간격의 차이다. Transition이나 Retry 같은 **non-idle 작업(사용자가 체감할 수 있는 업데이트)** 은 **25ms** 간격으로 양보하고, **idle 작업(사용자가 아무것도 안 하고 있을 때 처리해도 되는 낮은 우선순위 작업)** 은 **5ms** 간격으로 양보한다. non-idle 작업에 25ms를 부여하는 이유는 의도적으로 애니메이션을 약 30fps 수준으로 제한하여, transition 렌더링이 다른 작업을 기아 상태로 만드는 것을 방지하기 위함이다.
+Scheduler는 이번 태스크가 시작된 뒤 **5ms**가 지났는지를 보고 답한다. 5ms는 작업 조각의 크기가 아니라 양보를 검사하는 기준이라, Fiber 하나를 처리하는 데 그보다 오래 걸리면 그 작업은 쪼개지지 않는다. 같은 파일에는 Transition 같은 non-idle 작업을 25ms마다 양보하게 하는 `workLoopConcurrent`도 있다. 하지만 이 함수는 `enableThrottledScheduling` 플래그 뒤에 있고, v19.3.0의 모든 빌드에서 이 플래그가 꺼져 있다.
 
 
 ### performUnitOfWork

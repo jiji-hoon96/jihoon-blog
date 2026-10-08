@@ -9,7 +9,7 @@ description: "A source-based look at React Fiber: Stack Reconciler, Fiber nodes,
 keywords: "React Fiber, React Fiber architecture, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, React rendering, React source code analysis, Virtual DOM, Reconciliation, Lane priority, frontend interview"
 locale: en
 translationOf: '250520'
-sourceHash: 7c51bf7ca46984a67c0251d6a653baac64a7e2f82a35f494ba73cea69b2f3463
+sourceHash: 829e3fcfb711596a9ec0772911ab6d13e00e41ba3ddcb03ae930070dbee27260
 ---
 
 In this post, I want to talk about the **Fiber architecture**, which could be called the heart of React.
@@ -76,7 +76,7 @@ function performWork(deadline) {
 
 The code above illustrates Fiber's early conceptual model. The key is that the `while` loop processes only one unit of work at a time and, when time runs short, exits the loop and returns control to the browser.
 
-That example, however, uses `requestIdleCallback` only to illustrate the concept; React does not actually use it. This API is called only when the browser is truly idle, so on a busy page React's work could be delayed indefinitely, and support and behavior also differed across browsers. React's Scheduler package therefore schedules the next macrotask with `MessageChannel` to continue its work, returning control to the main thread in between. Why it passed over `setTimeout` in favor of `MessageChannel` is covered separately in [Why React Uses MessageChannel](/250515).
+That example, however, uses `requestIdleCallback` only to illustrate the concept; React does not actually use it. This API is called only during idle periods that the browser decides on, so in my view, on a page whose main thread is busy, React's work can keep getting pushed back. React's Scheduler package therefore schedules the next macrotask with `MessageChannel` to continue its work, returning control to the main thread in between. Why it passed over `setTimeout` in favor of `MessageChannel` is covered separately in [Why React Uses MessageChannel](/250515).
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">
@@ -387,20 +387,17 @@ function workLoopSync() {
   }
 }
 
-// 동시성 렌더링: 시간 제한 내에서 작업을 나누어 처리
-function workLoopConcurrent(nonIdle) {
-  if (workInProgress !== null) {
-    const yieldAfter = now() + (nonIdle ? 25 : 5);
-    do {
-      performUnitOfWork(workInProgress);
-    } while (workInProgress !== null && now() < yieldAfter);
+// 동시성 렌더링: Scheduler가 양보하라고 할 때까지 처리
+function workLoopConcurrentByScheduler() {
+  while (workInProgress !== null && !shouldYield()) {
+    performUnitOfWork(workInProgress);
   }
 }
 ```
 
-Notice the difference between the two functions. `workLoopSync` runs **unconditionally** until `workInProgress` becomes `null`. By contrast, `workLoopConcurrent` imposes a **time limit** and exits the loop when that limit is exceeded.
+Notice the difference between the two functions. `workLoopSync` runs **unconditionally** until `workInProgress` becomes `null`. By contrast, `workLoopConcurrentByScheduler` asks `shouldYield()` after each Fiber it processes and exits the loop when the Scheduler answers that it should yield.
 
-The difference between their yield intervals is interesting. **Non-idle work (updates perceptible to the user)**, such as Transition or Retry, yields every **25 ms**, while **idle work (low-priority work that can wait until the user is doing nothing)** yields every **5 ms**. Non-idle work receives 25 ms to intentionally limit animations to roughly 30 fps, preventing transition rendering from starving other work.
+The Scheduler answers by checking whether **5 ms** have passed since the current task started. Those 5 ms are not the size of a work slice but the threshold for the yield check, so if processing a single Fiber takes longer than that, the work is not split. The same file also contains `workLoopConcurrent`, which makes non-idle work such as Transition yield every 25 ms. But that function sits behind the `enableThrottledScheduling` flag, and the flag is off in every build of v19.3.0.
 
 
 ### performUnitOfWork

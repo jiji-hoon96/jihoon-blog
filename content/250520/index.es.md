@@ -7,7 +7,7 @@ updatedAt: "2026-10-08"
 categories: frontend React
 locale: es
 translationOf: '250520'
-sourceHash: 7c51bf7ca46984a67c0251d6a653baac64a7e2f82a35f494ba73cea69b2f3463
+sourceHash: 829e3fcfb711596a9ec0772911ab6d13e00e41ba3ddcb03ae930070dbee27260
 description: "Análisis de React Fiber desde el código fuente: Stack Reconciler, nodos Fiber, doble búfer, Lanes, Work Loop, render y commit, y Concurrent Features."
 keywords: "React Fiber, arquitectura de React Fiber, Stack Reconciler, Concurrent Mode, concurrencia en React 18, useTransition, useDeferredValue, Suspense, renderizado de React, análisis del código fuente de React, Virtual DOM, Reconciliation, prioridad por Lanes, entrevista de frontend"
 ---
@@ -76,7 +76,7 @@ function performWork(deadline) {
 
 Este código muestra el modelo conceptual inicial de Fiber. La clave consiste en procesar una sola unidad de trabajo (unit of work) cada vez dentro del bucle `while` y, si queda poco tiempo, salir del bucle para devolver el control al navegador.
 
-Ese ejemplo, sin embargo, usa `requestIdleCallback` solo para ilustrar el concepto; React no lo usa en la práctica. Esta API solo se llama cuando el navegador está realmente ocioso, así que en una página ocupada el trabajo de React podía retrasarse indefinidamente, y además el soporte y el comportamiento variaban entre navegadores. Por eso el paquete Scheduler de React programa la siguiente macrotask con `MessageChannel` para continuar el trabajo y, entre una y otra, devuelve el control al hilo principal. Por qué descartó `setTimeout` en favor de `MessageChannel` lo explico aparte en [Por qué React usa MessageChannel](/250515).
+Ese ejemplo, sin embargo, usa `requestIdleCallback` solo para ilustrar el concepto; React no lo usa en la práctica. Esta API solo se llama en los periodos de inactividad que decide el navegador, así que, a mi juicio, en una página cuyo hilo principal está ocupado el trabajo de React puede seguir posponiéndose. Por eso el paquete Scheduler de React programa la siguiente macrotask con `MessageChannel` para continuar el trabajo y, entre una y otra, devuelve el control al hilo principal. Por qué descartó `setTimeout` en favor de `MessageChannel` lo explico aparte en [Por qué React usa MessageChannel](/250515).
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">
@@ -387,20 +387,17 @@ function workLoopSync() {
   }
 }
 
-// 동시성 렌더링: 시간 제한 내에서 작업을 나누어 처리
-function workLoopConcurrent(nonIdle) {
-  if (workInProgress !== null) {
-    const yieldAfter = now() + (nonIdle ? 25 : 5);
-    do {
-      performUnitOfWork(workInProgress);
-    } while (workInProgress !== null && now() < yieldAfter);
+// 동시성 렌더링: Scheduler가 양보하라고 할 때까지 처리
+function workLoopConcurrentByScheduler() {
+  while (workInProgress !== null && !shouldYield()) {
+    performUnitOfWork(workInProgress);
   }
 }
 ```
 
-Observa la diferencia entre ambas funciones. `workLoopSync` se ejecuta **incondicionalmente** hasta que `workInProgress` pasa a ser `null`. En cambio, `workLoopConcurrent` impone un **límite de tiempo** y sale del bucle cuando se supera.
+Observa la diferencia entre ambas funciones. `workLoopSync` se ejecuta **incondicionalmente** hasta que `workInProgress` pasa a ser `null`. En cambio, `workLoopConcurrentByScheduler` pregunta `shouldYield()` cada vez que procesa un Fiber y sale del bucle cuando el Scheduler responde que debe ceder.
 
-Resulta interesante la diferencia entre sus intervalos de yield. El trabajo **non-idle —actualizaciones perceptibles por el usuario, como Transition o Retry—** cede el control cada **25 ms**, mientras que el **trabajo idle —trabajo de baja prioridad que puede procesarse cuando el usuario no hace nada—** lo hace cada **5 ms**. El trabajo non-idle recibe 25 ms para limitar de forma deliberada las animaciones a unos 30 fps y evitar que el renderizado de una transition provoque inanición en otros trabajos.
+El Scheduler responde comprobando si han pasado **5 ms** desde que empezó la tarea actual. Esos 5 ms no son el tamaño de un fragmento de trabajo sino el umbral para comprobar si hay que ceder, así que si procesar un solo Fiber tarda más, ese trabajo no se divide. El mismo archivo contiene también `workLoopConcurrent`, que hace que el trabajo non-idle, como Transition, ceda cada 25 ms. Pero esa función está detrás del flag `enableThrottledScheduling`, y el flag está desactivado en todas las builds de v19.3.0.
 
 
 ### performUnitOfWork

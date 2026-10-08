@@ -9,7 +9,7 @@ description: "基于 React 源码，深入分析 React Fiber 架构，从 Stack 
 keywords: "React Fiber, React Fiber 架构, Stack Reconciler, Concurrent Mode, React 18 并发, useTransition, useDeferredValue, Suspense, React 渲染原理, React 源码分析, Virtual DOM, Reconciliation, Lane 优先级, 前端面试"
 locale: zh-CN
 translationOf: '250520'
-sourceHash: 7c51bf7ca46984a67c0251d6a653baac64a7e2f82a35f494ba73cea69b2f3463
+sourceHash: 829e3fcfb711596a9ec0772911ab6d13e00e41ba3ddcb03ae930070dbee27260
 ---
 
 这篇文章想聊聊堪称 React 心脏的 **Fiber 架构**。
@@ -76,7 +76,7 @@ function performWork(deadline) {
 
 上面的代码展示了 Fiber 早期的概念模型。关键在于，`while` 循环每次只处理一个工作单元（unit of work）；时间不足时就退出循环，把控制权交还给浏览器。
 
-不过，这个示例只是为了说明概念才使用了 `requestIdleCallback`，实际的 React 并不使用它。这个 API 只在浏览器真正空闲时才会被调用，在繁忙的页面上 React 的工作可能被无限期推迟，而且各浏览器的支持与行为也不一致。因此 React 的 Scheduler 包用 `MessageChannel` 调度下一个 macrotask 来继续工作，并在间隙把控制权交还给主线程。为什么不用 `setTimeout` 而选择 `MessageChannel`，另外整理在[React 为什么使用 MessageChannel](/250515)中。
+不过，这个示例只是为了说明概念才使用了 `requestIdleCallback`，实际的 React 并不使用它。这个 API 只在浏览器自行决定的空闲期内才会被调用，笔者认为，在主线程繁忙的页面上 React 的工作可能会被一再推迟。因此 React 的 Scheduler 包用 `MessageChannel` 调度下一个 macrotask 来继续工作，并在间隙把控制权交还给主线程。为什么不用 `setTimeout` 而选择 `MessageChannel`，另外整理在[React 为什么使用 MessageChannel](/250515)中。
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">
@@ -84,7 +84,7 @@ function performWork(deadline) {
 
 采用 Fiber 后，即使在渲染过程中，也能立即响应用户事件（按钮点击、输入等）。因为工作被拆成小块执行，浏览器终于有了喘息的空间。
 
-如果想亲自体验两者的区别，可以点击**<a href="https://animated-lollipop-2b6cbb.netlify.app/" target="_blank" rel="noopener noreferrer">这里</a>**。你可以直观看到 Stack Reconciler 和 Fiber Reconciler 的行为差异。
+如果想亲自体验两者的区别，可以点击 **<a href="https://animated-lollipop-2b6cbb.netlify.app/" target="_blank" rel="noopener noreferrer">这里</a>**。你可以直观看到 Stack Reconciler 和 Fiber Reconciler 的行为差异。
 
 这正是 Andrew Clark 在文档中强调的 Fiber 核心目标。
 
@@ -387,20 +387,17 @@ function workLoopSync() {
   }
 }
 
-// 동시성 렌더링: 시간 제한 내에서 작업을 나누어 처리
-function workLoopConcurrent(nonIdle) {
-  if (workInProgress !== null) {
-    const yieldAfter = now() + (nonIdle ? 25 : 5);
-    do {
-      performUnitOfWork(workInProgress);
-    } while (workInProgress !== null && now() < yieldAfter);
+// 동시성 렌더링: Scheduler가 양보하라고 할 때까지 처리
+function workLoopConcurrentByScheduler() {
+  while (workInProgress !== null && !shouldYield()) {
+    performUnitOfWork(workInProgress);
   }
 }
 ```
 
-请注意两个函数的差异。`workLoopSync` 会**无条件**运行，直到 `workInProgress` 变为 `null`。而 `workLoopConcurrent` 设有**时间限制**，一旦超时就会退出循环。
+请注意两个函数的差异。`workLoopSync` 会**无条件**运行，直到 `workInProgress` 变为 `null`。而 `workLoopConcurrentByScheduler` 每处理一个 Fiber 就询问一次 `shouldYield()`，一旦 Scheduler 回答应当让出，就会退出循环。
 
-这里有趣的是 yield 间隔的差异。Transition、Retry 等 **non-idle 工作（用户能够感知的更新）**每 **25ms** 让出一次控制权，而 **idle 工作（可以等到用户没有任何操作时再处理的低优先级工作）**每 **5ms** 让出一次。为 non-idle 工作分配 25ms，是为了有意将动画限制在约 30fps 的水平，防止 transition 渲染让其他工作陷入饥饿状态。
+Scheduler 会看本次任务开始后是否已经过了 **5ms** 来作答。5ms 不是工作切片的大小，而是检查是否让出的标准，所以如果处理一个 Fiber 花的时间比这更长，这项工作也不会被拆开。同一个文件里还有让 Transition 这类 non-idle 工作每 25ms 让出一次的 `workLoopConcurrent`。但这个函数位于 `enableThrottledScheduling` 标志之后，而在 v19.3.0 的所有构建中这个标志都是关闭的。
 
 
 ### performUnitOfWork
@@ -522,7 +519,7 @@ Idle             ~1,073,741,823ms  ~12.4일      오프스크린 렌더링
 
 **Immediate** 一经创建便立即过期，因此刚进入 taskQueue 就会以最高优先级执行。（一出生就过期，命运多少有点悲凉。）**UserBlocking** 的 250ms 对应人们开始觉得“响应很慢”的阈值（100～300ms）。点击后 0.25 秒内没有响应，用户就会感到不快。**Normal** 的 5 秒看起来很宽裕，但它保证的是“即使在最坏情况下也一定会处理”。实际上，前面的工作一结束，它就会立刻执行。**Idle** 的约 12.4 天实际上等同于无限长：只有其他所有工作结束后才会执行。（几乎没人会连续 12 天不关闭浏览器，所以把它视为无限也无妨。）
 
-这些 timeout 值同时也是**防止饥饿（starvation）**的机制。无论优先级多低，只要超过 timeout，任务就会进入过期状态并被强制执行。即使高优先级工作不断进入，低优先级工作也不会永远遭到忽略。
+这些 timeout 值同时也是**防止饥饿**（starvation）的机制。无论优先级多低，只要超过 timeout，任务就会进入过期状态并被强制执行。即使高优先级工作不断进入，低优先级工作也不会永远遭到忽略。
 
 
 
