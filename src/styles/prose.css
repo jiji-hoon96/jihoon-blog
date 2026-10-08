@@ -54,6 +54,12 @@
   background-color: var(--color-dark-gray40);
 }
 
+/* 본문에 `---` 를 직접 쓴 글은 hr 과 위 자동 구분선이 두 줄로 겹친다(260617).
+   hr 이 이미 구분선 역할을 하므로 바로 뒤 h2 의 자동 구분선을 끈다. */
+.prose hr + h2:not(:first-of-type)::before {
+  display: none;
+}
+
 /* H3 — 서브 섹션. 본문과의 위계를 분명히:
    1) 크기 22~24px로 본문(17px)과 격차 확보
    2) extrabold로 굵게 (본문은 400, 시각적 무게가 즉시 구분)
@@ -498,6 +504,9 @@
 .prose .anchor {
   @apply no-underline text-inherit;
   text-decoration: none;
+  /* typography 플러그인의 `.prose :where(a)` 가 500 을 줘서 소제목 글자가 헤딩의 700 을 잃는다.
+     500 은 받지 않는 굵기라 400 으로 스냅된다. 헤딩 굵기를 그대로 물려받게 한다. */
+  font-weight: inherit;
 }
 
 .prose .anchor:hover {
