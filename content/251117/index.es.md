@@ -9,7 +9,7 @@ description: 'Lanza el mismo error desde siete sitios y solo cuatro llegan al Er
 keywords: "manejo de errores frontend, propagación de errores, React ErrorBoundary, qué no captura ErrorBoundary, error en startTransition, unhandledrejection, window onerror, React 19 onCaughtError, TanStack Query throwOnError, error en useSuspenseQuery, react-router loader ErrorBoundary, React.lazy fallo al cargar chunk, fetch no rechaza con 404"
 locale: es
 translationOf: '251117'
-sourceHash: 3f6e8fa00d3cc487b5caedfdc24f91ad33196ab0eb9c55899c052ad83bdee38c
+sourceHash: 643aa04d9a8a216e1e3c903ad33c442a6207ab313f56c1089458183f81e3fb2c
 ---
 
 En este artículo quiero hablar de **hasta dónde sube un error en el frontend**.
@@ -322,7 +322,7 @@ Así que lo que hay que hacer antes de dibujar un `ErrorBoundary` no es elegir e
 
 Estaría bien que miraras cuántos sitios puede fallar ahora mismo en tu pantalla, cuántos de ellos llegan al `ErrorBoundary` y adónde están yendo los que no llegan.
 
-[El siguiente artículo](/251203) trata con qué recibir cada destino: en cuántas capas dividir, cómo tratar el área de pantalla que se lleva un fallo y qué hay que soltar a la vez para que el botón de reintentar del fallback reintente de verdad.
+Con qué recibir cada destino lo trato en [Dónde colocar ErrorBoundary](/251203): en cuántas capas dividir y cómo tratar el área de pantalla que se lleva un fallo. Qué hay que soltar a la vez para que el botón de reintentar del fallback reintente de verdad lo trato aparte en [Por qué el botón de reintentar no hace nada](/251128).
 
 
 :::ref

@@ -8,8 +8,8 @@ const F=(s,x,y,size,color,weight)=>{ctx.fillStyle=color||ink;ctx.font=(weight||'
 const W=(s,size,weight)=>{ctx.font=(weight||'')+' '+size+'px '+FONT;return ctx.measureText(s).width;};
 const C=(s,cx,y,size,color,weight)=>F(s,cx-W(s,size,weight)/2,y,size,color,weight);
 const arrow=(x1,y1,x2,y2,col,w)=>{const st={...o,stroke:col||ink,strokeWidth:w||2.4};rc.line(x1,y1,x2,y2,st);const a=Math.atan2(y2-y1,x2-x1),L=12;rc.line(x2,y2,x2-L*Math.cos(a-0.4),y2-L*Math.sin(a-0.4),st);rc.line(x2,y2,x2-L*Math.cos(a+0.4),y2-L*Math.sin(a+0.4),st);};
-const sets=[{x:60,t:'게이트에 있는 단어',s:'102문장',pos:23,neg:79,rx:'정규식이 전부 잡는다'},
-            {x:420,t:'게이트에 없는 단어',s:'60문장',pos:30,neg:30,rx:'정규식은 하나도 못 잡는다'}];
+const sets=[{x:60,t:'게이트에 있는 단어',s:'102문장',pos:23,neg:79,rx:'정규식 102/102'},
+            {x:420,t:'게이트에 없는 단어',s:'60문장',pos:30,neg:30,rx:'정규식 0/30'}];
 sets.forEach(({x,t,s,pos,neg,rx})=>{
   const w=300,top=70,h=240,tot=pos+neg,ph=Math.round(h*pos/tot),nh=h-ph;
   F(t,x,50,19,ink,'700'); F(s,x+W(t,19,'700')+10,50,15,gray);

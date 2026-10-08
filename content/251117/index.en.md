@@ -9,7 +9,7 @@ description: 'Throw the same error from seven places and only four reach an Erro
 keywords: "React error handling, error propagation, React ErrorBoundary, what ErrorBoundary cannot catch, startTransition error, unhandledrejection, window onerror, React 19 onCaughtError, TanStack Query throwOnError, useSuspenseQuery error, react-router loader ErrorBoundary, React.lazy chunk load failed, fetch does not reject on 404"
 locale: en
 translationOf: '251117'
-sourceHash: 3f6e8fa00d3cc487b5caedfdc24f91ad33196ab0eb9c55899c052ad83bdee38c
+sourceHash: 643aa04d9a8a216e1e3c903ad33c442a6207ab313f56c1089458183f81e3fb2c
 ---
 
 In this post, I want to talk about **how far an error climbs in the frontend**.
@@ -322,7 +322,7 @@ So the job before drawing an `ErrorBoundary` is not choosing a component to wrap
 
 It would be good to find out how many places your own screen can fail in, how many of those reach an `ErrorBoundary`, and where the ones that do not are going.
 
-[The next post](/251203) covers what receives each destination. How many layers to split into, how to handle the screen area one failure takes, and what else has to be reset for the retry button in a fallback to actually retry.
+What receives each destination is covered in [Placing ErrorBoundary](/251203). How many layers to split into, and how to handle the screen area one failure takes. What else has to be reset for the retry button in a fallback to actually retry is covered separately in [Why the Retry Button Does Nothing](/251128).
 
 
 :::ref

@@ -1,80 +1,26 @@
 ---
 emoji: 🗜️
 title: "Cómo funcionan los algoritmos de compresión"
-seoTitle: "Compresión comparada: GZIP, Zstandard, Brotli y LZ77"
+seoTitle: "Compresión comparada: GZIP, Zstandard, Brotli y tar.gz"
 date: "2024-07-06"
+updatedAt: "2026-10-08"
 categories: curiosidades software
-description: "Comparamos los principios y el rendimiento de ZIP, GZIP, ZSTD, Brotli y otros formatos, desde LZ77 hasta la mejor opción para artefactos de compilación."
-keywords: "comparativa algoritmos de compresión, GZIP vs ZSTD, tar.gz vs zip, Brotli, LZ77, optimización de compilación frontend, compresión sin pérdida"
+description: "Comparamos estructura, velocidad y tasa de ZIP, GZIP, ZSTD, BZIP2, XZ y Brotli, por qué tar.gz comprime más que zip y cuándo elegir tar.zst para un build."
+keywords: "comparativa algoritmos de compresión, GZIP vs ZSTD, tar.gz vs zip, tar.zst, Brotli, archivo sólido, optimización de compilación frontend"
 locale: es
 translationOf: "240706"
-sourceHash: b0f4cf10e7cb4a7b3147fd1db92aa156f536f0d3b22d0e83fc051ccd96cf3542
+sourceHash: 132c3004808c90e13100237fdca4ad721e66d22703805a4c44767f41910fbb45
 ---
 
 En este artículo quiero hablar sobre los algoritmos de compresión de software.
+
+Este artículo es para desarrolladores que suben artefactos de compilación grandes a un servidor o almacenamiento y dudan entre zip, tar.gz y tar.zst. Al terminar, sabrás en qué se diferencian los principales formatos en velocidad y tasa de compresión, y tendrás criterios para elegir entre tar.gz y tar.zst.
 
 Me encargaron mejorar el proceso de despliegue de un proyecto interno. La arquitectura exigía subir a S3 artefactos de compilación muy grandes, y pude comprobar que el tamaño de la carpeta de build afectaba directamente al tiempo de subida y al coste de almacenamiento. De ahí surgió una pregunta natural: ¿cómo podíamos comprimir y subir esos archivos de forma más eficiente?
 
 Al investigar descubrí muchos más formatos de los que esperaba: zip, gzip, zstd, bzip2, xz y otros. Sus nombres se parecían, pero no era fácil encontrar una explicación que aclarara sus diferencias y cuándo convenía usar cada uno. (Pensaba que toda compresión era más o menos igual, pero el mundo es grande y las formas de reducir archivos también.)
 
-Así que aproveché la ocasión para comparar los principios y características de cada formato y explicar por qué terminé eligiendo uno concreto.
-
-<hr>
-
-## ¿Qué es la compresión sin pérdida?
-
-La compresión sin pérdida permite reconstruir los datos originales a la perfección. A diferencia de la compresión con pérdida, habitual en imágenes y audio, el resultado descomprimido no difiere del original ni en un solo bit. Cuando la integridad es esencial, como ocurre con el código fuente o los artefactos de compilación, hay que utilizar compresión sin pérdida.
-
-Su idea central consiste en **aprovechar la redundancia estadística presente en los datos**. Si sustituimos patrones repetidos por representaciones más cortas, reducimos el tamaño total.
-
-Entre estas técnicas, los métodos **basados en diccionarios (Dictionary-Based)** forman una de las familias más extendidas. Aquí “diccionario” no significa un libro de definiciones, sino una tabla de consulta que asocia fragmentos vistos anteriormente con códigos breves. **LZ77**, propuesto por Abraham Lempel y Jacob Ziv en el artículo de 1977 **"A Universal Algorithm for Sequential Data Compression"** de IEEE Transactions on Information Theory, y **LZ78**, publicado un año después, son los antepasados de esta familia. “LZ” toma una letra de cada apellido. Casi todos los algoritmos posteriores basados en diccionarios, como DEFLATE, LZMA, LZ4 y Zstd, descienden de ellos. (No es exagerado decir que la mayor parte del árbol genealógico de la compresión converge en estos dos investigadores.)
-
-Pensemos en un ejemplo sencillo. Si la palabra “Linux” aparece cien veces en un texto, podemos registrarla en el diccionario la primera vez y reemplazar las siguientes por una referencia corta que signifique “entrada número 1”. “Linux” ocupa cinco bytes, mientras que el puntero puede expresarse con menos, por lo que el conjunto se hace más pequeño.
-
-Entonces, ¿en qué se diferencian exactamente LZ77 y LZ78?
-
-<hr>
-
-### LZ77: el método de la ventana deslizante
-
-LZ77 **no crea un diccionario explícito independiente**. Usa una región del propio flujo de entrada como diccionario. Esa región se llama **ventana deslizante** porque avanza conforme se procesan los datos. (Es el mismo concepto que aparece a menudo en ejercicios de algoritmos.)
-
-La ventana se divide en dos zonas.
-
-- **Búfer de búsqueda (Search Buffer)**: datos ya procesados. Cumple el papel de diccionario.
-- **Búfer de anticipación (Look-ahead Buffer)**: datos aún no procesados que se comprimirán a continuación.
-
-El algoritmo busca si el comienzo del búfer de anticipación ya apareció en alguna parte del búfer de búsqueda. Si encuentra el mismo patrón, codifica la coincidencia como una tupla **(distancia, longitud, carácter siguiente)**. La distancia indica cuántos caracteres hay que retroceder para llegar al inicio de la coincidencia y la longitud, cuántos caracteres abarca.
-
-Supongamos que comprimimos la cadena `"banana_banana"` con LZ77. Al llegar al segundo `"banana"`, el algoritmo dice en la práctica: **“Retrocede siete caracteres y copia seis.”** De ese modo, una cadena de seis bytes queda representada por solo dos números.
-
-La clave es que **no hace falta guardar ni transmitir el diccionario por separado**. El decodificador reconstruye el búfer de búsqueda mientras descomprime, de modo que el diccionario queda implícito en los propios datos. A cambio, la descompresión siempre debe avanzar secuencialmente desde el principio. En términos del algoritmo, no puede empezar en un punto arbitrario del archivo.
-
-El tamaño de la ventana mantiene una relación directa de compromiso con la tasa de compresión. Una ventana mayor puede referirse a patrones más lejanos y suele comprimir mejor, pero también aumenta el trabajo de búsqueda y el uso de memoria.
-
-<hr>
-
-### LZ78: un diccionario explícito
-
-A diferencia de LZ77, LZ78 **construye un diccionario explícito** durante la compresión. No utiliza una ventana deslizante. Guarda los patrones observados como entradas indexadas y sustituye las repeticiones posteriores por sus índices.
-
-LZ78 produce etiquetas con la forma **(índice del diccionario, carácter siguiente)**. El codificador busca la entrada más larga que coincida, emite su índice junto al carácter que rompe la coincidencia y añade **“la entrada coincidente más el nuevo carácter”** como otra entrada. El diccionario crece gradualmente durante el proceso.
-
-La variante más conocida de LZ78 es **LZW** (Lempel-Ziv-Welch). Terry Welch publicó esta mejora en 1984, y se utilizó en el formato GIF y en la utilidad Unix `compress`, cuya extensión es `.Z`. (LZW llegó a estar en el centro de una disputa de patentes, episodio que contribuyó al nacimiento de PNG.)
-
-<hr>
-
-### ¿De cuál de las dos familias descienden los algoritmos modernos?
-
-Curiosamente, casi todos los algoritmos de compresión dominantes hoy son **descendientes de LZ77**.
-
-**LZSS**, publicado por Storer y Szymanski en 1982, mejoró LZ77 mediante un indicador de un bit que distingue si cada salida es un literal, es decir, un carácter original, o un par longitud-distancia. Cuando una coincidencia es tan corta que la referencia sale más cara, el codificador conserva el carácter original.
-
-En 1993, Phil Katz combinó LZSS con la **codificación Huffman**, que asigna secuencias de bits más cortas a los símbolos frecuentes, y creó **DEFLATE**. ZIP, GZIP y PNG usan DEFLATE. Por tanto, los archivos `.zip`, `.gz` y `.png` que manejamos a diario son descendientes directos de LZ77.
-
-Algoritmos posteriores como **LZMA** (7-Zip y XZ), **LZ4** y **Zstd** también parten de la ventana deslizante de LZ77 y evolucionan las estructuras de búsqueda de coincidencias y los métodos de codificación entrópica. La familia LZ78, en cambio, prácticamente abandonó la escena principal después de LZW.
-
-Se ha demostrado que ambos algoritmos tienen una capacidad teórica equivalente **cuando se descomprime el conjunto completo de datos**. Aun así, LZ77 sobrevivió porque **integrar el diccionario en los datos ofrecía más flexibilidad de implementación y extensión**. El tamaño de la ventana, los algoritmos de búsqueda y el codificador entrópico posterior podían combinarse con libertad, dejando margen para evolucionar según las necesidades de cada época.
+Antes de comparar, conviene señalar una raíz común. Casi todos los compresores de uso general actuales descienden de LZ77, publicado en 1977. LZ77 usa como diccionario un tramo de los datos ya procesados, la ventana deslizante, y sustituye los patrones repetidos por una referencia breve que significa “retrocede tantos caracteres y copia tantos”. Una ventana más grande detecta repeticiones más alejadas, pero exige más cómputo y memoria. DEFLATE, el algoritmo de ZIP y GZIP, añade a esto la codificación Huffman (una codificación entrópica que asigna secuencias de bits más cortas a los símbolos más frecuentes). Cómo se separó LZ77 de su hermano LZ78 lo explico aparte en [La diferencia entre LZ77 y LZ78](/240701).
 
 El rendimiento de compresión se evalúa en dos ejes: la **tasa de compresión**, cuánto se reduce el archivo, y la **velocidad de compresión**, cuánto tarda el proceso. Perseguir una tasa más alta suele requerir más cómputo y más tiempo. La estrategia práctica consiste en encontrar el punto adecuado entre ambos.
 
@@ -86,9 +32,9 @@ Con esta base, comparemos los distintos formatos uno por uno.
 
 ZIP es un formato creado por Phil Katz en 1989. En su interior suele usar **DEFLATE**, que combina LZ77 y Huffman coding. La distinción importante es que ZIP no es un algoritmo de compresión, sino un formato contenedor que almacena datos comprimidos mediante algoritmos como DEFLATE.
 
-ZIP **comprime cada archivo por separado**. Es lo que se conoce como archivo no sólido (Non-solid Archive), y permite extraer un archivo concreto sin descomprimir los demás. Como contrapartida, no aprovecha datos repetidos entre archivos, por lo que puede obtener una tasa inferior a tar.gz, que veremos más adelante.
+ZIP **comprime cada archivo por separado**. Esta estructura, en la que cada archivo se comprime de forma independiente, se conoce como archivo no sólido (Non-solid Archive). El enfoque opuesto, que une todos los archivos en un solo flujo y lo comprime de una vez, es el archivo sólido. Gracias a la estructura no sólida, es posible extraer un archivo concreto sin descomprimir los demás. Como contrapartida, no aprovecha datos repetidos entre archivos, por lo que puede obtener una tasa inferior a tar.gz, que veremos más adelante.
 
-Windows, macOS, Linux y la mayoría de los sistemas operativos lo admiten sin instalar software adicional. Por eso es una opción segura cuando importa la compatibilidad entre plataformas.
+Windows, macOS, Linux y la mayoría de los sistemas operativos lo admiten sin instalar software adicional. Por eso es la opción más segura cuando importa la compatibilidad entre plataformas.
 
 <hr>
 
@@ -110,13 +56,13 @@ En entornos Unix y Linux se utiliza como un estándar para distribuir código fu
 
 ZSTD es un algoritmo desarrollado por Yann Collet en Meta, antes Facebook, y publicado como código abierto en 2016. Su gran ventaja es que **comprime y descomprime mucho más rápido, manteniendo una tasa comparable a GZIP**.
 
-Su funcionamiento interno tiene tres grandes etapas. Primero, un **buscador de coincidencias (Match Finder)** de la familia LZ77 detecta patrones repetidos. Después codifica los literales, las longitudes y los desplazamientos encontrados como **secuencias**. Por último, comprime esas secuencias mediante **codificación entrópica**. En lugar de depender únicamente de Huffman como GZIP, utiliza **FSE (Finite State Entropy)**, un codificador basado en ANS (Asymmetric Numeral Systems) que combina propiedades de Huffman y de la codificación aritmética (Arithmetic Coding). Huffman solo puede asignar un número entero de bits por símbolo; FSE puede representar probabilidades equivalentes a bits fraccionarios y acercarse más al límite teórico. (A pesar del nombre, la idea esencial es expresar los mismos datos con menos bits de una manera más inteligente.)
+Su funcionamiento interno tiene tres grandes etapas. Primero, un **buscador de coincidencias (Match Finder)** de la familia LZ77 detecta patrones repetidos. Después codifica los literales, las longitudes y los desplazamientos encontrados como **secuencias**. Por último, comprime esas secuencias mediante **codificación entrópica**. En lugar de la codificación Huffman de GZIP, utiliza **FSE (Finite State Entropy)**, un codificador basado en ANS (Asymmetric Numeral Systems). ANS actualiza un único estado entero cada vez que procesa un símbolo y emite menos bits cuanto más frecuente es el símbolo. Su objetivo es lograr una tasa de compresión cercana a la de la codificación aritmética (Arithmetic Coding) con una velocidad cercana a la de Huffman. Huffman solo puede asignar un número entero de bits por símbolo; FSE puede representar probabilidades equivalentes a bits fraccionarios y acercarse más al límite teórico. (A pesar del nombre, la idea esencial es expresar los mismos datos con menos bits de una manera más inteligente.)
 
 El buscador también cambia de estrategia según el nivel. Los niveles bajos, del 1 al 4, usan tablas hash sencillas para ganar velocidad. Los intermedios, del 5 al 12, comparan varios candidatos mediante una estrategia Lazy. Los altos, del 13 al 22, recurren a árboles binarios y programación dinámica para encontrar coincidencias casi óptimas. Esta escala permite usar niveles bajos para transmisión en tiempo real y altos para archivo.
 
-En el benchmark Silesia Corpus, ZSTD en su nivel predeterminado 3 comprime a unos 300 MB/s y descomprime a unos 1.200 MB/s. GZIP en el nivel 6 alcanza apenas 34 MB/s y 380 MB/s, respectivamente. **ZSTD comprime unas ocho veces más rápido y descomprime unas tres, mientras obtiene una tasa ligeramente superior: 3,17 frente a 3,09 de GZIP.** Estas cifras muestran de forma directa cómo mejora el compromiso tradicional.
+En el benchmark Silesia Corpus, ZSTD en su nivel predeterminado 3 comprime a unos 300 MB/s y descomprime a unos 1.200 MB/s. GZIP en el nivel 6 alcanza apenas 34 MB/s y 380 MB/s, respectivamente. **ZSTD comprime unas ocho veces más rápido y descomprime unas tres, y aun así su tasa es superior: 3,17 frente a 3,09 de GZIP.** Estas cifras muestran de forma directa cómo mejora el compromiso tradicional.
 
-Su adopción crece con rapidez. Se usa para comprimir módulos del kernel de Linux y de forma transparente en sistemas de archivos; distribuciones como Arch Linux, Fedora, Debian y Ubuntu lo han adoptado para sus paquetes. Desde la versión 1.5.7, publicada en febrero de 2025, la **compresión multihilo está activada de forma predeterminada** con hasta cuatro hilos, ampliando aún más la diferencia práctica frente al GZIP monohilo. AWS también ha explicado que redujo alrededor de un 30% el almacenamiento en S3 al migrar servicios internos de gzip a zstd.
+Su adopción crece con rapidez. Se usa para comprimir módulos del kernel de Linux y de forma transparente en sistemas de archivos; distribuciones como Arch Linux, Fedora, Debian y Ubuntu lo han adoptado como formato predeterminado de compresión de paquetes. Desde la versión 1.5.7, publicada en febrero de 2025, la **compresión multihilo está activada de forma predeterminada** con hasta cuatro hilos, ampliando aún más la diferencia práctica frente al GZIP monohilo. AWS también ha explicado que redujo alrededor de un 30% el almacenamiento en S3 al migrar servicios internos de gzip a zstd.
 
 <hr>
 
@@ -132,7 +78,7 @@ BZIP2 comprime mediante una cadena de transformaciones.
 
 BZIP2 proporciona una tasa mayor que GZIP, pero tanto la compresión como la descompresión son más lentas. Se ha usado para archivo cuando el tamaño importaba más que la velocidad.
 
-Su última versión fue la 1.0.8, publicada en 2019, y el desarrollo activo prácticamente se ha detenido. A medida que los benchmarks muestran que ZSTD supera a BZIP2 en tasa y velocidad, los proyectos nuevos tienden a elegir ZSTD.
+Su última versión fue la 1.0.8, publicada en 2019, y no está en desarrollo activo. A medida que los benchmarks muestran que ZSTD supera a BZIP2 en tasa y velocidad, los proyectos nuevos tienden a elegir ZSTD.
 
 <hr>
 
@@ -154,7 +100,7 @@ Su organización interna es sorprendentemente sencilla. Todo se procesa en **blo
 
 La propiedad clave es que TAR conserva **los metadatos del sistema de archivos Unix**, como permisos, propietarios, marcas de tiempo y enlaces simbólicos. ZIP no siempre conserva perfectamente estos datos específicos de Unix, por lo que TAR suele encajar mejor en despliegues de servidor.
 
-TAR no reduce el tamaño por sí mismo; las cabeceras y el relleno pueden incluso aumentarlo ligeramente. La compresión real se consigue al combinarlo con GZIP, BZIP2, XZ o ZSTD. De ahí proceden extensiones como `.tar.gz`, `.tar.bz2`, `.tar.xz` y `.tar.zst`. TAR se encarga de “agrupar” y la otra herramienta de “reducir”, un ejemplo clásico de la filosofía Unix de “hacer bien una sola cosa”.
+TAR no reduce el tamaño por sí mismo; de hecho, las cabeceras y el relleno lo hacen ligeramente mayor que el original. La compresión real se consigue al combinarlo con GZIP, BZIP2, XZ o ZSTD. De ahí proceden extensiones como `.tar.gz`, `.tar.bz2`, `.tar.xz` y `.tar.zst`. TAR se encarga de “agrupar” y la otra herramienta de “reducir”, un ejemplo clásico de la filosofía Unix de “hacer bien una sola cosa”.
 
 Es el método estándar de archivado en Unix/Linux, mientras que Windows puede necesitar software adicional como 7-Zip.
 
@@ -185,15 +131,13 @@ Los archivos sólidos también tienen desventajas claras.
 
 <hr>
 
-**Añadido en 2026**
-
 ## En 2024 elegí tar.gz. ¿Qué elegiría ahora?
 
-Entonces escogí tar.gz por su compatibilidad y estabilidad. Tras subir el artefacto a S3 había que descomprimirlo en distintos entornos, así que un formato disponible casi en cualquier lugar era la opción segura.
+Añadí esta sección en 2026. Entonces escogí tar.gz por su compatibilidad y estabilidad. Tras subir el artefacto a S3 había que descomprimirlo en distintos entornos, así que un formato disponible casi en cualquier lugar era la opción segura.
 
 Si afrontara hoy la misma situación, consideraría seriamente **tar.zst (TAR + ZSTD)**. Recordemos las cifras anteriores.
 
-GZIP comprime a 34 MB/s en su nivel predeterminado y ZSTD a 300 MB/s. Para una carpeta de 2 GB, un cálculo simple da unos 60 segundos con GZIP y siete con ZSTD. Si además contamos el multihilo activado por defecto desde ZSTD v1.5.7, con hasta cuatro hilos, la diferencia real puede ser mayor. En una canalización CI/CD esos segundos se acumulan en cada despliegue.
+GZIP comprime a 34 MB/s en su nivel predeterminado y ZSTD a 300 MB/s. Para una carpeta de 2 GB, un cálculo simple da unos 60 segundos con GZIP y siete con ZSTD. Si además contamos el multihilo activado por defecto desde ZSTD v1.5.7, con hasta cuatro hilos, el tiempo real es todavía menor. En una canalización CI/CD esta diferencia se acumula en cada despliegue, así que no es una cifra despreciable.
 
 ```sh
 # tar.zst 생성 (멀티스레드 자동 활용)

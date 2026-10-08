@@ -1,21 +1,20 @@
 ---
 emoji: 🧱
 title: 'ErrorBoundary の配置'
-seoTitle: 'ErrorBoundary はどこに置くか、層と範囲と QueryErrorResetBoundary'
+seoTitle: "ErrorBoundary はどこに置くか、ルートと画面と領域で分ける基準"
 date: '2025-12-03'
+updatedAt: "2026-10-08"
 categories: フロントエンド React TanStack-Query エラーハンドリング
-description: 'エラーがどこへ行くのか分かったら、次は受け取る場所を置く番だ。ErrorBoundary を何層に分けるか、ひとつの失敗に画面をどれだけ明け渡すか、そして再試行ボタンを本当に再試行させるには何を一緒に解かなければならないかを、インストール済みのソースで確かめる。'
-keywords: 'React ErrorBoundary 配置, ネストルート ErrorBoundary, QueryErrorResetBoundary, 再試行が効かない, retryOnMount, fallbackRender, useRouteError, revalidate, React.lazy チャンク読み込み失敗, TanStack Query retry 条件, ErrorBoundary 設計'
+description: "React Router と TanStack Query を使う画面で、ErrorBoundary をいくつ、どこに置くかを決める基準をインストール済みのソースで確かめる。ルート、画面、領域ごとに受けるエラーと戻し方、fallback をひとつにそろえる方法、再試行の条件まで扱う。"
+keywords: "React ErrorBoundary 配置, ネストルート ErrorBoundary, ErrorBoundary 設計, fallbackRender, useRouteError, revalidate, useSuspenseQuery エラー処理, TanStack Query retry 条件"
 locale: ja
 translationOf: '251203'
-sourceHash: 3494eb97de287571e9a6a2a7003d815dddb21da5a3a048746bef38b8bb6101c4
+sourceHash: 16f5ae7317fc183ba39c02ce385d4e9cc9f6b7fe4f9a13c084ebdfcccf712537
 ---
 
-今回の記事では、**受け取ったエラーをどこで受けるのか**について話してみたい。[エラーの伝播](/251117)では同じエラーを七か所から投げて、その到着地を数えた。この記事は、その到着地ごとに受ける場所を置く話だ。
+今回の記事では、**`ErrorBoundary` をいくつ置き、どこに置くのか**について話してみたい。React Router と TanStack Query で画面を作りながら、失敗をルートの `ErrorBoundary`、`react-error-boundary`、`useQuery` の `isError` のどこで受けるかに悩んでいるフロントエンド開発者に向けた記事である。最後まで読めば、`ErrorBoundary` を置く場所を決める基準と、場所ごとに fallback と再試行の条件を合わせる方法が得られる。
 
-伝播の経路が分かると、次の問いが自然に続く。**`ErrorBoundary` をいくつ置き、どこに置くのか。** ひとつで足りるのか、画面ごとに置くべきか、ライブラリが用意するものと自分で作ったものが重なるのか。その分かれ目がここにある。
-
-先に結論を書くと、`ErrorBoundary` の数は好みではなく、二つのことが決める。**何が投げるか**と、**それが死んだとき画面に何が残らなければならないか**だ。前者は 1 編で扱ったので、この記事は後者から始める。
+先に結論を書くと、`ErrorBoundary` の数は好みではなく二つのことが決める。**何が投げるのか**と、**それが死んだときに画面に何が残らなければならないのか**だ。この記事は後者から始め、前者は必要な場所で触れる。
 
 
 ## 明け渡してよい範囲
@@ -50,7 +49,7 @@ sourceHash: 3494eb97de287571e9a6a2a7003d815dddb21da5a3a048746bef38b8bb6101c4
 
 ### ErrorBoundary の外にいる loader
 
-1 編で見たとおりだ。`ErrorBoundary` は `getDerivedStateFromError` と `componentDidCatch` で作られたクラスなので、**React のツリーの中で捕まったもの**だけが来る。loader はレンダーが始まる前にツリーの外で走る関数だ。そこで投げたものは React を経由しないので、いくら包んでも見えない。
+`ErrorBoundary` は `getDerivedStateFromError` と `componentDidCatch` で作られたクラスなので、**React のツリーの中で捕まったもの**だけが来る。loader はレンダーが始まる前にツリーの外で走る関数だ。そこで投げたものは React を経由しないので、いくら包んでも見えない。同じエラーをいくつもの場所から投げて到着地を確かめた過程は、[エラーの伝播](/251117)にまとめておいた。
 
 だから loader を使うルートがひとつでもあれば、**ルート `ErrorBoundary` は消せない。** 消した瞬間、その失敗は行き場をなくす。
 
@@ -89,6 +88,8 @@ function findNearestBoundary(matches, routeId) {
 どちらにしてもその領域だけを失い、残りは守られる。分かれるのは失う範囲ではなく、**その場所に何を代わりに描くか**だ。
 
 `ErrorBoundary` に引き上げるとコードが減る。中で `useSuspenseQuery` を呼べば、そのコンポーネントには `isPending` も `isError` もない。待機は外側の `Suspense` が、失敗は外側の `ErrorBoundary` が受ける。コンポーネントはデータがある場合だけを描く。
+
+下の `QueryAsyncBoundary` は、その `Suspense` と `ErrorBoundary` をひとつにまとめたコンポーネントだ。`QueryErrorResetBoundary` の中に `ErrorBoundary` を置いて `onReset` に `reset` をつなぎ、その中を `Suspense` で包んである。名前に `Query` を付けたのは意図的だ。`AsyncBoundary` と呼ぶと、どんな非同期にも使えるように読めるが、中に `QueryErrorResetBoundary` が入っているのでそうではない。同じ理由で `pendingFallback` に既定値を置かなかった。既定値があると、呼び出し地点の一行だけを見ても何が敷かれるのか分からない。
 
 ```tsx
 <section>
@@ -166,6 +167,8 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
 </ErrorBoundary>
 ```
 
+コードの `reset` は、TanStack Query の `QueryErrorResetBoundary` が渡す関数だ。エラー状態で残ったクエリを解いて再試行が再リクエストするようにするもので、なぜ必要なのかは[再試行ボタンが効かない理由](/251128)でソースを追って確かめる。
+
 `ErrorFallback` は `onRetry` を受け取るので名前が合わない。そのため、名前を移すためだけのコンポーネントがもうひとつ要る。
 
 **`fallbackRender`** は関数を受け取り、その場でレンダーする。
@@ -184,114 +187,11 @@ function CommentsFallback({ error, resetErrorBoundary }: FallbackProps) {
 **二つの層の画面が食い違わないことが、この選択の値打ちだ。** 層を四つに分けると、ユーザーが見る失敗画面も四つになりかねないが、名前を一度差し替えるだけでひとつになる。
 
 
-## 再試行が効かない三つの場合
-
-fallback に再試行ボタンを付けた。ユーザーが失敗を戻そうとして押す、あのボタンだ。押してみよう。**効かない。** 同じ画面がそのまま出てくる。
-
-三つの理由で起き、解き方もそれぞれ違う。共通点はひとつだ。**`ErrorBoundary` は自分の状態だけを戻す。** 投げた側が持っている状態は、投げた側で解かなければならない。
-
-### reset が解くクエリのエラー
-
-`resetErrorBoundary()` がやることは、`ErrorBoundary` の内部フラグを戻すことだけだ。children が再マウントされ、クエリが再び購読される。ところがそのクエリはキャッシュに **エラー状態で刺さっている。** だから即座に同じエラーをまた投げ、`ErrorBoundary` はまた fallback を描く。
-
-なぜ再リクエストせずに古いエラーを使うのかもソースにある。`errorBoundaryUtils.js` がこう鍵をかける。
-
-```js
-if (options.suspense || throwOnError) {
-  if (!errorResetBoundary.isReset()) options.retryOnMount = false;
-}
-```
-
-外側のガードから読まなければならない。**この鍵は投げるクエリにだけかかる。** `suspense` であるか `throwOnError` を有効にしたクエリが reset の印なしでマウントされると、再試行が切られる。投げない `useQuery` は該当しないので、再マウントすればそのまま再リクエストする。
-
-![上は onReset をつながなかったときの流れで、再試行クリック、EB 解除、再マウント、キャッシュのエラーをまた投げるが続き、最後から最初の枠へ赤い矢印が戻ってきて同じ fallback と書かれている。下は onReset をつないだときで、再試行クリック、onReset と鍵の解除、EB 解除と再マウント、再リクエストが青い矢印で一方向に続く](2.png?w=720)
-
-**鍵がかかるのは `ErrorBoundary` に引き上げたクエリだけであり、だから二つの状態を一緒に解かなければならない。** その印を立てるのが `QueryErrorResetBoundary` だ。ソースを開くと状態は boolean ひとつだ。
-
-```js
-reset: () => {
-	isReset = true;
-},
-```
-
-この `reset` を `ErrorBoundary` の `onReset` につないでやればよい。TanStack Query のドキュメントとソースのコメントが、同じ配線を例として載せている。
-
-```tsx
-export function QueryAsyncBoundary({ children, pendingFallback }: Props) {
-  return (
-    <QueryErrorResetBoundary>
-      {({ reset }) => (
-        <ErrorBoundary
-          onReset={reset}
-          fallbackRender={({ error, resetErrorBoundary }) => (
-            <ErrorFallback error={error} onRetry={resetErrorBoundary} />
-          )}
-        >
-          <Suspense fallback={pendingFallback}>{children}</Suspense>
-        </ErrorBoundary>
-      )}
-    </QueryErrorResetBoundary>
-  )
-}
-```
-
-順序が重要だ。そしてその順序は `react-error-boundary` が保証する。ビルドされたファイルなので名前が一文字に縮んでいるが、構造はそのまま読める。
-
-```js
-resetErrorBoundary(...e) {
-  const { didCatch: t } = this.state;
-  t && (this.props.onReset?.({ args: e, reason: "imperative-api" }), this.setState(d));
-}
-```
-
-カンマ演算子で結ばれているので、**`onReset` が先に走り `setState` が後**だ。`d` は `didCatch` が `false` の初期状態だ。だからキャッシュの鍵が解けたあとに children が再マウントされる。**一行の差で、再試行が本当の再試行になる。**
-
-名前に `Query` を付けたのも意図だ。`AsyncBoundary` と呼ぶと、どんな非同期にも使えるように読めるが、中に `QueryErrorResetBoundary` が入っているのでそうではない。同じ理由で `pendingFallback` に既定値を置かなかった。既定値があると、呼び出し地点の一行だけを見ても何が敷かれるのか分からない。
-
-### reset が解けないレンダーのエラー
-
-二つめは 1 編で見た場合だ。サーバーが 200 で想定と違うかたちを返し、それを読むレンダーが `TypeError` を投げる。同じ `ErrorBoundary` が受け、`onReset` もつないであるのに、再試行が効かない。
-
-`reset` が解くのは **エラー状態のクエリ**だ。ところがこのクエリは成功した。サーバーが 200 を返し、キャッシュにはその値が正常なデータとして入っている。エラーを出したのは、その値を読んだレンダーだ。だから `reset` には解くものがなく、再マウントされたコンポーネントは `staleTime` の残った同じキャッシュを受け取り、同じ行でまた投げる。
-
-直す場所は **`queryFn`** だ。
-
-```ts
-queryFn: async () => {
-  const data = await getComments(postId)
-  if (!Array.isArray(data.comments)) {
-    throw new TypeError('comments 가 배열이 아니다')
-  }
-  return data.comments
-},
-```
-
-1 編で、型が終わる場所がランタイム検査を置く場所だと書いた。**その場所がここだ。** その検査を `queryFn` へ引き上げると、同じ失敗が **クエリのエラー**になる。キャッシュにはエラー状態で残り、`reset` がそれを解き、再試行が再リクエストする。
-
-`ErrorBoundary` が受けてくれるからランタイム検査は後回しにしよう、と先送りすると、受けはするが戻せない fallback ができる。
-
-### 再読み込みだけが解く lazy
-
-三つめはチャンク読み込みの失敗だ。今度は `reset` も `queryFn` も関係がない。状態を持っているのが `lazy` 自身だ。
-
-1 編で見たとおり、React の `lazyInitializer` は拒否を `payload` に書き留め、その後は毎回同じものをまた投げる。
-
-```js
-throw payload._result;
-```
-
-もう一度 `import()` はしない。`lazy()` の呼び出しはモジュールの最上位で一度起き、その `payload` はアプリが生きているあいだそのままだ。`ErrorBoundary` を解いて再マウントしても、同じエラーがまた来る。
-
-だからこの失敗の復旧は、ページをもう一度受け取ることだ。新しいバージョンが配備されたという意味でもあるので、ユーザーにそう伝えるほうがよい。
-
-三つの場合を並べてみると、再試行ボタンひとつが三つの違う仕事をしなければならない。クエリのエラーは `reset` で、レンダーのエラーは `queryFn` であらかじめクエリのエラーに変えて、チャンクの失敗は再読み込みで解く。**`ErrorBoundary` はそのどれも代わりにやってくれない。**
-
-
 ## 再試行を付けない失敗
 
-復旧できる失敗とできない失敗を分けたので、ボタンも分けなければならない。
+fallback に再試行ボタンを付けても、すべての失敗が解けるわけではない。`ErrorBoundary` は自分の状態しか戻さないからだ。クエリのエラーは `QueryErrorResetBoundary` の `reset` を `onReset` につないで初めて再リクエストされ、サーバーが 200 で返した想定外の値を読んで起きたレンダーエラーは `queryFn` で先に検査してクエリのエラーに変えて初めて解け、`React.lazy` のチャンク読み込みの失敗は再読み込みでしか解けない。三つの場合をソースで確かめた過程は、先にリンクした「再試行ボタンが効かない理由」に別途まとめておいた。このように復旧できる失敗とできない失敗が分かれるので、ボタンも分けなければならない。
 
-すべての失敗に同じボタンを見せるのは、ユーザーに **できない行動を案内するようなもの**だ。404 で再試行を押しても同じ 404 が返ってくる。権限がなくて受け取った 403 も同じだ。チャンク読み込みの失敗は、前の節で見た理由でそもそも効かない。
+すべての失敗に同じボタンを見せるのは、ユーザーに **できない行動を案内するようなもの**だ。404 で再試行を押しても同じ 404 が返ってくる。権限がなくて受け取った 403 も同じだ。チャンク読み込みの失敗は、上で見たとおりそもそも効かない。
 
 共有する fallback の中で一度だけ分けておけばよい。
 
@@ -368,7 +268,7 @@ function defaultRetryDelay(failureCount) {
 
 ## おわりに
 
-1 編でエラーがどこへ行くのかを扱い、この記事ではその場所に何を置くかを決めた。内容をまとめると次のようになる。
+この記事では、失敗を受ける場所ごとに何を置くかを決めた。内容をまとめると次のようになる。
 
 - `ErrorBoundary` の位置は、明け渡してよい範囲で決まる。何を包むかではなく、これが死んだら何が残らなければならないかで問う。
 - 三つの層の `ErrorBoundary` は、どれひとつ消せない。loader が投げたものはツリーの `ErrorBoundary` が受けられず、`revalidate` はクエリキャッシュを解けず、下にもうひとつ置くのは範囲を狭める仕事だ。

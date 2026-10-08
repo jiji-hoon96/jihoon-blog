@@ -3,21 +3,20 @@ emoji: ⚛️
 title: 'React Fiber完全攻略'
 seoTitle: 'React Fiber完全攻略: アーキテクチャとConcurrent Renderingの仕組みを徹底分析'
 date: '2025-05-20'
+updatedAt: "2026-10-08"
 categories: フロントエンド React
-description: "React Fiberアーキテクチャを、Stack ReconcilerからLane優先度、ダブルバッファリング、MessageChannel Scheduler、Concurrent Featuresまで、Reactのソースコードを基に深く分析する。フロントエンド面接の頻出テーマ。"
+description: "React Fiberアーキテクチャを、Stack ReconcilerからFiberノードの構造、ダブルバッファリング、Lane優先度、Work Loop、レンダーフェーズとコミットフェーズ、Concurrent Featuresまで、Reactのソースコードを基に深く分析する。"
 keywords: "React Fiber, React Fiberアーキテクチャ, Stack Reconciler, Concurrent Mode, React 18 concurrency, useTransition, useDeferredValue, Suspense, Reactレンダリングの仕組み, Reactソースコード解析, Virtual DOM, Reconciliation, Lane優先度, フロントエンド面接"
 locale: ja
 translationOf: '250520'
-sourceHash: 5f4d292c9e9b26fce26a9220b9d9d706f2ae418e385b27133899d86216a9d3bd
+sourceHash: 829e3fcfb711596a9ec0772911ab6d13e00e41ba3ddcb03ae930070dbee27260
 ---
 
 今回は、Reactの心臓部ともいえる**Fiberアーキテクチャ**について話したい。
 
+「作業単位に分けて処理する」という一行の定義は知っていても、それがReactの内部でどう実装されているのかを説明するのは難しいフロントエンド開発者に向けた記事である。最後まで読めば、Fiberがなぜ登場し、Fiberノードがどんな形をしていて、ダブルバッファリングとLane、Work Loopがどう噛み合ってConcurrent Featuresを可能にしているのかを、Reactのソースコードを根拠に説明できるようになる。
+
 筆者が初めてReactに触れた頃、**「Fiber」**という言葉は、面接の定番質問くらいにしか認識していなかった。「Reactのレンダリング処理を作業単位に分割して実行する」という一行の定義を覚え、それがすべてだと思っていた。しかし実際にReactのソースコードを読み始めると、Fiberは単なる概念ではなく、Reactレンダリングの**すべて**を司る実行アーキテクチャだと気づいた。
-
-> 初めてReactのソースコードを開いたときの衝撃は、今でも忘れられない。「これは……いったい何なんだ？」と思った。
-
-この記事では、「Fiberとは何ですか？」という質問に「作業単位に分けて処理するものです」と答えるレベルを超えて、Fiberが**なぜ**誕生し、**どのように**設計され、その構造がReactのConcurrent Featuresを**どのように**可能にしているのかまで、深く掘り下げていく。
 
 
 ## なぜFiberは登場したのか？
@@ -77,7 +76,7 @@ function performWork(deadline) {
 
 上のコードは、Fiber初期の概念モデルを示している。重要なのは、`while` ループ内で一度に一つの作業単位だけを処理し、時間が足りなくなればループを抜けてブラウザーに制御を返す点だ。
 
-（初期には`requestIdleCallback`を使う方式だったが、実際のReactはこれを使っていない。その理由は後で詳しく扱う。）
+ただし、この例は概念を示すために`requestIdleCallback`を使ったにすぎず、実際のReactはこれを使っていない。このAPIはブラウザーが決めたアイドル期間にしか呼ばれないため、メインスレッドが忙しいページではReactの作業が後回しにされ続けうると筆者は見ている。そこでReactのSchedulerパッケージは、`MessageChannel`で次のマクロタスクを予約して作業を続け、その合間にメインスレッドへ制御を返す。`setTimeout`ではなく`MessageChannel`を選んだ理由は、[ReactがMessageChannelを使う理由](/250515)に別途まとめておいた。
 
 <video width="640" height="480" controls>
   <source src="/content/250520/fiber.mov" type="video/mp4">
@@ -85,7 +84,7 @@ function performWork(deadline) {
 
 Fiber方式では、レンダリング中でもユーザーイベント（ボタンクリック、入力など）にすぐ反応できる。作業を細かく分割して実行するため、ブラウザーが息をつく余地が生まれる。
 
-二つの方式の違いを直接体験したければ、**<a href="https://animated-lollipop-2b6cbb.netlify.app/" target="_blank" rel="noopener noreferrer">こちら</a>**をクリックしてほしい。Stack ReconcilerとFiber Reconcilerの動作の違いを目で確認できる。
+二つの方式の違いを直接体験したければ、**<a href="https://animated-lollipop-2b6cbb.netlify.app/" target="_blank" rel="noopener noreferrer">こちら</a>** をクリックしてほしい。Stack ReconcilerとFiber Reconcilerの動作の違いを目で確認できる。
 
 これこそ、Andrew Clarkが文書で強調したFiberの主要な目標だ。
 
@@ -185,7 +184,7 @@ Reactはこの構造を基に、深さ優先探索（DFS）の順序でノード
 
 ## ダブルバッファリング：currentツリーとworkInProgressツリー
 
-Fiberを理解するうえで欠かせない重要な概念が、**ダブルバッファリング（Double Buffering）**だ。
+Fiberを理解するうえで欠かせない重要な概念が、**ダブルバッファリング**（Double Buffering）だ。
 
 この概念を理解するために、ゲームグラフィックスを思い浮かべてみよう。ゲームで画面を描くとき、現在の画面にピクセルを直接描くと、描画途中のフレームがユーザーに見えてしまう**ちらつき（flicker）**が発生する。これを防ぐため、ゲームエンジンは**二つのバッファ**を使う。一方のバッファに次のフレームを完全に描き、完成した時点で画面に表示するバッファを一度に切り替えるのだ。
 
@@ -244,7 +243,7 @@ propsやstateに変更がなければどうなるだろうか。そのサブツ�
 
 Laneを理解するために、**高速道路**を思い浮かべてみよう。高速道路には複数の車線があり、それぞれ用途が異なる。第1車線は追い越し用（緊急）、第2車線は通常走行用、路肩は非常用だ。各車両（更新）は性質に合った車線へ割り当てられ、高速道路の管理システム（スケジューラー）が、どの車線の車両を先に通すかを決定する。
 
-ReactのLaneも同じだ。各更新に**一つのビット（Lane）**を割り当て、ビット演算でグループを作成し比較する。
+ReactのLaneも同じだ。各更新に**一つのビット**（Lane）を割り当て、ビット演算でグループを作成し比較する。
 
 ```js
 // 각 업데이트는 하나의 lane(단일 비트)을 가진다
@@ -261,7 +260,7 @@ const SyncUpdateLanes = SyncLane | InputContinuousLane | DefaultLane;
 const isIncluded = (lane & lanes) !== 0;
 ```
 
-合計31個のLaneが31ビット整数に収まるよう設計されている。これはV8エンジンの**SMI（Small Integer）**最適化を活用するためだ。31ビット以下の整数はV8でポインタータグ付き整数として処理され、ヒープ割り当てなしにスタック上で直接演算できる。主要なLaneの優先度は、**ビットが低いほど高い**。
+合計31個のLaneが31ビット整数に収まるよう設計されている。これはV8エンジンの**SMI**（Small Integer）最適化を活用するためだ。31ビット以下の整数はV8でポインタータグ付き整数として処理され、ヒープ割り当てなしにスタック上で直接演算できる。主要なLaneの優先度は、**ビットが低いほど高い**。
 
 この構造により、Reactは一度のビット演算で、どの作業を先に処理するかを判断できるようになった。`getNextLanes()` 関数は`pendingLanes`から最も優先度の高いLaneグループを選び、中断中のLaneを飛ばし、データを受信した再試行可能なLaneを優先するなど、高度なスケジューリングを可能にしている。
 
@@ -388,20 +387,17 @@ function workLoopSync() {
   }
 }
 
-// 동시성 렌더링: 시간 제한 내에서 작업을 나누어 처리
-function workLoopConcurrent(nonIdle) {
-  if (workInProgress !== null) {
-    const yieldAfter = now() + (nonIdle ? 25 : 5);
-    do {
-      performUnitOfWork(workInProgress);
-    } while (workInProgress !== null && now() < yieldAfter);
+// 동시성 렌더링: Scheduler가 양보하라고 할 때까지 처리
+function workLoopConcurrentByScheduler() {
+  while (workInProgress !== null && !shouldYield()) {
+    performUnitOfWork(workInProgress);
   }
 }
 ```
 
-二つの関数の違いに注目してほしい。`workLoopSync`は`workInProgress`が`null`になるまで**無条件に**回り続ける。一方、`workLoopConcurrent`には**時間制限**があり、時間を超えるとループを抜ける。
+二つの関数の違いに注目してほしい。`workLoopSync`は`workInProgress`が`null`になるまで**無条件に**回り続ける。一方、`workLoopConcurrentByScheduler`はFiberを一つ処理するたびに`shouldYield()`を尋ね、Schedulerが譲るよう答えるとループを抜ける。
 
-ここで興味深いのは、処理を譲る間隔の違いだ。TransitionやRetryのような**非アイドル作業（ユーザーが知覚できる更新）**は**25ms**間隔で制御を譲り、**アイドル作業（ユーザーが何もしていないときに処理してもよい低優先度の作業）**は**5ms**間隔で譲る。非アイドル作業に25msを与える理由は、意図的にアニメーションを約30fpsに制限し、トランジションのレンダリングがほかの作業を飢餓状態に陥らせるのを防ぐためだ。
+Schedulerは、今回のタスクが始まってから **5ms** が過ぎたかどうかを見て答える。5msは作業の断片の大きさではなく譲るかどうかを確かめる基準なので、Fiberを一つ処理するのにそれより長くかかれば、その作業は分割されない。同じファイルには、Transitionのような非アイドル作業を25msごとに譲らせる`workLoopConcurrent`もある。しかしこの関数は`enableThrottledScheduling`フラグの後ろにあり、v19.3.0のすべてのビルドでこのフラグはオフになっている。
 
 
 ### performUnitOfWork
@@ -492,33 +488,7 @@ function completeUnitOfWork(unitOfWork) {
 走査をまとめると、次のようになる。**childに沿って下り（beginWork）→ 葉で完了した後siblingへ移動 → 兄弟がなければreturnに沿って上る（completeWork）**。これがFiberの深さ優先探索の順序である。
 
 
-### requestIdleCallbackを捨てた理由
-
-先ほどFiberの概念モデルでは`requestIdleCallback`を使うコードを示したが、実際のReactはこれを使っていない。その理由は明確だ。
-
-- **呼び出し頻度が低すぎる**：本当に「アイドル時間（ブラウザーにすることがない時間）」にしか呼ばれないため、負荷の高いページではReactの作業がいつまでも遅延する可能性がある。Dan Abramovも「requestIdleCallback is called too infrequently to be useful for scheduling React work」と述べている。
-- **ブラウザー互換性の問題**：Safariは長い間これを実装しておらず、ブラウザーごとに動作も異なっていた。
-- **20msの上限**：アイドル時間の期限には上限があり、Reactが求めるレベルの予測可能なタイミング制御ができなかった。
-
-次に`requestAnimationFrame`とフレーム予算の推定を組み合わせる方式も試したが、Reactの作業を垂直同期（モニターが垂直走査を完了する時点に合わせてフレーム出力を同期する技術）の周期に合わせる必要はないとの判断から、これも廃止された。
-
-### MessageChannel
-
-最終的にReactは**MessageChannel**を選んだ。
-
-```js
-if (typeof MessageChannel !== 'undefined') {
-  const channel = new MessageChannel();
-  channel.port1.onmessage = performWorkUntilDeadline;
-  schedulePerformWorkUntilDeadline = () => channel.port2.postMessage(null);
-} else {
-  schedulePerformWorkUntilDeadline = () => setTimeout(performWorkUntilDeadline, 0);
-}
-```
-
-なぜ`setTimeout`ではなく`MessageChannel`なのか。HTML仕様により、`setTimeout`は5回以上ネストすると**最低4msの遅延**が強制される。一方、`MessageChannel`はこの制限なしに、イベントループの次のティックで即座にマクロタスクとして実行される。5ms単位で作業を分割するFiberにとって、4msの人為的な遅延は致命的だからだ。
-
-（5msのうち4msが待ち時間なら、実際に働く時間は1msしかない。これはワークライフバランスではなく、ただのライフだ。）
+### Schedulerのタスクキュー
 
 ReactのSchedulerパッケージは、内部で**二つの最小ヒープ**を管理する。
 
@@ -551,7 +521,6 @@ Idle             ~1,073,741,823ms  ~12.4일      오프스크린 렌더링
 
 これらのタイムアウト値は、同時に**飢餓状態を防ぐ**仕組みでもある。どれほど優先度が低くても、タイムアウトを過ぎれば期限切れ状態となり、強制的に実行される。高優先度の作業が絶えず入ってきても、低優先度の作業が永遠に無視されることはない。
 
-Schedulerの`shouldYieldToHost()`は、作業開始後の経過時間が`frameInterval`（既定値は**5ms**、`SchedulerFeatureFlags.js`で定義）を超えたか確認し、メインスレッドへ制御を返すかどうかを判断する。
 
 
 ## レンダーフェーズとコミットフェーズ
@@ -563,16 +532,15 @@ Fiberは内部で、**レンダーフェーズ**と**コミットフェーズ**�
 [![React Fiber の動作順序を段階的に見せる可視化デモ。レンダー段階からレイアウト段階までをコンポーネントツリーと作業スタックで追う](/content/250520/2.png)](https://storied-centaur-55230f.netlify.app/)
 
 
-
 ### レンダーフェーズ
 
 レンダーフェーズは、UIに**どのような変更が必要かを計算**する段階だ。この段階では、実際のDOMには何の影響も与えない。そして最も重要な特徴は、**非同期的に中断・再開できる**ことだ。
 
 この段階は、先ほど見た`beginWork`と`completeWork`を中心に動作する。
 
-**beginWork(fiber)**では、各Fiberのtype（FunctionComponent、ClassComponent、HostComponentなど）に応じて適切な処理を実行する。そして子Fiberノードを生成し、接続する。propsが以前と同じなら、メモ化によってスキップできる（bailout）。
+**beginWork(fiber)** では、各Fiberのtype（FunctionComponent、ClassComponent、HostComponentなど）に応じて適切な処理を実行する。そして子Fiberノードを生成し、接続する。propsが以前と同じなら、メモ化によってスキップできる（bailout）。
 
-**completeWork(fiber)**では、DOM生成処理やエフェクト情報を準備する。そして`bubbleProperties()`を通じて子のflagsを`subtreeFlags`へ集約し、親方向へ上りながら情報を補完する。
+**completeWork(fiber)** では、DOM生成処理やエフェクト情報を準備する。そして`bubbleProperties()`を通じて子のflagsを`subtreeFlags`へ集約し、親方向へ上りながら情報を補完する。
 
 この段階ではDOMを直接変更しないため、いつでも作業を中断し、後から再開しても、不完全なUIがユーザーに表示されることはない。これがConcurrent Modeの基盤である。
 

@@ -3,15 +3,16 @@ emoji: 🎲
 title: '决策模型，Jev 与 Kev'
 seoTitle: 'TypeSafe Jev 与 Kev 决策模型实测：confidence 阈值与校准能不能信'
 date: '2026-09-22'
+updatedAt: '2026-10-08'
 categories: AI 校准
 description: '有个模型不返回文本，只返回概率。confidence 不是学出来的值而是算术，校准也不是模型的性质而是分布的性质。本文用公开的 Jev 实测 5,743 条，以及把复现实现 Kev 直接跑在本博客音译闸门上的结果来验证。'
-keywords: 'Jev, TypeSafe AI, System One 模型, RLCD, 模型校准, ECE, RLHF 过度自信, confidence 阈值, 决策模型, Kev 开源, Jev 应用案例'
+keywords: 'Jev, TypeSafe AI, System One 模型, RLCD, 模型校准, ECE, confidence 阈值, 决策模型, Kev 开源, Jev 应用案例'
 locale: zh-CN
 translationOf: '260922'
-sourceHash: 6cee92c77bd8cd7cc8b115142f94b9880919a1c4d8ae265bd8a0e4738421703a
+sourceHash: 966cedd7c0143dde34129e34ea80c0b3cf6c838277523dae23929576711e8943
 ---
 
-这篇文章想聊聊一个不生成文本的模型。上周 TypeSafe AI 公开了 Jev。
+这篇文章想聊聊上周 TypeSafe AI 公开的 Jev，一个不返回文本、只返回概率的模型。本文写给想给模型返回的概率设阈值、在没有人工确认的情况下自动处理的开发者。读完之后，你会知道 Jev 的 `confidence` 是怎么算出来的，校准会随分布变化多少，以及用自己的数据定阈值的步骤。
 
 最先映入眼帘的用途是浏览器自动化。Browserbase 提交了一个把 Jev 接进 Stagehand 的 `act()` 的 [PR](https://github.com/browserbase/stagehand/pull/2953)。结构是把页面的:term[无障碍树]{key="accessibility-tree"}作为 `state` 发过去，再以选项的形式问「下一步该点击哪个元素」。40 个任务里 `act()` 的中位数从 1.97 秒降到 0.46 秒，147 次操作中回退到 LLM 的只有 4 次。Playwright 脚本只要一个 selector 变了就会坏掉的那个位置，被一次只返回一个概率的调用填上了。写这篇文章的时候，这个 PR 还没有合并。
 
@@ -53,23 +54,7 @@ endpoint 也只有一个。向 `POST /v1/systemone` 发送 `state`（要评估�
 
 那为什么需要新的训练方法呢。让现有的模型只答是/否不行吗。
 
-答案在 :term[RLHF]{key="rlhf"}（reinforcement learning from human feedback）的谱系里。用人的偏好比较来建立奖励模型这一骨架出自 [Christiano 等人 2017 年的论文](https://arxiv.org/abs/1706.03741)，[Stiennon 等人在 2020 年](https://arxiv.org/abs/2009.01325)把它用到了语言模型上，InstructGPT 又扩展到指令跟随。三篇论文共享的目标函数只有一个。**给出人类评估者更偏好的输出。**
-
-这里必须区分准确率和:term[校准]{key="calibration"}。准确率是能答对百分之几，校准是知不知道自己能答对百分之几。把说过降水概率 70% 的那些天汇总起来，如果实际十次里下了七次雨，那这个预报就是校准良好的。它不代表准确率高。它代表预报知道自己的极限。**只有 60% 正确率的模型，只要自己说 60%，校准就是满分。**
-
-衡量这种偏离的指标是 :term[ECE]{key="ece"}（expected calibration error）。它把每个概率区间里“说出口的概率”与“实际命中率”的差值，按该区间的样本比例加权平均，0 为完美。
-
-对聊天机器人来说，人的偏好是对的目标。问题在于，比起吞吞吐吐的回答，人更偏好有自信的回答。于是模型养成了含糊时也把话说死的习惯。TypeSafe 的文档把这叫作 [mode dropping](https://docs.typesafe.ai/introduction/machine-learning-primer)。意思是偏好优化把模型推向偏爱特定风格，同时压掉了其他可能输出的概率。
-
-OpenAI 也把同样的事写进了自己的报告。[GPT-4 技术报告](https://arxiv.org/abs/2303.08774)的 Figure 8 把预训练模型和 post-training 模型的校准曲线并排放在一起，图注是这样的。
-
-![GPT-4 技术报告的 Figure 8。左侧预训练模型的校准曲线贴着对角线，ECE 0.007；右侧 PPO 之后的模型大幅落在对角线下方，ECE 0.074](2.png?w=720)
-
-来源: OpenAI, GPT-4 Technical Report (arXiv:2303.08774), Figure 8.
-
-> Right: Calibration plot of the post-trained GPT-4 model on the same subset of MMLU. The post-training hurts calibration significantly.
-
-按图上标出的数字，预训练模型的 ECE 是 **0.007**，经过 PPO 的模型是 **0.074**。差了十倍以上。在被打磨得讨人满意的过程中，知道自己能答对百分之几的能力被削掉了。
+线索在:term[校准]{key="calibration"}里。准确率是能答对百分之几，校准则是知不知道自己能答对百分之几，衡量这种偏离的指标是 :term[ECE]{key="ece"}（expected calibration error）。它把每个概率区间里说出口的概率与实际命中率的差值按样本比例加权平均，0 为完美。可是，有案例显示，经过优化人类偏好的 :term[RLHF]{key="rlhf"}（reinforcement learning from human feedback）之后，这个刻度偏了。在 [GPT-4 技术报告](https://arxiv.org/abs/2303.08774)的 Figure 8 中，预训练模型的 ECE 是 **0.007**，经过 post-training 的模型则是 **0.074**，差了十倍以上。报告没有写出原因，笔者也没有找到能确定原因的一手证据。定义以及原因目前弄清到了什么程度，另外整理在[LLM 的校准与过度自信](/260917)中。
 
 **不过光靠 ECE 一个是不够的。** 对所有输入都打 0.6 的常数预测器，只要实际命中率是 60%，ECE 也是 0。概率只是诚实、却不随案例分开，就没有划线的地方。所以除校准之外还要一起看**概率是否真的分得开**，后文要用的“在误差预算内可自动处理的比例”就是把这两者捆成一个数字的指标。
 

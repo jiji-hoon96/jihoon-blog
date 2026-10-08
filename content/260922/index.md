@@ -1,14 +1,15 @@
 ---
 emoji: 🎲
 title: '결정 모델, Jev와 Kev'
-seoTitle: 'TypeSafe Jev 결정 모델 검증, confidence 임계값과 캘리브레이션을 Kev 실측으로 확인'
+seoTitle: 'Jev 결정 모델 검증: confidence 임계값과 calibration을 Kev로 실측'
 date: '2026-09-22'
-categories: AI 캘리브레이션
-description: '텍스트 대신 확률을 돌려주는 모델 Jev가 나왔다. confidence는 학습된 값이 아니라 산술이고, 캘리브레이션은 모델이 아니라 분포의 성질이다. 공개된 Jev 실측 5,743건과, 재현 구현 Kev를 이 블로그의 음차 게이트에 직접 돌린 결과로 확인한다.'
-keywords: 'Jev, TypeSafe AI, System One 모델, RLCD, 모델 캘리브레이션, ECE, RLHF 과신, confidence 임계값, 결정 모델, Kev 오픈소스, Jev 활용 사례'
+updatedAt: '2026-10-08'
+categories: AI calibration
+description: '텍스트 대신 확률을 돌려주는 모델 Jev가 나왔다. confidence는 학습된 값이 아니라 산술이고, calibration은 모델이 아니라 분포의 성질이다. 공개된 Jev 실측 5,743건과, 재현 구현 Kev를 이 블로그의 음차 게이트에 직접 돌린 결과로 확인한다.'
+keywords: 'Jev, TypeSafe AI, System One 모델, RLCD, 모델 calibration, ECE, confidence 임계값, 결정 모델, Kev 오픈소스, Jev 활용 사례'
 ---
 
-이번 포스팅에서는 텍스트를 만들지 않는 모델에 대한 이야기를 해보려고 한다. 지난주에 TypeSafe AI가 Jev를 공개했다.
+이번 포스팅에서는 지난주 TypeSafe AI가 공개한, 텍스트 대신 확률을 돌려주는 모델 Jev에 대한 이야기를 해보려고 한다. 모델이 돌려준 확률에 임계값을 걸어 사람 확인 없이 자동 처리하려는 개발자를 위한 글이다. 끝까지 읽으면 Jev의 `confidence`가 어떻게 계산되는지, calibration이 분포에 따라 얼마나 움직이는지, 그리고 임계값을 자기 데이터로 정하는 절차를 얻을 수 있다.
 
 가장 먼저 눈에 들어온 사용처는 브라우저 자동화였다. Browserbase가 Stagehand의 `act()`에 Jev를 붙이는 [PR](https://github.com/browserbase/stagehand/pull/2953)을 올렸다. 페이지의 :term[접근성 트리]{key="accessibility-tree"}를 `state`로 보내고 "다음에 클릭할 요소는 어느 것인가"를 선택지로 묻는 구조였다. 40개 과제에서 `act()` 중앙값이 1.97초에서 0.46초로 줄었고, 147번의 동작 중 LLM으로 되돌아간 것은 4번이었다. Playwright 스크립트가 selector 하나 바뀌면 깨지는 자리를, 확률 하나 돌려받는 호출로 메운 것이다. 이 글을 쓰는 시점에 PR은 아직 머지되지 않았다.
 
@@ -50,29 +51,13 @@ Archer Hume이라는 개발자가 API를 약 1만 번 호출해 바깥에서 동
 
 그런데 왜 새 학습법이 필요했을까. 기존 모델에게 예/아니오만 시키면 안 되는 걸까.
 
-:term[RLHF]{key="rlhf"}(reinforcement learning from human feedback)의 계보에 답이 있다. 사람의 선호 비교로 보상 모델을 세우는 골격은 [Deep reinforcement learning from human preferences](https://arxiv.org/abs/1706.03741)에서 나왔고, [Learning to summarize from human feedback](https://arxiv.org/abs/2009.01325)에 언어 모델에 적용했으며, InstructGPT가 지시 따르기로 확장했다. 세 논문이 공유하는 목표 함수는 하나다. **평가자인 사람이 더 선호하는 출력을 내는 것.**
+답의 실마리는 :term[Calibration]{key="calibration"}에 있다. 정확도가 몇 퍼센트 맞히느냐라면 calibration은 자기가 몇 퍼센트 맞힐지를 아느냐이고, 그 어긋남을 재는 지표가 :term[ECE]{key="ece"}(expected calibration error)다. 확률 구간마다 말한 확률과 실제 적중률의 차이를 표본 비율로 가중해 평균한 값이라 0이 완벽이다. 그런데 사람의 선호를 최적화하는 :term[RLHF]{key="rlhf"}(reinforcement learning from human feedback)를 거친 뒤 이 눈금이 어긋난 사례가 있다. [GPT-4 기술 보고서](https://arxiv.org/abs/2303.08774)의 Figure 8에서는 사전학습 모델의 ECE가 **0.007**이었는데 post-training을 거친 모델은 **0.074**로 열 배 넘게 나빠졌다. 보고서는 그 원인을 적지 않았고, 필자도 원인을 확정한 1차 근거는 찾지 못했다. 정의와 원인이 어디까지 밝혀졌는지는 [LLM calibration과 overconfidence](/260917)에 따로 정리해 두었다.
 
-여기서 정확도와 :term[캘리브레이션]{key="calibration"}을 구분해야 한다. 정확도는 몇 퍼센트 맞히느냐이고, 캘리브레이션은 자기가 몇 퍼센트 맞힐지를 아느냐다. 강수 확률 70%라고 한 날들만 모았을 때 실제로 열 번 중 일곱 번 비가 왔다면 그 예보는 캘리브레이션이 잘 된 것이다. 정확도가 높다는 뜻이 아니다. 자기 한계를 안다는 뜻이다. **60%만 맞히는 모델도 스스로 60%라고 말하면 캘리브레이션은 만점이다.**
-
-그 어긋남을 재는 지표가 :term[ECE]{key="ece"}(expected calibration error)다. 확률 구간마다 "말한 확률"과 "실제 적중률"의 차이를 그 구간의 표본 비율로 가중해 평균한 값이고, 0이 완벽이다.
-
-챗봇에는 사람의 선호가 맞는 목표다. 문제는 사람이 우물쭈물하는 답보다 자신 있는 답을 선호한다는 데 있다. 그래서 모델은 애매할 때도 단정적으로 말하는 버릇을 들인다. TypeSafe 문서는 이것을 [mode dropping](https://docs.typesafe.ai/introduction/machine-learning-primer)이라고 부른다. 선호 최적화가 특정 스타일을 편애하도록 모델을 밀면서 다른 가능한 출력의 확률을 눌러 버린다는 것이다.
-
-OpenAI도 같은 것을 보고서에 적었다. [GPT-4 기술 보고서](https://arxiv.org/abs/2303.08774)의 Figure 8은 사전학습 모델과 post-training 모델의 캘리브레이션 곡선을 나란히 놓는데, 캡션이 이렇다.
-
-![GPT-4 기술 보고서 Figure 8. 왼쪽 사전학습 모델의 캘리브레이션 곡선은 대각선에 붙어 ECE 0.007 이고, 오른쪽 PPO 이후 모델은 대각선 아래로 크게 벌어져 ECE 0.074 다](2.png?w=720)
-
-출처: OpenAI, GPT-4 Technical Report (arXiv:2303.08774), Figure 8.
-
-> Right: Calibration plot of the post-trained GPT-4 model on the same subset of MMLU. The post-training hurts calibration significantly.
-
-그림에 찍힌 숫자로는 사전학습 모델의 ECE가 **0.007**이고 PPO를 거친 모델이 **0.074**다. 열 배 넘게 나빠졌다. 사람을 만족시키도록 다듬는 과정에서 자기가 몇 퍼센트 맞힐지 아는 능력이 깎인 것이다.
-
-**다만 ECE 하나로는 부족하다.** 모든 입력에 0.6을 찍는 상수 예측기도 실제 적중률이 60%면 ECE가 0이다. 확률이 정직하기만 하고 사안마다 갈리지 않으면 선을 그을 자리가 없다. 그래서 캘리브레이션과 별개로 **확률이 실제로 갈라지는지**를 같이 봐야 하고, 뒤에서 쓸 "오차 예산 안에서 자동 처리할 수 있는 비율"이 그 둘을 한 숫자로 묶은 지표다.
+**다만 ECE 하나로는 부족하다.** 모든 입력에 0.6을 찍는 상수 예측기도 실제 적중률이 60%면 ECE가 0이다. 확률이 정직하기만 하고 사안마다 갈리지 않으면 선을 그을 자리가 없다. 그래서 calibration과 별개로 **확률이 실제로 갈라지는지**를 같이 봐야 하고, 뒤에서 쓸 "오차 예산 안에서 자동 처리할 수 있는 비율"이 그 둘을 한 숫자로 묶은 지표다.
 
 소프트웨어 입장에서 중요한 것은 이 부분이다. 확률이 정직하고 갈라지면 선을 그을 수 있다. 0.95 넘으면 자동 처리하고 그 아래는 사람에게 넘기는 구조가 나온다.
 
-TypeSafe는 그 자리를 겨냥해 세 번째 길을 냈다고 말한다. 사람의 선호를 최적화하는 RLHF, 기계가 채점할 수 있는 정답을 최적화하는 RLVR(reinforcement learning with verifiable rewards), 그리고 캘리브레이션된 결정을 최적화한다는 RLCD다.
+TypeSafe는 그 자리를 겨냥해 세 번째 길을 냈다고 말한다. 사람의 선호를 최적화하는 RLHF, 기계가 채점할 수 있는 정답을 최적화하는 RLVR(reinforcement learning with verifiable rewards), 그리고 calibration된 결정을 최적화한다는 RLCD다.
 
 다만 RLCD로 공개된 것은 출력 계약 세 줄이 전부다. 이 글을 쓰는 2026년 9월 23일 기준으로 TypeSafe의 문서와 발표 글 어디에도 논문이나 기술 보고서가 없다. 같은 약어를 쓰는 [ICLR 2024 논문](https://arxiv.org/abs/2307.12950)이 따로 있는데 그쪽은 reinforcement learning from contrastive distillation이라 다른 방법이다.
 
@@ -80,7 +65,7 @@ TypeSafe는 그 자리를 겨냥해 세 번째 길을 냈다고 말한다. 사�
 
 그래서 Jev가 돌려주는 숫자는 정직한가. 답하기 전에 먼저 볼 것이 있다. **돌려주는 숫자가 하나가 아니다.**
 
-![Jev의 응답에서 probabilities는 학습으로 만들어지고 confidence는 그 분포를 산술로 접은 값이며, 캘리브레이션 주장은 probabilities에만 걸린다는 것을 보여주는 그림](3.png?w=720)
+![Jev의 응답에서 probabilities는 학습으로 만들어지고 confidence는 그 분포를 산술로 접은 값이며, calibration 주장은 probabilities에만 걸린다는 것을 보여주는 그림](3.png?w=720)
 
 `Choice`와 `Score` 응답에는 `probabilities`와 `confidence`가 같이 들어 있다. 앞은 선택지 전체에 걸친 확률 분포이고, 뒤는 0에서 1 사이 숫자 하나다. 코드에서 임계값을 걸 때 손이 먼저 가는 쪽은 `confidence`다.
 
@@ -107,13 +92,13 @@ def choice_confidence(probs: list[float]) -> float:
 
 문서도 이것을 숨기지 않는다. 다른 계산을 쓰고 싶으면 `probabilities` 전체를 줄 테니 알아서 하라고까지 안내한다. **적혀 있는 내용이고, 읽지 않고 쓰는 쪽이 문제다.**
 
-그런데 [공개 발표 글](https://typesafe.ai/blog/introducing-system-one-models-and-jev)의 비교표는 둘을 붙여 쓴다. "Calibrated: higher confidence means higher accuracy"라고 적혀 있다. 읽는 사람은 `confidence`가 캘리브레이션된 값이라고 받아들이는데, 캘리브레이션 주장이 실제로 걸려 있는 쪽은 `probabilities`다.
+그런데 [공개 발표 글](https://typesafe.ai/blog/introducing-system-one-models-and-jev)의 비교표는 둘을 붙여 쓴다. "Calibrated: higher confidence means higher accuracy"라고 적혀 있다. 읽는 사람은 `confidence`가 calibration된 값이라고 받아들이는데, calibration 주장이 실제로 걸려 있는 쪽은 `probabilities`다.
 
-이 구분이 숫자로 얼마나 벌어지는지는 측정이 있다. `scienthoon`이라는 개발자가 공개한 [독립 캘리브레이션 측정](https://github.com/scienthoon/jev-ood-calibration)이 `confidence`를 "맞을 확률"로 읽었을 때의 ECE를 따로 쟀다. OpenBookQA에서 0.035, HellaSwag에서 0.078, 합성 집합에서 0.18이다. 같은 집합의 원본 확률은 각각 0.024, 0.029, 0.107이었다. **세 집합 전부에서 `confidence` 쪽이 나쁘다.**
+이 구분이 숫자로 얼마나 벌어지는지는 측정이 있다. `scienthoon`이라는 개발자가 공개한 [독립 calibration 측정](https://github.com/scienthoon/jev-ood-calibration)이 `confidence`를 "맞을 확률"로 읽었을 때의 ECE를 따로 쟀다. OpenBookQA에서 0.035, HellaSwag에서 0.078, 합성 집합에서 0.18이다. 같은 집합의 원본 확률은 각각 0.024, 0.029, 0.107이었다. **세 집합 전부에서 `confidence` 쪽이 나쁘다.**
 
 왜 나빠지는지는 식에 있다. K가 고정이면 `c`는 `p_max`의 순증가 변환이라 순서가 보존된다. 판별력은 그대로이고 임계값만 옮겨 적으면 된다. **망가지는 것은 정보가 아니라 눈금이다.** K가 질문마다 다르면 문제가 하나 더 생긴다. 늘이는 배율도 달라진다. 같은 `p_max` 0.8이 선택지 둘에서는 0.6이 되고 다섯에서는 0.75가 된다. 선택지 수가 섞인 워크로드에서 임계값 하나를 쓰는 순간 그게 문제가 된다.
 
-## 분포에 따라 달라지는 캘리브레이션
+## 분포에 따라 달라지는 calibration
 
 그렇다면 `probabilities` 쪽은 믿어도 될까.
 
@@ -121,9 +106,9 @@ Jev를 실제로 호출해 재본 기록이 공개되어 있다. Jared Palmer가
 
 가격이 실제로 입력만 과금된다는 것은 다른 곳에서 확인된다. 피싱 벤치마크 저자가 TypeSafe dashboard를 보고 적어 뒀다. 두 번 돌린 456만 토큰 중 입력이 366만, 출력이 90만이었는데 청구는 $0.15였고 그 값이 입력만 계산한 것과 맞았다.
 
-같은 directory의 `report.json`에서 평가 집합 일곱 개의 지표를 꺼내 정리하면 이렇다. 아래에서 **확신도는 `confidence` 필드가 아니라 `probabilities`의 최댓값**이다. 과신은 `평균 확신도 − 정확도`이고 총 5,743건이다. 판단 근거를 지운 "알 수 없는" 항목은 정확도 채점에서 빼는 `clean` 블록의 값이다.
+같은 directory의 `report.json`에서 평가 집합 일곱 개의 지표를 꺼내 정리하면 이렇다. 아래에서 **확신도는 `confidence` 필드가 아니라 `probabilities`의 최댓값**이다. overconfidence는 `평균 확신도 − 정확도`이고 총 5,743건이다. 판단 근거를 지운 "알 수 없는" 항목은 정확도 채점에서 빼는 `clean` 블록의 값이다.
 
-| 평가 집합 | n | 정확도 | 평균 확신도 | 과신 | ECE |
+| 평가 집합 | n | 정확도 | 평균 확신도 | overconfidence | ECE |
 |---|---|---|---|---|---|
 | semif | 144 | 0.965 | 0.965 | -0.000 | 0.011 |
 | transfer-v9 | 1,046 | 0.854 | 0.880 | +0.026 | 0.034 |
@@ -135,17 +120,17 @@ Jev를 실제로 호출해 재본 기록이 공개되어 있다. Jared Palmer가
 
 두 가지가 읽힌다.
 
-첫째, **ECE가 열 배 가까이 움직인다.** 0.011에서 0.105다. 같은 채점기, 같은 모델이다. "캘리브레이션됐다"는 모델의 성질이 아니라 모델과 분포의 관계인 것이다. 분포가 바뀌면 캘리브레이션이 무너진다는 것 자체는 이미 알려진 결과다. 여기서 새로운 것은 **캘리브레이션을 학습 목표로 내세운 모델에서도 같은 모양이 나온다**는 점이다.
+첫째, **ECE가 열 배 가까이 움직인다.** 0.011에서 0.105다. 같은 채점기, 같은 모델이다. "calibration됐다"는 모델의 성질이 아니라 모델과 분포의 관계인 것이다. 분포가 바뀌면 calibration이 무너진다는 것 자체는 이미 알려진 결과다. 여기서 새로운 것은 **calibration을 학습 목표로 내세운 모델에서도 같은 모양이 나온다**는 점이다.
 
 ECE가 가장 큰 집합의 0.105는 앞에서 본 post-RLHF GPT-4의 0.074보다도 크다. 다만 이 둘을 순위로 읽으면 안 된다. 과제가 다르고, ECE는 구간을 몇 개로 나누느냐와 표본이 어느 구간에 몰렸느냐에 따라 값이 움직이는 추정량이라 서로 다른 채점기에서 나온 숫자를 맞대면 비교가 성립하지 않는다.
 
-둘째, **측정된 ECE가 과신 하나로 거의 전부 설명된다.** 두 열의 차이가 일곱 개 전부 0.002에서 0.011 사이다. ECE는 구간별 격차의 가중 평균이라 전체 과신보다 작을 수 없는데, 그 차이가 거의 0이라는 것은 **구간마다 어긋나는 부호가 한 방향으로 쏠려 있다**는 뜻이다. 구간별로 엇갈려 상쇄되는 잡음이 아니다.
+둘째, **측정된 ECE가 overconfidence 하나로 거의 전부 설명된다.** 두 열의 차이가 일곱 개 전부 0.002에서 0.011 사이다. ECE는 구간별 격차의 가중 평균이라 전체 overconfidence보다 작을 수 없는데, 그 차이가 거의 0이라는 것은 **구간마다 어긋나는 부호가 한 방향으로 쏠려 있다**는 뜻이다. 구간별로 엇갈려 상쇄되는 잡음이 아니다.
 
 왜 그런지는 세로로 읽으면 보인다. 평균 확신도는 `semif`를 빼면 0.851에서 0.906 사이에 여섯 개가 붙어 있다. 같은 구간에서 정확도는 0.753에서 0.857로 두 배 넓게 움직인다. **확신도는 분포가 바뀌어도 잘 안 움직이고 정확도만 움직인다. 남는 차이가 그대로 ECE다.**
 
 ![Jev 실호출 평가 집합 7개에서 평균 확신도는 0.851에서 0.906 사이에 몰려 있고 정확도만 0.753에서 0.965로 움직이며 그 간격이 ECE와 거의 같다는 것을 보여주는 도표](5.png?w=720)
 
-이 성질이 실무에서 어떻게 나타나는지는 다른 벤치마크가 보여준다. 피싱 이메일 2,000건에 Claude Haiku 4.5를 대조군으로 세운 [측정](https://github.com/anisselbd/jev-phishing-bench)에서 Jev의 정확도는 62.6%였고 Haiku는 81.3%였다. 그런데 더 눈에 띄는 것은 ECE다. 리포가 보고한 ECE는 Jev 0.154, Haiku 0.097이고, 주장 감사 원장이 Jev의 `P(phishing)` 값을 0에서 1까지 10구간으로 다시 재면 0.170이다. 어느 쪽으로 읽어도 **캘리브레이션을 학습 목표로 내세운 모델이 RLHF로 만든 LLM에게 캘리브레이션에서 졌다.** 같은 저자가 링크 호스트 목록 규칙 하나만으로 91.6%를 냈다.
+이 성질이 실무에서 어떻게 나타나는지는 다른 벤치마크가 보여준다. 피싱 이메일 2,000건에 Claude Haiku 4.5를 대조군으로 세운 [측정](https://github.com/anisselbd/jev-phishing-bench)에서 Jev의 정확도는 62.6%였고 Haiku는 81.3%였다. 그런데 더 눈에 띄는 것은 ECE다. 리포가 보고한 ECE는 Jev 0.154, Haiku 0.097이고, 주장 감사 원장이 Jev의 `P(phishing)` 값을 0에서 1까지 10구간으로 다시 재면 0.170이다. 어느 쪽으로 읽어도 **calibration을 학습 목표로 내세운 모델이 RLHF로 만든 LLM에게 calibration에서 졌다.** 같은 저자가 링크 호스트 목록 규칙 하나만으로 91.6%를 냈다.
 
 같은 지표를 여러 집합에서 보면 폭이 더 분명하다. :term[오차 예산]{key="error-budget"} 5%에서 자동 처리할 수 있는 비율이 `scienthoon` 집합에서 0.486, `transfer-v9`에서 0.695, `semif`에서 1.000이다. Kev의 채점기는 이 값을 표본 안에서 임계값을 고른 최댓값이라고 적어 두었고, 배포 후의 오차 보장이 아니다. **어느 하나를 모델의 스펙처럼 인용하면 안 된다.**
 
@@ -257,7 +242,7 @@ TechCrunch 기사에서 Pi harness를 만드는 Earendil의 CTO Armin Ronacher�
 
 > At the end of the day, it delegates the hallucination problem a little bit to the user.
 
-환각을 없앤 것이 아니라 판단을 개발자에게 넘긴 것이다. TypeSafe 문서도 캘리브레이션은 예측 묶음에 대해 성립하는 성질이지 개별 답이 맞는다는 보장이 아니라고 적고 있고, 공개 발표 글의 환각률 0% 막대 아래 Nuance 항목에는 "Our number is not empirical"이라고 적혀 있다. 형식은 보장되고 내용은 아니다.
+환각을 없앤 것이 아니라 판단을 개발자에게 넘긴 것이다. TypeSafe 문서도 calibration은 예측 묶음에 대해 성립하는 성질이지 개별 답이 맞는다는 보장이 아니라고 적고 있고, 공개 발표 글의 환각률 0% 막대 아래 Nuance 항목에는 "Our number is not empirical"이라고 적혀 있다. 형식은 보장되고 내용은 아니다.
 
 ## jevable의 194개 프로젝트
 
@@ -279,7 +264,7 @@ TechCrunch 기사에서 Pi harness를 만드는 Earendil의 CTO Armin Ronacher�
 
 **둘째, 행동 선택 루프.** Browser Use에 붙여 항공권 검색을 7초에 $0.0039로 끝냈다는 browser agent, 음성으로 Mac을 조작하는 computer use, Mario가 죽을 때마다 VM을 네 갈래로 fork해 살아남는 쪽을 고르는 게임, 3D 캐릭터의 입과 눈썹과 시선 등 열 가지를 메시지마다 결정하는 표정 엔진. 매 스텝 action space가 바뀌므로 라벨을 모을 수 없고, 판단은 초 아래로 내려야 한다. 분포 밖 스팸에서 격차가 벌어진 것과 같은 자리다. Games가 39개로 가장 큰 카테고리인 이유도 여기 있다고 본다. 게임은 틀려도 되돌릴 수 있는 행동 선택 루프다.
 
-**셋째, 확률을 사용자에게 보여주는 UI.** 답 대신 판정만 돌려주는 Ask Jev, 다음 질문을 확률로 고르는 분기 폼 JevForm, 기술 깊이와 드라마 같은 슬라이더 여섯 개로 Hacker News 첫 화면을 다시 정렬하는 Upweight. 임계값을 코드에 박지 않고 사람이 확률을 읽는 자리라, 이 글이 문제 삼은 캘리브레이션 요구가 가장 낮다.
+**셋째, 확률을 사용자에게 보여주는 UI.** 답 대신 판정만 돌려주는 Ask Jev, 다음 질문을 확률로 고르는 분기 폼 JevForm, 기술 깊이와 드라마 같은 슬라이더 여섯 개로 Hacker News 첫 화면을 다시 정렬하는 Upweight. 임계값을 코드에 박지 않고 사람이 확률을 읽는 자리라, 이 글이 문제 삼은 calibration 요구가 가장 낮다.
 
 한 가지가 눈에 띈다. 194개 설명문에서 비용을 적은 것이 30개, 속도를 적은 것이 53개인데, 정확도나 기준선을 적은 것은 7개다. 설명문이 원 게시물의 앞부분만 담으므로 하한이지만 방향은 분명하다. 빠르고 싸다는 것은 첫날 알 수 있고 맞는지는 재야 알 수 있는데, 재는 쪽이 드물다. 그 7개 중 하나가 `jevcal`이다. 다들 임계값을 감으로 고른다며, 자기 데이터와 목표 정확도를 넣으면 임계값과 자동 처리 비율을 돌려주는 도구다. 다음 절이 권하는 절차를 그대로 도구로 만든 것이다.
 
@@ -289,7 +274,7 @@ TechCrunch 기사에서 Pi harness를 만드는 Earendil의 CTO Armin Ronacher�
 
 재는 절차는 이렇다. 라벨이 있는 100건 남짓을 모아 확률 구간별 실제 적중률 표를 만들고, 임계값을 위에서부터 낮춰 가며 그 위 구간의 오차율을 본다. 오차 예산을 정했으면 그 예산을 지키는 최대 커버리지가 곧 자동화할 수 있는 비율이다. 필자의 실험에서 확신도 0.9 이상 구간의 실제 적중이 0.240이었다는 것은 102문장으로 드러났다.
 
-**눈금이 어긋난 것은 대개 고칠 수 있다.** 과신이 전 구간에 고르게 깔려 있으면 온도 하나로 대부분 맞춰진다. Kev도 그렇게 해서 ECE를 0.106에서 0.042로 내렸다. 문제는 그 온도를 맞추려면 그 분포의 라벨이 필요하다는 것이고, 프로덕션에서 없는 것이 정확히 그것이다. 게다가 온도는 확률의 순서를 바꾸지 못하므로 자동화 가능 비율은 그만큼 안 올라간다. 그래서 눈금보다 순서가, ECE보다 오차 예산 커버리지가 더 실무적인 지표다.
+**눈금이 어긋난 것은 대개 고칠 수 있다.** overconfidence가 전 구간에 고르게 깔려 있으면 온도 하나로 대부분 맞춰진다. Kev도 그렇게 해서 ECE를 0.106에서 0.042로 내렸다. 문제는 그 온도를 맞추려면 그 분포의 라벨이 필요하다는 것이고, 프로덕션에서 없는 것이 정확히 그것이다. 게다가 온도는 확률의 순서를 바꾸지 못하므로 자동화 가능 비율은 그만큼 안 올라간다. 그래서 눈금보다 순서가, ECE보다 오차 예산 커버리지가 더 실무적인 지표다.
 
 문서가 예제에 쓴 0.9를 그대로 코드에 박았다면, 이 게이트는 조용히 38건을 잘못 고쳤을 것이다. 에러가 나지 않으므로 알아차리기 어려운 실패다. TypeSafe 문서도 그 예제 바로 아래에 자기 데이터로 시험해 보라고 적어 두었다. 코드에 박히는 것은 대개 그 아래 문장이 아니라 위의 숫자다.
 

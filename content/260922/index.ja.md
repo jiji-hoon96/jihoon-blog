@@ -3,15 +3,16 @@ emoji: 🎲
 title: '決定モデル、Jev と Kev'
 seoTitle: 'TypeSafe JevとKevで検証する決定モデルのconfidence閾値とキャリブレーション'
 date: '2026-09-22'
+updatedAt: '2026-10-08'
 categories: AI キャリブレーション
 description: 'テキストの代わりに確率を返すモデルJevが公開された。confidenceは学習された値ではなく算術であり、キャリブレーションはモデルではなく分布の性質だ。公開されたJevの実測5,743件と、再現実装Kevをこのブログの音写ゲートに直接かけた結果で確かめる。'
-keywords: 'Jev, TypeSafe AI, System Oneモデル, RLCD, モデルキャリブレーション, ECE, RLHF 過信, confidence しきい値, 意思決定モデル, Kev オープンソース, Jev 活用事例'
+keywords: 'Jev, TypeSafe AI, System Oneモデル, RLCD, モデルキャリブレーション, ECE, confidence しきい値, 意思決定モデル, Kev オープンソース, Jev 活用事例'
 locale: ja
 translationOf: '260922'
-sourceHash: 6cee92c77bd8cd7cc8b115142f94b9880919a1c4d8ae265bd8a0e4738421703a
+sourceHash: 966cedd7c0143dde34129e34ea80c0b3cf6c838277523dae23929576711e8943
 ---
 
-今回の記事では、テキストを生成しないモデルについて話してみたい。先週 TypeSafe AI が Jev を公開した。
+今回の記事では、先週 TypeSafe AI が公開した、テキストの代わりに確率を返すモデル Jev について話してみたい。モデルが返した確率にしきい値をかけて、人の確認なしに自動処理したい開発者のための記事だ。最後まで読めば、Jev の `confidence` がどう計算されるのか、キャリブレーションが分布によってどれだけ動くのか、そしてしきい値を自分のデータで決める手順が得られる。
 
 最初に目に入った用途はブラウザ自動化だった。Browserbase が Stagehand の `act()` に Jev をつなぐ [PR](https://github.com/browserbase/stagehand/pull/2953) を出した。ページの:term[アクセシビリティツリー]{key="accessibility-tree"}を `state` として送り、「次にクリックする要素はどれか」を選択肢で問う構造だった。40 個の課題で `act()` の中央値が 1.97 秒から 0.46 秒に縮み、147 回の操作のうち LLM に戻ったのは 4 回だった。Playwright スクリプトが selector 一つ変わるだけで壊れる場所を、確率を一つ返してもらう呼び出しで埋めたわけだ。この記事を書いている時点で PR はまだマージされていない。
 
@@ -53,23 +54,7 @@ Archer Hume という開発者が API を約1万回呼び出し、外側から�
 
 ところで、なぜ新しい学習法が必要だったのだろうか。既存のモデルに「はい」か「いいえ」だけを答えさせてはいけないのだろうか。
 
-:term[RLHF]{key="rlhf"}（reinforcement learning from human feedback）の系譜に答えがある。人の選好比較から報酬モデルを立てる骨格は [Christiano らの2017年の論文](https://arxiv.org/abs/1706.03741)で生まれ、[Stiennon らが2020年](https://arxiv.org/abs/2009.01325)に言語モデルへ適用し、InstructGPT が指示追従へ拡張した。三つの論文が共有する目的関数は一つだ。**人間の評価者がより選好する出力を出すこと。**
-
-ここで正解率と:term[キャリブレーション]{key="calibration"}を区別しなければならない。正解率は何パーセント当てるかであり、キャリブレーションは自分が何パーセント当てるかを知っているかどうかだ。降水確率70%と言った日だけを集めたとき、実際に10回のうち7回雨が降ったなら、その予報はキャリブレーションがよく取れている。正解率が高いという意味ではない。自分の限界を知っているという意味だ。**60%しか当てないモデルでも、自分で60%だと言えばキャリブレーションは満点である。**
-
-そのズレを測る指標が :term[ECE]{key="ece"}（expected calibration error）だ。確率の区間ごとに「言った確率」と「実際の的中率」の差を、その区間の標本比率で重み付けして平均した値で、0が完璧である。
-
-チャットボットにとって、人の選好は正しい目標だ。問題は、人が歯切れの悪い答えより自信のある答えを好むところにある。そのためモデルは、曖昧なときでも断定的に話す癖をつける。TypeSafe のドキュメントはこれを [mode dropping](https://docs.typesafe.ai/introduction/machine-learning-primer) と呼ぶ。選好の最適化が特定のスタイルを偏愛するようモデルを押しやり、他のありうる出力の確率を押し潰してしまうという話だ。
-
-OpenAI も同じことを自社のレポートに書いている。[GPT-4 技術レポート](https://arxiv.org/abs/2303.08774)の Figure 8 は事前学習モデルと post-training モデルのキャリブレーション曲線を並べて置いているが、そのキャプションがこうだ。
-
-![GPT-4 テクニカルレポートの Figure 8。左の事前学習モデルの較正曲線は対角線に沿い ECE 0.007、右の PPO 後モデルは対角線から大きく下に外れて ECE 0.074](2.png?w=720)
-
-出典: OpenAI, GPT-4 Technical Report (arXiv:2303.08774), Figure 8.
-
-> Right: Calibration plot of the post-trained GPT-4 model on the same subset of MMLU. The post-training hurts calibration significantly.
-
-図に刻まれた数字では、事前学習モデルの ECE が **0.007** で、PPO を経たモデルが **0.074** だ。10倍以上悪くなった。人を満足させるよう仕上げる過程で、自分が何パーセント当てるかを知る能力が削られたのである。
+答えの手がかりは:term[キャリブレーション]{key="calibration"}にある。正解率が何パーセント当てるかなら、キャリブレーションは自分が何パーセント当てるかを知っているかどうかであり、そのズレを測る指標が :term[ECE]{key="ece"}（expected calibration error）だ。確率の区間ごとに言った確率と実際の的中率の差を標本比率で重み付けして平均した値で、0が完璧である。ところが、人の選好を最適化する :term[RLHF]{key="rlhf"}（reinforcement learning from human feedback）を経た後に、この目盛りがずれた例がある。[GPT-4 技術レポート](https://arxiv.org/abs/2303.08774)の Figure 8 では、事前学習モデルの ECE が **0.007** だったのに対し、post-training を経たモデルは **0.074** と10倍以上悪くなった。レポートはその原因を書いておらず、筆者も原因を確定する一次資料は見つけられなかった。定義と、原因がどこまで明らかになっているかは[LLMのキャリブレーションと過信](/260917)に別にまとめておいた。
 
 **ただし ECE 一つでは足りない。** すべての入力に0.6を出す定数予測器でも、実際の的中率が60%なら ECE は0になる。確率が正直なだけで案件ごとに分かれないなら、線を引く場所がない。だからキャリブレーションとは別に、**確率が実際に分かれるか**も一緒に見なければならず、後で使う「誤差予算の中で自動処理できる比率」が、その二つを一つの数字にまとめた指標である。
 
