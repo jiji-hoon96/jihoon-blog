@@ -9,7 +9,7 @@ description: "Onde a lógica de domínio deve ficar no frontend, com um exemplo 
 keywords: "modelo de domínio no frontend, design orientado a domínio, DDD no frontend, Frontend DDD, separação da lógica de domínio, Anemic Domain Model, modelo de domínio anêmico, Clean Architecture no frontend, Martin Fowler, padrões de design React, arquitetura frontend, separação de ViewModel, Bounded Context"
 locale: pt-BR
 translationOf: '260418'
-sourceHash: 659a241fbc2d3b77ab61c966dfa3259ca0a56f01208faf6e0a3e6fb8fc89c65b
+sourceHash: 3710613d8d4eb4c17a551b41f7ccd5ef860b5df145a5b1b524f1ef0b80c8abd8
 ---
 
 Neste post, quero falar sobre **onde a lógica de domínio deve ficar no frontend**.
@@ -23,7 +23,7 @@ Todos os exemplos usam o cálculo do imposto de renda, um domínio que me intere
 
 ## Onde a lógica de domínio deve ficar no frontend?
 
-Antes de responder, vamos alinhar um termo. Neste post, um **modelo de domínio** reúne os conceitos de negócio junto com as regras que operam sobre eles. Ele é diferente de um **modelo de dados**, como o tipo de uma resposta da API, que só define o formato em que os dados trafegam. Essa diferença também explica por que, quando os componentes dependem diretamente da estrutura da resposta, todo o frontend balança a cada mudança no schema do backend. Como os quatro termos (domínio, modelo de domínio, objeto de domínio e modelo de objetos de domínio) se diferenciam está explicado à parte em [Termos de domínio](/260927).
+Antes de responder, vamos alinhar um termo. Neste post, um **modelo de domínio** reúne os conceitos de negócio junto com as regras que operam sobre eles. Ele é diferente de um **modelo de dados**, como o tipo de uma resposta da API, que só define o formato em que os dados trafegam. Essa diferença também explica por que, quando os componentes dependem diretamente da estrutura da resposta, todo o frontend balança a cada mudança no schema do backend. Como os quatro termos (domínio, modelo de domínio, objeto de domínio e modelo de objetos de domínio) se diferenciam está explicado à parte em [Termos de domínio](/260413).
 
 [Khalil Stemmler](https://khalilstemmler.com/about/), que se interessa profundamente por design de software, primeiro defendeu que "a lógica de negócio não pertence ao frontend". Mais tarde, reviu sua posição e afirmou: "Podemos e devemos fazer no frontend quase tudo o que fazemos arquiteturalmente no backend."
 

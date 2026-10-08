@@ -2,7 +2,7 @@
 emoji: 📖
 title: "도메인 용어"
 seoTitle: "도메인, 도메인 모델, 도메인 오브젝트의 차이: 프론트엔드 개발자를 위한 정리"
-date: "2026-09-27"
+date: "2026-04-13"
 categories: 프론트엔드 아키텍처 DDD
 description: "도메인, 도메인 모델, 도메인 오브젝트, 도메인 오브젝트 모델이 어떻게 다른지 Eric Evans와 Martin Fowler의 정의로 정리한다. API 응답 타입이 왜 도메인 모델이 아닌지, Entity와 Value Object를 어떻게 구분하는지 종합소득세 예시로 설명한다."
 keywords: "도메인 모델, 도메인 오브젝트, 도메인 오브젝트 모델, 도메인 모델 데이터 모델 차이, Entity Value Object, 도메인 주도 설계 용어, DDD 프론트엔드, Eric Evans"

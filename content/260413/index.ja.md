@@ -2,13 +2,13 @@
 emoji: 📖
 title: "ドメイン用語"
 seoTitle: "ドメイン、ドメインモデル、ドメインオブジェクトの違い: フロントエンド開発者向けの整理"
-date: "2026-09-27"
+date: "2026-04-13"
 categories: フロントエンド アーキテクチャ DDD
 description: "ドメイン、ドメインモデル、ドメインオブジェクト、ドメインオブジェクトモデルの違いをEric EvansとMartin Fowlerの定義で整理する。APIレスポンスの型がなぜドメインモデルではないのか、EntityとValue Objectをどう区別するのかを総合所得税の例で説明する。"
 keywords: "ドメインモデル, ドメインオブジェクト, ドメインオブジェクトモデル, ドメインモデル データモデル 違い, Entity Value Object, ドメイン駆動設計 用語, DDD フロントエンド, Eric Evans"
 locale: ja
-translationOf: '260927'
-sourceHash: 4cfc49adccec644b3c8e8010fb2c1d282e147c7aa47596cef38fd79f8a1adab8
+translationOf: '260413'
+sourceHash: c44630b259f5c6692b591bff280ce59e22263c54168a8cd07887817db1f56727
 ---
 
 今回の記事では、**ドメイン、ドメインモデル、ドメインオブジェクト、ドメインオブジェクトモデルがそれぞれどう違うのか**について話してみたい。
