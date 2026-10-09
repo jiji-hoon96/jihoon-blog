@@ -179,37 +179,41 @@ export default async function ResumePage({
             </a>
           </div>
 
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {repos.map(({ repo, owner, name, count, url }) => (
-              <li key={repo}>
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center gap-3 rounded-xl border border-mineral px-3.5 py-2.5 transition-colors hover:border-accent"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/oss/${owner}.png`}
-                    alt=""
-                    width={20}
-                    height={20}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-5 w-5 shrink-0 rounded-md"
-                  />
-                  <span className="min-w-0 flex-1 truncate text-[0.9375rem]">
-                    <span className="text-stone">{owner}/</span>
-                    <span className="font-bold text-ink transition-colors group-hover:text-accent">
-                      {name}
+          {/*
+            위의 링크 버튼과 같은 알약 모양이다. 조직은 로고가 말해 주므로 글자는
+            저장소 이름만 둔다. 전체 이름과 머지 수는 접근 가능한 이름과 툴팁에 넣는다.
+          */}
+          <ul className="flex flex-wrap gap-2">
+            {repos.map(({ repo, owner, name, count, url }) => {
+              const label = `${repo} · ${interpolate(dictionary.resume.openSource.merged, { count })}`
+              return (
+                <li key={repo}>
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    title={label}
+                    className="inline-flex h-10 items-center gap-2 rounded-full border border-mineral pl-2 pr-3.5 text-stone transition-colors hover:border-accent hover:text-accent"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/oss/${owner}.png`}
+                      alt=""
+                      width={22}
+                      height={22}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-[22px] w-[22px] shrink-0 rounded-full"
+                    />
+                    <span className="text-xs font-bold tracking-[0.02em]">{name}</span>
+                    <span aria-hidden="true" className="text-xs tabular-nums opacity-70">
+                      {count}
                     </span>
-                  </span>
-                  <span className="shrink-0 rounded-full bg-mineral px-2 text-xs leading-5 tabular-nums text-stone">
-                    {count}
-                  </span>
-                </a>
-              </li>
-            ))}
+                  </a>
+                </li>
+              )
+            })}
           </ul>
         </section>
       </div>
