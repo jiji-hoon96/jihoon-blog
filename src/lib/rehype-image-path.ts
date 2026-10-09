@@ -13,6 +13,29 @@ import { imageSize } from 'image-size'
  *  - 비디오에 preload="metadata", playsInline 주입 (대역폭 절감 + LCP)
  *  - alt 텍스트 누락 시 빌드 경고 (이미지 SEO + 접근성)
  */
+/**
+ * SVG 치수는 루트 태그에서 직접 읽는다.
+ *
+ * `image-size` 는 파일 앞부분에서 `<svg ...>` 태그가 닫히는 것을 보고 SVG 로
+ * 판별한다. draw.io 가 내보낸 SVG 는 루트 태그의 `content` 속성에 원본 다이어그램을
+ * 통째로 싣기 때문에 태그가 그 범위 안에서 닫히지 않고, `unsupported file type` 으로
+ * 던진다. 그러면 width/height 가 빠지고 그 그림 하나가 시프트를 만든다(241201/4.svg).
+ */
+function svgSize(source: string): { width?: number; height?: number } {
+  const root = source.match(/<svg\b[\s\S]*?>/)?.[0] ?? ''
+  const attr = (name: string) =>
+    root.match(new RegExp(`\\s${name}="([\\d.]+)(?:px)?"`))?.[1]
+  const width = Number(attr('width'))
+  const height = Number(attr('height'))
+  if (width && height) return { width: Math.round(width), height: Math.round(height) }
+
+  const viewBox = root.match(/\sviewBox="([^"]+)"/)?.[1]?.trim().split(/[\s,]+/)
+  if (viewBox?.length === 4) {
+    return { width: Math.round(Number(viewBox[2])), height: Math.round(Number(viewBox[3])) }
+  }
+  return {}
+}
+
 export function rehypeImagePath() {
   return (tree: Root, file: any) => {
     let folderName = ''
@@ -96,7 +119,9 @@ export function rehypeImagePath() {
               : null
             if (localPath && fs.existsSync(localPath)) {
               const buffer = fs.readFileSync(localPath)
-              const dimensions = imageSize(buffer)
+              const dimensions = localPath.endsWith('.svg')
+                ? svgSize(buffer.toString('utf8'))
+                : imageSize(buffer)
               if (dimensions.width && dimensions.height) {
                 node.properties.width = dimensions.width
                 node.properties.height = dimensions.height

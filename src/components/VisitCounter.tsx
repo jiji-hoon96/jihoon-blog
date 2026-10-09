@@ -4,7 +4,11 @@ import { useEffect, useState } from 'react'
 
 import { getDictionary } from '@/i18n/dictionaries'
 import type { Locale } from '@/i18n/locales'
-import { bumpVisit, type VisitCounts } from '@/lib/visits-client'
+import {
+  bumpVisit,
+  takeEarlyVisit,
+  type VisitCounts,
+} from '@/lib/visits-client'
 
 /**
  * 홈 상단의 방문 수.
@@ -37,7 +41,7 @@ export default function VisitCounter({ locale }: { locale: Locale }) {
   useEffect(() => {
     let alive = true
 
-    void bumpVisit().then(counts => {
+    void (takeEarlyVisit() ?? bumpVisit()).then(counts => {
       if (!alive) return
       setState(counts ?? 'failed')
     })
@@ -51,33 +55,57 @@ export default function VisitCounter({ locale }: { locale: Locale }) {
   const format = new Intl.NumberFormat(locale).format
 
   return (
-    <p className="home-meta min-h-[1.5rem] pt-8 text-stone sm:pt-10">
+    <p
+      className="home-meta min-h-[1.5rem] pt-8 text-stone sm:pt-10"
+      aria-busy={state === 'loading'}
+    >
       {/* 실패해도 마크업을 비우지 않고 `visibility` 로만 감춘다. 줄을 들어내면
           그만큼 아래 본문이 위로 올라와 시프트가 난다(실측 0.019). */}
       <span className={state === 'failed' ? 'invisible' : undefined}>
         {dictionary.home.visitsToday}{' '}
-        <Value width="min-w-[3ch]">{counts && format(counts.today)}</Value>
+        <Value width="min-w-[3ch]" placeholder="w-[2.5ch]">
+          {counts && format(counts.today)}
+        </Value>
         <span aria-hidden="true" className="px-2 text-mineral">
           ·
         </span>
         {dictionary.home.visitsTotal}{' '}
-        <Value width="min-w-[6ch]">{counts && format(counts.total)}</Value>
+        <Value width="min-w-[6ch]" placeholder="w-[5ch]">
+          {counts && format(counts.total)}
+        </Value>
       </span>
     </p>
   )
 }
 
-/** `width` 는 Tailwind 가 빌드 때 훑을 수 있도록 완성된 클래스명으로 받는다. */
+/**
+ * `width` 와 `placeholder` 는 Tailwind 가 빌드 때 훑을 수 있도록 완성된 클래스명으로
+ * 받는다.
+ *
+ * 숫자가 오기 전에는 자리 안에 회색 막대를 깜빡인다. 빈칸으로 두면 응답을 기다리는
+ * 중인지 고장인지 구분되지 않는다. 막대는 `min-w` 로 잡은 자리보다 좁게 둬서 숫자가
+ * 들어와도 줄 폭이 바뀌지 않게 한다. 높이는 글자 높이보다 낮아 줄 높이도 그대로다.
+ * 실패하면 부모가 `invisible` 로 막대까지 같이 감춘다.
+ */
 function Value({
   children,
   width,
+  placeholder,
 }: {
   children: React.ReactNode
   width: string
+  placeholder: string
 }) {
   return (
     <span className={`inline-block tabular-nums ${width}`}>
-      {children && <span className="qa-fade-in inline-block">{children}</span>}
+      {children ? (
+        <span className="qa-fade-in inline-block">{children}</span>
+      ) : (
+        <span
+          aria-hidden="true"
+          className={`inline-block h-[0.85em] ${placeholder} rounded-sm bg-mineral align-[-0.1em] motion-safe:animate-pulse`}
+        />
+      )}
     </span>
   )
 }
