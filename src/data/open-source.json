@@ -1,0 +1,198 @@
+[
+  {
+    "repo": "toss/es-toolkit",
+    "number": 1682,
+    "title": "fix: correct wrong expected values in @example blocks",
+    "url": "https://github.com/toss/es-toolkit/pull/1682",
+    "mergedAt": "2026-04-03"
+  },
+  {
+    "repo": "TanStack/form",
+    "number": 1691,
+    "title": "fix: sync validation errors for delayed-mounted fields",
+    "url": "https://github.com/TanStack/form/pull/1691",
+    "mergedAt": "2025-12-18"
+  },
+  {
+    "repo": "TanStack/router",
+    "number": 4917,
+    "title": "fix(router-core): useBlocker navigation issues for 404 pages and external URLs",
+    "url": "https://github.com/TanStack/router/pull/4917",
+    "mergedAt": "2025-11-23"
+  },
+  {
+    "repo": "colinhacks/zod",
+    "number": 5098,
+    "title": "fix(record): handle non-function constructor field in isPlainObject",
+    "url": "https://github.com/colinhacks/zod/pull/5098",
+    "mergedAt": "2025-11-18"
+  },
+  {
+    "repo": "vitejs/vite",
+    "number": 20924,
+    "title": "perf(module-runner): add client-side builtin module check",
+    "url": "https://github.com/vitejs/vite/pull/20924",
+    "mergedAt": "2025-10-22"
+  },
+  {
+    "repo": "vitejs/vite",
+    "number": 20926,
+    "title": "fix: preserve original sourcemap file field when combining sourcemaps",
+    "url": "https://github.com/vitejs/vite/pull/20926",
+    "mergedAt": "2025-10-14"
+  },
+  {
+    "repo": "toss/overlay-kit",
+    "number": 171,
+    "title": "test : coverage improvement",
+    "url": "https://github.com/toss/overlay-kit/pull/171",
+    "mergedAt": "2025-10-12"
+  },
+  {
+    "repo": "TanStack/form",
+    "number": 1689,
+    "title": "fix(form-core): handle string array indices in prefixSchemaToErrors",
+    "url": "https://github.com/TanStack/form/pull/1689",
+    "mergedAt": "2025-09-24"
+  },
+  {
+    "repo": "colinhacks/zod",
+    "number": 5097,
+    "title": "feat(zod-core): add type property getter to schema instances for runtime type checking",
+    "url": "https://github.com/colinhacks/zod/pull/5097",
+    "mergedAt": "2025-08-21"
+  },
+  {
+    "repo": "TanStack/router",
+    "number": 4915,
+    "title": "feat(router-plugin): add support for boolean and null literals in code splitter",
+    "url": "https://github.com/TanStack/router/pull/4915",
+    "mergedAt": "2025-08-13"
+  },
+  {
+    "repo": "TanStack/router",
+    "number": 4513,
+    "title": "Fix: Preserve cached data during concurrent navigation and refetch",
+    "url": "https://github.com/TanStack/router/pull/4513",
+    "mergedAt": "2025-06-26"
+  },
+  {
+    "repo": "toss/es-hangul",
+    "number": 355,
+    "title": "numberToHangulMixed 함수의 배열 연산을 최적화",
+    "url": "https://github.com/toss/es-hangul/pull/355",
+    "mergedAt": "2025-06-25"
+  },
+  {
+    "repo": "toss/overlay-kit",
+    "number": 167,
+    "title": "refactor: Extract determine current overlay logic to a utility function",
+    "url": "https://github.com/toss/overlay-kit/pull/167",
+    "mergedAt": "2025-06-11"
+  },
+  {
+    "repo": "toss/overlay-kit",
+    "number": 158,
+    "title": "refactor: Replace map with forEach in event emitter",
+    "url": "https://github.com/toss/overlay-kit/pull/158",
+    "mergedAt": "2025-06-11"
+  },
+  {
+    "repo": "TanStack/db",
+    "number": 122,
+    "title": "Fix: Prevent memory leak in transaction management",
+    "url": "https://github.com/TanStack/db/pull/122",
+    "mergedAt": "2025-06-05"
+  },
+  {
+    "repo": "toss/react-simplikit",
+    "number": 239,
+    "title": "feat(hooks): add useLongPress hook",
+    "url": "https://github.com/toss/react-simplikit/pull/239",
+    "mergedAt": "2025-06-01"
+  },
+  {
+    "repo": "TanStack/store",
+    "number": 198,
+    "title": "fix(core): improve setState type safety and remove as any casting",
+    "url": "https://github.com/TanStack/store/pull/198",
+    "mergedAt": "2025-05-29"
+  },
+  {
+    "repo": "toss/es-hangul",
+    "number": 356,
+    "title": "seosusa 함수의 테스트 커버리지를 100%로 개선",
+    "url": "https://github.com/toss/es-hangul/pull/356",
+    "mergedAt": "2025-05-28"
+  },
+  {
+    "repo": "toss/es-toolkit",
+    "number": 1192,
+    "title": "feat(overArgs): Implement overArgs function",
+    "url": "https://github.com/toss/es-toolkit/pull/1192",
+    "mergedAt": "2025-05-23"
+  },
+  {
+    "repo": "toss/es-toolkit",
+    "number": 1176,
+    "title": "fix[maxBy, minBy]: improve type definitions and empty array handling",
+    "url": "https://github.com/toss/es-toolkit/pull/1176",
+    "mergedAt": "2025-05-18"
+  },
+  {
+    "repo": "toss/es-toolkit",
+    "number": 1172,
+    "title": "fix(find.spec, toCamelCaseKeys.bench): Improve test names and function naming",
+    "url": "https://github.com/toss/es-toolkit/pull/1172",
+    "mergedAt": "2025-05-11"
+  },
+  {
+    "repo": "toss/suspensive",
+    "number": 1557,
+    "title": "fix(docs): improve Next.js page component types and structure",
+    "url": "https://github.com/toss/suspensive/pull/1557",
+    "mergedAt": "2025-05-11"
+  },
+  {
+    "repo": "toss/suspensive",
+    "number": 1562,
+    "title": "fix(docs): align sandpack template dependencies with package.json",
+    "url": "https://github.com/toss/suspensive/pull/1562",
+    "mergedAt": "2025-05-09"
+  },
+  {
+    "repo": "toss/overlay-kit",
+    "number": 156,
+    "title": "Fix: Correct typo in create-use-external-events test filename",
+    "url": "https://github.com/toss/overlay-kit/pull/156",
+    "mergedAt": "2025-05-08"
+  },
+  {
+    "repo": "toss/overlay-kit",
+    "number": 155,
+    "title": "refactor: Remove unnecessary type casting",
+    "url": "https://github.com/toss/overlay-kit/pull/155",
+    "mergedAt": "2025-05-08"
+  },
+  {
+    "repo": "toss/suspensive",
+    "number": 1559,
+    "title": "docs: fix code blocks and component props issues",
+    "url": "https://github.com/toss/suspensive/pull/1559",
+    "mergedAt": "2025-05-08"
+  },
+  {
+    "repo": "toss/suspensive",
+    "number": 1558,
+    "title": "docs: fix language inconsistency in Delay.with section",
+    "url": "https://github.com/toss/suspensive/pull/1558",
+    "mergedAt": "2025-05-08"
+  },
+  {
+    "repo": "toss/suspensive",
+    "number": 1556,
+    "title": "fix(docs): remove unreachable code in BubbleChart component",
+    "url": "https://github.com/toss/suspensive/pull/1556",
+    "mergedAt": "2025-05-08"
+  }
+]
