@@ -400,6 +400,11 @@ Netlify 함수 런타임에서 실제 이벤트로 확인한 것들이다. Deplo
 Sentry 구성은 그대로 서버 전용이고 `src/instrumentation-client.ts` 는 여전히 없으므로, 이 증가분은 Sentry 때문이 아니다.
 현재 예산은 `scripts/audit.mjs` 의 `BUDGET.clientJsGzipKb` 에 215 KB 로 박혀 있다. `pnpm audit:repo` 가 매번 확인한다.
 
+**2026-10-09 에 203.3 KB 로 내려왔다.** 클라이언트 컴포넌트 5개(`Header`, `SearchModal`, `ScrollToTop`,
+`CodeCopyButton`, `VisitCounter`)가 `getDictionary` 를 직접 import 해서 6개 로케일 사전 전체가
+모든 페이지에 실리고 있었다. 지금은 서버가 문구를 골라 props 로 넘긴다. **클라이언트 컴포넌트에서
+`@/i18n/dictionaries` 를 import 하지 않는다.** 직전 값은 215.0 KB 로 예산 경계였다.
+
 **증가분의 원인 후보 중 하나는 측정으로 배제됐다.** GA4 소프트 내비게이션 리포터(`cc21a0d`)의
 `pnpm-lock.yaml` diff 는 web-vitals 5.2.0 → 6.2.1 한 줄이고, 두 dist 의 gzip 차이는 935B 다.
 게다가 web-vitals 는 `import('web-vitals')` 로 지연 로드돼 first load 에 들어가지도 않는다.

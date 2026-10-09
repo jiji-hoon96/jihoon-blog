@@ -260,7 +260,7 @@ export default async function PostPage({ params }: Props) {
           entries={glossary}
           closeLabel={dictionary.post.closeGlossary}
         />
-        <CodeCopyButton locale={lang} />
+        <CodeCopyButton label={getDictionary(lang).actions.copyCode} />
         <InteractiveWidgets locale={lang} />
 
       {/* Post Navigation */}

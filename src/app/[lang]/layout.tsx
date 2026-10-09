@@ -16,7 +16,7 @@ import {
 	toPublicPath,
 	type Locale,
 } from "@/i18n/locales";
-import { getDictionary } from "@/i18n/dictionaries";
+import { getDictionary, getHeaderLabels } from "@/i18n/dictionaries";
 import { getOpenGraphLocale } from "@/lib/localized-metadata";
 import "../globals.css";
 
@@ -161,7 +161,7 @@ export default async function RootLayout({
 						{getDictionary(shellLang).actions.skipToContent}
 					</a>
 					<div className="flex min-h-screen flex-col">
-						<Header locale={shellLang} />
+						<Header locale={shellLang} labels={getHeaderLabels(shellLang)} />
 						<main
 							id="main-content"
 							className="mx-auto w-full max-w-[var(--width-content)] px-4 flex-1"
@@ -170,7 +170,7 @@ export default async function RootLayout({
 						</main>
 						<Footer locale={shellLang} />
 					</div>
-					<ScrollToTop locale={shellLang} />
+					<ScrollToTop label={getDictionary(shellLang).actions.backToTop} />
 				</ThemeProvider>
 
 				{/* Google Analytics */}

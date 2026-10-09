@@ -4,12 +4,33 @@ import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { siteMetadata } from "@/lib/site-metadata";
-import SearchModal from "./SearchModal";
+import SearchModal, { type SearchLabels } from "./SearchModal";
 import LanguageSelector from "./LanguageSelector";
-import { getDictionary } from "@/i18n/dictionaries";
 import { toPublicPath, type Locale } from "@/i18n/locales";
 
-export default function Header({ locale }: { locale: Locale }) {
+export type HeaderLabels = {
+  posts: string;
+  resume: string;
+  main: string;
+  changeTheme: string;
+  openMenu: string;
+  closeMenu: string;
+  search: SearchLabels;
+};
+
+/**
+ * 문구는 서버에서 골라 props 로 받는다. 여기서 `getDictionary` 를 부르면 6개 로케일
+ * 사전 전체가 모든 페이지의 client JS 에 실린다(2026-10-09 실측 gzip 22KB 청크).
+ * `ScrollToTop`, `CodeCopyButton`, `SearchModal`, `VisitCounter` 도 같은 이유로
+ * 문구를 props 로 받는다.
+ */
+export default function Header({
+  locale,
+  labels,
+}: {
+  locale: Locale;
+  labels: HeaderLabels;
+}) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
   const mounted = useSyncExternalStore(
@@ -18,11 +39,10 @@ export default function Header({ locale }: { locale: Locale }) {
     () => false,
   );
 
-  const dictionary = getDictionary(locale);
   const homePath = toPublicPath(locale, "/");
   const navLinks = [
-    { href: toPublicPath(locale, "/posts"), label: dictionary.navigation.posts },
-    { href: toPublicPath(locale, "/resume"), label: dictionary.resume.title },
+    { href: toPublicPath(locale, "/posts"), label: labels.posts },
+    { href: toPublicPath(locale, "/about"), label: labels.resume },
   ];
 
   const toggleTheme = () => {
@@ -44,7 +64,7 @@ export default function Header({ locale }: { locale: Locale }) {
   return (
     <header className="border-b border-mineral">
       <nav
-        aria-label={dictionary.navigation.main}
+        aria-label={labels.main}
         className="mx-auto max-w-[var(--width-shell)] px-4 py-5"
       >
         <div className="flex items-center justify-between gap-8">
@@ -66,13 +86,13 @@ export default function Header({ locale }: { locale: Locale }) {
                 </Link>
               </li>
             ))}
-            <li><SearchModal locale={locale} trigger="text" /></li>
+            <li><SearchModal locale={locale} labels={labels.search} trigger="text" /></li>
             <li><LanguageSelector locale={locale} /></li>
             <li>
               <button
                 onClick={toggleTheme}
                 className={utilityClass}
-                aria-label={`${themeLabel}: ${dictionary.actions.changeTheme}`}
+                aria-label={`${themeLabel}: ${labels.changeTheme}`}
               >
                 {themeLabel}
               </button>
@@ -83,7 +103,7 @@ export default function Header({ locale }: { locale: Locale }) {
             <button
               onClick={toggleTheme}
               className={utilityClass}
-              aria-label={`${themeLabel}: ${dictionary.actions.changeTheme}`}
+              aria-label={`${themeLabel}: ${labels.changeTheme}`}
             >
               {themeLabel}
             </button>
@@ -92,7 +112,7 @@ export default function Header({ locale }: { locale: Locale }) {
               onClick={() => setIsMenuOpen((open) => !open)}
               aria-expanded={isMenuOpen}
               aria-label={`${menuLabel}: ${
-                isMenuOpen ? dictionary.actions.closeMenu : dictionary.actions.openMenu
+                isMenuOpen ? labels.closeMenu : labels.openMenu
               }`}
             >
               {menuLabel}
@@ -110,7 +130,7 @@ export default function Header({ locale }: { locale: Locale }) {
                   </Link>
                 </li>
               ))}
-              <li><SearchModal locale={locale} trigger="text" /></li>
+              <li><SearchModal locale={locale} labels={labels.search} trigger="text" /></li>
               <li><LanguageSelector locale={locale} /></li>
             </ul>
           </div>

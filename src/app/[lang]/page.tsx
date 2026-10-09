@@ -53,7 +53,13 @@ export default async function HomePage({
         {/* hydration 을 기다리지 않고 방문 증가 요청을 먼저 보낸다. 받는 쪽은
             `VisitCounter` 다. 이유는 `visits-client.ts` 의 `takeEarlyVisit`. */}
         <script dangerouslySetInnerHTML={{ __html: earlyVisitScript }} />
-        <VisitCounter locale={lang} />
+        <VisitCounter
+          locale={lang}
+          labels={{
+            today: dictionary.home.visitsToday,
+            total: dictionary.home.visitsTotal,
+          }}
+        />
 
         <section
           aria-label={siteMetadata.brand}

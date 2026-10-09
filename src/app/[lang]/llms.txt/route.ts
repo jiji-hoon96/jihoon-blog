@@ -34,7 +34,7 @@ export async function GET(
     // 모든 글의 JSON-LD 가 가리키는 `#person` 을 설명하는 페이지다.
     // AI 검색 도구가 「이 블로그를 쓰는 사람은 누구인가」를 물을 때 여기로 보낸다.
     resume: {
-      path: toPublicPath(lang, '/resume'),
+      path: toPublicPath(lang, '/about'),
       title: dictionary.resume.title,
       description: dictionary.resume.description,
     },
