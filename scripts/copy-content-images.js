@@ -5,6 +5,32 @@ const CONTENT_DIR = path.join(__dirname, '../content')
 const PUBLIC_DIR = path.join(__dirname, '../public/content')
 const IMAGE_REGEX = /\.(jpg|jpeg|png|gif|webp|svg|heic|avif|bmp|ico|mov|mp4|webm)$/i
 
+/**
+ * 본문 그림의 WebP 사본을 폭별로 만든다. `1.png` 옆에 `1.720w.webp`,
+ * `1.1440w.webp`, 원본 폭의 `1.1600w.webp` 가 생기고, `rehype-image-path.ts` 가
+ * 이 파일들을 찾아 `<picture>` 의 `srcset` 으로 건다.
+ *
+ * 2026-10-09 에 261001 을 재 보니 본문 폭 720px 자리에 1600px PNG 를 장당
+ * 100~380KB 씩 받고 있었다. 치수 속성은 있어서 레이아웃은 밀리지 않았지만
+ * 빈 칸이 늦게 채워졌다.
+ *
+ * 사본은 git 에 넣지 않는다(.gitignore). 빌드가 매번 만들고, 원본보다 새것이면
+ * 건너뛴다. GIF 와 SVG 는 대상이 아니다. 움직임과 벡터를 잃는다.
+ */
+const VARIANT_SOURCE_REGEX = /\.(png|jpe?g)$/i
+const VARIANT_REGEX = /^(.+)\.(\d+)w\.webp$/
+const VARIANT_WIDTHS = [720, 1440]
+
+/**
+ * sharp 는 의존성에 따로 넣지 않고 Next 가 함께 설치한 것을 쓴다. 직접 추가하면
+ * pnpm 이 `@opentelemetry/api` 의 해석까지 바꿔서 Sentry 와 Next 의 의존성이
+ * 같이 움직였다.
+ */
+function loadSharp() {
+  const nextDir = path.dirname(require.resolve('next/package.json'))
+  return require(require.resolve('sharp', { paths: [nextDir] }))
+}
+
 async function copyAllImages() {
   console.log('📸 Copying content images...')
   console.log(`From: ${CONTENT_DIR}`)
@@ -19,10 +45,47 @@ async function copyAllImages() {
     },
   })
 
+  const generated = await generateAllVariants()
   const removed = await pruneOrphans()
   const folders = await fs.readdir(PUBLIC_DIR)
   const prunedNote = removed.length ? ` 🧹 Pruned: ${removed.length}` : ''
-  console.log(`✅ Images copied successfully! 📁 Total folders: ${folders.length}${prunedNote}`)
+  const variantNote = generated ? ` 🖼  WebP: ${generated}` : ''
+  console.log(`✅ Images copied successfully! 📁 Total folders: ${folders.length}${prunedNote}${variantNote}`)
+}
+
+async function generateAllVariants() {
+  let count = 0
+  for (const dir of await fs.readdir(CONTENT_DIR)) {
+    const sourceDir = path.join(CONTENT_DIR, dir)
+    if (!(await fs.stat(sourceDir)).isDirectory()) continue
+    for (const file of await fs.readdir(sourceDir)) {
+      if (!VARIANT_SOURCE_REGEX.test(file)) continue
+      count += await generateVariants(path.join(dir, file))
+    }
+  }
+  return count
+}
+
+/** `relativePath` 는 `content/` 기준이다. 새로 만든 파일 수를 돌려준다. */
+async function generateVariants(relativePath) {
+  const sharp = loadSharp()
+  const sourcePath = path.join(CONTENT_DIR, relativePath)
+  const { width } = await sharp(sourcePath).metadata()
+  if (!width) return 0
+
+  const stem = relativePath.replace(VARIANT_SOURCE_REGEX, '')
+  const sourceTime = (await fs.stat(sourcePath)).mtimeMs
+  const widths = [...VARIANT_WIDTHS.filter((w) => w < width), width]
+  let made = 0
+
+  for (const w of widths) {
+    const target = path.join(PUBLIC_DIR, `${stem}.${w}w.webp`)
+    if ((await fs.pathExists(target)) && (await fs.stat(target)).mtimeMs >= sourceTime) continue
+    await fs.ensureDir(path.dirname(target))
+    await sharp(sourcePath).resize({ width: w }).webp({ quality: 82 }).toFile(target)
+    made += 1
+  }
+  return made
 }
 
 /**
@@ -52,14 +115,28 @@ async function pruneOrphans() {
       continue
     }
 
+    const sources = await fs.readdir(sourcePath)
     for (const file of await fs.readdir(copiedPath)) {
-      if (await fs.pathExists(path.join(sourcePath, file))) continue
+      if (sources.includes(file)) continue
+      // WebP 사본은 같은 이름의 원본이 있으면 남긴다. 원본 폭이 바뀌어 더 이상
+      // 만들지 않는 폭의 사본은 다음 빌드가 다시 만들지 않으므로 여기서 지운다.
+      const variant = file.match(VARIANT_REGEX)
+      if (variant && (await isLiveVariant(sourcePath, sources, variant[1], Number(variant[2])))) continue
       await fs.remove(path.join(copiedPath, file))
       removed.push(`${name}/${file}`)
     }
   }
 
   return removed
+}
+
+async function isLiveVariant(sourceDir, sources, stem, width) {
+  const source = sources.find(
+    (name) => VARIANT_SOURCE_REGEX.test(name) && name.replace(VARIANT_SOURCE_REGEX, '') === stem,
+  )
+  if (!source) return false
+  const { width: sourceWidth } = await loadSharp()(path.join(sourceDir, source)).metadata()
+  return width === sourceWidth || (VARIANT_WIDTHS.includes(width) && width < sourceWidth)
 }
 
 function startWatching() {
@@ -83,6 +160,7 @@ function startWatching() {
           if (await fs.pathExists(srcPath)) {
             await fs.ensureDir(path.dirname(destPath))
             await fs.copy(srcPath, destPath)
+            if (VARIANT_SOURCE_REGEX.test(filename)) await generateVariants(filename)
             console.log(`  ↻ synced ${filename}`)
           } else {
             await fs.remove(destPath)
