@@ -339,6 +339,31 @@ const dictionaries: Record<Locale, Dictionary> = {
   },
 }
 
+/**
+ * 헤더가 쓰는 문구만 고른다. 서버에서 불러 `Header` 에 props 로 넘긴다.
+ * 클라이언트 컴포넌트가 이 모듈을 import 하면 사전 전체가 번들에 실린다.
+ */
+export function getHeaderLabels(locale: Locale) {
+  const dictionary = getDictionary(locale)
+  return {
+    posts: dictionary.navigation.posts,
+    resume: dictionary.resume.title,
+    main: dictionary.navigation.main,
+    changeTheme: dictionary.actions.changeTheme,
+    openMenu: dictionary.actions.openMenu,
+    closeMenu: dictionary.actions.closeMenu,
+    search: {
+      search: dictionary.actions.search,
+      clearSearch: dictionary.actions.clearSearch,
+      placeholder: dictionary.search.placeholder,
+      loading: dictionary.search.loading,
+      empty: dictionary.search.empty,
+      help: dictionary.search.help,
+      shortcut: dictionary.search.shortcut,
+    },
+  }
+}
+
 export function interpolate(
   template: string,
   values: Record<string, string | number>,

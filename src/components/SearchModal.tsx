@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { getDictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/locales";
 
 interface Post {
@@ -12,11 +11,23 @@ interface Post {
   category: string;
 }
 
+export type SearchLabels = {
+  search: string;
+  clearSearch: string;
+  placeholder: string;
+  loading: string;
+  empty: string;
+  help: string;
+  shortcut: string;
+};
+
 export default function SearchModal({
   locale,
+  labels,
   trigger = "icon",
 }: {
   locale: Locale;
+  labels: SearchLabels;
   trigger?: "icon" | "text";
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +37,6 @@ export default function SearchModal({
   const inputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const dictionary = getDictionary(locale);
 
   const openSearch = useCallback(() => {
     setIsOpen(true);
@@ -139,9 +149,9 @@ export default function SearchModal({
             ? "home-meta cursor-pointer text-stone transition-colors hover:text-accent"
             : "p-2 transition-colors hover:text-accent cursor-pointer"
         }
-        aria-label={dictionary.actions.search}
+        aria-label={labels.search}
       >
-        {trigger === "text" ? dictionary.actions.search : <svg
+        {trigger === "text" ? labels.search : <svg
           width="20"
           height="20"
           viewBox="0 0 24 24"
@@ -166,7 +176,7 @@ export default function SearchModal({
             ref={modalRef}
             role="dialog"
             aria-modal="true"
-            aria-label={dictionary.actions.search}
+            aria-label={labels.search}
             className="qa-rise-in mx-4 w-full max-w-xl overflow-hidden border border-light-gray20 bg-light-white100 shadow-2xl dark:border-dark-gray20 dark:bg-dark-white100"
           >
             {/* Search Input */}
@@ -190,14 +200,14 @@ export default function SearchModal({
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={dictionary.search.placeholder}
-                aria-label={dictionary.actions.search}
+                placeholder={labels.placeholder}
+                aria-label={labels.search}
                 className="flex-1 py-4 bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[var(--qa-accent)] text-light-black100 dark:text-dark-black100 placeholder:text-light-gray60 dark:placeholder:text-dark-gray60"
               />
               {query && (
                 <button
                   onClick={() => setQuery("")}
-                  aria-label={dictionary.actions.clearSearch}
+                  aria-label={labels.clearSearch}
                   className="cursor-pointer p-1 text-light-gray60 hover:text-light-black100 dark:text-dark-gray60 dark:hover:text-dark-black100"
                 >
                   <svg
@@ -222,12 +232,12 @@ export default function SearchModal({
             <div className="max-h-[60vh] overflow-y-auto">
               {loading && (
                 <div className="qa-fade-in px-4 py-8 text-center text-light-gray60 dark:text-dark-gray60">
-                  {dictionary.search.loading}
+                  {labels.loading}
                 </div>
               )}
               {!loading && query && results.length === 0 && (
                 <div className="qa-fade-in px-4 py-8 text-center text-light-gray60 dark:text-dark-gray60">
-                  &apos;{query}&apos;: {dictionary.search.empty}
+                  &apos;{query}&apos;: {labels.empty}
                 </div>
               )}
               {results.length > 0 && (
@@ -257,12 +267,12 @@ export default function SearchModal({
               )}
               {!loading && !query && (
                 <div className="px-4 py-8 text-center text-sm text-light-gray60 dark:text-dark-gray60">
-                  <p>{dictionary.search.help}</p>
+                  <p>{labels.help}</p>
                   <p className="mt-2 text-xs">
                     <kbd className="px-1.5 py-0.5 bg-light-gray10 dark:bg-dark-gray10 rounded">⌘</kbd>
                     {" + "}
                     <kbd className="px-1.5 py-0.5 bg-light-gray10 dark:bg-dark-gray10 rounded">K</kbd>
-                    {` ${dictionary.search.shortcut}`}
+                    {` ${labels.shortcut}`}
                   </p>
                 </div>
               )}

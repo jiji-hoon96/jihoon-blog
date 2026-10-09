@@ -2,12 +2,9 @@
 
 import { useState, useEffect } from "react";
 
-import { getDictionary } from "@/i18n/dictionaries";
-import type { Locale } from "@/i18n/locales";
 
-export default function ScrollToTop({ locale }: { locale: Locale }) {
+export default function ScrollToTop({ label }: { label: string }) {
   const [isVisible, setIsVisible] = useState(false);
-  const dictionary = getDictionary(locale);
 
   useEffect(() => {
     const toggleVisibility = () => {
@@ -34,7 +31,7 @@ export default function ScrollToTop({ locale }: { locale: Locale }) {
     <button
       onClick={scrollToTop}
       className="qa-pop-in group fixed bottom-6 right-6 z-40 rounded-full bg-light-black100 p-3 text-light-white100 shadow-lg transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-xl active:translate-y-0 active:scale-95 motion-reduce:transition-none motion-reduce:hover:translate-y-0 dark:bg-dark-black100 dark:text-dark-white100"
-      aria-label={dictionary.actions.backToTop}
+      aria-label={label}
     >
       <svg
         width="20"

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 
-import { getDictionary } from '@/i18n/dictionaries'
 import type { Locale } from '@/i18n/locales'
 import {
   bumpVisit,
@@ -32,11 +31,16 @@ import {
  *
  * 실패하면 줄을 통째로 숨긴다. 「오늘 · 전체」만 남으면 고장이 정상처럼 보인다.
  */
-export default function VisitCounter({ locale }: { locale: Locale }) {
+export default function VisitCounter({
+  locale,
+  labels,
+}: {
+  locale: Locale
+  labels: { today: string; total: string }
+}) {
   const [state, setState] = useState<VisitCounts | 'loading' | 'failed'>(
     'loading',
   )
-  const dictionary = getDictionary(locale)
 
   useEffect(() => {
     let alive = true
@@ -62,14 +66,14 @@ export default function VisitCounter({ locale }: { locale: Locale }) {
       {/* 실패해도 마크업을 비우지 않고 `visibility` 로만 감춘다. 줄을 들어내면
           그만큼 아래 본문이 위로 올라와 시프트가 난다(실측 0.019). */}
       <span className={state === 'failed' ? 'invisible' : undefined}>
-        {dictionary.home.visitsToday}{' '}
+        {labels.today}{' '}
         <Value width="min-w-[3ch]" placeholder="w-[2.5ch]">
           {counts && format(counts.today)}
         </Value>
         <span aria-hidden="true" className="px-2 text-mineral">
           ·
         </span>
-        {dictionary.home.visitsTotal}{' '}
+        {labels.total}{' '}
         <Value width="min-w-[6ch]" placeholder="w-[5ch]">
           {counts && format(counts.total)}
         </Value>
