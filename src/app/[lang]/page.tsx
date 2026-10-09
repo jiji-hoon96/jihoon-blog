@@ -9,6 +9,7 @@ import { formatHomepageDate, getHomepagePosts } from "@/lib/homepage-index";
 import { getPostsForLocale } from "@/lib/localized-posts";
 import { siteMetadata } from "@/lib/site-metadata";
 import VisitCounter from "@/components/VisitCounter";
+import { earlyVisitScript } from "@/lib/visits-client";
 
 export default async function HomePage({
   params,
@@ -49,6 +50,9 @@ export default async function HomePage({
       />
 
       <div className="pb-20 sm:pb-28">
+        {/* hydration 을 기다리지 않고 방문 증가 요청을 먼저 보낸다. 받는 쪽은
+            `VisitCounter` 다. 이유는 `visits-client.ts` 의 `takeEarlyVisit`. */}
+        <script dangerouslySetInnerHTML={{ __html: earlyVisitScript }} />
         <VisitCounter locale={lang} />
 
         <section
