@@ -13,12 +13,15 @@
  * 사용: `pnpm oss:sync` (gh CLI 로그인이 필요하다)
  */
 import { execFileSync } from 'node:child_process'
-import { writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 const AUTHOR = 'jiji-hoon96'
 const SCOPES = ['org:TanStack', 'org:vitejs', 'org:toss', 'repo:colinhacks/zod', 'org:facebook', 'org:reactjs']
 const OUTPUT = fileURLToPath(new URL('../src/data/open-source.json', import.meta.url))
+// 조직 아바타도 같이 받아 둔다. 화면에서 github.com 이미지를 직접 걸면 방문마다
+// 남의 origin 에 요청이 나가고, 48px 네 장이라 리포에 두는 편이 싸다.
+const AVATAR_DIR = fileURLToPath(new URL('../public/oss/', import.meta.url))
 
 function search(scope) {
   const raw = execFileSync(
@@ -41,4 +44,15 @@ const pulls = SCOPES.flatMap(search).sort(
   (a, b) => b.mergedAt.localeCompare(a.mergedAt) || a.repo.localeCompare(b.repo),
 )
 writeFileSync(OUTPUT, `${JSON.stringify(pulls, null, 2)}\n`)
+
+// GitHub 는 아바타를 PNG 와 JPEG 로 섞어 준다. 확장자를 하나로 두려고 sharp 로 PNG 로 바꾼다.
+const { createRequire } = await import('node:module')
+const require = createRequire(import.meta.url)
+const sharp = require(require.resolve('sharp', { paths: [require.resolve('next/package.json')] }))
+mkdirSync(AVATAR_DIR, { recursive: true })
+for (const owner of new Set(pulls.map((pull) => pull.repo.split('/')[0]))) {
+  const response = await fetch(`https://github.com/${owner}.png?size=48`)
+  if (!response.ok) throw new Error(`${owner} 아바타: ${response.status}`)
+  await sharp(Buffer.from(await response.arrayBuffer())).png().toFile(`${AVATAR_DIR}${owner}.png`)
+}
 console.log(`${pulls.length}건을 ${OUTPUT} 에 썼다.`)

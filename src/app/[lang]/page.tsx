@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { allPosts } from "contentlayer/generated";
-import { getDictionary, interpolate } from "@/i18n/dictionaries";
+import { getDictionary } from "@/i18n/dictionaries";
 import { isLocale, toPublicPath } from "@/i18n/locales";
 import { getAuthorPersonNode, getSiteEntityId } from "@/lib/author-identity";
 import { getSortedPublishedPosts } from "@/lib/filter-posts";
 import { formatHomepageDate, getHomepagePosts } from "@/lib/homepage-index";
 import { getPostsForLocale } from "@/lib/localized-posts";
-import { getOpenSourceRepos, openSourceSearchUrl } from "@/lib/open-source";
 import { siteMetadata } from "@/lib/site-metadata";
 import VisitCounter from "@/components/VisitCounter";
 import { earlyVisitScript } from "@/lib/visits-client";
@@ -25,7 +24,6 @@ export default async function HomePage({
   const latestPosts = getHomepagePosts(
     getSortedPublishedPosts(getPostsForLocale(allPosts, lang)),
   );
-  const openSourceRepos = getOpenSourceRepos();
   const homePath = toPublicPath(lang, "/");
   const homeUrl = `${siteMetadata.siteUrl}${homePath}`;
   const valueParagraphClassName =
@@ -108,48 +106,6 @@ export default async function HomePage({
           >
             {dictionary.home.viewAll} <span aria-hidden="true">→</span>
           </Link>
-        </section>
-
-        {/* 머지된 PR 만 저장소별로 한 줄씩 보여 준다. 데이터는 `pnpm oss:sync` 가
-            만든 정적 파일이고 런타임에 GitHub 을 부르지 않는다. */}
-        <section id="open-source" className="scroll-mt-24 pt-16 sm:pt-20">
-          <h2 className="mb-5 text-sm font-bold tracking-[-0.01em] text-stone">
-            {dictionary.home.openSource.title}
-          </h2>
-
-          <ul className="border-b border-mineral">
-            {openSourceRepos.map(({ repo, count, featured }) => (
-              <li key={repo} className="border-t border-mineral">
-                <a
-                  href={featured.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex flex-col gap-1.5 py-5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8"
-                >
-                  <span className="min-w-0">
-                    <span className="block font-bold tracking-[-0.02em] text-ink transition-colors group-hover:text-accent">
-                      {repo}
-                    </span>
-                    <span className="home-meta mt-1 block break-words text-stone">
-                      {featured.title}
-                    </span>
-                  </span>
-                  <span className="home-meta shrink-0 tabular-nums text-stone">
-                    {interpolate(dictionary.home.openSource.merged, { count })}
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
-
-          <a
-            href={openSourceSearchUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="home-meta mt-6 inline-flex items-center gap-1.5 text-stone transition-colors hover:text-accent"
-          >
-            {dictionary.home.openSource.viewAll} <span aria-hidden="true">↗</span>
-          </a>
         </section>
       </div>
     </>

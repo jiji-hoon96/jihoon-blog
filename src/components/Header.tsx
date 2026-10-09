@@ -42,7 +42,7 @@ export default function Header({
   const homePath = toPublicPath(locale, "/");
   const navLinks = [
     { href: toPublicPath(locale, "/posts"), label: labels.posts },
-    { href: toPublicPath(locale, "/resume"), label: labels.resume },
+    { href: toPublicPath(locale, "/about"), label: labels.resume },
   ];
 
   const toggleTheme = () => {
