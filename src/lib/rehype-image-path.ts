@@ -1,4 +1,4 @@
-import { visit } from 'unist-util-visit'
+import { SKIP, visit } from 'unist-util-visit'
 import { Root } from 'hast'
 import path from 'path'
 import fs from 'fs'
@@ -34,6 +34,34 @@ function svgSize(source: string): { width?: number; height?: number } {
     return { width: Math.round(Number(viewBox[2])), height: Math.round(Number(viewBox[3])) }
   }
   return {}
+}
+
+/**
+ * `scripts/copy-content-images.js` 가 만든 WebP 사본(`1.720w.webp` 등)을 찾는다.
+ * 폭 오름차순으로 돌려준다. 사본이 없으면 빈 배열이고, 그 그림은 원본 그대로 나간다.
+ */
+function findVariants(resolvedSrc: string): { src: string; width: number }[] {
+  const match = resolvedSrc.match(/^(\/content\/.+?)\.(png|jpe?g)$/i)
+  if (!match) return []
+  const stem = match[1]
+  const dir = path.join(process.cwd(), 'public', path.dirname(stem))
+  const base = path.basename(stem)
+  if (!fs.existsSync(dir)) return []
+  return fs
+    .readdirSync(dir)
+    .map((file) => file.match(/^(.+)\.(\d+)w\.webp$/))
+    .filter((m): m is RegExpMatchArray => !!m && m[1] === base)
+    .map((m) => ({ src: `${path.dirname(stem)}/${m[0]}`, width: Number(m[2]) }))
+    .sort((a, b) => a.width - b.width)
+}
+
+/**
+ * 본문 칼럼은 데스크톱에서 808px, 그보다 좁은 화면에서는 좌우 16px 여백을 뺀
+ * 폭이다. `?w=` 캡이 있으면 그 폭을 넘지 않는다.
+ */
+function imageSizes(widthCap: number | null): string {
+  const slot = Math.min(widthCap ?? 808, 808)
+  return `(max-width: ${slot + 32}px) calc(100vw - 32px), ${slot}px`
 }
 
 export function rehypeImagePath() {
@@ -146,6 +174,29 @@ export function rehypeImagePath() {
         node.properties.decoding = 'async'
 
         imageIndex += 1
+
+        // WebP 사본이 있으면 `<picture>` 로 감싼다. `<img>` 의 src 는 원본 그대로라
+        // WebP 를 못 읽는 브라우저와 RSS 리더는 지금과 같은 PNG 를 받는다.
+        const variants = findVariants(resolvedSrc)
+        if (variants.length > 0) {
+          const img = { ...node, properties: { ...node.properties } }
+          node.tagName = 'picture'
+          node.properties = {}
+          node.children = [
+            {
+              type: 'element',
+              tagName: 'source',
+              properties: {
+                type: 'image/webp',
+                srcSet: variants.map((v) => `${v.src} ${v.width}w`).join(', '),
+                sizes: imageSizes(widthCap),
+              },
+              children: [],
+            },
+            img,
+          ]
+          return SKIP
+        }
         return
       }
 

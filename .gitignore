@@ -56,3 +56,6 @@ next-env.d.ts
 # superpowers 세션 상태 (도구가 관리)
 .superpowers/
 .audit-report.json
+
+# 빌드가 만드는 본문 그림의 WebP 사본 (scripts/copy-content-images.js)
+public/content/**/*.*w.webp
