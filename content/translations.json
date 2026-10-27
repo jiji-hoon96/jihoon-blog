@@ -356,6 +356,18 @@
       ]
     },
     {
+      "key": "261019",
+      "source": "content/261019/index.md",
+      "sourceHash": "1b0a9fd911ad78782c3081ebe2d0de561cc81a54fa27edf510ef1e8bcd5f29a2",
+      "reviewed": [
+        "en",
+        "ja",
+        "es",
+        "pt-BR",
+        "zh-CN"
+      ]
+    },
+    {
       "key": "261023",
       "source": "content/261023/index.md",
       "sourceHash": "83a9fe0eaef2789aeee4d4af9514c0e7c7d8e45b2384bae2529e6abbd9ad5ec0",
