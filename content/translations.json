@@ -354,6 +354,18 @@
         "pt-BR",
         "zh-CN"
       ]
+    },
+    {
+      "key": "261019",
+      "source": "content/261019/index.md",
+      "sourceHash": "1b0a9fd911ad78782c3081ebe2d0de561cc81a54fa27edf510ef1e8bcd5f29a2",
+      "reviewed": [
+        "en",
+        "ja",
+        "es",
+        "pt-BR",
+        "zh-CN"
+      ]
     }
   ]
 }
