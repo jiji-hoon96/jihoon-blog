@@ -293,6 +293,25 @@ rewrite 와 notFound 조합부터 본다.
 리다이렉트를 따르지 않는 소셜 unfurler 가 카드를 비운다. 그래서 `/ko/**/opengraph-image`
 만 정규화에서 뺀다. 메타가 내부 접두사를 노출하는 것은 남지만, 200 으로 응답한다.
 
+## 주간 모니터링 (Sentry · SEO)
+
+Sentry 와 Ahrefs 에서 오는 문제를 GitHub 이슈 하나(`monitor` 라벨)에 모으고, 고칠 것이 있으면 Claude 가 PR 을 연다. 머지는 사람이 한다.
+
+| 조각 | 위치 |
+|---|---|
+| 수집과 본문 생성 | `scripts/monitor/report.mjs` (`pnpm monitor`) |
+| 프로덕션 크롤 검사 | `scripts/monitor/seo.mjs` |
+| Sentry 조회 | `scripts/monitor/sentry.mjs` |
+| 매주 실행 | `.github/workflows/monitor.yml` (월요일 10:00 KST) |
+
+**Ahrefs 는 직접 읽지 않는다.** 브라우저 접근은 조직 정책으로 막혀 있고 API 는 유료다. 그래서 Ahrefs 가 경고하는 항목을 프로덕션 크롤로 다시 잰다. 2026-10-27 크롤의 "Meta description too short" 79개를 그대로 재현했다. Ahrefs 메일은 이 크롤이 놓친 항목이 있는지 대조하는 데 쓴다.
+
+**의도한 예외는 코드에 적는다.** 글 하나짜리 카테고리의 noindex 는 `seo.mjs` 의 `EXPECTED_NOINDEX`, 의도적으로 두는 Sentry 이슈는 `sentry.mjs` 의 `IGNORED_SENTRY_ISSUES` 다. 프롬프트에 적으면 매주 같은 것을 고치려 든다.
+
+**Secrets 가 둘 필요하다.** `SENTRY_READ_TOKEN`(읽기 전용, 소스맵 업로드 토큰과 분리)과 `CLAUDE_CODE_OAUTH_TOKEN`(`/install-github-app`). 앞의 것이 없으면 Sentry 칸이 비고, 뒤의 것이 없으면 고치는 단계만 건너뛴다.
+
+**크롤은 4분 남짓 걸린다.** 392페이지를 동시 8개로 받는다(2026-10-28 실측).
+
 ## 에러 모니터링 (Sentry)
 
 Sentry 프로젝트: `hooninedev/jihoon-blog` (`@sentry/nextjs`)

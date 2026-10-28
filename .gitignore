@@ -59,3 +59,4 @@ next-env.d.ts
 
 # 빌드가 만드는 본문 그림의 WebP 사본 (scripts/copy-content-images.js)
 public/content/**/*.*w.webp
+monitor-report.*
