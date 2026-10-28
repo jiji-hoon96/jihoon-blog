@@ -165,7 +165,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     playground: { title: 'Enjoying making fun things', description: 'Explore Jihoon Lee’s personal frontend projects, product experiments, design decisions, and lessons learned while turning ideas into working software.', empty: 'No projects yet.' },
     resume: {
       title: 'About',
-      description: 'Resume of Jihoon Lee, a frontend developer at HicareNet building a Medicare RPM/CCM billing platform for US clinics. Korean and English resumes are available as PDFs.',
+      description: 'Resume of Jihoon Lee, a frontend developer at HicareNet building a Medicare RPM/CCM billing platform for US clinics. Korean and English PDFs available.',
       role: 'Frontend Developer',
       scale: 'I lead frontend work at HicareNet. I grew a health-record service used by 12 patients at a single clinic into a Medicare RPM/CCM billing platform serving 46 California clinics and more than 4,000 patients.',
       approach: 'I weigh trade-offs by the time a user actually spends, and I leave the reasoning in the structure so it becomes the team\'s quality rather than mine.',
@@ -251,7 +251,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     playground: { title: 'Creando cosas divertidas', description: 'Explora los proyectos personales de frontend de Jihoon Lee, sus experimentos de producto, decisiones de diseño y aprendizajes al convertir ideas en software.', empty: 'Aún no hay proyectos.' },
     resume: {
       title: 'About',
-      description: 'Currículum de Jihoon Lee, desarrollador frontend en HicareNet, donde construye una plataforma de facturación Medicare RPM/CCM para clínicas de EE. UU. Disponible en coreano e inglés en PDF.',
+      description: 'Currículum de Jihoon Lee, desarrollador frontend en HicareNet que crea una plataforma de facturación Medicare RPM/CCM para EE. UU. PDF en coreano e inglés.',
       role: 'Desarrollador Frontend',
       scale: 'Lidero el frontend en HicareNet. Convertí un servicio de registros de salud que usaban 12 pacientes de una sola clínica en una plataforma de facturación Medicare RPM/CCM para 46 clínicas de California y más de 4.000 pacientes.',
       approach: 'Decido las concesiones según el tiempo que el usuario realmente vive, y dejo ese razonamiento en la estructura para que se convierta en calidad del equipo.',
@@ -294,7 +294,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     playground: { title: 'Criando coisas divertidas', description: 'Conheça os projetos pessoais de frontend de Jihoon Lee, experimentos de produto, decisões de design e aprendizados ao transformar ideias em software.', empty: 'Ainda não há projetos.' },
     resume: {
       title: 'About',
-      description: 'Currículo de Jihoon Lee, desenvolvedor frontend na HicareNet, onde constrói uma plataforma de faturamento Medicare RPM/CCM para clínicas dos EUA. Disponível em coreano e inglês em PDF.',
+      description: 'Currículo de Jihoon Lee, desenvolvedor frontend na HicareNet que cria uma plataforma de faturamento Medicare RPM/CCM para os EUA. PDF em coreano e inglês.',
       role: 'Desenvolvedor Frontend',
       scale: 'Lidero o frontend na HicareNet. Transformei um serviço de registros de saúde usado por 12 pacientes de uma única clínica em uma plataforma de faturamento Medicare RPM/CCM para 46 clínicas da Califórnia e mais de 4.000 pacientes.',
       approach: 'Avalio as trocas pelo tempo que o usuário realmente gasta e deixo esse raciocínio na estrutura, para que vire qualidade do time.',

@@ -97,7 +97,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const routeDefinitions = [
     { path: '/', changeFrequency: 'daily' as const, priority: 1, tracksPosts: true },
     { path: '/posts', changeFrequency: 'daily' as const, priority: 0.9, tracksPosts: true },
-    { path: '/guestbook', changeFrequency: 'weekly' as const, priority: 0.5, tracksPosts: false },
+    // 방명록은 2026-08-18 에 내비게이션에서 뺐다(417d3b4). 내부 링크가 하나도 없는 페이지를
+    // 사이트맵에만 두면 Ahrefs 가 orphan 으로 잡으므로 여기서도 뺀다. 페이지는 그대로 열린다.
     { path: '/about', changeFrequency: 'monthly' as const, priority: 0.8, tracksPosts: false },
   ]
   const routes: MetadataRoute.Sitemap = routeDefinitions.flatMap(route =>
