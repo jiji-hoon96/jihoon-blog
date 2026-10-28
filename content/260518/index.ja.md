@@ -5,9 +5,9 @@ seoTitle: 'フロントエンド状態管理の設計眼: 7つの状態分類と
 date: "2026-05-18"
 locale: ja
 translationOf: '260518'
-sourceHash: 296e313b1c4b7d8b64dca1de6c4fe4d7aceb74f42321a01fd6a691ee98c806a5
+sourceHash: cd8bb54c337a3270b9e34d1f8074545d5504928f12179aaf454970ff781cdb4f
 categories: フロントエンド 状態管理 React アーキテクチャ
-description: "フロントエンドの状態管理をローカル・グローバル・サーバー・フォーム・URL・外部・ガードの7分類に分け、分類ごとに合うツールと境界を整理する。最後に、状態を作る前に投げかける4つの問いにまとめる。"
+description: 'フロントエンドの状態管理をローカル・グローバル・サーバー・フォーム・URL・外部・ガードの7分類に分け、状態がなぜ難しいのかと、分類ごとに合うツールと境界を整理する。最後に、新しい状態を作る前に自分に投げかける4つの問いにまとめる。'
 keywords: "フロントエンド 状態管理, React 状態管理, TanStack Query, Server State Client State, State Colocation, Single Source of Truth"
 ---
 

@@ -8,7 +8,7 @@ description: "Gerenciamento de estado no frontend em sete categorias (local, glo
 keywords: "gerenciamento de estado no frontend, gerenciamento de estado React, TanStack Query, Server State Client State, State Colocation, Single Source of Truth"
 locale: pt-BR
 translationOf: '260518'
-sourceHash: 296e313b1c4b7d8b64dca1de6c4fe4d7aceb74f42321a01fd6a691ee98c806a5
+sourceHash: cd8bb54c337a3270b9e34d1f8074545d5504928f12179aaf454970ff781cdb4f
 ---
 
 Neste post, quero falar sobre **gerenciamento de estado (State Management)**. Não se trata de uma comparação entre bibliotecas. Mais importante do que decidir qual ferramenta é melhor é desenvolver uma percepção sobre **como enxergar** o estado e onde **traçar seus limites**.

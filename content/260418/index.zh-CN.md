@@ -5,7 +5,7 @@ seoTitle: "前端领域模型设计指南: DDD 实践"
 date: "2026-04-18"
 updatedAt: "2026-10-08"
 categories: 前端 架构 DDD
-description: "以综合所得税为例，讨论前端的领域逻辑应该放在哪里：把混在组件里的税额计算拆成纯函数，并梳理贫血领域模型、API 响应转换层、ViewModel 分离、类与函数式的内聚差异，以及拆分应在何处停止的标准。"
+description: '以综合所得税为例，讨论前端的领域逻辑应该放在哪里：把混在组件里的税额计算拆成纯函数，并依次梳理贫血领域模型、API 响应转换层、ViewModel 分离、类与函数式风格的内聚差异，以及拆分应该在何处停止的判断标准。帮助判断代码该放在哪一层。'
 keywords: "前端领域模型, 领域驱动设计, DDD 前端, 前端 DDD, 领域逻辑分离, 贫血领域模型, Clean Architecture 前端, Martin Fowler, React 设计模式, 前端架构, ViewModel 分离, 限界上下文"
 locale: zh-CN
 translationOf: '260418'

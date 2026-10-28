@@ -5,7 +5,7 @@ seoTitle: "压缩算法对比：GZIP、Zstandard、Brotli 与 tar.gz 的选择"
 date: "2024-07-06"
 updatedAt: "2026-10-08"
 categories: 随想 软件
-description: "对比 ZIP、GZIP、ZSTD、BZIP2、XZ、Brotli 的结构、速度与压缩率，解释 tar.gz 比 zip 更小的固实归档原理，并整理上传构建产物时该选 tar.gz 还是 tar.zst。"
+description: '对比 ZIP、GZIP、ZSTD、BZIP2、XZ、Brotli 的结构、速度与压缩率，解释 tar.gz 比 zip 更小的固实归档原理，并整理上传构建产物时该选 tar.gz 还是 tar.zst，以及每种格式分别适合的使用场景。'
 keywords: "压缩算法对比, GZIP vs ZSTD, tar.gz vs zip, tar.zst, Brotli, 固实归档, 前端构建优化"
 locale: zh-CN
 translationOf: "240706"

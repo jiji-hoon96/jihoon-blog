@@ -16,6 +16,10 @@ import path from 'node:path'
  */
 const LIMIT_SOURCE = 'src/lib/localized-metadata.ts'
 
+// 하한은 Ahrefs Site Audit 의 "Meta description too short" 기준이다. 2026-10-27 크롤에서
+// 이 값 아래인 글 16편이 경고로 잡혔다. 글자 수는 코드 포인트로 센다.
+const DESCRIPTION_MIN_LENGTH = 110
+
 function frontmatterValue(markdown, field) {
   const frontmatter = markdown.match(/^---\s*\n([\s\S]*?)\n---/u)?.[1] ?? ''
   const value = frontmatter.match(new RegExp(`^${field}:\\s*(.+)$`, 'mu'))?.[1]?.trim()
@@ -70,6 +74,8 @@ export async function validateMetadataLength({ rootDirectory = process.cwd(), po
         errors.push(`${relative}: description 이 비어 있다`)
       } else if (description.length > limits.description) {
         errors.push(`${relative}: description ${description.length}자, 한도 ${limits.description}자`)
+      } else if ([...description].length < DESCRIPTION_MIN_LENGTH) {
+        errors.push(`${relative}: description ${[...description].length}자, 하한 ${DESCRIPTION_MIN_LENGTH}자`)
       }
     }
   }

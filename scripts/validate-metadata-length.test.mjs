@@ -36,7 +36,7 @@ test('the repository is currently within the limits', async () => {
 
 test('flags a seoTitle that the renderer would truncate', async () => {
   const directory = await fixture(
-    `title: "짧은 제목"\nseoTitle: "${'a'.repeat(61)}"\ndescription: "설명"`,
+    `title: "짧은 제목"\nseoTitle: "${'a'.repeat(61)}"\ndescription: "${'설'.repeat(110)}"`,
   )
   const { errors } = await validateMetadataLength({ rootDirectory: directory })
   assert.equal(errors.length, 1)
@@ -44,7 +44,7 @@ test('flags a seoTitle that the renderer would truncate', async () => {
 })
 
 test('falls back to title when seoTitle is absent', async () => {
-  const directory = await fixture(`title: "${'a'.repeat(61)}"\ndescription: "설명"`)
+  const directory = await fixture(`title: "${'a'.repeat(61)}"\ndescription: "${'설'.repeat(110)}"`)
   const { errors } = await validateMetadataLength({ rootDirectory: directory })
   assert.equal(errors.length, 1)
   assert.match(errors[0], /seoTitle 61자/u)
@@ -57,4 +57,11 @@ test('flags a description that the renderer would truncate', async () => {
   const { errors } = await validateMetadataLength({ rootDirectory: directory })
   assert.equal(errors.length, 1)
   assert.match(errors[0], /description 156자/u)
+})
+
+test('flags a description shorter than the Ahrefs threshold', async () => {
+  const directory = await fixture(`title: "제목"\ndescription: "${'설'.repeat(109)}"`)
+  const { errors } = await validateMetadataLength({ rootDirectory: directory })
+  assert.equal(errors.length, 1)
+  assert.match(errors[0], /description 109자, 하한 110자/u)
 })

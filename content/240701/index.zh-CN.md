@@ -5,7 +5,7 @@ seoTitle: "LZ77 与 LZ78 的区别：滑动窗口、显式字典与 DEFLATE 的�
 date: "2024-07-01"
 updatedAt: "2026-10-08"
 categories: 随想 软件
-description: "整理 LZ77 与 LZ78 处理字典的方式有何不同：滑动窗口与显式字典的差异、遗忘旧内容方式的差异，以及经由 DEFLATE 延续到 ZIP、GZIP、Zstd 的 LZ77 一系谱系。"
+description: '整理 LZ77 与 LZ78 处理字典的方式有何不同：滑动窗口与显式字典的差异、遗忘旧内容方式的差异，以及经由 DEFLATE 延续到 ZIP、GZIP、Zstd 的 LZ77 一系谱系，帮助理解今天常用的各种压缩格式共同的起点。'
 keywords: "LZ77, LZ78, LZ77 LZ78 区别, LZ77 算法, 滑动窗口压缩, LZW, DEFLATE 原理, 基于字典的压缩"
 locale: zh-CN
 translationOf: '240701'

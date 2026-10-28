@@ -5,7 +5,7 @@ seoTitle: "前端错误的传播路径，ErrorBoundary 与 throwOnError 接住�
 date: '2025-11-17'
 updatedAt: '2026-09-24'
 categories: 前端 React TanStack-Query 错误处理
-description: '把同一个错误从七个位置抛出去，只有四个能到达 ErrorBoundary。这篇文章用官方文档和本地安装的源码确认编译期、渲染与生命周期、服务端数据、页面切换、外部库、事件与异步分别传播到哪里。'
+description: '把同一个错误从七个位置抛出去，只有四个能到达 ErrorBoundary。这篇文章用官方文档和本地安装的源码确认编译期、渲染与生命周期、服务端数据、页面切换、外部库、事件与异步分别传播到哪里，并整理 ErrorBoundary 之外的全局处理器。'
 keywords: "前端错误处理, 错误传播, React ErrorBoundary, ErrorBoundary 接不住的东西, startTransition 错误, unhandledrejection, window onerror, React 19 onCaughtError, TanStack Query throwOnError, useSuspenseQuery 错误, react-router loader ErrorBoundary, React.lazy 分块加载失败, fetch 不会因为 404 而 reject"
 locale: zh-CN
 translationOf: '251117'

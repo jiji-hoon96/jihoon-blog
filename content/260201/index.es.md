@@ -8,7 +8,7 @@ description: "Qué es la abstracción en frontend y en qué se diferencian una b
 keywords: "abstracción en frontend, abstracción de componentes React, abstracción en Clean Code, nivel de abstracción, Level of Abstraction, cómo escribir buen código, nombres que revelan la intención, Composed Method, ley de las abstracciones con fugas, diseño de componentes, diseño de hooks personalizados, arquitectura frontend, Kent Beck, Robert C. Martin"
 locale: es
 translationOf: '260201'
-sourceHash: 2035d8bcaf96c40a302631b399747f5dacf236e3e3ff1368cdaa3429e5e3f2de
+sourceHash: 36aa122e586527d496f00380c5a3413beaab8faf11de3e44cbabb4cebae368fc
 ---
 
 En este artículo quiero hablar de la abstracción en programación y de cómo escribir buen código desde la perspectiva de la abstracción.

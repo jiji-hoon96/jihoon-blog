@@ -4,11 +4,11 @@ title: "状态管理"
 seoTitle: "前端状态管理的判断力: 局部、全局、服务端、表单、URL 等 7 类状态与 React 设计准则"
 date: "2026-05-18"
 categories: 前端 状态管理 React 架构
-description: "本文把前端状态分为局部、全局、服务端、表单、URL、外部和守卫 7 类，分别梳理适合的工具与边界，最后归纳为创建状态之前要问的四个问题。"
+description: '本文把前端状态分为局部、全局、服务端、表单、URL、外部和守卫 7 类，先说明状态管理为什么如此棘手，再分别梳理每一类状态适合的工具与边界，最后归纳为在创建一个新状态之前应该先问自己的四个问题，帮助在实际项目中做出更清楚的选择。'
 keywords: "前端状态管理, React 状态管理, TanStack Query, Server State Client State, State Colocation, Single Source of Truth"
 locale: zh-CN
 translationOf: '260518'
-sourceHash: 296e313b1c4b7d8b64dca1de6c4fe4d7aceb74f42321a01fd6a691ee98c806a5
+sourceHash: cd8bb54c337a3270b9e34d1f8074545d5504928f12179aaf454970ff781cdb4f
 ---
 
 这篇文章想聊一聊**状态管理（State Management）**。它不是一篇库的横向对比。相比判断哪个工具更好，本文更想梳理一种感觉：应该**如何看待**状态，又该在哪里**划定边界**。

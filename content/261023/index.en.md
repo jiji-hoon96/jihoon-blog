@@ -8,7 +8,7 @@ description: 'Two hiring processes I cared about ended in rejection. Why my inte
 keywords: 'developer retrospective, job rejection, developer interview answers, answer first, developer focus, pomodoro, learning in the AI era'
 locale: en
 translationOf: '261023'
-sourceHash: 83a9fe0eaef2789aeee4d4af9514c0e7c7d8e45b2384bae2529e6abbd9ad5ec0
+sourceHash: f95cc28e09934cd6ebd4d8750dcdb2e5151a67b55ba127a763f6efd76a5fea86
 ---
 
 In this post, I want to talk about being rejected. If you have been through the same kind of failure, or if your answers tend to run long in interviews, you can see how far I traced the cause and what I decided to change. I write about what I failed at first, and at greater length than what I did well.
