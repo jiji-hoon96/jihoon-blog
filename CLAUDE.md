@@ -441,9 +441,11 @@ curl -o /dev/null -w '%{http_code}\n' http://localhost:3111/260723/opengraph-ima
 서버 로그에도 `failed to pipe response` 와 그 cause 가 찍힌다. 같은 서버에서 `/` 는 200 이므로
 이 경로만 깨진 것을 구분할 수 있다.
 
-`SENTRY_ENVIRONMENT=local` 을 빼면 이벤트가 `production` 으로 찍힌다. 로컬에는 Netlify 의
-`CONTEXT` 도 없어서 `sentry-options.ts` 가 환경 값을 넘기지 않기 때문이다. 2026-09-16 에
-옛 절차로 만든 JIHOON-BLOG-B 가 그렇게 프로덕션 이슈에 섞였다.
+`SENTRY_ENVIRONMENT=local` 을 빼도 이제 `local` 로 찍힌다. 로컬에는 Netlify 의 `CONTEXT` 가
+없으므로 `next.config.ts` 가 빌드 때 `SENTRY_BUILD_CONTEXT` 에 `local` 을 박는다. 이 폴백이
+생기기 전에는 SDK 기본값인 `production` 으로 들어갔고, JIHOON-BLOG-B(2026-09-16)와
+-E(`localhost:3000`)가 그렇게 프로덕션 이슈에 섞였다. 절차의 `SENTRY_ENVIRONMENT=local` 은
+명시적으로 남겨 둔다.
 
 **쿼터를 태우지 않으려면 DSN 없이 돌린다.** 위 절차는 코드 경로가 도는 것까지만 확인하면
 충분하다. 실제 전송까지 보고 싶을 때만 DSN 을 주고, 끝나면 만들어진 이슈를 resolve 한다.

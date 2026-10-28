@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
     // 뿐이다. Next 문서가 이 플래그를 드는 두 경우 중 두 번째다.
     globalNotFound: true,
   },
+  // Sentry 환경 이름의 마지막 폴백. 런타임에 SENTRY_ENVIRONMENT 도 CONTEXT 도 없는
+  // 로컬 `next start` 가 production 으로 보고하지 않도록 빌드 시점 값을 코드에 박는다.
+  env: {
+    SENTRY_BUILD_CONTEXT: process.env.CONTEXT || "local",
+  },
   // Match Gatsby's trailing slash behavior
   trailingSlash: false,
   // Turbopack config to silence webpack warning

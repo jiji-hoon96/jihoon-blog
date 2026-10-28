@@ -143,3 +143,18 @@ test('serves the ko OG image path directly instead of canonicalizing it', () => 
     pathname: '/posts',
   })
 })
+
+test('rejects server action requests because the site defines none', () => {
+  // JIHOON-BLOG-A 의 실제 요청 헤더를 줄였다.
+  const response = proxy(new NextRequest('https://hooninedev.com/app', {
+    method: 'POST',
+    headers: {
+      'next-action': 'cachefn',
+      'content-type': 'text/x-component',
+      accept: 'text/x-component',
+    },
+  }))
+
+  assert.equal(response.status, 404)
+  assert.equal(response.headers.get('x-middleware-rewrite'), null)
+})

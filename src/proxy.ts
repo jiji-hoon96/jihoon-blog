@@ -2,8 +2,21 @@ import { NextResponse, type NextRequest } from 'next/server.js'
 import { classifyLocaleRequest } from './lib/locale-request.ts'
 
 const INTERNAL_LOCALE_REWRITE_HEADER = 'x-internal-locale-rewrite'
+const NEXT_ACTION_HEADER = 'next-action'
 
 export function proxy(request: NextRequest) {
+  // 이 사이트에는 Server Action 이 하나도 없다. 그런데도 `Next-Action` 헤더를 단
+  // POST 가 들어오면 Next 가 액션을 찾다가 RSC 가 아닌 응답을 받고
+  // `Invariant: Expected RSC response` 로 던진다. 프로덕션의 JIHOON-BLOG-A 가 이것이고,
+  // 요청은 `Next-Action: cachefn` 과 `X-Middleware-Subrequest` 를 단 스캐너였다.
+  // 처리할 액션이 없으므로 렌더까지 가기 전에 끊는다.
+  if (request.headers.has(NEXT_ACTION_HEADER)) {
+    return new NextResponse('Not Found', {
+      status: 404,
+      headers: { 'content-type': 'text/plain; charset=utf-8' },
+    })
+  }
+
   const decision = classifyLocaleRequest(request.nextUrl.pathname, {
     internalRewrite:
       request.headers.get(INTERNAL_LOCALE_REWRITE_HEADER) === '1',

@@ -47,3 +47,19 @@ test('falls back to the Netlify build context so previews do not look like produ
     CONTEXT: 'deploy-preview',
   }).environment, 'staging')
 })
+
+test('uses the build-time context so local production builds are not reported as production', () => {
+  assert.equal(getSentryRuntimeOptions({
+    SENTRY_DSN: 'https://public@example.invalid/4',
+    NODE_ENV: 'production',
+    SENTRY_BUILD_CONTEXT: 'local',
+  }).environment, 'local')
+
+  // 런타임에 CONTEXT 가 보이면 그쪽이 이긴다.
+  assert.equal(getSentryRuntimeOptions({
+    SENTRY_DSN: 'https://public@example.invalid/4',
+    NODE_ENV: 'production',
+    CONTEXT: 'deploy-preview',
+    SENTRY_BUILD_CONTEXT: 'production',
+  }).environment, 'deploy-preview')
+})
