@@ -8,7 +8,7 @@ description: "Biome frente a ESLint y Prettier: rendimiento de linting y formate
 keywords: "Biome vs ESLint, Biome vs Prettier, migración a Biome, comparativa de linters JavaScript, linter basado en Rust, herramientas de desarrollo frontend"
 locale: es
 translationOf: '241201'
-sourceHash: 0ef3595adcff30685529ecb8539c23c76d3f598d4be92fe5574bd0f1a6c38d7b
+sourceHash: 003986df20a3fb2cbb5dba760b4a967e022be04ed5c24f3c249909ebc0e79281
 ---
 
 En esta publicación quiero hablar de una herramienta llamada Biome.

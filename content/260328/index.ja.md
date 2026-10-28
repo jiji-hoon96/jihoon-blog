@@ -8,7 +8,7 @@ description: "Toss Frontend Fundamentals 模擬試験 第2回の会議室予約�
 keywords: "Toss Frontend Fundamentals, フロントエンドのリファクタリング, Reactコンポーネントの分割, コードレビュー, Toss模擬試験, フロントエンド設計"
 locale: ja
 translationOf: '260328'
-sourceHash: c2f3ff4e13d42fcd24e6ac8beaefd56e00e3fe59d4c28b6b5d08a10a5ec0ead9
+sourceHash: e223abfa19a4e42bb48ead8a7d57e219a11ce1b64807d43b9dbd2706a16ad406
 ---
 
 今回の記事では、Toss Frontend Fundamentals 模擬試験の第2回に参加し、取り組んだリファクタリングについて振り返ってみたい。

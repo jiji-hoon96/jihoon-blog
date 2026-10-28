@@ -8,7 +8,7 @@ description: 'Dois processos seletivos importantes terminaram em reprovação. P
 keywords: 'retrospectiva de desenvolvedor, reprovação em entrevista, entrevista de desenvolvedor, resposta direta ao ponto, foco e concentração, técnica pomodoro, estudar na era da IA'
 locale: pt-BR
 translationOf: '261023'
-sourceHash: 83a9fe0eaef2789aeee4d4af9514c0e7c7d8e45b2384bae2529e6abbd9ad5ec0
+sourceHash: f95cc28e09934cd6ebd4d8750dcdb2e5151a67b55ba127a763f6efd76a5fea86
 ---
 
 Neste post, quero falar sobre reprovação. Se você passou por um fracasso parecido ou se suas respostas costumam se alongar em entrevistas, pode ver até onde eu segui a causa e o que decidi mudar. Escrevo primeiro, e por mais tempo, sobre o que deu errado do que sobre o que fiz bem.

@@ -8,7 +8,7 @@ description: "A framework for frontend state management across seven categories 
 keywords: "frontend state management, React state management, TanStack Query, Server State vs Client State, State Colocation, Single Source of Truth"
 locale: en
 translationOf: '260518'
-sourceHash: 296e313b1c4b7d8b64dca1de6c4fe4d7aceb74f42321a01fd6a691ee98c806a5
+sourceHash: cd8bb54c337a3270b9e34d1f8074545d5504928f12179aaf454970ff781cdb4f
 ---
 
 In this post, I want to talk about **State Management**. This is not a library comparison. Rather than deciding which tool is better, the goal is to develop a feel for **how to think about** state and **where to draw its boundaries**.

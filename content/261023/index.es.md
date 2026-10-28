@@ -8,7 +8,7 @@ description: 'Dos procesos de selección importantes acabaron en rechazo. Por qu
 keywords: 'retrospectiva desarrollador, rechazo en entrevista, entrevista de desarrollador, responder primero la conclusión, concentración, técnica pomodoro, aprender en la era de la IA'
 locale: es
 translationOf: '261023'
-sourceHash: 83a9fe0eaef2789aeee4d4af9514c0e7c7d8e45b2384bae2529e6abbd9ad5ec0
+sourceHash: f95cc28e09934cd6ebd4d8750dcdb2e5151a67b55ba127a763f6efd76a5fea86
 ---
 
 En esta publicación quiero hablar de un rechazo. Si has pasado por un fracaso parecido o si en las entrevistas tus respuestas se alargan, puedes ver hasta dónde seguí la causa y qué decidí cambiar. Escribo primero, y con más extensión, sobre lo que hice mal antes que sobre lo que hice bien.

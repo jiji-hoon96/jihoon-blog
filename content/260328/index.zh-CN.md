@@ -6,7 +6,7 @@ date: '2026-03-28'
 categories: 前端 React 重构
 locale: zh-CN
 translationOf: '260328'
-sourceHash: c2f3ff4e13d42fcd24e6ac8beaefd56e00e3fe59d4c28b6b5d08a10a5ec0ead9
+sourceHash: e223abfa19a4e42bb48ead8a7d57e219a11ce1b64807d43b9dbd2706a16ad406
 description: "分享在 Toss Frontend Fundamentals 模拟考试第 2 期中重构会议室预订应用的经历。文中梳理单体组件的拆分方式、领域逻辑的提取过程，以及以测试为基础推进重构的完整步骤，并记录其中做出的取舍与复盘，供准备同类练习的开发者参考。"
 keywords: "Toss Frontend Fundamentals, 前端重构, React 组件拆分, 代码审查, Toss 模拟考试, 前端设计"
 ---

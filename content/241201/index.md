@@ -4,7 +4,7 @@ title: 'Biome이 ESLint와 Prettier를 대체할 수 있을까?'
 seoTitle: 'Biome vs ESLint vs Prettier: Rust 기반 올인원 툴체인 성능 비교와 마이그레이션'
 date: '2024-12-01'
 categories: 프론트엔드 자바스크립트
-description: "Biome의 린팅과 포매팅 성능을 ESLint, Prettier와 비교한다. Rust 기반 올인원 툴체인의 실무 도입 경험과 마이그레이션 가이드를 정리했다."
+description: 'Biome의 린팅과 포매팅 성능을 ESLint, Prettier와 직접 비교한다. Rust 기반 올인원 툴체인이 왜 빠른지, 설정과 마이그레이션은 어떻게 하는지, 실무 프로젝트에 도입할지 판단할 때 무엇을 봐야 하는지 정리했다.'
 keywords: "Biome vs ESLint, Biome vs Prettier, Biome 마이그레이션, JavaScript 린터 비교, Rust 기반 린터, 프론트엔드 개발도구"
 ---
 

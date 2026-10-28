@@ -5,7 +5,7 @@ seoTitle: "LZ77とLZ78の違い：スライディングウィンドウ、明示�
 date: "2024-07-01"
 updatedAt: "2026-10-08"
 categories: 素朴な疑問 ソフトウェア
-description: "LZ77とLZ78が辞書をどう扱うのかの違いを整理する。スライディングウィンドウと明示的辞書の違い、古い内容を忘れる方法の違い、そしてDEFLATEを経てZIP、GZIP、Zstdへと続くLZ77系の系譜を説明する。"
+description: "LZ77とLZ78が辞書をどう扱うのかの違いを整理する。スライディングウィンドウと明示的辞書の違い、古い内容を忘れる方法の違い、そしてDEFLATEを経てZIP、GZIP、Zstdへと続くLZ77系の系譜を説明し、今よく使われる圧縮形式の共通の出発点を整理する。"
 keywords: "LZ77, LZ78, LZ77 LZ78 違い, LZ77 アルゴリズム, スライディングウィンドウ 圧縮, LZW, DEFLATE 仕組み, 辞書式圧縮"
 locale: ja
 translationOf: '240701'

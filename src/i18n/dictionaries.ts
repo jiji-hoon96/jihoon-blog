@@ -94,7 +94,7 @@ type Dictionary = {
 const dictionaries: Record<Locale, Dictionary> = {
   ko: {
     siteTitle: '훈지 · 프론트엔드 엔지니어링 기술 블로그',
-    siteDescription: '프론트엔드 개발자 이지훈(후니)의 기술 블로그. React, TypeScript, Next.js 로 만들면서 겪은 설계 판단과 문제 해결 과정, 성능과 관측 실측, 학습 노트를 남깁니다.',
+    siteDescription: '프론트엔드 개발자 이지훈(후니)의 기술 블로그. React, TypeScript, Next.js 로 만들면서 겪은 설계 판단과 문제 해결 과정, 성능과 관측 실측, 학습 노트와 개발자로서의 회고를 남깁니다.',
     navigation: {
       posts: '글',
       guestbook: '방명록',
@@ -117,12 +117,12 @@ const dictionaries: Record<Locale, Dictionary> = {
     notFound: { title: '찾는 페이지가 없습니다', description: '주소가 바뀌었거나 글이 내려갔을 수 있습니다. 아래에서 다른 글을 찾아보세요.', backHome: '홈으로', browsePosts: '모든 글 보기' },
     posts: { allPosts: '모든 글', count: '{count}개의 글', empty: '아직 작성된 글이 없습니다.' },
     post: { readingTime: '{minutes}분 분량', tableOfContents: '목차', openTableOfContents: '목차 열기', closeTableOfContents: '목차 닫기', closeGlossary: '용어 설명 닫기', previousPost: '이전 글', nextPost: '다음 글', comments: '댓글', updated: '수정' },
-    category: { label: '카테고리', description: '{category} 주제의 글 {count}개를 모았습니다. React와 TypeScript를 활용한 프론트엔드 개발 경험, 문제 해결 과정, 설계 원칙과 실무에서 얻은 학습 내용을 한곳에서 살펴보세요.', empty: '이 카테고리에는 아직 글이 없습니다.' },
+    category: { label: '카테고리', description: '{category} 주제의 글 {count}개를 모았습니다. 프론트엔드 개발자 이지훈이 실무와 개인 프로젝트에서 겪은 문제 해결 과정, 설계 판단, 직접 잰 실측과 학습 노트를 주제별로 정리했습니다. 관심 있는 글부터 골라 읽어 보세요.', empty: '이 카테고리에는 아직 글이 없습니다.' },
     guestbook: { title: '안녕하세요!', description: '후니네 개발하우스 방명록입니다. 프론트엔드 개발과 블로그 글에 대한 의견이나 질문, 함께 나누고 싶은 경험과 가벼운 인사를 자유롭게 남겨주세요. 모든 메시지를 반갑게 읽고 답변합니다.' },
     playground: { title: '재미있는 것을 만듭니다', description: '프론트엔드 개발자 이지훈이 직접 만든 개인 프로젝트를 소개합니다. 아이디어를 실제 제품으로 구현하며 얻은 설계 과정과 기술적 실험, 결과를 함께 살펴보세요.', empty: '아직 프로젝트가 없습니다.' },
     resume: {
       title: 'About',
-      description: '하이케어넷에서 미국 Medicare RPM/CCM 청구 플랫폼을 만드는 프론트엔드 개발자 이지훈의 이력서입니다. 한국어와 영어 이력서를 PDF로 내려받을 수 있습니다.',
+      description: '하이케어넷에서 미국 Medicare RPM/CCM 청구 플랫폼을 만드는 프론트엔드 개발자 이지훈의 이력서입니다. 한국어와 영어 이력서를 PDF로 내려받을 수 있고, 오픈소스 기여와 GitHub 링크도 함께 정리했습니다.',
       role: '프론트엔드 개발자',
       scale: '하이케어넷에서 프론트엔드를 맡고 있습니다. 단일 클리닉 환자 12명이 쓰던 건강정보 관리 서비스를, 캘리포니아 클리닉 46개와 환자 4,000명 이상이 쓰는 Medicare RPM/CCM 청구 플랫폼으로 확장했습니다.',
       approach: '사용자가 겪는 시간으로 트레이드오프를 판단하고, 그 근거를 구조에 남겨 팀의 품질로 만듭니다.',
@@ -165,7 +165,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     playground: { title: 'Enjoying making fun things', description: 'Explore Jihoon Lee’s personal frontend projects, product experiments, design decisions, and lessons learned while turning ideas into working software.', empty: 'No projects yet.' },
     resume: {
       title: 'About',
-      description: 'Resume of Jihoon Lee, a frontend developer at HicareNet building a Medicare RPM/CCM billing platform for US clinics. Korean and English resumes are available as PDFs.',
+      description: 'Resume of Jihoon Lee, a frontend developer at HicareNet building a Medicare RPM/CCM billing platform for US clinics. Korean and English PDFs available.',
       role: 'Frontend Developer',
       scale: 'I lead frontend work at HicareNet. I grew a health-record service used by 12 patients at a single clinic into a Medicare RPM/CCM billing platform serving 46 California clinics and more than 4,000 patients.',
       approach: 'I weigh trade-offs by the time a user actually spends, and I leave the reasoning in the structure so it becomes the team\'s quality rather than mine.',
@@ -180,7 +180,7 @@ const dictionaries: Record<Locale, Dictionary> = {
   },
   ja: {
     siteTitle: 'hooninedev · イ・ジフンのフロントエンド技術ブログ',
-    siteDescription: 'フロントエンドエンジニア、イ・ジフンの技術ブログです。React、TypeScript、Next.jsを使ったWeb開発の実践、設計上の判断、問題解決の過程、継続的な学びを詳しく共有します。',
+    siteDescription: 'フロントエンドエンジニア、イ・ジフンの技術ブログです。React、TypeScript、Next.jsを使ったWeb開発の実践、設計上の判断、問題解決の過程、パフォーマンスの実測、継続的な学びとエンジニアとしての振り返りを詳しく共有します。',
     navigation: {
       posts: '記事',
       guestbook: 'ゲストブック',
@@ -203,12 +203,12 @@ const dictionaries: Record<Locale, Dictionary> = {
     notFound: { title: 'お探しのページはありません', description: 'アドレスが変わったか、記事が取り下げられた可能性があります。下から別の記事を探してみてください。', backHome: 'ホームへ', browsePosts: 'すべての記事を見る' },
     posts: { allPosts: 'すべての記事', count: '{count}件の記事', empty: '記事はまだありません。' },
     post: { readingTime: '{minutes}分で読めます', tableOfContents: '目次', openTableOfContents: '目次を開く', closeTableOfContents: '目次を閉じる', closeGlossary: '用語の説明を閉じる', previousPost: '前の記事', nextPost: '次の記事', comments: 'コメント', updated: '更新' },
-    category: { label: 'カテゴリー', description: '{category}に関する記事を{count}件まとめました。ReactやTypeScriptを使ったフロントエンド開発の実践例、問題解決の過程、設計上の判断、仕事と学習から得た知見を一か所で紹介します。', empty: 'このカテゴリーにはまだ記事がありません。' },
+    category: { label: 'カテゴリー', description: '{category}に関する記事を{count}件まとめました。フロントエンドエンジニアのイ・ジフンが実務と個人プロジェクトで経験した問題解決の過程、設計上の判断、自分で測った実測値、学びの記録をテーマごとに整理しています。気になる記事から読んでみてください。', empty: 'このカテゴリーにはまだ記事がありません。' },
     guestbook: { title: 'こんにちは！', description: 'イ・ジフンのフロントエンド技術ブログのゲストブックです。記事への感想や質問、共有したい開発経験、気軽なメッセージを自由にお寄せください。すべての投稿を楽しく読み、できる限り返信します。' },
     playground: { title: '楽しいものを作る', description: 'フロントエンドエンジニアのイ・ジフンが制作した個人プロジェクトを紹介します。アイデアを実際のプロダクトにする過程で試した設計、技術的な実験、そこから得た学びをまとめています。', empty: 'プロジェクトはまだありません。' },
     resume: {
       title: 'About',
-      description: 'HicareNetで米国のMedicare RPM/CCM請求プラットフォームを開発するフロントエンド開発者イ・ジフンの履歴書です。韓国語と英語の履歴書をPDFでダウンロードできます。',
+      description: 'HicareNetで米国のMedicare RPM/CCM請求プラットフォームを開発するフロントエンド開発者イ・ジフンの履歴書です。韓国語と英語の履歴書をPDFでダウンロードでき、オープンソースへの貢献とGitHubへのリンクもまとめています。',
       role: 'フロントエンド開発者',
       scale: 'HicareNetでフロントエンドを担当しています。単一クリニックの患者12名が使っていた健康情報管理サービスを、カリフォルニアの46クリニック・4,000名以上の患者が使うMedicare RPM/CCM請求プラットフォームへと広げました。',
       approach: 'ユーザーが実際に費やす時間でトレードオフを判断し、その根拠を構造に残してチームの品質にします。',
@@ -251,7 +251,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     playground: { title: 'Creando cosas divertidas', description: 'Explora los proyectos personales de frontend de Jihoon Lee, sus experimentos de producto, decisiones de diseño y aprendizajes al convertir ideas en software.', empty: 'Aún no hay proyectos.' },
     resume: {
       title: 'About',
-      description: 'Currículum de Jihoon Lee, desarrollador frontend en HicareNet, donde construye una plataforma de facturación Medicare RPM/CCM para clínicas de EE. UU. Disponible en coreano e inglés en PDF.',
+      description: 'Currículum de Jihoon Lee, desarrollador frontend en HicareNet que crea una plataforma de facturación Medicare RPM/CCM para EE. UU. PDF en coreano e inglés.',
       role: 'Desarrollador Frontend',
       scale: 'Lidero el frontend en HicareNet. Convertí un servicio de registros de salud que usaban 12 pacientes de una sola clínica en una plataforma de facturación Medicare RPM/CCM para 46 clínicas de California y más de 4.000 pacientes.',
       approach: 'Decido las concesiones según el tiempo que el usuario realmente vive, y dejo ese razonamiento en la estructura para que se convierta en calidad del equipo.',
@@ -294,7 +294,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     playground: { title: 'Criando coisas divertidas', description: 'Conheça os projetos pessoais de frontend de Jihoon Lee, experimentos de produto, decisões de design e aprendizados ao transformar ideias em software.', empty: 'Ainda não há projetos.' },
     resume: {
       title: 'About',
-      description: 'Currículo de Jihoon Lee, desenvolvedor frontend na HicareNet, onde constrói uma plataforma de faturamento Medicare RPM/CCM para clínicas dos EUA. Disponível em coreano e inglês em PDF.',
+      description: 'Currículo de Jihoon Lee, desenvolvedor frontend na HicareNet que cria uma plataforma de faturamento Medicare RPM/CCM para os EUA. PDF em coreano e inglês.',
       role: 'Desenvolvedor Frontend',
       scale: 'Lidero o frontend na HicareNet. Transformei um serviço de registros de saúde usado por 12 pacientes de uma única clínica em uma plataforma de faturamento Medicare RPM/CCM para 46 clínicas da Califórnia e mais de 4.000 pacientes.',
       approach: 'Avalio as trocas pelo tempo que o usuário realmente gasta e deixo esse raciocínio na estrutura, para que vire qualidade do time.',
@@ -309,7 +309,7 @@ const dictionaries: Record<Locale, Dictionary> = {
   },
   'zh-CN': {
     siteTitle: 'hooninedev · 李智勋的前端工程技术博客',
-    siteDescription: '前端工程师李智勋的技术博客，深入分享使用 React、TypeScript、Next.js 进行 Web 开发的实践记录、架构判断、问题排查过程、性能优化经验以及持续学习获得的技术见解。',
+    siteDescription: '前端工程师李智勋的技术博客，深入分享使用 React、TypeScript、Next.js 进行 Web 开发的实践记录、架构判断、问题排查过程、亲自测量的性能数据、持续学习获得的技术见解，以及作为一名开发者对工作与成长的回顾和思考。',
     navigation: {
       posts: '文章',
       guestbook: '留言簿',
@@ -332,12 +332,12 @@ const dictionaries: Record<Locale, Dictionary> = {
     notFound: { title: '找不到这个页面', description: '地址可能已经变了，或者这篇文章已被撤下。可以在下面找找别的文章。', backHome: '回到首页', browsePosts: '查看全部文章' },
     posts: { allPosts: '全部文章', count: '{count}篇文章', empty: '暂无文章。' },
     post: { readingTime: '阅读约{minutes}分钟', tableOfContents: '目录', openTableOfContents: '打开目录', closeTableOfContents: '关闭目录', closeGlossary: '关闭术语说明', previousPost: '上一篇', nextPost: '下一篇', comments: '评论', updated: '更新' },
-    category: { label: '分类', description: '这里汇集了{count}篇关于{category}的文章，系统分享 React 与 TypeScript 前端工程实践、真实问题的排查过程、架构和设计取舍，以及从项目开发和持续学习中总结出的经验。', empty: '该分类下暂无文章。' },
+    category: { label: '分类', description: '这里汇集了{count}篇关于{category}的文章。前端工程师李智勋在实际工作和个人项目中经历的问题排查过程、架构与设计取舍、亲自测量的性能数据以及学习笔记，都按照主题整理在这一页里。你可以从最感兴趣的那一篇开始阅读，也欢迎在留言簿里分享你的想法和经验。', empty: '该分类下暂无文章。' },
     guestbook: { title: '你好！', description: '欢迎来到李智勋前端工程技术博客的留言簿。你可以自由分享对文章的看法、开发中遇到的问题、值得交流的实践经验或简单问候；每一条留言都会被认真阅读并尽力回复。' },
     playground: { title: '创造有趣的东西', description: '探索前端工程师李智勋亲手完成的个人项目。这里记录了如何把想法变成可用产品的过程，包括产品实验、设计决策、技术取舍、实现结果以及开发过程中获得的经验与反思。', empty: '暂无项目。' },
     resume: {
       title: 'About',
-      description: '李智勋的简历。他是 HicareNet 的前端开发者，为美国诊所构建 Medicare RPM/CCM 计费平台。提供韩语和英语两份 PDF。',
+      description: '这是前端开发者李智勋的简历。他在 HicareNet 为美国诊所构建 Medicare RPM/CCM 计费平台。这里提供韩语和英语两份 PDF 简历，并整理了他的开源贡献和 GitHub 链接，方便快速了解他的工作经历与技术背景。',
       role: '前端开发者',
       scale: '我在 HicareNet 负责前端。把原本只有一家诊所 12 名患者使用的健康信息管理服务，扩展成加州 46 家诊所、4,000 多名患者在用的 Medicare RPM/CCM 计费平台。',
       approach: '我以用户真正花掉的时间来权衡取舍，并把依据留在结构里，让它成为团队的质量。',

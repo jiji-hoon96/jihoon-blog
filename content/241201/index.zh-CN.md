@@ -8,7 +8,7 @@ description: "对比 Biome 与 ESLint、Prettier 组合的 lint 与格式化性�
 keywords: "Biome vs ESLint, Biome vs Prettier, Biome 迁移, JavaScript linter 对比, Rust linter, 前端开发工具"
 locale: zh-CN
 translationOf: '241201'
-sourceHash: 0ef3595adcff30685529ecb8539c23c76d3f598d4be92fe5574bd0f1a6c38d7b
+sourceHash: 003986df20a3fb2cbb5dba760b4a967e022be04ed5c24f3c249909ebc0e79281
 ---
 
 这篇文章想聊聊一款名为 Biome 的工具。

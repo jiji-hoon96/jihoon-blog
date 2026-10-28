@@ -8,7 +8,7 @@ description: "前端开发中的抽象究竟是什么，好的抽象与坏的抽
 keywords: "前端抽象, React 组件抽象, Clean Code 抽象, 抽象层级, 抽象层次, 编写好代码的方法, 揭示意图的命名, 组合方法模式, 抽象泄漏定律, 组件设计, 自定义 hook 设计, 前端架构, Kent Beck, Robert C. Martin"
 locale: zh-CN
 translationOf: '260201'
-sourceHash: 2035d8bcaf96c40a302631b399747f5dacf236e3e3ff1368cdaa3429e5e3f2de
+sourceHash: 36aa122e586527d496f00380c5a3413beaab8faf11de3e44cbabb4cebae368fc
 ---
 
 这篇文章想谈谈编程中的抽象，以及如何从抽象的角度写出好代码。

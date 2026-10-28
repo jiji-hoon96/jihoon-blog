@@ -8,7 +8,7 @@ description: "BiomeのLintとフォーマット性能を、ESLintとPrettierを�
 keywords: "Biome vs ESLint, Biome vs Prettier, Biome移行, JavaScriptリンター比較, Rust製リンター, フロントエンド開発ツール"
 locale: ja
 translationOf: '241201'
-sourceHash: 0ef3595adcff30685529ecb8539c23c76d3f598d4be92fe5574bd0f1a6c38d7b
+sourceHash: 003986df20a3fb2cbb5dba760b4a967e022be04ed5c24f3c249909ebc0e79281
 ---
 
 今回は、Biomeというツールについて紹介したい。

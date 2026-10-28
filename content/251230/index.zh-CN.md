@@ -5,7 +5,7 @@ seoTitle: "TanStack Query 如何比较 queryKey：hashKey 序列化与键顺序"
 date: "2025-12-30"
 updatedAt: "2026-10-08"
 categories: 前端 React TanStack-Query queryKey
-description: "梳理 TanStack Query 如何把每次渲染新建的 queryKey 数组判定为同一个键：hashKey 序列化如何改变键顺序、undefined、Map 等值，以及过滤器如何比较键的结构。"
+description: '梳理 TanStack Query 如何把每次渲染新建的 queryKey 数组判定为同一个键：hashKey 序列化如何改变键顺序、undefined、Map 等值，queryKeyHashFn 能改变什么，以及过滤器如何比较键的结构。'
 keywords: "queryKey 比较, hashKey, queryHash, TanStack Query 缓存键, React Query queryKey 顺序, queryKeyHashFn, JSON.stringify 键排序, QueryCache"
 locale: zh-CN
 translationOf: '251230'

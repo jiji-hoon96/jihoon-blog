@@ -8,7 +8,7 @@ description: "O que é abstração no frontend e como distinguir a boa da ruim: 
 keywords: "abstração no frontend, abstração de componentes React, abstração no Clean Code, nível de abstração, Level of Abstraction, como escrever um bom código, nomes que revelam intenção, Composed Method, lei das abstrações com vazamento, design de componentes, design de hooks customizados, arquitetura frontend, Kent Beck, Robert C. Martin"
 locale: pt-BR
 translationOf: '260201'
-sourceHash: 2035d8bcaf96c40a302631b399747f5dacf236e3e3ff1368cdaa3429e5e3f2de
+sourceHash: 36aa122e586527d496f00380c5a3413beaab8faf11de3e44cbabb4cebae368fc
 ---
 
 Neste post, quero falar sobre abstração na programação e sobre como escrever um bom código a partir dessa perspectiva.
