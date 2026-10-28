@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
     // 뿐이다. Next 문서가 이 플래그를 드는 두 경우 중 두 번째다.
     globalNotFound: true,
   },
+  // Sentry 환경 이름의 마지막 폴백. 함수 런타임에서 CONTEXT 가 보이지 않을 때를 위해
+  // 빌드 시점 값을 코드에 박는다. Netlify 밖에서 빌드하면 local 이 된다.
+  env: {
+    SENTRY_BUILD_CONTEXT: process.env.CONTEXT || "local",
+  },
   // Match Gatsby's trailing slash behavior
   trailingSlash: false,
   // Turbopack config to silence webpack warning
