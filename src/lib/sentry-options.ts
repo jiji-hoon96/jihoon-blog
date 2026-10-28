@@ -17,10 +17,9 @@ export function getSentryRuntimeOptions(env: SentryEnvironment) {
   // 환경 이름을 붙이지 않으면 프리뷰 트래픽이 프로덕션 이슈에 섞여서
   // 알림을 걸거나 이슈를 분류할 때 걸러낼 방법이 없다.
   //
-  // CONTEXT 는 빌드 변수라 함수 런타임에서 보인다는 보장이 없다. 실제로 이 프로젝트의
-  // 환경 목록에 deploy-preview 가 한 번도 생긴 적이 없고, 로컬 `next start` 의 이벤트가
-  // SDK 기본값인 production 으로 들어왔다(JIHOON-BLOG-B, -E). 그래서 빌드 시점 값을 마지막
-  // 폴백으로 둔다.
+  // Netlify 함수에서는 CONTEXT 가 보인다(2026-10-28 에 deploy-preview 이벤트로 확인).
+  // 로컬 `next start` 에는 둘 다 없어서 SDK 기본값인 production 으로 들어갔다
+  // (JIHOON-BLOG-B, -E). 그래서 빌드 시점 값을 마지막 폴백으로 둔다. 로컬 빌드는 local 이다.
   const environment =
     env.SENTRY_ENVIRONMENT ?? env.CONTEXT ?? env.SENTRY_BUILD_CONTEXT
 
