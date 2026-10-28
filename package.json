@@ -24,6 +24,7 @@
     "start": "next start",
     "lint": "eslint",
     "audit:repo": "node scripts/audit.mjs",
+    "monitor": "node scripts/monitor/report.mjs",
     "content:meta": "node scripts/validate-metadata-length.mjs",
     "fonts:build": "node scripts/build-font-css.mjs",
     "oss:sync": "node scripts/sync-open-source.mjs"
