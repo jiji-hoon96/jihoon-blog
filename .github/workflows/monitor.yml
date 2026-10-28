@@ -94,12 +94,13 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
-    env:
-      GH_TOKEN: ${{ github.token }}
+    # GH_TOKEN 을 잡 단위로 두지 않는다. gh 는 GH_TOKEN 을 먼저 읽으므로 Claude 의
+    # `gh pr create` 가 GITHUB_TOKEN 으로 PR 을 열게 되고, 그 PR 에는 ci.yml 이 돌지 않는다.
     steps:
       - name: Check preconditions
         id: gate
         env:
+          GH_TOKEN: ${{ github.token }}
           HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
         run: |
           # 지난주 PR 이 아직 열려 있으면 같은 것을 또 고치지 않는다.
