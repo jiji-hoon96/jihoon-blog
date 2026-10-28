@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import {
+  backoffDelay,
   bumpVisits,
   LEGACY_PAGE_VIEWS,
   nextCounts,
@@ -101,7 +102,33 @@ test('경쟁에서 계속 지면 조용히 성공하지 않고 던진다', async
       return { modified: false }
     },
   }
-  await assert.rejects(() => bumpVisits(store, '2026-09-19'), /conditional writes/)
+  const waits = []
+  await assert.rejects(
+    () => bumpVisits(store, '2026-09-19', async ms => { waits.push(ms) }),
+    /lost 8 conditional writes/,
+  )
+  assert.equal(waits.length, 7)
+})
+
+test('재시도 대기의 상한은 두 배씩 늘고 400ms 에서 멈춘다', () => {
+  const top = attempt => backoffDelay(attempt, () => 0.999999)
+  assert.deepEqual([0, 1, 2, 3, 4, 5].map(top), [39, 79, 159, 319, 399, 399])
+  assert.equal(backoffDelay(3, () => 0), 0)
+})
+
+test('동시에 몰린 증가가 하나도 지지 않는다', async () => {
+  // JIHOON-BLOG-F 재현. 대기 없이 곧바로 재시도하던 때는 동시 10개에서 셋 중 하나가 졌다.
+  const pause = ms => new Promise(resolve => setTimeout(resolve, ms))
+  const store = createStore({ total: 0, today: 0, day: '2026-10-28' })
+  const { getWithMetadata, setJSON } = store
+  store.getWithMetadata = async () => { await pause(5 + Math.random() * 5); return getWithMetadata() }
+  store.setJSON = async (...args) => { await pause(5 + Math.random() * 5); return setJSON(...args) }
+
+  const results = await Promise.allSettled(
+    Array.from({ length: 10 }, () => bumpVisits(store, '2026-10-28')),
+  )
+  assert.deepEqual(results.filter(result => result.status === 'rejected'), [])
+  assert.equal(store.state.record.total, 10)
 })
 
 test('깨진 레코드는 0에서 다시 센다', async () => {
