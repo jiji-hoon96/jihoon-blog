@@ -9,10 +9,15 @@
  *
  * **Blobs 에는 원자적 증가 연산이 없다.** 대신 조건부 쓰기(`onlyIfMatch` /
  * `onlyIfNew`)가 있어서 compare-and-swap 을 만들 수 있다. 읽은 etag 가 그대로일
- * 때만 쓰고, 경쟁에서 지면 다시 읽는다. 세션이 아니라 페이지 접근마다 쓰므로
- * 쓰기 빈도가 전보다 높다. 그래도 하루 세 자릿수 규모에서 두 요청이 같은
- * 밀리초에 겹칠 일은 드물다. 지면 조용히 숫자가 하나 사라지는 종류의 버그라
- * 재시도를 두고, 여유를 보아 다섯 번까지 본다.
+ * 때만 쓰고, 경쟁에서 지면 다시 읽는다.
+ *
+ * **재시도 사이에 무작위로 기다린다.** 처음에는 겹칠 일이 드물다고 보고 곧바로
+ * 다시 읽었다. 2026-10-28 에 프로덕션에서 다섯 번 연속으로 진 요청이 나왔다
+ * (JIHOON-BLOG-F). 그날 오전 11시에 오늘 접근이 이미 277 이었다. 곧바로 재시도하면
+ * 같이 진 요청들이 다시 한꺼번에 몰려서 또 겹친다. 읽기와 쓰기에 20~40ms 씩 드는
+ * 가짜 저장소로 돌려 보면 동시 6개에서 120건 중 10건, 10개에서 200건 중 63건이
+ * 다섯 번 다 졌다. 대기 상한을 시도마다 두 배로 늘리고 그 안에서 무작위로 고르면
+ * 재시도가 흩어진다.
  *
  * 오늘/전체를 키 두 개로 나누지 않고 레코드 하나에 담는다. 그래야 두 숫자가
  * 한 번의 CAS 로 같이 움직인다. 나눠 두면 둘 중 하나만 성공하는 상태가 생긴다.
@@ -21,7 +26,18 @@
 export const VISITS_STORE = 'visits'
 export const VISITS_KEY = 'counts'
 
-const MAX_ATTEMPTS = 5
+const MAX_ATTEMPTS = 8
+const BACKOFF_BASE_MS = 40
+// 라우트의 마감이 2500ms 다. 대기 상한의 합(40+80+160+320+400+400+400)이 1.8초라
+// 여덟 번의 읽기와 쓰기가 들어갈 자리가 남는다.
+const BACKOFF_CAP_MS = 400
+
+const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
+
+/** attempt 번째로 진 뒤의 대기. 상한을 두 배씩 늘리고 그 안에서 고른다(full jitter). */
+export function backoffDelay(attempt: number, random: () => number = Math.random): number {
+  return Math.floor(random() * Math.min(BACKOFF_CAP_MS, BACKOFF_BASE_MS * 2 ** attempt))
+}
 
 /**
  * Blobs 카운터가 생기기 전의 누적 조회수다. 화면의 「전체」는 블로그를 연 뒤의
@@ -130,8 +146,10 @@ export async function readVisits(
 export async function bumpVisits(
   store: CounterStore,
   day: string,
+  wait: (ms: number) => Promise<void> = sleep,
 ): Promise<VisitCounts> {
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
+    if (attempt > 0) await wait(backoffDelay(attempt - 1))
     // 증가에는 강한 일관성이 필요하다. 기본값(eventual)으로 읽으면 방금 쓴
     // 값을 못 봐서 같은 숫자에 두 번 더하게 된다.
     const entry = await store.getWithMetadata(VISITS_KEY, {
