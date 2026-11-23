@@ -8,7 +8,7 @@ description: "Biome frente a ESLint y Prettier: rendimiento de linting y formate
 keywords: "Biome vs ESLint, Biome vs Prettier, migración a Biome, comparativa de linters JavaScript, linter basado en Rust, herramientas de desarrollo frontend"
 locale: es
 translationOf: '241201'
-sourceHash: 003986df20a3fb2cbb5dba760b4a967e022be04ed5c24f3c249909ebc0e79281
+sourceHash: 817da6c8efe14e3c4cb096fa4601a39a9942936ef701ac5bad67c2982e97d4fa
 ---
 
 En esta publicación quiero hablar de una herramienta llamada Biome.
@@ -170,3 +170,5 @@ Mi respuesta a la pregunta de si Biome puede reemplazar por completo a ESLint y 
 Su rendimiento es abrumador, la configuración es concisa y el ritmo de desarrollo es rápido. Sin embargo, la inmadurez del ecosistema de plugins y las limitaciones de soporte para algunos lenguajes pueden ser obstáculos según el proyecto. Lo recomendable es revisar detenidamente el stack tecnológico del proyecto y las necesidades del equipo antes de decidir si adoptarlo.
 
 Algo está claro: el ecosistema de herramientas frontend avanza hacia soluciones «más rápidas, más sencillas y más integradas». Es innegable que Biome está a la cabeza de esa tendencia. Sin duda, es una herramienta cuyo crecimiento futuro merece atención.
+
+He reunido mis apuntes tras usar Biome en producción durante casi dos años, junto con los cambios hasta 2026, en [Biome: dos años de uso](/261115).

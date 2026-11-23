@@ -8,7 +8,7 @@ description: "对比 Biome 与 ESLint、Prettier 组合的 lint 与格式化性�
 keywords: "Biome vs ESLint, Biome vs Prettier, Biome 迁移, JavaScript linter 对比, Rust linter, 前端开发工具"
 locale: zh-CN
 translationOf: '241201'
-sourceHash: 003986df20a3fb2cbb5dba760b4a967e022be04ed5c24f3c249909ebc0e79281
+sourceHash: 817da6c8efe14e3c4cb096fa4601a39a9942936ef701ac5bad67c2982e97d4fa
 ---
 
 这篇文章想聊聊一款名为 Biome 的工具。
@@ -170,3 +170,5 @@ Biome 的性能和便利性显然很有吸引力。不过，我并不认为所�
 它的性能非常出色，配置简洁，开发速度也很快。不过，插件生态尚不成熟，而且对部分语言的支持有限，这些问题可能会因项目而异，成为实际障碍。最好仔细评估项目的技术栈与团队需求，再决定是否引入。
 
 有一点可以确定：前端工具生态正在朝着“更快、更简洁、更集成”的方向发展。不可否认，Biome 正站在这股潮流的前沿。它无疑是一款值得期待未来发展的工具。
+
+我把在实际产品中使用 Biome 将近两年的记录，以及截至 2026 年的变化，整理在了[Biome 两年使用记录](/261115)里。
