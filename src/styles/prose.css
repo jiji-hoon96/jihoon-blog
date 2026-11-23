@@ -121,7 +121,7 @@
   @apply font-bold text-light-black100 dark:text-dark-black100;
 }
 
-/* CLAUDE.md 규칙: 한글 본문에서 italic 시각 효과가 약하므로 사용하지 않는다.
+/* docs/writing-guide.md 규칙: 한글 본문에서 italic 시각 효과가 약하므로 사용하지 않는다.
    파서가 em을 생성하더라도 일반 본문처럼 보이도록 normalize한다. */
 .prose em {
   font-style: normal;
