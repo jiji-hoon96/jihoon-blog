@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: zh-CN
 translationOf: '260529'
-sourceHash: c484f11fe6907c8d505f0125e670586079460b7325a8dd04836994471634dcbd
+sourceHash: a3d427196e65b2386ce89cf1291a437d47b3677882abc7769582eb1b052a9c41
 categories: AI 开发工具 Claude MCP CodeGraph
 description: "梳理 CLAUDE.md、AGENTS.md、SKILL.md 与 Cursor rules 何时、如何被智能体读取，并根据 CLAUDE.md 以 user message 注入的机制、上下文遗忘与 ETH Zurich 研究，给出上下文文件该写什么的判断标准。"
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, 上下文文件, AI 编程智能体, Claude Code, ETH Zurich AGENTS.md 研究"
@@ -23,7 +23,7 @@ keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-inst
 
 AI 编程智能体存在一个根本局限：**它没有持久记忆**。每个 session 都从空白状态开始，昨天约定的 convention，或一小时前介绍过的文件夹结构，到了下一次对话就无法记住。上下文文件是解决这个问题最简单的装置：只要在项目中放置一个每次 session 开始时都会自动读取的文件，就不必反复说明同一件事。
 
-问题在于，各种工具围绕同一种思路分别创建了自己的文件。Claude Code 读取 `CLAUDE.md`，Cursor 读取 `.cursorrules`（现已 deprecated，官方建议改用 `.cursor/rules`），GitHub Copilot 读取 `.github/copilot-instructions.md`，OpenAI Codex 则读取 `AGENTS.md`。当一个团队同时使用多种工具时，同样的内容就得复制到四个地方。
+问题在于，各种工具围绕同一种思路分别创建了自己的文件。Claude Code 读取 `CLAUDE.md`，Cursor 读取 `.cursorrules`，GitHub Copilot 读取 `.github/copilot-instructions.md`，OpenAI Codex 则读取 `AGENTS.md`。Cursor 的 `.cursorrules` 现已 deprecated，官方建议改用 `.cursor/rules`。当一个团队同时使用多种工具时，同样的内容就得复制到四个地方。
 
 
 ### CLAUDE.md
@@ -34,7 +34,7 @@ AI 编程智能体存在一个根本局限：**它没有持久记忆**。每个 
 - **项目记忆**（项目根目录下的 `CLAUDE.md`）：提交到 git，由整个团队共享
 - **本地记忆**（子目录中的 `CLAUDE.md`）：仅在该目录内工作时额外加载
 
-如果三个层级都存在，Claude 会**全部读取并串联（concatenate）**。就像 CSS cascade 一样，更具体的内容会继续叠加上去。因此，如果把同一主题的规则分散到多个层级，就可能产生冲突。（Anthropic 官方文档明确指出，指令冲突时的行为不受保证。）
+如果三个层级都存在，Claude 会**全部读取并串联（concatenate）**。不同于按优先级只选其一的方式，它像 CSS cascade 一样，让更具体的内容继续叠加上去。其行为是合并而非覆盖。因此，如果把同一主题的规则分散到多个层级，就可能产生冲突。（Anthropic 官方文档明确指出，指令冲突时的行为不受保证。）
 
 这里有一点经常被忽略：Claude 会**从当前工作目录一路向上走到仓库根目录，并读取沿途遇到的所有 `CLAUDE.md`**。所以在 monorepo 的 `packages/ui/` 中工作时，根目录的 `CLAUDE.md` 与 `packages/ui/CLAUDE.md` 都会被加载。（这很强大，但也意味着上下文可能在不知不觉间膨胀。）
 
@@ -43,7 +43,7 @@ AI 编程智能体存在一个根本局限：**它没有持久记忆**。每个 
 
 `AGENTS.md` 是为解决上述各工具专属文件泛滥而创建的标准。2025 年 12 月，OpenAI 将这一标准捐赠给 Linux Foundation 旗下的 **Agentic AI Foundation**（AAIF）。据 [Linux Foundation 的公告](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation)，AAIF 由 Anthropic、Block、OpenAI 共同创立。创始项目有三个：Anthropic 的 MCP（把智能体连接到外部系统的协议）、Block 的 goose，以及 OpenAI 的 `AGENTS.md`。官方网站（`agents.md`）明确表示，**已有超过 6 万个开源仓库采用该文件**。
 
-看看支持工具的名单，这一点就更清楚了。OpenAI Codex、Google Jules、VS Code、GitHub Copilot、Cursor、JetBrains Junie、Aider、Devin、Zed、Factory、Warp、goose、opencode、Amp、RooCode、Gemini CLI、Kilo Code、Phoenix、Semgrep、Ona、Windsurf、Augment Code 等众多工具都提供支持。GitHub Copilot 从 2025 年 8 月起原生支持 `AGENTS.md`。相比之下，Claude Code 对 `AGENTS.md` 的原生支持目前仍处于 active feature request 状态。Claude Code 依然将 `CLAUDE.md` 视为主要文件。
+看看支持工具的名单，这一点就更清楚了。支持 `AGENTS.md` 的工具包括 OpenAI Codex、Google Jules、VS Code、GitHub Copilot、Cursor、JetBrains Junie、Aider、Devin、Zed、Factory、Warp、goose、opencode、Amp、RooCode、Gemini CLI、Kilo Code、Phoenix、Semgrep、Ona、Windsurf、Augment Code 等，数量众多。GitHub Copilot 从 2025 年 8 月起原生支持 `AGENTS.md`。相比之下，**Claude Code 对 `AGENTS.md` 的原生支持目前仍处于 active feature request 状态**。Claude Code 依然将 `CLAUDE.md` 视为主要文件。
 
 它虽被称为标准，但人们可能仍会怀疑是否真的有人采用。最有力的证据就是 **dogfooding**，也就是亲自使用自己制定的标准。
 
@@ -57,7 +57,7 @@ AI 编程智能体存在一个根本局限：**它没有持久记忆**。每个 
 
 `SKILL.md` 与前两个文件性质不同。`CLAUDE.md` 和 `AGENTS.md` 是**始终存在于上下文中的持久指令**，而 Skill 是**只在需要时调用的按需能力**。
 
-Skill 以文件夹为单位组织。文件夹中包含一个 `SKILL.md`、该 Skill 会执行的脚本，以及额外的 Markdown 文档。只有当前任务与 Skill 的 `description` 匹配时，Claude 才会加载该文件夹。这称为 **progressive disclosure（渐进式披露）**。这是由 UX 领域的 Jakob Nielsen 于 1995 年确立的概念：把高级或较少使用的功能放到辅助界面，让用户一次只专注于一项任务，从而降低认知负荷和错误。在 Claude Skills 的语境中，它指“只在需要时才把 Skill 正文载入上下文”的机制。这样可以节省上下文窗口成本。
+Skill 以文件夹为单位组织。文件夹中包含一个 `SKILL.md`、该 Skill 会执行的脚本，以及额外的 Markdown 文档。只有当前任务与 Skill 的 `description` 匹配时，Claude 才会加载该文件夹。这称为 **progressive disclosure（渐进式披露）**。这是由 UX 领域的 Jakob Nielsen 于 1995 年确立的概念。这是一种把高级或较少使用的功能放到辅助界面，让用户一次只专注于一项任务，从而降低认知负荷和错误的方法。在 Claude Skills 的语境中，它指“只在需要时才把 Skill 正文载入上下文”的机制。这样可以节省上下文窗口成本。
 
 `SKILL.md` 的 frontmatter 中有几个独有字段。
 
@@ -96,7 +96,7 @@ Cursor、Copilot 以外的工具也都在向相似模式靠拢。汇总如下。
 | **Windsurf** | `.windsurfrules` + `global_rules.md` | 全局与项目两级 |
 | **标准** | `AGENTS.md`（AAIF） | 已被 60,000+ 个仓库采用 |
 
-尤其**Aider 的 `CONVENTIONS.md` 每次请求都会完整加入上下文**。官方文档明确建议“**保持在 200 行以内**”，因为每次请求都会把这个文件完整加入上下文。（Aider 很早就意识到了这个限制，并明确告诉了用户。）
+尤其**因为 Aider 每次请求都会将 `CONVENTIONS.md` 完整加入上下文**，官方文档明确指出“**保持在 200 行以内**”。（Aider 很早就意识到了这个限制，并明确告诉了用户。）
 
 
 ### MEMORY.md
@@ -117,7 +117,7 @@ Prisma 쿼리 결과에 optional chaining 쓰지 말 것 — null은 if-check로
 
 ### 智能体如何读取这些文件
 
-到目前为止，我们梳理了有哪些文件。但有个经常被遗漏的问题：**智能体究竟把这些文件读到哪里，又是怎样读取的？** 后文会出现 ETH Zurich 的研究结果，也就是 context file 中的指令并不容易被遵循。了解这一机制，就更容易理解这一结果为何会出现。
+到目前为止，我们梳理了有哪些文件。但有个经常被遗漏的问题：**智能体究竟把这些文件读到哪里，又是怎样读取的？** 后文将探讨的 ETH Zurich 研究显示，智能体并不太遵循 context file 中的指令。了解这一机制，就更容易理解这一结果为何会出现。
 
 **`CLAUDE.md` 不是 system prompt，而是以 user message 的形式注入。** Anthropic 官方文档明确写道：
 
@@ -131,11 +131,11 @@ CLAUDE.md content is delivered as a user message after the system prompt, not as
 :::
 ::::
 
-也就是说，前面引用的内容并非作为强制规则应用，而是以参考上下文的形式传达。如果确实要强制某种行为，官方指南也建议使用 `PreToolUse` hook 等额外机制。
+也就是说，`CLAUDE.md` 的内容并非作为强制规则，而是以“参考上下文”的形式传达。如果确实要强制某种行为，官方指南也建议使用 `PreToolUse` hook 等额外机制。
 
 加载顺序按 broad → specific 逐层叠加。具体来说，是 managed policy（组织级设置）→ 用户全局文件（`~/.claude/CLAUDE.md`）→ 项目文件（`./CLAUDE.md`）→ 本地文件（`./CLAUDE.local.md`）。在同一目录中，先读 `CLAUDE.md`，再读 `CLAUDE.local.md`。利用**距离最近的指令最后读取**这一点，可以借助 LLM 的 recency bias，让更具体的规则产生更强影响。
 
-使用 `@import` 语法时，只要在 CLAUDE.md 正文的任意位置写入 `@path/to/file`，对应文件就会在该处展开并一同加载。**最大递归深度为 4 hops**，相对路径以写有 import 语句的文件为基准解析。因此，官方建议用 `@AGENTS.md` 建立 bridge。让 `CLAUDE.md` 几乎保持为空，只写一行 `@AGENTS.md`，Claude Code 就能自然读取 AGENTS.md。（在 CLAUDE.md 尚未原生支持 AGENTS.md 的现状下，这是最简洁的变通方案。）
+使用 `@import` 语法时，只要在 CLAUDE.md 正文的任意位置写入 `@path/to/file`，对应文件就会在该处展开并一同加载。**最大递归深度为 4 hops**，相对路径以写有 import 语句的文件为基准解析。因此，官方文档建议用 `@AGENTS.md` 建立 bridge。让 `CLAUDE.md` 几乎保持为空，只写一行 `@AGENTS.md`，Claude Code 就能自然读取 AGENTS.md。（在 CLAUDE.md 尚未原生支持 AGENTS.md 的现状下，这是最简洁的变通方案。）
 
 在 token 方面，CLAUDE.md 本身没有明确的 token 上限，因此**只要存在就会完整加载**。不过官方建议**每个文件不超过 200 行**。超过 200 行后，会“consume more context and may reduce adherence”。Claude 4.x 中，**仅仅启用 tool use，就会自动通过 special system prompt 增加 346 个 token**（以 `tool_choice: auto` 为准）。上下文也会因此在不知不觉中增加。
 
@@ -146,7 +146,7 @@ Cursor 则采用另一种方式。`.cursor/rules/*.mdc` 中的规则有四种工
 - **Apply to Specific Files**（Auto Attached）：与 glob 模式匹配的文件进入上下文时激活
 - **Apply Manually**：用户通过 `@rule-name` 明确调用
 
-其他工具又有所不同。OpenAI Codex 会从 git 仓库根目录朝 cwd 方向遍历，收集所有 `AGENTS.md`，并在**用户 prompt 之前紧邻的位置**注入。GitHub Copilot 则将 `.github/copilot-instructions.md` 放在上下文窗口的中等优先级。其位置在“edit context 和 explicit references 之后，loosely related open files 之前”。即使使用同一个 `AGENTS.md` 文件，各工具的加载时机、优先级与合并规则仍不相同，因此**不能保证三个工具以相同的方式理解该文件。**
+其他工具又有所不同。OpenAI Codex 会从 git 仓库根目录朝 cwd 方向遍历，收集所有 `AGENTS.md`，并在**用户 prompt 之前紧邻的位置**注入。GitHub Copilot 则将 `.github/copilot-instructions.md` 放在上下文窗口的中等优先级。其位置在“edit context 和 explicit references 之后，loosely related open files 之前”。即使使用同一个 `AGENTS.md` 文件，各工具的加载时机、优先级与合并规则仍不相同，因此**不能保证不同工具以相同的方式理解该文件。**
 
 但这里还剩下一个根本问题：**为什么模型只遵循上下文中的一部分指令？** 单纯用“指令太长”来解释并不充分。这种现象背后是 LLM 的结构性局限。
 
@@ -178,7 +178,7 @@ Aider 的“200 行建议”是实用层面的提醒：文件每次都会进入�
 
 - **自动生成的巨型上下文文件可能弊大于利**。如果把编码规范、架构、workflow 全塞进 300 行的 `CLAUDE.md`，智能体会遵循其中一部分、忽略其余部分。这种不一致甚至可能比没有上下文更糟。
 - **真正必须写下的是“无法推断的信息”**。非标准工具、项目专属 convention、过去的失败案例都属于这一类。一般性的编码最佳实践，模型本来就知道。
-- 将 AGENTS.md 作为单一来源，CLAUDE.md 只保留简短的工具专用指令，把细致的 workflow 拆分为 Skill。
+- 将 AGENTS.md 作为单一来源，CLAUDE.md 只保留简短的工具专用指令，把详细的 workflow 拆分为 Skill。
 
 
 ## 总结

@@ -9,7 +9,7 @@ description: "Como agentes carregam CLAUDE.md, AGENTS.md, SKILL.md e regras do C
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, regras do Cursor, copilot-instructions.md, arquivos de contexto, agente de programação com IA, Claude Code, estudo ETH Zurich AGENTS.md"
 locale: pt-BR
 translationOf: '260529'
-sourceHash: c484f11fe6907c8d505f0125e670586079460b7325a8dd04836994471634dcbd
+sourceHash: a3d427196e65b2386ce89cf1291a437d47b3677882abc7769582eb1b052a9c41
 ---
 
 Neste post, quero falar sobre **os arquivos de contexto que os agentes de programação com IA leem**.
@@ -23,7 +23,7 @@ Trabalho como desenvolvedor frontend e uso Claude no dia a dia. Com isso, em alg
 
 Os agentes de programação com IA têm uma limitação fundamental: **não possuem memória persistente**. Toda sessão começa do zero, e na conversa seguinte eles não se lembram de convenções combinadas ontem nem da estrutura de pastas explicada uma hora antes. Os arquivos de contexto são o mecanismo mais simples para resolver esse problema. Se o projeto tiver um arquivo lido automaticamente no início de cada sessão, não será necessário repetir sempre as mesmas explicações.
 
-O problema é que cada ferramenta criou seu próprio arquivo a partir da mesma ideia. Claude Code lê `CLAUDE.md`; Cursor, `.cursorrules` (que hoje está deprecated, e a recomendação é usar `.cursor/rules`); GitHub Copilot, `.github/copilot-instructions.md`; e OpenAI Codex, `AGENTS.md`. Quando uma equipe usa várias ferramentas, acaba tendo de copiar o mesmo conteúdo para quatro lugares diferentes.
+O problema é que cada ferramenta criou seu próprio arquivo a partir da mesma ideia. Claude Code lê `CLAUDE.md`; Cursor, `.cursorrules`; GitHub Copilot, `.github/copilot-instructions.md`; e OpenAI Codex, `AGENTS.md`. O `.cursorrules` do Cursor hoje está deprecated, e a recomendação é usar `.cursor/rules`. Quando uma equipe usa várias ferramentas, acaba tendo de copiar o mesmo conteúdo para quatro lugares diferentes.
 
 
 ### CLAUDE.md
@@ -34,7 +34,7 @@ O problema é que cada ferramenta criou seu próprio arquivo a partir da mesma i
 - **Memória do projeto** (`CLAUDE.md` na raiz do projeto): versionada no Git e compartilhada por toda a equipe
 - **Memória local** (`CLAUDE.md` em um subdiretório): carregada adicionalmente apenas ao trabalhar naquele diretório
 
-Se os três níveis existirem, Claude **lê todos e os concatena (concatenate)**. A estrutura se parece com a cascade do CSS, em que o conteúdo mais específico é acrescentado por cima. Portanto, espalhar regras sobre o mesmo assunto por vários níveis pode gerar conflitos. (A documentação oficial da Anthropic afirma que o comportamento em caso de conflito não é garantido.)
+Se os três níveis existirem, Claude **lê todos e os concatena (concatenate)**. Em vez de um modelo em que apenas um é escolhido por prioridade, a estrutura se parece com a cascade do CSS, em que o conteúdo mais específico é acrescentado por cima. Ele funciona por mesclagem em vez de sobrescrita. Portanto, espalhar regras sobre o mesmo assunto por vários níveis pode gerar conflitos. (A documentação oficial da Anthropic afirma que o comportamento em caso de conflito não é garantido.)
 
 Há um detalhe frequentemente ignorado: **todos os arquivos `CLAUDE.md` encontrados ao subir do diretório de trabalho atual até a raiz do repositório são lidos**. Assim, ao trabalhar em `packages/ui/` dentro de um monorepo, tanto o `CLAUDE.md` da raiz quanto `packages/ui/CLAUDE.md` são carregados. (Isso é poderoso, mas também significa que o contexto pode crescer sem que ninguém perceba.)
 
@@ -43,7 +43,7 @@ Há um detalhe frequentemente ignorado: **todos os arquivos `CLAUDE.md` encontra
 
 `AGENTS.md` é um padrão criado para resolver a proliferação de arquivos específicos de cada ferramenta descrita acima. Em dezembro de 2025, a OpenAI doou esse padrão à **Agentic AI Foundation (AAIF)**, vinculada à Linux Foundation. Segundo o [anúncio da Linux Foundation](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation), a AAIF foi cofundada por Anthropic, Block e OpenAI. Seus projetos fundadores são três: o MCP da Anthropic (o protocolo que conecta agentes a sistemas externos), o goose da Block e o `AGENTS.md` da OpenAI. O site oficial (`agents.md`) afirma que **mais de 60 mil repositórios open source já adotam esse arquivo**.
 
-A lista de ferramentas compatíveis deixa isso ainda mais claro. OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf e Augment Code estão entre as muitas ferramentas com suporte. O GitHub Copilot passou a oferecer suporte nativo a `AGENTS.md` em agosto de 2025. Por outro lado, o suporte nativo do Claude Code a `AGENTS.md` ainda está no estado de active feature request. Para o Claude Code, `CLAUDE.md` continua sendo o arquivo principal.
+A lista de ferramentas compatíveis deixa isso ainda mais claro. As ferramentas com suporte a `AGENTS.md` são numerosas, incluindo OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf e Augment Code. O GitHub Copilot passou a oferecer suporte nativo a `AGENTS.md` em agosto de 2025. Por outro lado, **o suporte nativo do Claude Code a `AGENTS.md` ainda está no estado de active feature request**. Para o Claude Code, `CLAUDE.md` continua sendo o arquivo principal.
 
 Mesmo sendo chamado de padrão, é razoável desconfiar se ele está realmente sendo adotado. A evidência mais forte é o **dogfooding** (quando quem cria um padrão também o utiliza).
 
@@ -57,7 +57,7 @@ Do ponto de vista estratégico, a abordagem que vem se consolidando é esta: man
 
 `SKILL.md` tem uma natureza diferente dos dois arquivos anteriores. Enquanto `CLAUDE.md` e `AGENTS.md` são **instruções persistentes, sempre presentes no contexto**, uma Skill é uma **capacidade on-demand, invocada apenas quando necessária**.
 
-Uma Skill é organizada como uma pasta. Dentro dela ficam um arquivo `SKILL.md`, scripts executados pela Skill e documentos Markdown adicionais. Claude só carrega essa pasta quando a tarefa atual corresponde ao `description` da Skill. Esse mecanismo é chamado de **progressive disclosure (divulgação progressiva)**. O conceito foi estabelecido por Jakob Nielsen na área de UX em 1995 e descreve uma técnica que reduz a carga cognitiva e os erros ao deslocar funções avançadas ou pouco usadas para telas secundárias, permitindo que o usuário se concentre em uma tarefa de cada vez. No contexto das Claude Skills, o termo se refere ao mecanismo de “trazer o corpo da Skill para o contexto apenas quando necessário”. O resultado é uma economia no custo da janela de contexto.
+Uma Skill é organizada como uma pasta. Dentro dela ficam um arquivo `SKILL.md`, scripts executados pela Skill e documentos Markdown adicionais. Claude só carrega essa pasta quando a tarefa atual corresponde ao `description` da Skill. Esse mecanismo é chamado de **progressive disclosure (divulgação progressiva)**. O conceito foi estabelecido por Jakob Nielsen na área de UX em 1995. Trata-se de uma técnica que reduz a carga cognitiva e os erros ao deslocar funções avançadas ou pouco usadas para telas secundárias, permitindo que o usuário se concentre em uma tarefa de cada vez. No contexto das Claude Skills, o termo se refere ao mecanismo de “trazer o corpo da Skill para o contexto apenas quando necessário”. O resultado é uma economia no custo da janela de contexto.
 
 O frontmatter de `SKILL.md` possui alguns campos próprios.
 
@@ -96,7 +96,7 @@ As demais ferramentas também convergem para padrões parecidos. A tabela abaixo
 | **Windsurf** | `.windsurfrules` + `global_rules.md` | Dois níveis: global e projeto |
 | **Padrão** | `AGENTS.md` (AAIF) | Adotado por mais de 60.000 repositórios |
 
-**O `CONVENTIONS.md` do Aider inclui o arquivo inteiro no contexto a cada solicitação**. A documentação oficial informa que o arquivo inteiro é incluído no contexto a cada solicitação, por isso especifica: **“mantenha-o com no máximo 200 linhas”**. (O Aider reconhece essa limitação cedo e a comunica diretamente aos usuários.)
+Em especial, **como o Aider inclui `CONVENTIONS.md` inteiro no contexto a cada solicitação**, a documentação oficial especifica: **“mantenha-o com no máximo 200 linhas”**. (O Aider reconhece essa limitação cedo e a comunica diretamente aos usuários.)
 
 
 ### MEMORY.md
@@ -117,7 +117,7 @@ Se `CLAUDE.md` e `AGENTS.md` registram **as regras vigentes no momento**, `MEMOR
 
 ### Como o agente lê esses arquivos
 
-Até aqui, vimos quais arquivos existem. Mas há uma pergunta que costuma ficar de fora: **para onde e de que forma o agente lê esses arquivos?** O mecanismo ajuda a entender melhor por que aparece adiante o resultado da ETH Zurich, segundo o qual arquivos de contexto não são bem seguidos.
+Até aqui, vimos quais arquivos existem. Mas há uma pergunta que costuma ficar de fora: **para onde e de que forma o agente lê esses arquivos?** O estudo da ETH Zurich, abordado mais adiante, mostra o resultado de que os agentes não seguem bem as instruções dos arquivos de contexto. Conhecer esse mecanismo ajuda a entender melhor por que esse resultado aparece.
 
 **`CLAUDE.md` não é um system prompt; ele é injetado como user message.** A documentação oficial da Anthropic afirma o seguinte:
 
@@ -131,11 +131,11 @@ CLAUDE.md content is delivered as a user message after the system prompt, not as
 :::
 ::::
 
-Ou seja, o conteúdo citado acima não é aplicado como uma regra obrigatória; é transmitido como contexto de referência. Se quiser impor um comportamento específico, o guia oficial também recomenda usar um mecanismo separado, como um hook `PreToolUse`.
+Ou seja, o conteúdo de `CLAUDE.md` não é aplicado como uma regra obrigatória, mas transmitido como “contexto de referência”. Se quiser impor um comportamento específico, o guia oficial também recomenda usar um mecanismo separado, como um hook `PreToolUse`.
 
 A ordem de carregamento se acumula de broad → specific. Mais precisamente: managed policy (configuração da organização) → global do usuário (`~/.claude/CLAUDE.md`) → projeto (`./CLAUDE.md`) → local (`./CLAUDE.local.md`). Dentro do mesmo diretório, `CLAUDE.md` vem antes de `CLAUDE.local.md`. É possível aproveitar o fato de que **a instrução mais próxima é lida por último** para fazer regras mais específicas terem maior peso, graças ao recency bias dos LLMs.
 
-Com a sintaxe `@import`, basta escrever `@path/to/file` em qualquer lugar do corpo de CLAUDE.md para que esse arquivo seja expandido ali e carregado junto. **A profundidade recursiva máxima é de 4 hops**, e caminhos relativos são resolvidos a partir do arquivo que contém o import. Por isso, a recomendação oficial é usar `@AGENTS.md` como ponte. Se `CLAUDE.md` ficar quase vazio, contendo apenas a linha `@AGENTS.md`, o Claude Code também lerá AGENTS.md naturalmente. (Na situação atual, em que CLAUDE.md ainda não oferece suporte nativo a AGENTS.md, essa é a solução alternativa mais limpa.)
+Com a sintaxe `@import`, basta escrever `@path/to/file` em qualquer lugar do corpo de CLAUDE.md para que esse arquivo seja expandido ali e carregado junto. **A profundidade recursiva máxima é de 4 hops**, e caminhos relativos são resolvidos a partir do arquivo que contém o import. Por isso, a documentação oficial recomenda usar `@AGENTS.md` como ponte. Se `CLAUDE.md` ficar quase vazio, contendo apenas a linha `@AGENTS.md`, o Claude Code também lerá AGENTS.md naturalmente. (Na situação atual, em que CLAUDE.md ainda não oferece suporte nativo a AGENTS.md, essa é a solução alternativa mais limpa.)
 
 Em termos de tokens, CLAUDE.md não possui um limite explícito, portanto, **se existir, será carregado por inteiro**. Mas a recomendação oficial é de **no máximo 200 linhas por arquivo**. Acima de 200 linhas, a documentação diz “consume more context and may reduce adherence”. No Claude 4.x, **apenas habilitar o tool use adiciona automaticamente +346 tokens a um special system prompt** (com `tool_choice: auto`). Isso faz o contexto crescer sem que se perceba.
 
@@ -146,7 +146,7 @@ O Cursor funciona de outra maneira. As regras em `.cursor/rules/*.mdc` operam em
 - **Apply to Specific Files** (Auto Attached): ativada quando um arquivo que corresponde ao padrão glob entra no contexto
 - **Apply Manually**: invocada explicitamente pelo usuário com `@rule-name`
 
-Outras ferramentas funcionam de formas diferentes. O OpenAI Codex percorre o caminho da raiz do repositório Git até o cwd, coleta todos os `AGENTS.md` e os injeta **imediatamente antes do prompt do usuário**. O GitHub Copilot insere `.github/copilot-instructions.md` em uma prioridade intermediária da janela de contexto. Sua posição fica “depois do edit context e das explicit references, mas antes dos open files loosely related”. Mesmo quando usam o mesmo arquivo `AGENTS.md`, ferramentas diferentes podem carregá-lo em momentos distintos, com prioridades e regras de mesclagem diferentes; portanto, **não há garantia de que três ferramentas enxerguem esse arquivo da mesma maneira.**
+Outras ferramentas funcionam de formas diferentes. O OpenAI Codex percorre o caminho da raiz do repositório Git até o cwd, coleta todos os `AGENTS.md` e os injeta **imediatamente antes do prompt do usuário**. O GitHub Copilot insere `.github/copilot-instructions.md` em uma prioridade intermediária da janela de contexto. Sua posição fica “depois do edit context e das explicit references, mas antes dos open files loosely related”. Mesmo quando usam o mesmo arquivo `AGENTS.md`, ferramentas diferentes podem carregá-lo em momentos distintos, com prioridades e regras de mesclagem diferentes; portanto, **não há garantia de que cada ferramenta enxergue esse arquivo da mesma maneira.**
 
 Mas resta uma pergunta fundamental: **por que o modelo segue apenas parte das instruções presentes no contexto?** Dizer apenas que “as instruções são longas” não basta. Por trás desse fenômeno existe uma limitação estrutural dos LLMs.
 
@@ -174,7 +174,7 @@ Em fevereiro de 2026, uma equipe da ETH Zurich publicou o artigo “Evaluating A
 
 Uma exceção ocorreu **quando uma ferramenta não convencional era especificada**. Por exemplo, ao mencionar no contexto o gerenciador de pacotes Python `uv`, a frequência de uso de `uv` pelo agente passou de 0,01 para 1,6 vez por instância, um aumento de **aproximadamente 160 vezes**.
 
-A recomendação do Aider mencionada antes — “200 linhas”, “como entra sempre no contexto, mantenha curto” — era uma orientação prática. Em comparação, o estudo da ETH Zurich demonstrou quantitativamente que “arquivos de contexto longos reduzem o desempenho”. Na minha opinião, as implicações práticas dessa pesquisa são as seguintes.
+A recomendação do Aider mencionada antes, de “200 linhas” e “como entra sempre no contexto, mantenha curto”, era uma orientação prática. Em comparação, o estudo da ETH Zurich demonstrou quantitativamente que “arquivos de contexto longos reduzem o desempenho”. Na minha opinião, as implicações práticas dessa pesquisa são as seguintes.
 
 - **Arquivos de contexto enormes gerados automaticamente podem causar mais danos do que benefícios**. Se padrões de código, arquitetura e workflow forem todos espremidos em um `CLAUDE.md` de 300 linhas, o agente seguirá apenas parte e ignorará o restante. Essa inconsistência pode produzir resultados piores do que não ter contexto algum.
 - **O que precisa ser registrado são as informações que não podem ser inferidas**: ferramentas não convencionais, convenções específicas do projeto e falhas do passado. O modelo já conhece as boas práticas gerais de programação.

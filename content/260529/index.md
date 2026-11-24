@@ -20,7 +20,7 @@ keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-inst
 
 AI 코딩 에이전트에는 **지속 메모리가 없다는** 근본적인 한계가 있다. 모든 세션은 빈 상태로 시작되고, 어제 합의한 컨벤션이나 한 시간 전에 알려준 폴더 구조 같은 것을 다음 대화에서는 기억하지 못한다. Context file은 이 문제를 해결하기 위한 가장 단순한 장치다. 세션이 시작될 때마다 자동으로 읽히는 파일을 프로젝트에 두면, 매번 같은 설명을 반복할 필요가 없다.
 
-문제는 같은 발상에서 출발한 파일이 도구마다 따로 만들어졌다는 점이다. Claude Code는 `CLAUDE.md`를, Cursor는 `.cursorrules`(현재는 depreacted가 되어 `.cursor/rules` 사용을 권장하고있다)를, GitHub Copilot은 `.github/copilot-instructions.md`를, OpenAI Codex는 `AGENTS.md`를 읽는다. 한 팀이 여러 도구를 쓰면 같은 내용을 네 군데에 복사해 두어야 하는 상황이 벌어지는 것이다.
+문제는 같은 발상에서 출발한 파일이 도구마다 따로 만들어졌다는 점이다. Claude Code는 `CLAUDE.md`를, Cursor는 `.cursorrules`를, GitHub Copilot은 `.github/copilot-instructions.md`를, OpenAI Codex는 `AGENTS.md`를 읽는다. Cursor의 `.cursorrules`는 현재 deprecated가 되어 `.cursor/rules` 사용을 권장하고 있다. 한 팀이 여러 도구를 쓰면 같은 내용을 네 군데에 복사해 두어야 하는 상황이 벌어지는 것이다.
 
 
 ### CLAUDE.md
@@ -31,7 +31,7 @@ AI 코딩 에이전트에는 **지속 메모리가 없다는** 근본적인 한�
 - **프로젝트 메모리** (프로젝트 루트의 `CLAUDE.md`): 깃에 커밋되어 팀 전체가 공유
 - **로컬 메모리** (서브디렉토리의 `CLAUDE.md`): 해당 디렉토리에서 작업할 때만 추가로 로딩
 
-세 계층이 모두 존재하면 Claude는 **모두 읽어 연결(concatenate)** 한다. CSS의 cascade처럼 더 구체적인 것이 추가로 얹히는 구조다. 따라서 같은 주제의 규칙을 여러 계층에 흩어두면 충돌이 날 수 있다.(Anthropic 공식 문서는 충돌 시 동작이 보장되지 않는다고 명시하고있다.)
+세 계층이 모두 존재하면 Claude는 **모두 읽어 연결(concatenate)** 한다. 우선순위에 따라 하나만 선택되는 방식 대신, CSS의 cascade처럼 더 구체적인 것이 추가로 얹히는 구조다. 오버라이드 대신 병합으로 동작한다. 따라서 같은 주제의 규칙을 여러 계층에 흩어두면 충돌이 날 수 있다.(Anthropic 공식 문서는 충돌 시 동작이 보장되지 않는다고 명시하고 있다.)
 
 여기서 한 가지 자주 놓치는 부분이 있다. **현재 작업 디렉토리에서 레포 루트까지 거슬러 올라가며 만나는 모든 `CLAUDE.md`를 읽는다**는 점이다. 그래서 모노레포에서 `packages/ui/`에 들어가서 작업하면 루트의 `CLAUDE.md`와 `packages/ui/CLAUDE.md`가 둘 다 로딩된다. (이건 강력하지만 동시에 컨텍스트가 부지불식간에 부풀 수 있다는 뜻이기도 하다.)
 
@@ -40,7 +40,7 @@ AI 코딩 에이전트에는 **지속 메모리가 없다는** 근본적인 한�
 
 `AGENTS.md`는 위에서 말한 도구별 파일 난립을 풀기 위해 만들어진 표준이다. 2025년 12월, OpenAI는 이 표준을 Linux Foundation 산하 **Agentic AI Foundation(AAIF)** 에 기증했다. [Linux Foundation의 발표](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation)에 따르면 AAIF는 Anthropic·Block·OpenAI가 공동 창립했다. 창립 프로젝트는 Anthropic의 MCP(에이전트를 외부 시스템에 연결하는 프로토콜), Block의 goose, OpenAI의 `AGENTS.md` 셋이다. 공식 사이트(`agents.md`)에서 **6만 개 이상의 오픈소스 저장소가 이 파일을 채택하고 있다**고 명시하고 있다.
 
-지원하는 도구 목록을 보면 더 분명해진다. OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf, Augment Code 까지 수많은 도구들을 지원한다. GitHub Copilot은 2025년 8월부터 `AGENTS.md`를 네이티브로 지원하기 시작했다. 반면 Claude Code의 네이티브 `AGENTS.md` 지원은 아직 active feature request 상태다. Claude Code는 여전히 `CLAUDE.md`를 1차 파일로 본다.
+지원하는 도구 목록을 보면 더 분명해진다. `AGENTS.md`를 지원하는 도구는 OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf, Augment Code 등으로 수가 많다. GitHub Copilot은 2025년 8월부터 `AGENTS.md`를 네이티브로 지원하기 시작했다. 반면 **Claude Code의 네이티브 `AGENTS.md` 지원은 아직 active feature request 상태**다. Claude Code는 여전히 `CLAUDE.md`를 1차 파일로 본다.
 
 표준이라고는 하지만 정말 채택되고 있는지 의심스러울 수도 있다. 가장 강력한 증거는 **dogfooding**(자신이 만든 표준을 자신이 직접 쓴다는 의미)이다.
 
@@ -54,14 +54,14 @@ AI 코딩 에이전트에는 **지속 메모리가 없다는** 근본적인 한�
 
 `SKILL.md`는 위 두 파일과는 결이 다르다. `CLAUDE.md`와 `AGENTS.md`가 **항상 컨텍스트에 존재하는 영속적 지시**라면, 스킬(Skill)은 **필요할 때만 호출되는 온디맨드 능력**이다.
 
-스킬은 폴더 단위로 구성된다. 폴더 안에 `SKILL.md` 한 개와 그 스킬이 실행할 스크립트, 추가 마크다운 문서들이 들어있다. Claude는 현재 태스크가 스킬의 `description`과 매칭될 때만 그 폴더를 로딩한다. 이걸 **progressive disclosure(점진적 노출)** 라고 부른다. 1995년 UX 분야의 Jakob Nielsen이 정립한 개념으로, 고급·드물게 쓰이는 기능을 보조 화면으로 미뤄두고 사용자가 한 번에 하나의 작업에만 집중하게 해서 인지 부하와 에러를 줄이는 기법이다. Claude Skills 맥락에서는 "필요할 때만 그 스킬의 본문을 컨텍스트로 가져오는" 메커니즘을 가리킨다. 결과적으로 컨텍스트 윈도우 비용을 아낄 수 있다.
+스킬은 폴더 단위로 구성된다. 폴더 안에 `SKILL.md` 한 개와 그 스킬이 실행할 스크립트, 추가 마크다운 문서들이 들어있다. Claude는 현재 태스크가 스킬의 `description`과 매칭될 때만 그 폴더를 로딩한다. 이걸 **progressive disclosure(점진적 노출)** 라고 부른다. 1995년 UX 분야의 Jakob Nielsen이 정립한 개념이다. 고급·드물게 쓰이는 기능을 보조 화면으로 미뤄두고 사용자가 한 번에 하나의 작업에만 집중하게 해서 인지 부하와 에러를 줄이는 기법이다. Claude Skills 맥락에서는 "필요할 때만 그 스킬의 본문을 컨텍스트로 가져오는" 메커니즘을 가리킨다. 결과적으로 컨텍스트 윈도우 비용을 아낄 수 있다.
 
 `SKILL.md`의 frontmatter에는 몇 가지 고유한 필드가 있다.
 
 - **`description`**: 어떤 상황에서 이 스킬이 필요한지 설명. 모델이 호출 여부를 판단하는 트리거가 된다
 - **`allowed-tools`**: 스킬 안에서 사용 가능한 도구를 제한 (예: `"Read, Glob, Grep, Bash(python:*)"`)
 - **`disable-model-invocation: true`**: 모델은 호출 불가, 사용자만 슬래시 명령으로 트리거 가능하다. 부작용 있는 작업(배포·커밋 등)에 사용한다
-- **`user-invocable: false`**: 사용자에게는 슬래시 메뉴에서 안 보이고 Claude만 자율 호출하여 배경 지식용에 사용한다.
+- **`user-invocable: false`**: 사용자에게는 슬래시 메뉴에서 안 보이고 Claude만 자율 호출하여 배경 지식용으로 사용한다.
 
 Claude Skills는 2025년 10월 16일 Claude.ai, Claude Code, API, Agent SDK에 동시 출시되었다. 그리고 2025년 12월 18일, Anthropic은 Skills 사양 자체를 오픈 표준(`agentskills.io`)으로 발표했다. Simon Willison은 "**Skills are awesome, maybe a bigger deal than MCP**"라는 평가를 내놓기도 했다. 이유는 형식이 MCP보다 극적으로 단순하고 컨텍스트 윈도우 비용을 progressive disclosure 로 해결한다는 점에 있었다.
 
@@ -93,7 +93,7 @@ Cursor·Copilot 외의 도구들도 모두 비슷한 패턴으로 수렴하고 �
 | **Windsurf** | `.windsurfrules` + `global_rules.md` | 글로벌과 프로젝트 2단계 |
 | **표준** | `AGENTS.md` (AAIF) | 60,000+ 저장소 채택 |
 
-특히 **Aider의 `CONVENTIONS.md`는 매 요청마다 이 파일을 통째로 컨텍스트에 포함한다**. 공식 문서는 매 요청마다 이 파일을 통째로 컨텍스트에 포함하기 때문에 **"200줄 이내로 유지하라"** 고 명시한다. (Aider는 이 한계를 일찍 인지하고 사용자에게 명시적으로 알려준다.)
+특히 **Aider는 `CONVENTIONS.md`를 매 요청마다 통째로 컨텍스트에 포함하기 때문에** 공식 문서가 **"200줄 이내로 유지하라"** 고 명시한다. (Aider는 이 한계를 일찍 인지하고 사용자에게 명시적으로 알려준다.)
 
 
 ### MEMORY.md
@@ -114,7 +114,7 @@ Prisma 쿼리 결과에 optional chaining 쓰지 말 것 — null은 if-check로
 
 ### 에이전트는 이 파일들을 어떻게 읽는가
 
-지금까지 어떤 파일이 있는지를 정리했다. 그런데 자주 빠지는 질문이 하나 있다. **이 파일들을 에이전트는 어디로, 어떻게 읽어들이는 걸까?** 뒤에 ETH Zurich 결과, 곧 context file이 잘 안 따라진다는 결과가 나온다. 이 메커니즘을 알면 그 결과가 왜 나왔는지 더 잘 이해된다.
+지금까지 어떤 파일이 있는지를 정리했다. 그런데 자주 빠지는 질문이 하나 있다. **이 파일들을 에이전트는 어디로, 어떻게 읽어들이는 걸까?** 뒤에서 다루는 ETH Zurich 연구는 context file의 지시를 에이전트가 잘 따르지 않는다는 결과를 보여준다. 이 메커니즘을 알면 그 결과가 왜 나왔는지 더 잘 이해된다.
 
 **`CLAUDE.md`는 system prompt가 아니라 user message로 주입된다.** Anthropic 공식 문서가 아래와 같이 명시한다
 
@@ -128,11 +128,11 @@ CLAUDE.md content is delivered as a user message after the system prompt, not as
 :::
 ::::
 
-즉 앞서 인용한 내용은 강제 규칙으로 적용되지 않고 참고용 컨텍스트로 전달된다. 어떤 동작을 강제하고 싶다면 `PreToolUse` 훅 같은 별도 장치를 써야 한다고 공식 가이드도 권장한다.
+즉 `CLAUDE.md`의 내용은 강제 규칙 대신 "참고용 컨텍스트"로 전달된다. 어떤 동작을 강제하고 싶다면 `PreToolUse` 훅 같은 별도 장치를 써야 한다고 공식 가이드도 권장한다.
 
 로드 순서는 broad → specific 으로 쌓인다. 구체적으로는 managed policy(조직 차원의 설정) → 사용자 글로벌(`~/.claude/CLAUDE.md`) → 프로젝트(`./CLAUDE.md`) → 로컬(`./CLAUDE.local.md`) 순이다. 같은 디렉토리에서는 `CLAUDE.md` 다음 `CLAUDE.local.md` 순. **가장 가까운 곳의 지시가 가장 나중에 읽힌다**는 점을 활용하면 (LLM의 recency bias 덕에) 더 구체적인 규칙이 더 강하게 작용하는 효과를 노릴 수 있다.
 
-`@import` 문법을 쓰면, CLAUDE.md 본문 어디든 `@path/to/file`을 적은 자리에 그 파일이 그대로 펼쳐져 같이 로드된다. **최대 재귀 깊이는 4 hops**까지 허용되고, 상대경로는 import문이 적힌 파일 기준으로 풀린다. 그래서 공식 권장이 `@AGENTS.md`로 브리지하는 방식이다. `CLAUDE.md`는 거의 비워두고 `@AGENTS.md` 한 줄만 쓰면 Claude Code도 자연스럽게 AGENTS.md를 읽는다. (CLAUDE.md가 아직 AGENTS.md를 네이티브 지원하지 않는 현 상황에서 가장 깔끔한 우회다.)
+`@import` 문법을 쓰면, CLAUDE.md 본문 어디든 `@path/to/file`을 적은 자리에 그 파일이 그대로 펼쳐져 같이 로드된다. **최대 재귀 깊이는 4 hops**까지 허용되고, 상대경로는 import문이 적힌 파일 기준으로 풀린다. 그래서 공식 문서는 `@AGENTS.md`로 브리지하는 방식을 권장한다. `CLAUDE.md`는 거의 비워두고 `@AGENTS.md` 한 줄만 쓰면 Claude Code도 자연스럽게 AGENTS.md를 읽는다. (CLAUDE.md가 아직 AGENTS.md를 네이티브 지원하지 않는 현 상황에서 가장 깔끔한 우회다.)
 
 토큰 측면에서는 CLAUDE.md 자체에는 명시적 토큰 한도가 없어서 **있으면 전부 로드된다**. 하지만 공식 권고는 **파일당 200줄 이내**다. 200줄을 넘기면 "consume more context and may reduce adherence"라고 명시되어 있다. Claude 4.x에서는 **tool use를 활성화하는 것만으로 special system prompt가 자동 +346토큰**(`tool_choice: auto` 기준) 추가된다. 그만큼 컨텍스트가 눈에 띄지 않게 늘어난다.
 
@@ -143,7 +143,7 @@ Cursor는 또 다른 방식이다. `.cursor/rules/*.mdc`의 룰은 네 가지 �
 - **Apply to Specific Files**(Auto Attached): glob 패턴 매칭 파일이 컨텍스트에 들어왔을 때 활성화
 - **Apply Manually**: `@rule-name`으로 사용자가 명시 호출
 
-다른 도구들은 또 다르다. OpenAI Codex는 git 레포 루트에서 cwd 방향으로 walk하며 모든 `AGENTS.md`를 수집해 **사용자 프롬프트 직전에** 주입한다. GitHub Copilot은 `.github/copilot-instructions.md`를 컨텍스트 윈도우의 중간 우선순위에 끼워 넣는다. 그 위치는 "edit context와 explicit references 다음, loosely related open files보다는 앞"이다. 같은 `AGENTS.md` 파일이라도 로드 시점, 우선순위, 머지 규칙이 도구마다 다르기 때문에 **세 도구가 같은 방식으로 그 파일을 본다는 보장은 없다.**
+다른 도구들은 또 다르다. OpenAI Codex는 git 레포 루트에서 cwd 방향으로 walk하며 모든 `AGENTS.md`를 수집해 **사용자 프롬프트 직전에** 주입한다. GitHub Copilot은 `.github/copilot-instructions.md`를 컨텍스트 윈도우의 중간 우선순위로 끼워 넣는다. 그 위치는 "edit context와 explicit references 다음, loosely related open files보다는 앞"이다. 같은 `AGENTS.md` 파일이라도 로드 시점, 우선순위, 머지 규칙이 도구마다 다르기 때문에 **도구마다 같은 방식으로 그 파일을 본다는 보장은 없다.**
 
 그런데 여기서 한 가지 근본적인 질문이 남는다. **왜 모델은 컨텍스트에 있는 지시를 일부만 따르는 걸까?** 단순히 "지시가 길어서"라는 설명은 충분하지 않다. 이 현상의 밑에는 LLM의 구조적 한계가 있다.
 
@@ -171,11 +171,11 @@ ETH Zurich 연구팀이 2026년 2월에 발표한 논문("Evaluating AGENTS.md: 
 
 한 가지 예외가 있었다. **비표준 도구를 명시했을 때**다. 예를 들어 Python 패키지 매니저인 `uv`를 컨텍스트에 명시하니, 에이전트가 `uv`를 사용하는 빈도가 인스턴스당 0.01회 => 1.6회로 **약 160배 증가했다**
 
-앞서 다룬 Aider의 "200줄 권고", "매번 컨텍스트에 들어가니까 짧게 유지하라"라는 실용 안내였다. 이에 비해 ETH Zurich 연구는 "긴 context file이 통계적으로 성능을 떨어뜨린다"는 걸 정량적으로 보여줬다. 필자가 생각하는 이 연구의 실천적 함의는 아래와같다.
+앞서 다룬 Aider의 "200줄 권고", "매번 컨텍스트에 들어가니까 짧게 유지하라"라는 권고는 실용 안내였다. 이에 비해 ETH Zurich 연구는 "긴 context file이 통계적으로 성능을 떨어뜨린다"는 걸 정량적으로 보여줬다. 필자가 생각하는 이 연구의 실천적 함의는 아래와 같다.
 
 -  **자동 생성된 거대한 context file은 도움보다 해가 될 수 있다**. 300줄짜리 `CLAUDE.md`에 코딩 표준·아키텍처·워크플로우를 다 욱여넣으면, 에이전트는 일부만 따르고 나머지를 무시한다. 그 불일관성은 차라리 컨텍스트가 없는 것보다 나쁜 결과로 이어진다.
 - **반드시 적어야 하는 것은 "추론할 수 없는 정보"** 다. 비표준 도구, 프로젝트 고유의 컨벤션, 과거 실패 사례 같은 것들이 여기에 속한다. 일반적인 코딩 베스트 프랙티스는 모델이 이미 안다.
-- AGENTS.md를 단일 출처로, CLAUDE.md는 도구 전용 짧은 지시만, 세한 워크플로우는 Skill로 분리한다.
+- AGENTS.md는 단일 출처로 두고, CLAUDE.md에는 도구 전용 짧은 지시만 남기며, 상세한 워크플로우는 Skill로 분리한다.
 
 
 ## 그래서

@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: en
 translationOf: '260529'
-sourceHash: c484f11fe6907c8d505f0125e670586079460b7325a8dd04836994471634dcbd
+sourceHash: a3d427196e65b2386ce89cf1291a437d47b3677882abc7769582eb1b052a9c41
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "How agents load CLAUDE.md, AGENTS.md, SKILL.md, and Cursor rules, why instructions get lost, and what an ETH Zurich study says to put in context files."
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, context files, AI coding agents, Claude Code, ETH Zurich AGENTS.md study"
@@ -23,7 +23,7 @@ As a frontend developer, I use Claude in my day-to-day work. At some point, that
 
 AI coding agents have a fundamental limitation: **they have no persistent memory**. Every session starts from a blank slate. In the next conversation, they cannot remember a convention you agreed on yesterday or a directory structure you explained an hour ago. Context files are the simplest mechanism for addressing this problem. If a project contains a file that is read automatically whenever a session starts, you no longer need to repeat the same explanation every time.
 
-The problem is that each tool created its own file around the same basic idea. Claude Code reads `CLAUDE.md`, Cursor reads `.cursorrules` (now deprecated, with `.cursor/rules` recommended instead), GitHub Copilot reads `.github/copilot-instructions.md`, and OpenAI Codex reads `AGENTS.md`. When a team uses several tools, it can end up copying the same information into four different places.
+The problem is that each tool created its own file around the same basic idea. Claude Code reads `CLAUDE.md`, Cursor reads `.cursorrules`, GitHub Copilot reads `.github/copilot-instructions.md`, and OpenAI Codex reads `AGENTS.md`. Cursor’s `.cursorrules` is now deprecated, with `.cursor/rules` recommended instead. When a team uses several tools, it can end up copying the same information into four different places.
 
 
 ### CLAUDE.md
@@ -34,7 +34,7 @@ The problem is that each tool created its own file around the same basic idea. C
 - **Project memory** (`CLAUDE.md` at the project root): committed to git and shared across the team
 - **Local memory** (`CLAUDE.md` in a subdirectory): loaded in addition to the others only when working in that directory
 
-When all three levels exist, Claude **reads and concatenates all of them**. Like the CSS cascade, more specific instructions are layered on top. As a result, scattering rules about the same topic across several levels can create conflicts. (Anthropic’s official documentation explicitly states that behavior is not guaranteed when instructions conflict.)
+When all three levels exist, Claude **reads and concatenates all of them**. Instead of selecting only one based on priority, more specific instructions are layered on top, like the CSS cascade. It works by merging rather than overriding. As a result, scattering rules about the same topic across several levels can create conflicts. (Anthropic’s official documentation explicitly states that behavior is not guaranteed when instructions conflict.)
 
 There is one frequently overlooked detail here: Claude **reads every `CLAUDE.md` it encounters while walking from the current working directory up to the repository root**. If you work inside `packages/ui/` in a monorepo, both the root `CLAUDE.md` and `packages/ui/CLAUDE.md` are loaded. (That is powerful, but it also means the context can quietly expand without you noticing.)
 
@@ -43,7 +43,7 @@ There is one frequently overlooked detail here: Claude **reads every `CLAUDE.md`
 
 `AGENTS.md` is a standard created to address the proliferation of tool-specific files described above. In December 2025, OpenAI donated this standard to the Linux Foundation’s **Agentic AI Foundation (AAIF)**. According to the [Linux Foundation’s announcement](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation), the AAIF was co-founded by Anthropic, Block, and OpenAI. Its three founding projects are Anthropic’s MCP (the protocol that connects agents to external systems), Block’s goose, and OpenAI’s `AGENTS.md`. The official site (`agents.md`) states that **more than 60,000 open-source repositories have adopted the file**.
 
-The list of supported tools makes the picture even clearer. It includes OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf, and Augment Code, among many others. GitHub Copilot began supporting `AGENTS.md` natively in August 2025. By contrast, native `AGENTS.md` support in Claude Code is still an active feature request. Claude Code continues to treat `CLAUDE.md` as its primary file.
+The list of supported tools makes the picture even clearer. The tools that support `AGENTS.md` are numerous, including OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf, and Augment Code. GitHub Copilot began supporting `AGENTS.md` natively in August 2025. By contrast, **native `AGENTS.md` support in Claude Code is still an active feature request**. Claude Code continues to treat `CLAUDE.md` as its primary file.
 
 You might still wonder whether this supposed standard is actually being adopted. The strongest evidence is **dogfooding**—the organizations behind the standard using it themselves.
 
@@ -57,7 +57,7 @@ A conventional strategy is beginning to emerge: use **`AGENTS.md` as the single 
 
 `SKILL.md` belongs to a different category from the two files above. Whereas `CLAUDE.md` and `AGENTS.md` are **persistent instructions that are always present in the context**, a Skill is an **on-demand capability invoked only when needed**.
 
-A Skill is organized as a directory. The directory contains one `SKILL.md`, scripts executed by the Skill, and any additional Markdown documents. Claude loads that directory only when the current task matches the Skill’s `description`. This is called **progressive disclosure**. The term was established in the UX field by Jakob Nielsen in 1995, and refers to a technique that defers advanced or rarely used functions to secondary screens so users can focus on one task at a time, reducing cognitive load and errors. In the context of Claude Skills, it refers to the mechanism of bringing a Skill’s body into the context only when needed. As a result, context-window costs can be reduced.
+A Skill is organized as a directory. The directory contains one `SKILL.md`, scripts executed by the Skill, and any additional Markdown documents. Claude loads that directory only when the current task matches the Skill’s `description`. This is called **progressive disclosure**. The term was established in the UX field by Jakob Nielsen in 1995. It is a technique that defers advanced or rarely used functions to secondary screens so users can focus on one task at a time, reducing cognitive load and errors. In the context of Claude Skills, it refers to the mechanism of bringing a Skill’s body into the context only when needed. As a result, context-window costs can be reduced.
 
 The frontmatter in `SKILL.md` includes several distinctive fields.
 
@@ -96,7 +96,7 @@ Tools beyond Cursor and Copilot are converging on similar patterns. The followin
 | **Windsurf** | `.windsurfrules` + `global_rules.md` | Two levels: global and project |
 | **Standard** | `AGENTS.md` (AAIF) | Adopted by 60,000+ repositories |
 
-**Aider’s `CONVENTIONS.md` is included in its entirety in the context with every request**, according to the official documentation. The documentation therefore explicitly instructs users to **“keep it under 200 lines.”** (Aider recognizes this limitation early and tells users about it directly.)
+In particular, **because Aider includes `CONVENTIONS.md` in its entirety in the context with every request**, the official documentation explicitly instructs users to **“keep it under 200 lines.”** (Aider recognizes this limitation early and tells users about it directly.)
 
 
 ### MEMORY.md
@@ -117,7 +117,7 @@ If `CLAUDE.md` or `AGENTS.md` records **the rules as they stand today**, `MEMORY
 
 ### How Agents Read These Files
 
-So far, we have cataloged the files that exist. But one common question remains unanswered. **Where and how do agents load these files?** The ETH Zurich results discussed later show that context-file instructions are not reliably followed. Understanding this mechanism makes it easier to see why.
+So far, we have cataloged the files that exist. But one common question remains unanswered. **Where and how do agents load these files?** The ETH Zurich study discussed later shows that agents do not reliably follow context-file instructions. Understanding this mechanism makes it easier to see why.
 
 **`CLAUDE.md` is injected as a user message, not as part of the system prompt.** Anthropic’s official documentation states the following.
 
@@ -131,11 +131,11 @@ CLAUDE.md content is delivered as a user message after the system prompt, not as
 :::
 ::::
 
-In other words, the quoted content above is passed along as reference context and is not applied as a rule that must be enforced. The official guidance also recommends using a separate mechanism, such as a `PreToolUse` hook, if you want to enforce a behavior.
+In other words, the contents of `CLAUDE.md` are passed along as “reference context” instead of enforced rules. The official guidance also recommends using a separate mechanism, such as a `PreToolUse` hook, if you want to enforce a behavior.
 
 The load order progresses from broad → specific. More precisely, it is managed policy (organization-level settings) → the user’s global file (`~/.claude/CLAUDE.md`) → the project file (`./CLAUDE.md`) → the local file (`./CLAUDE.local.md`). Within the same directory, `CLAUDE.md` comes before `CLAUDE.local.md`. By taking advantage of the fact that **the nearest instructions are read last**, you can make more specific rules exert a stronger influence, thanks to the LLM’s recency bias.
 
-With `@import`, a file is expanded in place wherever you put `@path/to/file` in the body of CLAUDE.md and loaded along with it. **The maximum recursion depth is 4 hops**, and relative paths are resolved from the file containing the import statement. That is why the official recommendation is to bridge to `@AGENTS.md`. If you leave `CLAUDE.md` almost empty and put only `@AGENTS.md` in it, Claude Code will naturally read AGENTS.md as well. (Given that Claude Code does not yet support AGENTS.md natively, this is the cleanest workaround.)
+With `@import`, a file is expanded in place wherever you put `@path/to/file` in the body of CLAUDE.md and loaded along with it. **The maximum recursion depth is 4 hops**, and relative paths are resolved from the file containing the import statement. That is why the official documentation recommends bridging to `@AGENTS.md`. If you leave `CLAUDE.md` almost empty and put only `@AGENTS.md` in it, Claude Code will naturally read AGENTS.md as well. (Given that Claude Code does not yet support AGENTS.md natively, this is the cleanest workaround.)
 
 In terms of tokens, CLAUDE.md has no explicit token limit, so **the entire file is loaded if it exists**. But the official recommendation is **200 lines or fewer per file**. Beyond 200 lines, it is said to “consume more context and may reduce adherence.” In Claude 4.x, **merely enabling tool use automatically adds 346 tokens via a special system prompt** (based on `tool_choice: auto`). Context therefore grows invisibly by that amount.
 
@@ -146,7 +146,7 @@ Cursor takes a different approach. Rules in `.cursor/rules/*.mdc` operate in fou
 - **Apply to Specific Files** (Auto Attached): activated when a file matching the glob pattern enters the context
 - **Apply Manually**: explicitly invoked by the user with `@rule-name`
 
-Other tools differ again. OpenAI Codex walks from the git repository root toward cwd, collects every `AGENTS.md`, and injects them **immediately before the user prompt**. GitHub Copilot inserts `.github/copilot-instructions.md` at a middle priority within the context window. Its position is “after edit context and explicit references, but before loosely related open files.” Because load timing, precedence, and merge rules vary from tool to tool even for the same `AGENTS.md` file, **there is no guarantee that all three tools will interpret it the same way.**
+Other tools differ again. OpenAI Codex walks from the git repository root toward cwd, collects every `AGENTS.md`, and injects them **immediately before the user prompt**. GitHub Copilot inserts `.github/copilot-instructions.md` at a middle priority within the context window. Its position is “after edit context and explicit references, but before loosely related open files.” Because load timing, precedence, and merge rules vary from tool to tool even for the same `AGENTS.md` file, **there is no guarantee that each tool will interpret it the same way.**
 
 That leaves a more fundamental question: **why does a model follow only some instructions that are present in its context?** Simply saying “because the instructions are long” is not enough. The phenomenon is rooted in structural limitations of LLMs.
 
