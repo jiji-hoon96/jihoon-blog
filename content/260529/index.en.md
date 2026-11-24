@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: en
 translationOf: '260529'
-sourceHash: a3d427196e65b2386ce89cf1291a437d47b3677882abc7769582eb1b052a9c41
+sourceHash: c427e7b7449b5542ce896f1560dabdd76dcd015dfff0c187e69db61bb27be414
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "How agents load CLAUDE.md, AGENTS.md, SKILL.md, and Cursor rules, why instructions get lost, and what an ETH Zurich study says to put in context files."
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, context files, AI coding agents, Claude Code, ETH Zurich AGENTS.md study"
@@ -43,7 +43,7 @@ There is one frequently overlooked detail here: Claude **reads every `CLAUDE.md`
 
 `AGENTS.md` is a standard created to address the proliferation of tool-specific files described above. In December 2025, OpenAI donated this standard to the Linux Foundation’s **Agentic AI Foundation (AAIF)**. According to the [Linux Foundation’s announcement](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation), the AAIF was co-founded by Anthropic, Block, and OpenAI. Its three founding projects are Anthropic’s MCP (the protocol that connects agents to external systems), Block’s goose, and OpenAI’s `AGENTS.md`. The official site (`agents.md`) states that **more than 60,000 open-source repositories have adopted the file**.
 
-The list of supported tools makes the picture even clearer. The tools that support `AGENTS.md` are numerous, including OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf, and Augment Code. GitHub Copilot began supporting `AGENTS.md` natively in August 2025. By contrast, **native `AGENTS.md` support in Claude Code is still an active feature request**. Claude Code continues to treat `CLAUDE.md` as its primary file.
+The list of supported tools makes the picture even clearer. The tools that support `AGENTS.md` are numerous, including OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf, and Augment Code. GitHub Copilot began supporting `AGENTS.md` natively in August 2025. One interesting point is that **native `AGENTS.md` support in Claude Code is still an active feature request**. Claude Code continues to treat `CLAUDE.md` as its primary file.
 
 You might still wonder whether this supposed standard is actually being adopted. The strongest evidence is **dogfooding**—the organizations behind the standard using it themselves.
 
@@ -96,7 +96,7 @@ Tools beyond Cursor and Copilot are converging on similar patterns. The followin
 | **Windsurf** | `.windsurfrules` + `global_rules.md` | Two levels: global and project |
 | **Standard** | `AGENTS.md` (AAIF) | Adopted by 60,000+ repositories |
 
-In particular, **because Aider includes `CONVENTIONS.md` in its entirety in the context with every request**, the official documentation explicitly instructs users to **“keep it under 200 lines.”** (Aider recognizes this limitation early and tells users about it directly.)
+In particular, **Aider’s `CONVENTIONS.md` is interesting**. Because the official documentation includes this file in its entirety in the context with every request, it explicitly instructs users to **“keep it under 200 lines.”** (In effect, Aider recognizes this limitation early and tells users about it directly.)
 
 
 ### MEMORY.md
@@ -112,12 +112,12 @@ Prisma 쿼리 결과에 optional chaining 쓰지 말 것 — null은 if-check로
 (이전에 옵셔널 체이닝으로 null을 흘려보내 프로덕션 이슈 발생.)
 ```
 
-If `CLAUDE.md` or `AGENTS.md` records **the rules as they stand today**, `MEMORY.md` records **the history of why those rules were created**. (The two complement each other.)
+If `CLAUDE.md` or `AGENTS.md` records **the rules as they stand today**, `MEMORY.md` records **the history of why those rules were created**. (The two complement each other rather than replace one another.)
 
 
 ### How Agents Read These Files
 
-So far, we have cataloged the files that exist. But one common question remains unanswered. **Where and how do agents load these files?** The ETH Zurich study discussed later shows that agents do not reliably follow context-file instructions. Understanding this mechanism makes it easier to see why.
+So far, we have cataloged the files that exist. But one surprisingly common question remains unanswered. **Where and how exactly do agents load these files?** In fact, understanding this mechanism makes it a bit clearer why the ETH Zurich results discussed later (showing that context files are not reliably followed) turned out the way they did.
 
 **`CLAUDE.md` is injected as a user message, not as part of the system prompt.** Anthropic’s official documentation states the following.
 
@@ -131,7 +131,7 @@ CLAUDE.md content is delivered as a user message after the system prompt, not as
 :::
 ::::
 
-In other words, the contents of `CLAUDE.md` are passed along as “reference context” instead of enforced rules. The official guidance also recommends using a separate mechanism, such as a `PreToolUse` hook, if you want to enforce a behavior.
+In other words, it is, in effect, “reference context” rather than enforced rules. The official guidance also recommends using a separate mechanism, such as a `PreToolUse` hook, if you want to enforce a specific behavior.
 
 The load order progresses from broad → specific. More precisely, it is managed policy (organization-level settings) → the user’s global file (`~/.claude/CLAUDE.md`) → the project file (`./CLAUDE.md`) → the local file (`./CLAUDE.local.md`). Within the same directory, `CLAUDE.md` comes before `CLAUDE.local.md`. By taking advantage of the fact that **the nearest instructions are read last**, you can make more specific rules exert a stronger influence, thanks to the LLM’s recency bias.
 
@@ -146,33 +146,33 @@ Cursor takes a different approach. Rules in `.cursor/rules/*.mdc` operate in fou
 - **Apply to Specific Files** (Auto Attached): activated when a file matching the glob pattern enters the context
 - **Apply Manually**: explicitly invoked by the user with `@rule-name`
 
-Other tools differ again. OpenAI Codex walks from the git repository root toward cwd, collects every `AGENTS.md`, and injects them **immediately before the user prompt**. GitHub Copilot inserts `.github/copilot-instructions.md` at a middle priority within the context window. Its position is “after edit context and explicit references, but before loosely related open files.” Because load timing, precedence, and merge rules vary from tool to tool even for the same `AGENTS.md` file, **there is no guarantee that each tool will interpret it the same way.**
+Other tools differ again. OpenAI Codex walks from the git repository root toward cwd, collects every `AGENTS.md`, and injects them **immediately before the user prompt**. GitHub Copilot inserts `.github/copilot-instructions.md` at a middle priority within the context window. Its position is “after edit context and explicit references, but before loosely related open files.” Because load timing, precedence, and merge rules vary from tool to tool even for the same `AGENTS.md` file, **there is no guarantee that the three tools will interpret it in the exact same way.**
 
 That leaves a more fundamental question: **why does a model follow only some instructions that are present in its context?** Simply saying “because the instructions are long” is not enough. The phenomenon is rooted in structural limitations of LLMs.
 
 ### Hallucination and Context Forgetting
 
-If you have ever seen an AI agent confuse the conversational context or forget something it said earlier, that is a form of **hallucination**. People usually think of hallucination first as “making up facts that do not exist,” but the academic literature divides it into three categories. A 2023 survey by Yue Zhang and colleagues (“Siren’s Song in the AI Ocean”) classifies them as **input-conflicting** (generating something inconsistent with what the user explicitly provided), **context-conflicting** (contradicting something the model previously generated), and **fact-conflicting** (disagreeing with world knowledge). Ignoring context-file instructions is, unlike fact-conflicting hallucination, **the first category**. The model processes the input while treating part of its information as though it were not there.
+If you have ever seen an AI agent confuse the conversational context or forget something that was clearly stated earlier, that is a form of **hallucination**. People usually think of hallucination first as “making up facts that do not exist,” but the academic literature divides it into three categories. A 2023 survey by Yue Zhang and colleagues (“Siren’s Song in the AI Ocean”) classifies them as **input-conflicting** (generating something inconsistent with what the user explicitly provided), **context-conflicting** (contradicting something the model previously generated), and **fact-conflicting** (disagreeing with world knowledge). Ignoring context-file instructions is not the third category, but **the first category**. The model processes the input while treating part of its information as though it were not there.
 
 The deeper problem is that hallucination **cannot be eliminated in principle**. A research team at the National University of Singapore proved this mathematically using learning theory. No LLM can learn every computable function; therefore, as long as it is used as a general-purpose problem solver, it must hallucinate at some point.
 
 Position effects matter as well. Stanford researchers demonstrated experimentally that models reference relevant information most effectively when it appears **at the beginning or end of the context window**, while performance drops sharply when that information is **buried in the middle**. This maps directly onto context files. `CLAUDE.md` is inserted somewhere in the middle by the load order, and as a conversation grows longer, its instructions are pushed further into the “middle” of the context. This also connects to the other side of the recency bias mentioned earlier: within the primacy-recency effect, **the middle is the weakest region**.
 
-Taken together, these phenomena form a coherent picture. A context file is merely **additional text inserted outside the system prompt before the LLM’s first user turn**. Unlike a mechanism that forces the model’s decisions, it is simply another block of tokens dropped into the context window. The longer the file and the longer the conversation, the farther its instructions drift toward the “middle,” and the less reliably they are referenced. The ETH Zurich results can be seen as a quantitative confirmation of this structural limitation.
+Taken together, these phenomena form a coherent picture. A context file is merely **additional text inserted from outside the system before the LLM’s first user turn**. It is not a mechanism that forces the model’s decisions, but simply another block of tokens dropped into the context window. The longer the file and the longer the conversation, the farther its instructions drift toward the “middle,” and the less reliably they are referenced. The ETH Zurich results are, in effect, a quantitative confirmation of this structural limitation.
 
 
 ### The ETH Zurich Study
 
-Many people may have thought, “Then I should put as much as possible into these files.” But a recent study challenges that intuition: the ETH Zurich research referenced throughout the preceding section.
+Many people may have thought, “Then I should put as much as possible into these files.” But a recent study directly challenges that intuition: the ETH Zurich research referenced throughout the preceding section.
 
-The paper, “Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?”, was published by an ETH Zurich research team in February 2026. It targeted a benchmark of 138 real-world Python software-engineering tasks (AGENTBENCH) and SWE-bench Lite. The researchers evaluated four agents—Claude Code (Sonnet-4.5), Codex (GPT-5.2 / GPT-5.1 mini), and Qwen Code. The results were as follows.
+The paper, “Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?”, was published by an ETH Zurich research team in February 2026. In a benchmark of 138 real-world Python software-engineering tasks (AGENTBENCH) and SWE-bench Lite, the researchers evaluated four agents: Claude Code (Sonnet-4.5), Codex (GPT-5.2 / GPT-5.1 mini), and Qwen Code. The results were unexpected.
 
 - **LLM-generated context files** actually **reduced task success rates** by about 0.5% on SWE-bench Lite and 2% on AGENTBENCH
 - Even **human-authored files** produced only a modest average improvement of about 4%
 - Adding a context file **increased inference costs by more than 20% per instance**
 - Context files had an even smaller effect on the stronger model (GPT-5.2), because more capable models already have sufficient parametric knowledge and additional context can become noise
 
-There was one exception: **specifying a nonstandard tool**. When the Python package manager `uv` was named in the context, for example, the agent’s use of `uv` rose from 0.01 times per instance to 1.6 times—an increase of **roughly 160×**.
+However, there was one exception: **specifying a nonstandard tool**. When the Python package manager `uv` was named in the context, for example, the agent’s use of `uv` rose from 0.01 times per instance to 1.6 times, an increase of **roughly 160×**.
 
 Aider’s “200-line recommendation” was practical advice to keep the file short because it is included in the context with every request. By contrast, the ETH Zurich study quantitatively demonstrated that long context files statistically reduce performance. The practical implications I see in this research are as follows.
 

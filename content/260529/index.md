@@ -40,7 +40,7 @@ AI 코딩 에이전트에는 **지속 메모리가 없다는** 근본적인 한�
 
 `AGENTS.md`는 위에서 말한 도구별 파일 난립을 풀기 위해 만들어진 표준이다. 2025년 12월, OpenAI는 이 표준을 Linux Foundation 산하 **Agentic AI Foundation(AAIF)** 에 기증했다. [Linux Foundation의 발표](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation)에 따르면 AAIF는 Anthropic·Block·OpenAI가 공동 창립했다. 창립 프로젝트는 Anthropic의 MCP(에이전트를 외부 시스템에 연결하는 프로토콜), Block의 goose, OpenAI의 `AGENTS.md` 셋이다. 공식 사이트(`agents.md`)에서 **6만 개 이상의 오픈소스 저장소가 이 파일을 채택하고 있다**고 명시하고 있다.
 
-지원하는 도구 목록을 보면 더 분명해진다. `AGENTS.md`를 지원하는 도구는 OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf, Augment Code 등으로 수가 많다. GitHub Copilot은 2025년 8월부터 `AGENTS.md`를 네이티브로 지원하기 시작했다. 반면 **Claude Code의 네이티브 `AGENTS.md` 지원은 아직 active feature request 상태**다. Claude Code는 여전히 `CLAUDE.md`를 1차 파일로 본다.
+지원하는 도구 목록을 보면 더 분명해진다. `AGENTS.md`를 지원하는 도구는 OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf, Augment Code 등으로 수가 많다. GitHub Copilot은 2025년 8월부터 `AGENTS.md`를 네이티브로 지원하기 시작했다. 한 가지 흥미로운 점은 **Claude Code의 네이티브 `AGENTS.md` 지원은 아직 active feature request 상태**라는 것이다. Claude Code는 여전히 `CLAUDE.md`를 1차 파일로 본다.
 
 표준이라고는 하지만 정말 채택되고 있는지 의심스러울 수도 있다. 가장 강력한 증거는 **dogfooding**(자신이 만든 표준을 자신이 직접 쓴다는 의미)이다.
 
@@ -93,7 +93,7 @@ Cursor·Copilot 외의 도구들도 모두 비슷한 패턴으로 수렴하고 �
 | **Windsurf** | `.windsurfrules` + `global_rules.md` | 글로벌과 프로젝트 2단계 |
 | **표준** | `AGENTS.md` (AAIF) | 60,000+ 저장소 채택 |
 
-특히 **Aider는 `CONVENTIONS.md`를 매 요청마다 통째로 컨텍스트에 포함하기 때문에** 공식 문서가 **"200줄 이내로 유지하라"** 고 명시한다. (Aider는 이 한계를 일찍 인지하고 사용자에게 명시적으로 알려준다.)
+특히 **Aider의 `CONVENTIONS.md`가 흥미롭다**. 공식 문서는 매 요청마다 이 파일을 통째로 컨텍스트에 포함하기 때문에 **"200줄 이내로 유지하라"** 고 명시한다. (Aider는 이 한계를 일찍 인지하고 사용자에게 명시적으로 알려주는 셈이다.)
 
 
 ### MEMORY.md
@@ -109,12 +109,12 @@ Prisma 쿼리 결과에 optional chaining 쓰지 말 것 — null은 if-check로
 (이전에 옵셔널 체이닝으로 null을 흘려보내 프로덕션 이슈 발생.)
 ```
 
-`CLAUDE.md`나 `AGENTS.md`가 **현재 시점의 규칙**을 적는 곳이라면, `MEMORY.md`는 **그 규칙이 왜 만들어졌는지의 역사**를 적는 곳이다. (둘은 서로 보완한다.)
+`CLAUDE.md`나 `AGENTS.md`가 **현재 시점의 규칙**을 적는 곳이라면, `MEMORY.md`는 **그 규칙이 왜 만들어졌는지의 역사**를 적는 곳이다. (둘은 보완 관계지 대체 관계가 아니다.)
 
 
 ### 에이전트는 이 파일들을 어떻게 읽는가
 
-지금까지 어떤 파일이 있는지를 정리했다. 그런데 자주 빠지는 질문이 하나 있다. **이 파일들을 에이전트는 어디로, 어떻게 읽어들이는 걸까?** 뒤에서 다루는 ETH Zurich 연구는 context file의 지시를 에이전트가 잘 따르지 않는다는 결과를 보여준다. 이 메커니즘을 알면 그 결과가 왜 나왔는지 더 잘 이해된다.
+지금까지 어떤 파일이 있는지를 정리했다. 그런데 의외로 자주 빠지는 질문이 하나 있다. **이 파일들을 에이전트는 정확히 어디로, 어떻게 읽어들이는 걸까?** 사실 이 메커니즘을 알면 뒤에 이어질 ETH Zurich 결과(context file이 잘 안 따라진다는 결과)가 왜 나왔는지가 좀 더 깔끔하게 이해된다.
 
 **`CLAUDE.md`는 system prompt가 아니라 user message로 주입된다.** Anthropic 공식 문서가 아래와 같이 명시한다
 
@@ -128,7 +128,7 @@ CLAUDE.md content is delivered as a user message after the system prompt, not as
 :::
 ::::
 
-즉 `CLAUDE.md`의 내용은 강제 규칙 대신 "참고용 컨텍스트"로 전달된다. 어떤 동작을 강제하고 싶다면 `PreToolUse` 훅 같은 별도 장치를 써야 한다고 공식 가이드도 권장한다.
+즉 강제 규칙이 아니라 "참고용 컨텍스트"인 셈이다. 정확히 어떤 동작을 강제하고 싶다면 `PreToolUse` 훅 같은 별도 장치를 써야 한다고 공식 가이드도 권장한다.
 
 로드 순서는 broad → specific 으로 쌓인다. 구체적으로는 managed policy(조직 차원의 설정) → 사용자 글로벌(`~/.claude/CLAUDE.md`) → 프로젝트(`./CLAUDE.md`) → 로컬(`./CLAUDE.local.md`) 순이다. 같은 디렉토리에서는 `CLAUDE.md` 다음 `CLAUDE.local.md` 순. **가장 가까운 곳의 지시가 가장 나중에 읽힌다**는 점을 활용하면 (LLM의 recency bias 덕에) 더 구체적인 규칙이 더 강하게 작용하는 효과를 노릴 수 있다.
 
@@ -143,33 +143,33 @@ Cursor는 또 다른 방식이다. `.cursor/rules/*.mdc`의 룰은 네 가지 �
 - **Apply to Specific Files**(Auto Attached): glob 패턴 매칭 파일이 컨텍스트에 들어왔을 때 활성화
 - **Apply Manually**: `@rule-name`으로 사용자가 명시 호출
 
-다른 도구들은 또 다르다. OpenAI Codex는 git 레포 루트에서 cwd 방향으로 walk하며 모든 `AGENTS.md`를 수집해 **사용자 프롬프트 직전에** 주입한다. GitHub Copilot은 `.github/copilot-instructions.md`를 컨텍스트 윈도우의 중간 우선순위로 끼워 넣는다. 그 위치는 "edit context와 explicit references 다음, loosely related open files보다는 앞"이다. 같은 `AGENTS.md` 파일이라도 로드 시점, 우선순위, 머지 규칙이 도구마다 다르기 때문에 **도구마다 같은 방식으로 그 파일을 본다는 보장은 없다.**
+다른 도구들은 또 다르다. OpenAI Codex는 git 레포 루트에서 cwd 방향으로 walk하며 모든 `AGENTS.md`를 수집해 **사용자 프롬프트 직전에** 주입한다. GitHub Copilot은 `.github/copilot-instructions.md`를 컨텍스트 윈도우의 중간 우선순위로 끼워 넣는다. 그 위치는 "edit context와 explicit references 다음, loosely related open files보다는 앞"이다. 같은 `AGENTS.md` 파일이라도 로드 시점, 우선순위, 머지 규칙이 도구마다 다르기 때문에 **세 도구가 정확히 같은 방식으로 그 파일을 본다는 보장은 없다.**
 
 그런데 여기서 한 가지 근본적인 질문이 남는다. **왜 모델은 컨텍스트에 있는 지시를 일부만 따르는 걸까?** 단순히 "지시가 길어서"라는 설명은 충분하지 않다. 이 현상의 밑에는 LLM의 구조적 한계가 있다.
 
 ### 환각과 context 망각
 
-AI 에이전트가 대화 맥락을 혼동하거나 앞에서 말한 내용을 뒤에서 잊어버리는 경험을 해본 적이 있다면, 그게 바로 **환각(Hallucination)** 의 한 형태다. 일반적으로 환각이라고 하면 "없는 사실을 지어내는 것"을 먼저 떠올리지만, 학술적으로는 세 가지로 구분한다. Yue Zhang 외 연구팀의 2023년 설문("Siren's Song in the AI Ocean")은 이를 **입력 충돌형**(사용자가 명시한 내용과 다르게 생성), **맥락 충돌형**(이전에 자신이 생성한 내용과 모순), **사실 충돌형**(세계 지식과 불일치)으로 나눈다. Context file 지시를 무시하는 현상은 사실 충돌형과 달리 **첫 번째 유형**이다. 모델이 입력을 처리하면서 그 안의 정보 일부를 "없던 것처럼" 다루는 것이다.
+AI 에이전트가 대화 맥락을 혼동하거나 앞에서 분명히 말한 내용을 뒤에서 잊어버리는 경험을 해본 적이 있다면, 그게 바로 **환각(Hallucination)** 의 한 형태다. 일반적으로 환각이라고 하면 "없는 사실을 지어내는 것"을 먼저 떠올리지만, 학술적으로는 세 가지로 구분한다. Yue Zhang 외 연구팀의 2023년 설문("Siren's Song in the AI Ocean")은 이를 **입력 충돌형**(사용자가 명시한 내용과 다르게 생성), **맥락 충돌형**(이전에 자신이 생성한 내용과 모순), **사실 충돌형**(세계 지식과 불일치)으로 나눈다. Context file 지시를 무시하는 현상은 세 번째가 아니라 **첫 번째 유형**이다. 모델이 입력을 처리하면서 그 안의 정보 일부를 "없던 것처럼" 다루는 것이다.
 
 더 근본적인 문제는 이 환각이 **원천적으로 제거 불가능**하다는 점이다. 싱가포르 국립대학교 연구팀은 학습 이론을 이용해 이를 수학적으로 증명했다. 어떤 LLM도 모든 계산 가능한 함수를 학습할 수 없고, 따라서 일반 문제 해결기로 쓰이는 한 반드시 어느 지점에서 환각이 발생한다는 것이다.
 
 위치 효과도 중요하다. Stanford 연구팀은 관련 정보가 **컨텍스트 윈도우의 앞이나 끝에 위치할 때** 모델이 가장 잘 참조하고, **중간에 묻혔을 때** 성능이 크게 떨어진다는 것을 실험으로 보였다. 이게 context file에 직접 연결된다. `CLAUDE.md`가 로드 순서상 중간 어딘가에 끼어 들어가고, 그 뒤로 대화가 길어질수록 파일의 지시는 점점 컨텍스트의 "중간"으로 밀려난다. 앞서 언급한 recency bias(최근 것을 더 잘 따르는 경향)의 반대편, 즉 **primacy-recency 효과의 중간 구간이 가장 취약하다**는 사실과도 맞닿아 있다.
 
-결국 이 현상들을 한데 놓으면 하나의 그림이 된다. Context file은 LLM의 **첫 user 턴 이전에 시스템 외부에서 추가로 끼어 들어가는 텍스트**일 뿐이다. 모델의 결정을 강제하는 장치와 달리, 그저 컨텍스트 윈도우에 떨어지는 또 하나의 토큰 덩어리다. 길수록, 그리고 대화가 길어질수록 그 지시는 점점 "중간"으로 밀려나며 참조율이 떨어진다. ETH Zurich 결과는 이 구조적 한계를 정량적으로 확인한 것으로 볼 수 있다.
+결국 이 현상들을 한데 놓으면 하나의 그림이 된다. Context file은 LLM의 **첫 user 턴 이전에 시스템 외부에서 추가로 끼어 들어가는 텍스트**일 뿐이다. 모델의 결정을 강제하는 메커니즘이 아니라 그저 컨텍스트 윈도우에 떨어지는 또 하나의 토큰 덩어리인 것이다. 길수록, 그리고 대화가 길어질수록 그 지시는 점점 "중간"으로 밀려나며 참조율이 떨어진다. ETH Zurich 결과는 이 구조적 한계를 정량적으로 확인한 셈이다.
 
 
 ### ETH Zurich의 연구
 
-많은 사람들은 "그럼 이 파일들에 최대한 많이 적어두면 좋겠네?" 하는 생각을 했을 것이다. 그런데 이 직관을 반박하는 연구가 최근에 나왔다. 바로 앞에서 계속 이야기한 ETH Zurich 연구이다.
+많은 사람들은 "그럼 이 파일들에 최대한 많이 적어두면 좋겠네?" 하는 생각을 했을 것이다. 그런데 이 직관을 정면으로 반박하는 연구가 최근에 나왔다. 바로 앞에서 계속 이야기한 ETH Zurich 연구이다.
 
-ETH Zurich 연구팀이 2026년 2월에 발표한 논문("Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?")이다. 138개의 실제 Python 소프트웨어 엔지니어링 태스크 벤치마크(AGENTBENCH)와 SWE-bench Lite를 대상으로 했다. Claude Code(Sonnet-4.5), Codex(GPT-5.2 / GPT-5.1 mini), Qwen Code 네 가지 에이전트로 측정했는데, 결과는 다음과 같았다.
+ETH Zurich 연구팀이 2026년 2월에 발표한 논문("Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?")이다. 138개의 실제 Python 소프트웨어 엔지니어링 태스크 벤치마크(AGENTBENCH)와 SWE-bench Lite에서 Claude Code(Sonnet-4.5), Codex(GPT-5.2 / GPT-5.1 mini), Qwen Code 네 가지 에이전트로 측정했는데, 결과가 의외였다.
 
 - **LLM이 자동 생성한 context file**은 SWE-bench Lite에서 0.5%, AGENTBENCH에서 2% 가량 **태스크 성공률을 오히려 낮췄다**
 - **사람이 직접 작성한 파일**조차 평균 4% 정도의 마이너 개선에 그쳤다
 - Context file을 추가했을 때 **추론 비용이 인스턴스당 20% 이상 증가**했다
 - 더 강력한 모델(GPT-5.2)에서는 context file의 효과가 더 미미했다 (강력한 모델일수록 파라메트릭 지식이 충분해서 추가 컨텍스트가 노이즈로 작용)
 
-한 가지 예외가 있었다. **비표준 도구를 명시했을 때**다. 예를 들어 Python 패키지 매니저인 `uv`를 컨텍스트에 명시하니, 에이전트가 `uv`를 사용하는 빈도가 인스턴스당 0.01회 => 1.6회로 **약 160배 증가했다**
+다만 한 가지 예외가 있었다. **비표준 도구를 명시했을 때**다. 예를 들어 Python 패키지 매니저인 `uv`를 컨텍스트에 명시하니, 에이전트가 `uv`를 사용하는 빈도가 인스턴스당 0.01회 => 1.6회로 **약 160배 증가했다**
 
 앞서 다룬 Aider의 "200줄 권고", "매번 컨텍스트에 들어가니까 짧게 유지하라"라는 권고는 실용 안내였다. 이에 비해 ETH Zurich 연구는 "긴 context file이 통계적으로 성능을 떨어뜨린다"는 걸 정량적으로 보여줬다. 필자가 생각하는 이 연구의 실천적 함의는 아래와 같다.
 

@@ -9,7 +9,7 @@ description: "Como agentes carregam CLAUDE.md, AGENTS.md, SKILL.md e regras do C
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, regras do Cursor, copilot-instructions.md, arquivos de contexto, agente de programação com IA, Claude Code, estudo ETH Zurich AGENTS.md"
 locale: pt-BR
 translationOf: '260529'
-sourceHash: a3d427196e65b2386ce89cf1291a437d47b3677882abc7769582eb1b052a9c41
+sourceHash: c427e7b7449b5542ce896f1560dabdd76dcd015dfff0c187e69db61bb27be414
 ---
 
 Neste post, quero falar sobre **os arquivos de contexto que os agentes de programação com IA leem**.
@@ -43,7 +43,7 @@ Há um detalhe frequentemente ignorado: **todos os arquivos `CLAUDE.md` encontra
 
 `AGENTS.md` é um padrão criado para resolver a proliferação de arquivos específicos de cada ferramenta descrita acima. Em dezembro de 2025, a OpenAI doou esse padrão à **Agentic AI Foundation (AAIF)**, vinculada à Linux Foundation. Segundo o [anúncio da Linux Foundation](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation), a AAIF foi cofundada por Anthropic, Block e OpenAI. Seus projetos fundadores são três: o MCP da Anthropic (o protocolo que conecta agentes a sistemas externos), o goose da Block e o `AGENTS.md` da OpenAI. O site oficial (`agents.md`) afirma que **mais de 60 mil repositórios open source já adotam esse arquivo**.
 
-A lista de ferramentas compatíveis deixa isso ainda mais claro. As ferramentas com suporte a `AGENTS.md` são numerosas, incluindo OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf e Augment Code. O GitHub Copilot passou a oferecer suporte nativo a `AGENTS.md` em agosto de 2025. Por outro lado, **o suporte nativo do Claude Code a `AGENTS.md` ainda está no estado de active feature request**. Para o Claude Code, `CLAUDE.md` continua sendo o arquivo principal.
+A lista de ferramentas compatíveis deixa isso ainda mais claro. As ferramentas com suporte a `AGENTS.md` são numerosas, incluindo OpenAI Codex, Google Jules, VS Code, GitHub Copilot, Cursor, JetBrains Junie, Aider, Devin, Zed, Factory, Warp, goose, opencode, Amp, RooCode, Gemini CLI, Kilo Code, Phoenix, Semgrep, Ona, Windsurf e Augment Code. O GitHub Copilot passou a oferecer suporte nativo a `AGENTS.md` em agosto de 2025. Um ponto interessante é que **o suporte nativo do Claude Code a `AGENTS.md` ainda está no estado de active feature request**. Para o Claude Code, `CLAUDE.md` continua sendo o arquivo principal.
 
 Mesmo sendo chamado de padrão, é razoável desconfiar se ele está realmente sendo adotado. A evidência mais forte é o **dogfooding** (quando quem cria um padrão também o utiliza).
 
@@ -96,7 +96,7 @@ As demais ferramentas também convergem para padrões parecidos. A tabela abaixo
 | **Windsurf** | `.windsurfrules` + `global_rules.md` | Dois níveis: global e projeto |
 | **Padrão** | `AGENTS.md` (AAIF) | Adotado por mais de 60.000 repositórios |
 
-Em especial, **como o Aider inclui `CONVENTIONS.md` inteiro no contexto a cada solicitação**, a documentação oficial especifica: **“mantenha-o com no máximo 200 linhas”**. (O Aider reconhece essa limitação cedo e a comunica diretamente aos usuários.)
+Em especial, **o `CONVENTIONS.md` do Aider é interessante**. Como a documentação oficial inclui esse arquivo inteiro no contexto a cada solicitação, ela especifica: **“mantenha-o com no máximo 200 linhas”**. (De certa forma, o Aider reconhece essa limitação cedo e a comunica diretamente aos usuários.)
 
 
 ### MEMORY.md
@@ -112,12 +112,12 @@ Prisma 쿼리 결과에 optional chaining 쓰지 말 것 — null은 if-check로
 (이전에 옵셔널 체이닝으로 null을 흘려보내 프로덕션 이슈 발생.)
 ```
 
-Se `CLAUDE.md` e `AGENTS.md` registram **as regras vigentes no momento**, `MEMORY.md` registra **a história de por que essas regras foram criadas**. (Os dois se complementam.)
+Se `CLAUDE.md` e `AGENTS.md` registram **as regras vigentes no momento**, `MEMORY.md` registra **a história de por que essas regras foram criadas**. (Os dois têm uma relação de complementaridade, não de substituição.)
 
 
 ### Como o agente lê esses arquivos
 
-Até aqui, vimos quais arquivos existem. Mas há uma pergunta que costuma ficar de fora: **para onde e de que forma o agente lê esses arquivos?** O estudo da ETH Zurich, abordado mais adiante, mostra o resultado de que os agentes não seguem bem as instruções dos arquivos de contexto. Conhecer esse mecanismo ajuda a entender melhor por que esse resultado aparece.
+Até aqui, vimos quais arquivos existem. Mas há uma pergunta que surpreendentemente costuma ficar de fora: **para onde e de que forma exatamente o agente lê esses arquivos?** Na verdade, conhecer esse mecanismo ajuda a entender de forma mais clara por que o resultado da ETH Zurich apresentado mais adiante (de que os arquivos de contexto não são bem seguidos) aparece.
 
 **`CLAUDE.md` não é um system prompt; ele é injetado como user message.** A documentação oficial da Anthropic afirma o seguinte:
 
@@ -131,7 +131,7 @@ CLAUDE.md content is delivered as a user message after the system prompt, not as
 :::
 ::::
 
-Ou seja, o conteúdo de `CLAUDE.md` não é aplicado como uma regra obrigatória, mas transmitido como “contexto de referência”. Se quiser impor um comportamento específico, o guia oficial também recomenda usar um mecanismo separado, como um hook `PreToolUse`.
+Ou seja, na prática, não se trata de uma regra obrigatória, mas de um “contexto de referência”. Se quiser impor exatamente um comportamento específico, o guia oficial também recomenda usar um mecanismo separado, como um hook `PreToolUse`.
 
 A ordem de carregamento se acumula de broad → specific. Mais precisamente: managed policy (configuração da organização) → global do usuário (`~/.claude/CLAUDE.md`) → projeto (`./CLAUDE.md`) → local (`./CLAUDE.local.md`). Dentro do mesmo diretório, `CLAUDE.md` vem antes de `CLAUDE.local.md`. É possível aproveitar o fato de que **a instrução mais próxima é lida por último** para fazer regras mais específicas terem maior peso, graças ao recency bias dos LLMs.
 
@@ -146,33 +146,33 @@ O Cursor funciona de outra maneira. As regras em `.cursor/rules/*.mdc` operam em
 - **Apply to Specific Files** (Auto Attached): ativada quando um arquivo que corresponde ao padrão glob entra no contexto
 - **Apply Manually**: invocada explicitamente pelo usuário com `@rule-name`
 
-Outras ferramentas funcionam de formas diferentes. O OpenAI Codex percorre o caminho da raiz do repositório Git até o cwd, coleta todos os `AGENTS.md` e os injeta **imediatamente antes do prompt do usuário**. O GitHub Copilot insere `.github/copilot-instructions.md` em uma prioridade intermediária da janela de contexto. Sua posição fica “depois do edit context e das explicit references, mas antes dos open files loosely related”. Mesmo quando usam o mesmo arquivo `AGENTS.md`, ferramentas diferentes podem carregá-lo em momentos distintos, com prioridades e regras de mesclagem diferentes; portanto, **não há garantia de que cada ferramenta enxergue esse arquivo da mesma maneira.**
+Outras ferramentas funcionam de formas diferentes. O OpenAI Codex percorre o caminho da raiz do repositório Git até o cwd, coleta todos os `AGENTS.md` e os injeta **imediatamente antes do prompt do usuário**. O GitHub Copilot insere `.github/copilot-instructions.md` em uma prioridade intermediária da janela de contexto. Sua posição fica “depois do edit context e das explicit references, mas antes dos open files loosely related”. Mesmo quando usam o mesmo arquivo `AGENTS.md`, ferramentas diferentes podem carregá-lo em momentos distintos, com prioridades e regras de mesclagem diferentes; portanto, **não há garantia de que as três ferramentas enxerguem esse arquivo exatamente da mesma maneira.**
 
 Mas resta uma pergunta fundamental: **por que o modelo segue apenas parte das instruções presentes no contexto?** Dizer apenas que “as instruções são longas” não basta. Por trás desse fenômeno existe uma limitação estrutural dos LLMs.
 
 ### Alucinação e esquecimento do contexto
 
-Se você já viu um agente de IA confundir o contexto da conversa ou esquecer claramente mais adiante algo que foi dito antes, isso também é uma forma de **alucinação (Hallucination)**. Em geral, pensamos primeiro em alucinação como “inventar fatos inexistentes”, mas academicamente ela se divide em três tipos. O survey de 2023 da equipe de Yue Zhang (“Siren's Song in the AI Ocean”) os classifica como **conflito com a entrada** (gerar algo diferente do que o usuário informou explicitamente), **conflito com o contexto** (contradizer algo que o próprio modelo gerou antes) e **conflito factual** (discordar do conhecimento de mundo). Ignorar instruções de arquivos de contexto corresponde ao **primeiro tipo**, diferente do conflito factual. Ao processar a entrada, o modelo trata parte das informações como se elas “não existissem”.
+Se você já viu um agente de IA confundir o contexto da conversa ou esquecer mais adiante algo que foi dito claramente antes, isso é uma forma de **alucinação (Hallucination)**. Em geral, pensamos primeiro em alucinação como “inventar fatos inexistentes”, mas academicamente ela se divide em três tipos. O survey de 2023 da equipe de Yue Zhang (“Siren's Song in the AI Ocean”) os classifica como **conflito com a entrada** (gerar algo diferente do que o usuário informou explicitamente), **conflito com o contexto** (contradizer algo que o próprio modelo gerou antes) e **conflito factual** (discordar do conhecimento de mundo). Ignorar instruções de arquivos de contexto não é o terceiro, mas o **primeiro tipo**. Ao processar a entrada, o modelo trata parte das informações como se elas “não existissem”.
 
 O problema mais fundamental é que essa alucinação **não pode ser eliminada por completo**. Uma equipe da Universidade Nacional de Singapura demonstrou isso matematicamente por meio da teoria da aprendizagem. Nenhum LLM consegue aprender todas as funções computáveis e, portanto, enquanto for usado como solucionador de problemas de propósito geral, inevitavelmente alucinará em algum ponto.
 
 O efeito da posição também é importante. Pesquisadores de Stanford demonstraram experimentalmente que o modelo consulta melhor informações relevantes quando elas estão **no início ou no fim da janela de contexto**, enquanto o desempenho cai bastante quando ficam **enterradas no meio**. Isso se relaciona diretamente aos arquivos de contexto. Pela ordem de carregamento, `CLAUDE.md` entra em algum ponto intermediário e, quanto mais longa fica a conversa, mais suas instruções são empurradas para o “meio” do contexto. Isso também se conecta ao outro lado do recency bias mencionado anteriormente: a faixa intermediária do **efeito primazia–recência é a mais vulnerável**.
 
-Ao reunir esses fenômenos, surge uma imagem única. Um arquivo de contexto é apenas **um texto adicional inserido fora do sistema antes do primeiro turno do usuário**. Diferentemente de um mecanismo que força as decisões do modelo, ele é apenas mais um bloco de tokens que cai na janela de contexto. Quanto maior ele for — e quanto mais longa ficar a conversa —, mais suas instruções serão empurradas para o “meio” e menor será a frequência com que são consultadas. O resultado da ETH Zurich pode ser visto como uma confirmação quantitativa desse limite estrutural.
+Ao reunir esses fenômenos, surge uma imagem única. Um arquivo de contexto é apenas **um texto adicional inserido fora do sistema antes do primeiro turno do usuário**. Não se trata de um mecanismo que força as decisões do modelo, mas apenas de mais um bloco de tokens que cai na janela de contexto. Quanto maior ele for, e quanto mais longa ficar a conversa, mais suas instruções serão empurradas para o “meio” e menor será a frequência com que são consultadas. O resultado da ETH Zurich acaba confirmando quantitativamente esse limite estrutural.
 
 
 ### O estudo da ETH Zurich
 
-Muitas pessoas devem ter pensado: “Então é melhor colocar o máximo possível nesses arquivos, certo?”. Um estudo recente rebateu essa intuição: a pesquisa da ETH Zurich mencionada ao longo da seção anterior.
+Muitas pessoas devem ter pensado: “Então é melhor colocar o máximo possível nesses arquivos, certo?”. Um estudo recente rebateu diretamente essa intuição: a pesquisa da ETH Zurich mencionada ao longo da seção anterior.
 
-Em fevereiro de 2026, uma equipe da ETH Zurich publicou o artigo “Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?”. Foram avaliadas 138 tarefas reais de engenharia de software em Python no benchmark AGENTBENCH e no SWE-bench Lite. As medições foram feitas com quatro agentes: Claude Code (Sonnet-4.5), Codex (GPT-5.2 / GPT-5.1 mini) e Qwen Code. Os resultados foram os seguintes.
+Em fevereiro de 2026, uma equipe da ETH Zurich publicou o artigo “Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?”. As medições foram feitas em 138 tarefas reais de engenharia de software em Python no benchmark AGENTBENCH e no SWE-bench Lite, com quatro agentes: Claude Code (Sonnet-4.5), Codex (GPT-5.2 / GPT-5.1 mini) e Qwen Code, e o resultado foi inesperado.
 
 - **Arquivos de contexto gerados automaticamente por LLMs** reduziram a taxa de sucesso das tarefas em cerca de **0,5% no SWE-bench Lite e 2% no AGENTBENCH**
 - Mesmo **arquivos escritos manualmente por pessoas** trouxeram apenas uma pequena melhora média, de cerca de 4%
 - A adição de arquivos de contexto **aumentou o custo de inferência em mais de 20% por instância**
 - Em modelos mais poderosos (GPT-5.2), o efeito dos arquivos de contexto foi ainda menor (quanto mais forte o modelo, maior seu conhecimento paramétrico e maior a chance de o contexto adicional virar ruído)
 
-Uma exceção ocorreu **quando uma ferramenta não convencional era especificada**. Por exemplo, ao mencionar no contexto o gerenciador de pacotes Python `uv`, a frequência de uso de `uv` pelo agente passou de 0,01 para 1,6 vez por instância, um aumento de **aproximadamente 160 vezes**.
+No entanto, houve uma exceção: **quando uma ferramenta não convencional era especificada**. Por exemplo, ao mencionar no contexto o gerenciador de pacotes Python `uv`, a frequência de uso de `uv` pelo agente passou de 0,01 para 1,6 vez por instância, um aumento de **aproximadamente 160 vezes**.
 
 A recomendação do Aider mencionada antes, de “200 linhas” e “como entra sempre no contexto, mantenha curto”, era uma orientação prática. Em comparação, o estudo da ETH Zurich demonstrou quantitativamente que “arquivos de contexto longos reduzem o desempenho”. Na minha opinião, as implicações práticas dessa pesquisa são as seguintes.
 
