@@ -8,7 +8,7 @@ description: "How frontend engineers grow when AI writes the code: new skills in
 keywords: 'frontend in the AI era, developers in the AI era, vibe coding, agentic engineering, AI coding tools, Product Engineer, frontend career roadmap'
 locale: en
 translationOf: '260302'
-sourceHash: 9f431fbea4187fbd156968103997543bf136d94c8643c67712902a2a245509b7
+sourceHash: 9ad3465cd766999626be9c2b444e0d686f964f5b12775f613b85a5f5c1c2dcf1
 ---
 
 In this post, I want to share my personal perspective on **how engineers can grow and survive alongside AI**.
@@ -28,7 +28,7 @@ Once again, I have tried to find and verify as many sources as possible. But bec
 
 ## “Doesn’t AI Do Everything Now?”
 
-Is the statement “AI does everything now” true? Let’s look at how much of it is reality and where the fantasy begins.
+There is something we need to address first. Is the statement “AI does everything now” true? How much of it is reality, and where does the fantasy begin?
 
 In February 2025, [Andrej Karpathy](https://x.com/karpathy/status/1886192184808149383), an OpenAI co-founder and former director of AI at Tesla, posted the following on Twitter.
 
@@ -49,7 +49,7 @@ Yet exactly one year later, in February 2026, the same Karpathy [took a step bac
 - **Vibe coding**: Describing what you want and accepting the result
 - **Agentic engineering**: Designing the system, specifying constraints, and using AI to accelerate an implementation you have already reasoned through in your head
 
-A year ago, the baseline assumption was, “Just tell it what to do and it will build everything.” Now, “the ability to design what to ask AI to do and how to ask it” has itself become an engineering capability. The same trend can be seen in a book published around the same time by Google engineer [Addy Osmani](https://addyosmani.com/), [Beyond Vibe Coding: From Coder to AI-Era Developer](https://www.amazon.com/Beyond-Vibe-Coding-AI-Era-Developer/dp/B0F6S5425Y). In this book, he stated plainly: “AI is an assistant, not an autonomously trustworthy coder. You are the senior developer, and the LLM exists to accelerate your judgment.”
+A year ago, the baseline assumption was, “Just tell it what to do and it will build everything.” Now, “the ability to design what to ask AI to do and how to ask it” has itself become an engineering capability. This trend is not just one person's tweet. Around the same time, Google engineer [Addy Osmani](https://addyosmani.com/) published [Beyond Vibe Coding: From Coder to AI-Era Developer](https://www.amazon.com/Beyond-Vibe-Coding-AI-Era-Developer/dp/B0F6S5425Y) and stated plainly: “AI is an assistant, not an autonomously trustworthy coder. You are the senior developer, and the LLM exists to accelerate your judgment.”
 
 
 ### The Tools Are Racing Ahead
@@ -106,11 +106,11 @@ The interpretation is not difficult. Our ability to produce code quickly has inc
 
 ## What AI Has Replaced—and What It Has Not
 
-The tools are racing ahead, yet the numbers are nuanced. Let’s separate what AI has replaced from what it has not yet replaced. This distinction needs to be clear before we can see where to invest our time.
+The tools are racing ahead, yet the numbers are nuanced. Then what exactly has AI replaced, and what has it not yet replaced? This distinction needs to be clear before we can see where to invest our time.
 
 What AI has replaced is the share of developers’ manual typing. We spend less time writing boilerplate and repetitive code, and given a design mockup, a screen that follows the conventions appears within minutes. The time spent searching for syntax and APIs, as well as the learning curve, has also fallen sharply. In short, AI has **flattened the speed of production**.
 
-But it has not yet replaced the domain of “judgment.” (This can be understood as saying it has not yet met expectations. People differ in their ability to use AI, but this discussion is based on the average user experience.)
+But it has not yet replaced the domain of “judgment.” (More precisely, it is closer to saying it “has not yet met expectations.” People differ in their ability to use AI, but this discussion is based on the average user experience.)
 
 The first sticking point is **translating requirements into specifications**. Turning ambiguous business requirements into precise edge cases and state machines still requires deeper human involvement. The same is true of **understanding system-wide impact**. Questions such as how a component affects the bundle, whether a dependency can be tree-shaken, or how a data-fetching pattern affects the [Core Web Vitals](https://web.dev/articles/vitals) metric [INP (Interaction to Next Paint)](https://web.dev/articles/inp) may receive plausible answers from AI, but a human needs to examine them once more before we can feel confident.
 
@@ -120,22 +120,22 @@ Finally, borrowing a phrase from [yceffort’s article](https://yceffort.kr/2026
 
 > Developers are not disappearing; the form of developers’ work is changing. The bottleneck has shifted from “the speed of building” to “the speed of deciding.”
 
-In the same vein, Toss’s [“Will AI Replace Developers?”](https://toss.tech/article/will-ai-replace-developers) offers a diagnosis. Its central point is this: AI is removing the apprenticeship ladder instead of replacing the entire workforce. Ten or twenty years from now, when today’s senior engineers retire, there may be too few people in the next generation capable of designing complex systems. This problem extends beyond one company’s hiring plans. It will hit the entire industry with a delay, and it is a heavier concern than the problem discussed above. (I think it is an exceptionally well-written article for a time when so many of us are wrestling with these questions.)
+In the same vein, Toss’s [“Will AI Replace Developers?”](https://toss.tech/article/will-ai-replace-developers) offers a weightier diagnosis. Its central point is this: AI is removing the apprenticeship ladder instead of replacing the entire workforce. Ten or twenty years from now, when today’s senior engineers retire, there will be too few people in the next generation capable of designing complex systems. This problem extends beyond one company’s hiring plans. It will hit the entire industry with a delay, and it is a heavier concern than the problem discussed above. (I think it is an exceptionally well-written article for a time when so many of us are wrestling with these questions.)
 
 The “first version that works” produced by AI is 70%. The remaining 30%—getting it to “a version safe to serve to real users”—belongs to humans. And the ability to fill that 30% does not appear overnight. This is the essence of the apprenticeship-ladder problem. If the time spent “getting your hands dirty” writing boilerplate and simple components disappears, so do the people who will eventually be able to fill that 30%.
 
-Hwidong Bae’s original article named **writing good code, maximizing present value (balancing fast delivery with long-term maintainability), making data-driven decisions, helping colleagues make effective decisions, and learning continuously** as the “five foundational capabilities of exceptional engineers.” All five remain relevant in the AI era, but the last is in the most precarious position. Learning is still necessary, but its subject has changed. Where we once learned “how do I use this tool?”, we now need to spend time learning “how does this entire system work?” The bigger problem is what [Evan Moon identifies](https://evan-moon.github.io/2026/04/18/developers-who-stopped-growing-in-ai-era/): “the moment AI takes over code writing, the brain’s cognitive load drops dramatically.” Reduced cognitive load sounds appealing, but it is dangerous because that load was the very material from which learning emerged. **The more comfortable it gets, the less you grow.**
+Hwidong Bae’s original article named **writing good code, maximizing present value (balancing fast delivery with long-term maintainability), making data-driven decisions, helping colleagues make effective decisions, and learning continuously** as the “five foundational capabilities of exceptional engineers.” All five remain relevant in the AI era, but the last is in the most precarious position. Learning itself has not disappeared, but its subject has changed. Where we once learned “how do I use this tool?”, we now need to spend time learning “how does this entire system work?” What is even more frightening is what [Evan Moon identifies](https://evan-moon.github.io/2026/04/18/developers-who-stopped-growing-in-ai-era/): “the moment AI takes over code writing, the brain’s cognitive load drops dramatically.” Reduced cognitive load sounds appealing, but it is dangerous because that load was the very material from which learning emerged. **The more comfortable it gets, the less you grow.**
 
 This naturally raises a question. Do the three tracks in Hwidong Bae’s article—web specialization, product specialization, and operations specialization—no longer matter?
 
-I see the tracks as still valid. Each track has evolved by one stage for the AI era. Let us examine how the landscape has changed for each one.
+I think differently. The tracks themselves are still valid. However, it is more accurate to say that each track has evolved by one stage for the AI era. Let us examine how the landscape has changed for each one.
 
 
 ## From Producer to “Verifier”
 
 In Hwidong Bae’s original article, the web specialization track was grouped under the title **Software Engineer**. Its core capabilities were “a deep understanding and practical command of the internet, web browsers, and HTML/CSS/JS,” familiarity with the trade-offs of web ecosystem tools, troubleshooting experience, and sensitivity to emerging technologies. The suggested senior paths were **engineer at a web tooling company, frontend educator, or tech lead in a complex product organization**. In short, these were “people who dig deeply into how browsers and HTML/CSS/JS work,” and until a year or two ago, their greatest advantage was that “they could write correct code more accurately than anyone else.”
 
-Their value is different in the AI era. In terms of coding speed alone, AI has caught up. Yet **the ability to accurately evaluate AI-generated code** has become something they almost uniquely possess.
+How has their value changed in the AI era? In terms of coding speed alone, AI has caught up. Yet **the ability to accurately evaluate AI-generated code** has become something they almost uniquely possess.
 
 - Non-developer using AI: It implemented my requirements, and it works correctly.
 - Developer using AI: It works, but certain problems could arise because of this dependency, and improving this pattern in this way would better fit our conventions. Let’s examine the related areas again.
@@ -149,7 +149,7 @@ There is another development: an entirely new topic has entered the expert domai
 
 The product specialization track has benefited the most. People who understand markets and customers well and communicate frequently with external stakeholders gained a far more powerful tool the moment AI entered the picture. Another hallmark of this track was that its suggested senior paths included expansion into other roles, such as **growth engineer or consultant, or a transition to PM, PO, or CPO**.
 
-The track’s name has begun to establish itself as a global standard. The original article already called it “Product Engineer,” but when I first read it, the term still felt somewhat unfamiliar. A year later, it has become established enough that [Vercel renamed every “Fullstack Engineer” role in its job descriptions to “Product Engineer”](https://leerob.com/product-engineers).
+An interesting change is that the track’s name has begun to establish itself as a global standard. The original article already called it “Product Engineer,” but when I first read it, the term still felt somewhat unfamiliar. A year later, it has become established enough that [Vercel renamed every “Fullstack Engineer” role in its job descriptions to “Product Engineer”](https://leerob.com/product-engineers).
 
 Lee Robinson identifies three core qualities of a Product Engineer.
 
@@ -183,7 +183,7 @@ While the three tracks are each evolving, there are also capabilities that have 
 
 ## Five Capabilities
 
-**The first is the ability to write specifications.** In the AI era, the “starting point of coding” is the **specification**, not the keyboard. The ability to state what AI should do has become more important than the code itself. A specification here does not have to be a grand RFC document. It can be **tests** that express the expected behavior of business logic in code, **Storybook stories** that define a UI component’s scenarios and visual contract, or **type definitions** that specify the contract for data flow. The work is to establish in advance the criteria that will automatically verify AI-generated output. If AI coding proceeds without those criteria, problems accumulate.
+**The first is the ability to write specifications.** In the AI era, the “starting point of coding” is the **specification**, not the keyboard. The ability to precisely state what AI should do has become more important than the code itself. A specification here does not have to be a grand RFC document. It can be **tests** that express the expected behavior of business logic in code, **Storybook stories** that define a UI component’s scenarios and visual contract, or **type definitions** that specify the contract for data flow. The work is to establish in advance the criteria that will automatically verify AI-generated output. If AI coding proceeds without those criteria, problems accumulate.
 
 **The second is verification and judgment.** AI confidently produces code that looks plausible but is wrong. That is why I believe “the ability to review AI-generated code quickly and accurately” is itself a core capability. We need to check whether security headers, input sanitization, or CSRF tokens are missing, whether accessibility (ARIA, keyboard navigation, and focus traps) remains intact, and whether there are performance issues involving rendering cost, memory, or bundle size. Throwing AI slop into a PR without review is a dereliction of an engineer’s duty. A human still clicks the merge button, and that responsibility cannot be shifted onto AI. Senior developers may have the lowest trust in AI in the Stack Overflow survey precisely because they have the eye to catch these details.
 
@@ -193,7 +193,7 @@ While the three tracks are each evolving, there are also capabilities that have 
 
 **The fifth is Context Engineering.** It is a concept that [Karpathy and Shopify CEO Tobi Lütke began promoting together](https://www.faros.ai/blog/context-engineering-for-developers) in mid-2025. In short, it is “the ability to design what context to show AI, in what form, and how much of it.” In practice, it includes maintaining **CLAUDE.md / rules files** that place project conventions, architectural principles, and prohibitions within AI’s reach, and **deliberately reducing context** by selecting only relevant modules instead of loading every file. It also takes the form of **explicitly separating phases**, dividing planning → implementation → verification into separate sessions to prevent context contamination, and **providing external context through MCP**, connecting design systems, API schemas, monitoring data, and other resources through standard interfaces. [Anthropic’s official documentation](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) calls this “the new prompt engineering.” It states plainly that a single prompt can never contain a system’s architectural knowledge, patterns, and tribal wisdom. Put differently, “designing an environment where AI consistently receives good context” has become far more important than “writing one good prompt.”
 
-If you have read this far, a natural question follows. The question of how, specifically, to study comes to mind. I use roughly four approaches.
+If you have read this far, a natural question follows. Then how, specifically, should you study? I use roughly four approaches.
 
 
 ## How to Learn
@@ -206,7 +206,7 @@ AI-generated code tends to grow large. It can produce hundreds of lines in a min
 
 There is a practice directly related to the reduced cognitive-load problem identified in Evan Moon’s article: it is worth setting aside one or two hours a day to write code without AI. Drawing an architecture by hand or reading through code in an unfamiliar area one line at a time are examples. (I also write code without AI during the drowsy period after lunch each day. It is time I use to keep from drifting too far from old, familiar habits.)
 
-That time does more than preserve old ways of working; it also helps prevent your own depth from failing to grow in step with the time AI spends doing the work for you. Capabilities such as verification, judgment, and system understanding are functions of the time you spend confronting problems directly.
+This is not simply “to avoid forgetting the old ways.” It is because your own depth fails to grow in step with the time AI spends doing the work for you. Capabilities such as verification, judgment, and system understanding are functions of the time you spend confronting problems directly.
 
 
 ## So, Where Does That Leave Us?
