@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: ja
 translationOf: '260529'
-sourceHash: 03edb5679e5e12f5dfab8b993152fdcc6c46eb0469c401b0c40f6255723f212d
+sourceHash: e69921ca8e4ea39071a6e12f2faddd3144fbeb653d3b361d31eb0aca7a346682
 categories: AI 開発ツール Claude MCP CodeGraph
 description: "CLAUDE.md・AGENTS.md・SKILL.md・Cursor rulesがいつ、どのようにエージェントに読み込まれるのかを整理する。CLAUDE.mdがuser messageとして注入される仕組みとコンテキストの忘却、ETH Zurichの研究をもとに、何を書くべきかの基準を示す。"
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, コンテキストファイル, AIコーディングエージェント, Claude Code, ETH Zurich AGENTS.md 研究"
@@ -34,7 +34,7 @@ AIコーディングエージェントには、**永続的な記憶がない**�
 - **プロジェクトメモリ**（プロジェクトルートの`CLAUDE.md`）：Gitにコミットされ、チーム全体で共有
 - **ローカルメモリ**（サブディレクトリの`CLAUDE.md`）：そのディレクトリで作業するときだけ追加で読み込まれる
 
-3階層がすべて存在する場合、Claudeは**すべてを読み込んで連結**（concatenate）する。優先順位によって一つだけを選ぶのではなく、CSSのcascadeのように、より具体的なものが追加で重なる構造だ。（オーバーライドではなくマージである。）したがって、同じテーマのルールを複数の階層に分散させると競合する可能性がある。（Anthropicの公式ドキュメントも、競合時の動作は保証されないと明記している。）
+3階層がすべて存在する場合、Claudeは**すべてを読み込んで連結**（concatenate）する。CSSのcascadeのように、より具体的なものが追加で重なる構造だ。したがって、同じテーマのルールを複数の階層に分散させると競合する可能性がある。（Anthropicの公式ドキュメントも、競合時の動作は保証されないと明記している。）
 
 ここで見落とされがちな点が一つある。**現在の作業ディレクトリからリポジトリルートまで遡り、途中にあるすべての`CLAUDE.md`を読む**という点だ。そのため、モノレポの`packages/ui/`に入って作業すると、ルートの`CLAUDE.md`と`packages/ui/CLAUDE.md`が両方読み込まれる。（これは強力だが、同時にコンテキストが気づかないうちに膨らむ可能性も意味する。）
 
@@ -43,7 +43,7 @@ AIコーディングエージェントには、**永続的な記憶がない**�
 
 `AGENTS.md`は、前述したツール別ファイルの乱立を解消するために作られた標準だ。2025年12月、OpenAIはこの標準をLinux Foundation傘下の**Agentic AI Foundation**（AAIF）へ寄贈した。[Linux Foundationの発表](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation)によると、AAIFはAnthropic・Block・OpenAIが共同で創設し、創設プロジェクトはAnthropicのMCP（エージェントを外部システムにつなぐプロトコル）、Blockのgoose、OpenAIの`AGENTS.md`の3つだ。公式サイト（`agents.md`）では、**6万以上のオープンソースリポジトリがこのファイルを採用している**と明記されている。
 
-対応ツールの一覧を見れば、さらに明確だ。OpenAI Codex、Google Jules、VS Code、GitHub Copilot、Cursor、JetBrains Junie、Aider、Devin、Zed、Factory、Warp、goose、opencode、Amp、RooCode、Gemini CLI、Kilo Code、Phoenix、Semgrep、Ona、Windsurf、Augment Codeなど、数多くのツールが対応している。GitHub Copilotは2025年8月から`AGENTS.md`をネイティブサポートし始めた。興味深いのは、**Claude Codeによる`AGENTS.md`のネイティブサポートは、いまだactive feature requestの状態**だという点だ。Claude Codeは今も`CLAUDE.md`を第一のファイルとして扱う。
+対応ツールの一覧を見れば、さらに明確だ。OpenAI Codex、Google Jules、VS Code、GitHub Copilot、Cursor、JetBrains Junie、Aider、Devin、Zed、Factory、Warp、goose、opencode、Amp、RooCode、Gemini CLI、Kilo Code、Phoenix、Semgrep、Ona、Windsurf、Augment Codeなど、数多くのツールが対応している。GitHub Copilotは2025年8月から`AGENTS.md`をネイティブサポートし始めた。一方、Claude Codeによる`AGENTS.md`のネイティブサポートは、いまだactive feature requestの状態だ。Claude Codeは今も`CLAUDE.md`を第一のファイルとして扱う。
 
 標準とはいっても、本当に採用が進んでいるのか疑わしく思えるかもしれない。最も強力な証拠は、**dogfooding**（自分たちが作った標準を自ら使うこと）だ。
 
@@ -57,7 +57,7 @@ AIコーディングエージェントには、**永続的な記憶がない**�
 
 `SKILL.md`は、前の2つとは性質が異なる。`CLAUDE.md`と`AGENTS.md`が**常にコンテキストに存在する永続的な指示**であるのに対し、スキル（Skill）は**必要なときだけ呼び出されるオンデマンドの能力**だ。
 
-スキルはフォルダ単位で構成される。フォルダの中には、1つの`SKILL.md`と、そのスキルが実行するスクリプト、追加のMarkdownドキュメントが入る。Claudeは、現在のタスクがスキルの`description`と一致するときだけ、そのフォルダを読み込む。これを**progressive disclosure**（段階的開示）と呼ぶ。これは1995年にUX分野でJakob Nielsenが確立した概念で、高度な機能や使用頻度の低い機能を補助画面に移し、ユーザーが一度に一つの作業だけに集中できるようにして、認知負荷とエラーを減らす手法だ。Claude Skillsの文脈では、「必要なときだけ、そのスキルの本文をコンテキストへ取り込む」仕組みを指す。その結果、コンテキストウィンドウのコストを劇的に節約できる。
+スキルはフォルダ単位で構成される。フォルダの中には、1つの`SKILL.md`と、そのスキルが実行するスクリプト、追加のMarkdownドキュメントが入る。Claudeは、現在のタスクがスキルの`description`と一致するときだけ、そのフォルダを読み込む。これを**progressive disclosure**（段階的開示）と呼ぶ。これは1995年にUX分野でJakob Nielsenが確立した概念で、高度な機能や使用頻度の低い機能を補助画面に移し、ユーザーが一度に一つの作業だけに集中できるようにして、認知負荷とエラーを減らす手法だ。Claude Skillsの文脈では、「必要なときだけ、そのスキルの本文をコンテキストへ取り込む」仕組みを指す。その結果、コンテキストウィンドウのコストを節約できる。
 
 `SKILL.md`のfrontmatterには、いくつか固有のフィールドがある。
 
@@ -96,7 +96,7 @@ Cursor・Copilot以外のツールも、すべて似たパターンへ収束し�
 | **Windsurf** | `.windsurfrules` + `global_rules.md` | グローバルとプロジェクトの2段階 |
 | **標準** | `AGENTS.md`（AAIF） | 60,000以上のリポジトリが採用 |
 
-なかでも、**Aiderの`CONVENTIONS.md`は興味深い。** 公式ドキュメントには、リクエストのたびにこのファイル全体をコンテキストへ含めるため、「**200行以内に保つこと**」と明記されている。（Aiderは、この制約を早くから認識し、ユーザーへ明示的に伝えているわけだ。）
+なかでも、**Aiderの`CONVENTIONS.md`は、リクエストのたびにこのファイル全体をコンテキストへ含める。** 公式ドキュメントには、リクエストのたびにこのファイル全体をコンテキストへ含めるため、「**200行以内に保つこと**」と明記されている。（Aiderは、この制約を早くから認識し、ユーザーへ明示的に伝えている。）
 
 
 ### MEMORY.md
@@ -112,14 +112,14 @@ Prisma 쿼리 결과에 optional chaining 쓰지 말 것 — null은 if-check로
 (이전에 옵셔널 체이닝으로 null을 흘려보내 프로덕션 이슈 발생.)
 ```
 
-`CLAUDE.md`や`AGENTS.md`が**現時点のルール**を書く場所なら、`MEMORY.md`は**そのルールがなぜ作られたのかという歴史**を書く場所だ。（両者は補完関係にあり、代替関係ではない。）
+`CLAUDE.md`や`AGENTS.md`が**現時点のルール**を書く場所なら、`MEMORY.md`は**そのルールがなぜ作られたのかという歴史**を書く場所だ。（両者は互いに補完し合う。）
 
 
 ### エージェントはこれらのファイルをどう読むのか
 
-ここまで、どのようなファイルがあるのかを整理してきた。しかし、意外に見落とされやすい問いが一つある。**エージェントはこれらのファイルを、正確にはどこへ、どのように読み込むのだろうか。** 実はこの仕組みを理解すると、後で扱うETH Zurichの結果（コンテキストファイルの指示があまり守られないという結果）が、よりすっきりと理解できる。
+ここまで、どのようなファイルがあるのかを整理してきた。しかし、よく見落とされる問いが一つある。**エージェントはこれらのファイルを、どこへ、どのように読み込むのだろうか。** 実はこの仕組みを理解すると、後で扱うETH Zurichの結果（コンテキストファイルの指示があまり守られないという結果）が、よりよく理解できる。
 
-まず押さえておくべき事実が一つある。**`CLAUDE.md`はsystem promptではなく、user messageとして注入される。** Anthropicの公式ドキュメントには、次のように明記されている。
+**`CLAUDE.md`はsystem promptではなく、user messageとして注入される。** Anthropicの公式ドキュメントには、次のように明記されている。
 
 ::::quote
 :::translation
@@ -131,13 +131,13 @@ CLAUDE.md content is delivered as a user message after the system prompt, not as
 :::
 ::::
 
-つまり、強制ルールではなく「参考用コンテキスト」にすぎない。特定の動作を確実に強制したいなら、`PreToolUse`フックのような別の仕組みを使うべきだと、公式ガイドでも推奨されている。
+つまり、先ほど引用した内容は強制ルールとして適用されず、参考用コンテキストとして渡される。特定の動作を強制したいなら、`PreToolUse`フックのような別の仕組みを使うべきだと、公式ガイドでも推奨されている。
 
 読み込み順は、broad → specificの順で積み重なる。具体的には、managed policy（組織レベルの設定）→ ユーザーグローバル（`~/.claude/CLAUDE.md`）→ プロジェクト（`./CLAUDE.md`）→ ローカル（`./CLAUDE.local.md`）の順だ。同じディレクトリでは、`CLAUDE.md`の後に`CLAUDE.local.md`が続く。**最も近い場所の指示が最後に読まれる**ことを利用すれば、LLMのrecency biasによって、より具体的なルールが強く働く効果を期待できる。
 
-ここで興味深いのが`@import`構文だ。CLAUDE.mdの本文中に`@path/to/file`と書くと、そのファイルがその位置に展開され、一緒に読み込まれる。**再帰の最大深度は4 hops**まで許可され、相対パスはimport文が書かれたファイルを基準に解決される。そのため、公式には`@AGENTS.md`で橋渡しする方法が推奨されている。`CLAUDE.md`をほぼ空にして`@AGENTS.md`の1行だけを書けば、Claude Codeも自然にAGENTS.mdを読む。（CLAUDE.mdがまだAGENTS.mdをネイティブサポートしていない現状では、最もすっきりした回避策だ。）
+`@import`構文を使うと、CLAUDE.mdの本文のどこに`@path/to/file`と書いても、その位置にファイルがそのまま展開され、一緒に読み込まれる。**再帰の最大深度は4 hops**まで許可され、相対パスはimport文が書かれたファイルを基準に解決される。そのため、公式には`@AGENTS.md`で橋渡しする方法が推奨されている。`CLAUDE.md`をほぼ空にして`@AGENTS.md`の1行だけを書けば、Claude Codeも自然にAGENTS.mdを読む。（CLAUDE.mdがまだAGENTS.mdをネイティブサポートしていない現状では、最もすっきりした回避策だ。）
 
-トークンの観点も確認しておこう。CLAUDE.md自体には明示的なトークン上限がなく、**存在する内容はすべて読み込まれる**。ただし、公式の推奨は**1ファイル200行以内**だ。200行を超えると「consume more context and may reduce adherence」と明記されている。興味深いことに、Claude 4.xでは**tool useを有効にするだけでspecial system promptが自動的に346トークン増える**（`tool_choice: auto`の場合）。コンテキストは、知らないうちに少しずつ消費されているのだ。
+トークンの観点では、CLAUDE.md自体には明示的なトークン上限がなく、**存在する内容はすべて読み込まれる**。ただし、公式の推奨は**1ファイル200行以内**だ。200行を超えると「consume more context and may reduce adherence」と明記されている。Claude 4.xでは**tool useを有効にするだけでspecial system promptが自動的に346トークン増え**（`tool_choice: auto`の場合）、その分コンテキストが目立たないうちに増えていく。
 
 Cursorは別の方法を採る。`.cursor/rules/*.mdc`のルールは、次の4タイプで動作する。
 
@@ -146,7 +146,7 @@ Cursorは別の方法を採る。`.cursor/rules/*.mdc`のルールは、次の4�
 - **Apply to Specific Files**（Auto Attached）：globパターンに一致するファイルがコンテキストに入ったときに有効化される
 - **Apply Manually**：`@rule-name`でユーザーが明示的に呼び出す
 
-ほかのツールは、さらに異なる。OpenAI CodexはGitリポジトリのルートからcwdへ向かってwalkし、すべての`AGENTS.md`を収集して**ユーザープロンプトの直前**に注入する。GitHub Copilotは`.github/copilot-instructions.md`を、「edit contextとexplicit referencesの後、loosely related open filesより前」という、コンテキストウィンドウの中間的な優先位置に挿入する。同じ`AGENTS.md`ファイルでも、読み込み時点、優先順位、マージルールはツールごとに異なるため、**3つのツールがまったく同じ方法でそのファイルを見る保証はない。**
+ほかのツールは、さらに異なる。OpenAI CodexはGitリポジトリのルートからcwdへ向かってwalkし、すべての`AGENTS.md`を収集して**ユーザープロンプトの直前**に注入する。GitHub Copilotは`.github/copilot-instructions.md`を、「edit contextとexplicit referencesの後、loosely related open filesより前」という、コンテキストウィンドウの中間的な優先位置に挿入する。同じ`AGENTS.md`ファイルでも、読み込み時点、優先順位、マージルールはツールごとに異なるため、**3つのツールが同じ方法でそのファイルを見る保証はない。**
 
 しかし、ここには一つ根本的な問いが残る。**なぜモデルは、コンテキストにある指示の一部しか守らないのだろうか。** 単に「指示が長いから」という説明では不十分だ。この現象の根底には、LLMの構造的な限界がある。
 
@@ -163,16 +163,16 @@ AIエージェントが会話の文脈を混同したり、前に明確に伝え
 
 ### ETH Zurichの研究
 
-多くの人は、「それなら、このファイルにできるだけ多く書いておけばよいのでは」と考えただろう。しかし、その直感に真正面から反論する研究が最近発表された。先ほどから触れてきたETH Zurichの研究である。
+多くの人は、「それなら、このファイルにできるだけ多く書いておけばよいのでは」と考えただろう。しかし、その直感に反論する研究が最近発表された。先ほどから触れてきたETH Zurichの研究である。
 
-ETH Zurichの研究チームが2026年2月に発表した論文「Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?」だ。138件の実際のPythonソフトウェアエンジニアリングタスクのベンチマーク（AGENTBENCH）とSWE-bench Liteを使い、Claude Code（Sonnet-4.5）、Codex（GPT-5.2／GPT-5.1 mini）、Qwen Codeの4つのエージェントで測定したところ、意外な結果が得られた。
+ETH Zurichの研究チームが2026年2月に発表した論文「Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?」だ。138件の実際のPythonソフトウェアエンジニアリングタスクのベンチマーク（AGENTBENCH）とSWE-bench Liteを使い、Claude Code（Sonnet-4.5）、Codex（GPT-5.2／GPT-5.1 mini）、Qwen Codeの4つのエージェントで測定したところ、結果は次のとおりだった。
 
 - **LLMが自動生成したコンテキストファイル**は、SWE-bench Liteで約0.5%、AGENTBENCHで約2%、**タスク成功率をむしろ低下させた**
 - **人間が直接書いたファイル**でさえ、平均約4%のわずかな改善にとどまった
 - コンテキストファイルを追加すると、**推論コストがインスタンス当たり20%以上増加**した
 - より強力なモデル（GPT-5.2）では、コンテキストファイルの効果がさらに小さかった（強力なモデルほどパラメトリック知識が十分で、追加コンテキストがノイズとして働く）
 
-ただし、例外が一つあった。**非標準ツールを明記した場合**だ。たとえば、Pythonのパッケージマネージャーである`uv`をコンテキストに明記すると、エージェントが`uv`を使う頻度がインスタンス当たり0.01回から1.6回へと、**約160倍に増加した**。
+一つ例外があった。**非標準ツールを明記した場合**だ。たとえば、Pythonのパッケージマネージャーである`uv`をコンテキストに明記すると、エージェントが`uv`を使う頻度がインスタンス当たり0.01回から1.6回へと、**約160倍に増加した**。
 
 先ほど扱ったAiderの「200行推奨」「毎回コンテキストに入るため短く保つこと」という案内は実用的な指針であり、ETH Zurichの研究は「長いコンテキストファイルが統計的に性能を下げる」ことを定量的に示した。筆者が考える、この研究の実践的な示唆は次のとおりだ。
 

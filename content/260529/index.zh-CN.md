@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: zh-CN
 translationOf: '260529'
-sourceHash: 03edb5679e5e12f5dfab8b993152fdcc6c46eb0469c401b0c40f6255723f212d
+sourceHash: e69921ca8e4ea39071a6e12f2faddd3144fbeb653d3b361d31eb0aca7a346682
 categories: AI 开发工具 Claude MCP CodeGraph
 description: "梳理 CLAUDE.md、AGENTS.md、SKILL.md 与 Cursor rules 何时、如何被智能体读取，并根据 CLAUDE.md 以 user message 注入的机制、上下文遗忘与 ETH Zurich 研究，给出上下文文件该写什么的判断标准。"
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, 上下文文件, AI 编程智能体, Claude Code, ETH Zurich AGENTS.md 研究"
@@ -34,7 +34,7 @@ AI 编程智能体存在一个根本局限：**它没有持久记忆**。每个 
 - **项目记忆**（项目根目录下的 `CLAUDE.md`）：提交到 git，由整个团队共享
 - **本地记忆**（子目录中的 `CLAUDE.md`）：仅在该目录内工作时额外加载
 
-三个层级同时存在时，Claude 会**全部读取并串联（concatenate）**。它并非按优先级只选一个，而是像 CSS cascade 一样，将更具体的内容继续叠加上去。（这是合并，不是覆盖。）因此，如果把同一主题的规则分散到多个层级，就可能产生冲突。（Anthropic 官方文档明确指出，指令冲突时的行为不受保证。）
+如果三个层级都存在，Claude 会**全部读取并串联（concatenate）**。就像 CSS cascade 一样，更具体的内容会继续叠加上去。因此，如果把同一主题的规则分散到多个层级，就可能产生冲突。（Anthropic 官方文档明确指出，指令冲突时的行为不受保证。）
 
 这里有一点经常被忽略：Claude 会**从当前工作目录一路向上走到仓库根目录，并读取沿途遇到的所有 `CLAUDE.md`**。所以在 monorepo 的 `packages/ui/` 中工作时，根目录的 `CLAUDE.md` 与 `packages/ui/CLAUDE.md` 都会被加载。（这很强大，但也意味着上下文可能在不知不觉间膨胀。）
 
@@ -43,7 +43,7 @@ AI 编程智能体存在一个根本局限：**它没有持久记忆**。每个 
 
 `AGENTS.md` 是为解决上述各工具专属文件泛滥而创建的标准。2025 年 12 月，OpenAI 将这一标准捐赠给 Linux Foundation 旗下的 **Agentic AI Foundation**（AAIF）。据 [Linux Foundation 的公告](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation)，AAIF 由 Anthropic、Block、OpenAI 共同创立，创始项目有三个：Anthropic 的 MCP（把智能体连接到外部系统的协议）、Block 的 goose，以及 OpenAI 的 `AGENTS.md`。官方网站（`agents.md`）明确表示，**已有超过 6 万个开源仓库采用该文件**。
 
-看看支持工具的名单，这一点就更清楚了。OpenAI Codex、Google Jules、VS Code、GitHub Copilot、Cursor、JetBrains Junie、Aider、Devin、Zed、Factory、Warp、goose、opencode、Amp、RooCode、Gemini CLI、Kilo Code、Phoenix、Semgrep、Ona、Windsurf、Augment Code 等众多工具都提供支持。GitHub Copilot 从 2025 年 8 月起原生支持 `AGENTS.md`。有趣的是，**Claude Code 对 `AGENTS.md` 的原生支持目前仍处于 active feature request 状态**。Claude Code 依然将 `CLAUDE.md` 视为主要文件。
+看看支持工具的名单，这一点就更清楚了。OpenAI Codex、Google Jules、VS Code、GitHub Copilot、Cursor、JetBrains Junie、Aider、Devin、Zed、Factory、Warp、goose、opencode、Amp、RooCode、Gemini CLI、Kilo Code、Phoenix、Semgrep、Ona、Windsurf、Augment Code 等众多工具都提供支持。GitHub Copilot 从 2025 年 8 月起原生支持 `AGENTS.md`。相比之下，Claude Code 对 `AGENTS.md` 的原生支持目前仍处于 active feature request 状态。Claude Code 依然将 `CLAUDE.md` 视为主要文件。
 
 它虽被称为标准，但人们可能仍会怀疑是否真的有人采用。最有力的证据就是 **dogfooding**，也就是亲自使用自己制定的标准。
 
@@ -57,7 +57,7 @@ AI 编程智能体存在一个根本局限：**它没有持久记忆**。每个 
 
 `SKILL.md` 与前两个文件性质不同。`CLAUDE.md` 和 `AGENTS.md` 是**始终存在于上下文中的持久指令**，而 Skill 是**只在需要时调用的按需能力**。
 
-Skill 以文件夹为单位组织。文件夹中包含一个 `SKILL.md`、该 Skill 会执行的脚本，以及额外的 Markdown 文档。只有当前任务与 Skill 的 `description` 匹配时，Claude 才会加载该文件夹。这称为 **progressive disclosure（渐进式披露）**。这一概念由 Jakob Nielsen 于 1995 年在 UX 领域确立：把高级或较少使用的功能放到辅助界面，让用户一次只专注于一项任务，从而降低认知负荷和错误。在 Claude Skills 的语境中，它指“只在需要时才把 Skill 正文载入上下文”的机制。这样可以大幅节省上下文窗口成本。
+Skill 以文件夹为单位组织。文件夹中包含一个 `SKILL.md`、该 Skill 会执行的脚本，以及额外的 Markdown 文档。只有当前任务与 Skill 的 `description` 匹配时，Claude 才会加载该文件夹。这称为 **progressive disclosure（渐进式披露）**。这一概念由 Jakob Nielsen 于 1995 年在 UX 领域确立：把高级或较少使用的功能放到辅助界面，让用户一次只专注于一项任务，从而降低认知负荷和错误。在 Claude Skills 的语境中，它指“只在需要时才把 Skill 正文载入上下文”的机制。这样可以节省上下文窗口成本。
 
 `SKILL.md` 的 frontmatter 中有几个独有字段。
 
@@ -96,7 +96,7 @@ Cursor、Copilot 以外的工具也都在向相似模式靠拢。汇总如下。
 | **Windsurf** | `.windsurfrules` + `global_rules.md` | 全局与项目两级 |
 | **标准** | `AGENTS.md`（AAIF） | 已被 60,000+ 个仓库采用 |
 
-尤其值得注意的是 **Aider 的 `CONVENTIONS.md`**。官方文档明确指出，由于每次请求都会将该文件完整加入上下文，因此应“**保持在 200 行以内**”。（可以说，Aider 很早就意识到这一限制，并明确提醒了用户。）
+尤其**Aider 的 `CONVENTIONS.md` 每次请求都会完整加入上下文**。官方文档明确建议“**保持在 200 行以内**”，因为每次请求都会把这个文件完整加入上下文。（Aider 很早就意识到了这个限制，并明确告诉了用户。）
 
 
 ### MEMORY.md
@@ -112,14 +112,14 @@ Prisma 쿼리 결과에 optional chaining 쓰지 말 것 — null은 if-check로
 (이전에 옵셔널 체이닝으로 null을 흘려보내 프로덕션 이슈 발생.)
 ```
 
-如果说 `CLAUDE.md` 或 `AGENTS.md` 记录的是**当前规则**，那么 `MEMORY.md` 记录的就是**这些规则为何形成的历史**。（两者是互补关系，而非替代关系。）
+如果说 `CLAUDE.md` 或 `AGENTS.md` 记录的是**当前规则**，那么 `MEMORY.md` 记录的就是**这些规则为何形成的历史**。（两者互为补充。）
 
 
 ### 智能体如何读取这些文件
 
-到目前为止，我们梳理了有哪些文件。但还有一个经常被遗漏的问题：**智能体究竟把这些文件读到哪里，又是怎样读取的？** 理解这一机制，就更容易明白后文 ETH Zurich 的研究结果——上下文文件中的指令并不会被可靠遵循——为何会出现。
+到目前为止，我们梳理了有哪些文件。但有个经常被遗漏的问题：**智能体究竟把这些文件读到哪里，又是怎样读取的？** 事实上，了解这一机制，就更容易理解后文 ETH Zurich 的研究结果（context file 中的指令并不容易被遵循）为何会出现。
 
-首先要明确一个事实：**`CLAUDE.md` 不是 system prompt，而是以 user message 的形式注入。** Anthropic 官方文档明确写道：
+**`CLAUDE.md` 不是 system prompt，而是以 user message 的形式注入。** Anthropic 官方文档明确写道：
 
 ::::quote
 :::translation
@@ -131,13 +131,13 @@ CLAUDE.md content is delivered as a user message after the system prompt, not as
 :::
 ::::
 
-也就是说，它不是强制规则，而是“参考上下文”。如果确实要强制某种行为，官方指南也建议使用 `PreToolUse` hook 等额外机制。
+也就是说，前面引用的内容并非作为强制规则应用，而是以参考上下文的形式传达。如果确实要强制某种行为，官方指南也建议使用 `PreToolUse` hook 等额外机制。
 
 加载顺序按 broad → specific 逐层叠加。具体来说，是 managed policy（组织级设置）→ 用户全局文件（`~/.claude/CLAUDE.md`）→ 项目文件（`./CLAUDE.md`）→ 本地文件（`./CLAUDE.local.md`）。在同一目录中，先读 `CLAUDE.md`，再读 `CLAUDE.local.md`。利用**距离最近的指令最后读取**这一点，可以借助 LLM 的 recency bias，让更具体的规则产生更强影响。
 
-这里很有意思的是 `@import` 语法。在 CLAUDE.md 正文的任意位置写入 `@path/to/file`，对应文件就会在原地展开并一同加载。**最大递归深度为 4 hops**，相对路径以写有 import 语句的文件为基准解析。因此，官方建议用 `@AGENTS.md` 建立 bridge。让 `CLAUDE.md` 几乎保持为空，只写一行 `@AGENTS.md`，Claude Code 就能自然读取 AGENTS.md。（在 CLAUDE.md 尚未原生支持 AGENTS.md 的现状下，这是最简洁的变通方案。）
+使用 `@import` 语法时，只要在 CLAUDE.md 正文的任意位置写入 `@path/to/file`，对应文件就会在该处展开并一同加载。**最大递归深度为 4 hops**，相对路径以写有 import 语句的文件为基准解析。因此，官方建议用 `@AGENTS.md` 建立 bridge。让 `CLAUDE.md` 几乎保持为空，只写一行 `@AGENTS.md`，Claude Code 就能自然读取 AGENTS.md。（在 CLAUDE.md 尚未原生支持 AGENTS.md 的现状下，这是最简洁的变通方案。）
 
-token 方面也值得一提。CLAUDE.md 本身没有明确的 token 上限，因此**只要存在就会完整加载**。不过官方建议**每个文件不超过 200 行**。超过 200 行后，会“consume more context and may reduce adherence”。有趣的是，在 Claude 4.x 中，**仅仅启用 tool use，就会自动通过 special system prompt 增加 346 个 token**（以 `tool_choice: auto` 为准）。上下文就在这些不易察觉的地方不断流失。
+在 token 方面，CLAUDE.md 本身没有明确的 token 上限，因此**只要存在就会完整加载**。不过官方建议**每个文件不超过 200 行**。超过 200 行后，会“consume more context and may reduce adherence”。Claude 4.x 中，**仅仅启用 tool use，就会自动通过 special system prompt 增加 346 个 token**（以 `tool_choice: auto` 为准），这样上下文也会在不知不觉中增加。
 
 Cursor 则采用另一种方式。`.cursor/rules/*.mdc` 中的规则有四种工作模式。
 
@@ -146,7 +146,7 @@ Cursor 则采用另一种方式。`.cursor/rules/*.mdc` 中的规则有四种工
 - **Apply to Specific Files**（Auto Attached）：与 glob 模式匹配的文件进入上下文时激活
 - **Apply Manually**：用户通过 `@rule-name` 明确调用
 
-其他工具又有所不同。OpenAI Codex 会从 git 仓库根目录朝 cwd 方向遍历，收集所有 `AGENTS.md`，并在**用户 prompt 之前紧邻的位置**注入。GitHub Copilot 则将 `.github/copilot-instructions.md` 放在上下文窗口的中等优先级：“位于 edit context 与 explicit references 之后，但在 loosely related open files 之前。”即使使用同一个 `AGENTS.md` 文件，各工具的加载时机、优先级与合并规则仍不相同，因此**不能保证三个工具以完全相同的方式理解该文件。**
+其他工具又有所不同。OpenAI Codex 会从 git 仓库根目录朝 cwd 方向遍历，收集所有 `AGENTS.md`，并在**用户 prompt 之前紧邻的位置**注入。GitHub Copilot 则将 `.github/copilot-instructions.md` 放在上下文窗口的中等优先级：“位于 edit context 与 explicit references 之后，但在 loosely related open files 之前。”即使使用同一个 `AGENTS.md` 文件，各工具的加载时机、优先级与合并规则仍不相同，因此**不能保证三个工具以相同的方式理解该文件。**
 
 但这里还剩下一个根本问题：**为什么模型只遵循上下文中的一部分指令？** 单纯用“指令太长”来解释并不充分。这种现象背后是 LLM 的结构性局限。
 
@@ -163,16 +163,16 @@ Cursor 则采用另一种方式。`.cursor/rules/*.mdc` 中的规则有四种工
 
 ### ETH Zurich 的研究
 
-很多人可能会想：“那就尽可能多地往这些文件里写内容吧？”近期一项研究正面反驳了这种直觉，也就是前文不断提到的 ETH Zurich 研究。
+很多人可能会想：“那就尽可能多地往这些文件里写内容吧？”近期一项研究反驳了这种直觉，也就是前文不断提到的 ETH Zurich 研究。
 
-ETH Zurich 研究团队于 2026 年 2 月发表论文《Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?》。研究者在由 138 个真实 Python 软件工程任务构成的 benchmark（AGENTBENCH）以及 SWE-bench Lite 上，测试了 Claude Code（Sonnet-4.5）、Codex（GPT-5.2 / GPT-5.1 mini）、Qwen Code 共四种智能体，结果出人意料。
+ETH Zurich 研究团队于 2026 年 2 月发表论文《Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?》。研究者在由 138 个真实 Python 软件工程任务构成的 benchmark（AGENTBENCH）以及 SWE-bench Lite 上，测试了 Claude Code（Sonnet-4.5）、Codex（GPT-5.2 / GPT-5.1 mini）、Qwen Code 共四种智能体，结果如下。
 
 - **由 LLM 自动生成的上下文文件**在 SWE-bench Lite 上反而使**任务成功率降低**约 0.5%，在 AGENTBENCH 上降低约 2%
 - 即使是**人工编写的文件**，平均也只带来约 4% 的小幅改善
 - 添加上下文文件后，**每个 instance 的推理成本增加了 20% 以上**
 - 对更强的模型（GPT-5.2）而言，上下文文件效果更加有限（模型越强，parametric knowledge 越充足，额外上下文就越可能成为噪声）
 
-不过有一个例外：**明确指定非标准工具时**。例如在上下文中指定 Python 包管理器 `uv` 后，智能体使用 `uv` 的频率从每个 instance 0.01 次上升到 1.6 次，**约为原来的 160 倍**。
+有一个例外：**明确指定非标准工具时**。例如在上下文中指定 Python 包管理器 `uv` 后，智能体使用 `uv` 的频率从每个 instance 0.01 次上升到 1.6 次，**约为原来的 160 倍**。
 
 Aider 的“200 行建议”是实用层面的提醒——文件每次都会进入上下文，所以要保持简短；而 ETH Zurich 的研究则量化证明了“冗长上下文文件会在统计意义上降低性能”。我认为这项研究有以下实践启示。
 
