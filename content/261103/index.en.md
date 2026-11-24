@@ -8,7 +8,7 @@ description: 'What to prioritize as a developer in the AI era: why I put thinkin
 keywords: 'developer retrospective, developer in the AI era, developer priorities, critical thinking for developers, decision making, T-shaped developer, frontend developer growth'
 locale: en
 translationOf: '261103'
-sourceHash: 067b877d88fc879e14bc8609549291a532e50d7d4d044e90088e202e3d10c52c
+sourceHash: 8515cd291224840197f4453f1601abd8c0cd8b3ba54b3d658bfd9700d583c4e3
 ---
 
 In this post, I want to talk about what I will put first while AI is changing this fast.
@@ -23,14 +23,14 @@ When we learn something, solve a problem, or apply something new, countless thou
 
 In other words, thinking needs an architecture too. You grasp the essence of the problem, set a direction, check hypotheses along the way, and change your approach when needed. I believe that if you can consciously design and repeat a thinking system like this, you can solve problems far more efficiently than someone who simply knows a lot.
 
-So I want to divide the time ahead into three-, six-, and nine-month blocks, and draw a clear line between what I will focus on during those periods and what I will only keep a steady interest in. Even though I am interested in fields such as frontend, AI, engineering, philosophy, and the humanities, what matters more than how much I study each field is how I connect that knowledge through a thought process and apply it to real problems. Seen that way, the directions I will focus on come down to two.
+So I want to divide the time ahead into three-, six-, and nine-month blocks, and draw a clear line between what I will focus on during those periods and what I will only keep a steady interest in. I don't think it makes much sense to divide my interests by field, such as frontend, AI, engineering, philosophy, and the humanities. What matters more than how much I study each field is how I connect that knowledge through a thought process and apply it to real problems. Seen that way, the directions I will focus on come down to two.
 
 - **Making my thought process technically concrete**: This means making clear how I look at problems, how I analyze causes, the trade-offs in technical choices, and the grounds for my decisions. It is not enough to solve the problem in front of me. I should be able to explain why I chose that approach and apply the same principle in other situations. I think my professional competitiveness will come from here.
-- **Learning how to do that thinking more efficiently**: This covers focus, time management, learning methods, using AI, managing information, and automating repetitive work. For now, I see this as a foundation that supports my professional performance, separate from the job itself.
+- **Learning how to do that thinking more efficiently**: This covers focus, time management, learning methods, using AI, managing information, and automating repetitive work. For now, I see this as a foundation that supports my professional performance, though it is not the job itself.
 
 The two directions need to be handled differently, starting with their learning cycles. Habits for thinking and focus need a defined period, like three or six months, and concentrated training. Even in a short period, conscious repetition and feedback can add up to a big enough change. On the other hand, getting good with tools or following technology trends depends more on steady follow-up than on short-term results. Rather than learning every new technology in depth, I think the right approach is to judge whether it actually helps solve the problems I have now, and adopt it selectively.
 
-Then what do I ultimately want? To raise my engineering skills and grow bigger as a frontend developer? I have a financial goal. I want to build an economic foundation, and on top of it, focus on the things I want to do more or have new options. For that, what matters now is getting the highest efficiency and performance I can out of my current job and the time I have. Raising my professional skills is, in the end, connected to this goal too.
+Then what do I ultimately want? To raise my engineering skills and grow bigger as a frontend developer? Realistically, when I think it through, the answer is a little different. I have a financial goal. I want to build an economic foundation, and on top of it, focus on the things I want to do more or have new options. For that, what matters now is getting the highest efficiency and performance I can out of my current job and the time I have. Raising my professional skills is, in the end, connected to this goal too.
 
 I want to be someone who understands technology and can choose it well, rather than someone who knows a lot of technologies. I want to be someone who grasps the essence of a problem and designs a better solution, rather than someone who just gets work done fast. As these abilities build up, I expect not only my professional growth but also the range of opportunities I can choose from to widen naturally.
 
@@ -40,7 +40,7 @@ The world is changing fast. New technologies and services, AI among them, keep c
 
 It is worth asking whether I am really falling behind, or whether I am judging myself by someone else's pace and direction.
 
-Technological progress and the shifts in industry structure that follow are clearly important. There is no need to give every change the same weight. Technical gaps do not come only from who got to the latest technology first. In the long run, bigger differences come from the ability to understand and use technology, the experience of having solved problems, and the ability to build up and apply knowledge.
+Technological progress and the resulting shifts in industry structure remain important. But I don't think every change needs to be given the same weight. Technical gaps do not come only from who got to the latest technology first. In the long run, bigger differences come from the ability to understand and use technology, the experience of having solved problems, and the ability to build up and apply knowledge.
 
 That is why I decided not to go deep into studying AI right now. If I start studying AI, I will get absorbed in it. Then I suspect I would end up repeatedly choosing breadth over the focus I have kept so far. Because I have grown skeptical of making that choice again and again, I am trying not to make it this time.
 
@@ -48,7 +48,7 @@ Some may say I have fallen behind, and others may judge that I am well ahead. I 
 
 ## Better Judgment
 
-What I want to achieve by the end of this year is to build my own system for how I think when I meet a problem, what criteria I judge by, and how I reach an efficient conclusion, alongside technical growth.
+What I want to achieve by the end of this year is technical growth too, but that's not all. My goal is to build my own system for how I think when I meet a problem, what criteria I judge by, and how I reach an efficient conclusion.
 
 - **Training the thought process**: Consciously train the process that runs from defining a problem to forming hypotheses, verifying them, and making a decision.
 - **Technical depth**: Go beyond using a technology to understanding its principles and structure, to the point where I can explain the reasons for a choice and its trade-offs.
@@ -57,7 +57,7 @@ What I want to achieve by the end of this year is to build my own system for how
 
 I still think the T-shaped direction matters: deep expertise in one field, with broad knowledge and perspectives in others. From now on, I want to go one step further than widening and deepening my knowledge. I think what matters is the ability to connect knowledge from different fields, apply it to new problems, and grow it into my own standard for judgment.
 
-I think again about why I wanted to be good at frontend development. I also wanted to reach a higher level as a frontend developer. I was also interested in the process itself: defining problems with technology, understanding complex structures, and finding the best direction among many options. In the end, the ability I want to develop is the ability to think, judge, and solve problems through technology, and it is not tied to any particular technology. Frontend development is the job and the environment where I can use and grow that ability the most right now. That is why I want to make the most of my current job and time.
+I think again about why I wanted to be good at frontend development. I wanted to reach a higher level, but I don't think that was the only reason. I think I was interested in the process itself: defining problems with technology, understanding complex structures, and finding the best direction among many options. In the end, what I want to develop is the ability to think, judge, and solve problems through technology, and this ability is not tied to any particular technology. Frontend development is the job and the environment where I can use and grow that ability the most right now. That is why I want to make the most of my current job and time.
 
 Even as AI advances and technology paradigms shift, the ability to define problems, take in information critically, and choose the right solution will still matter. Rather than someone who jumps on every change, I want to be someone who can decide for myself what to pick up and what to pass on. What I need is not to know more, but to make better judgments based on what I know. I think this is the most important direction of growth to focus on right now.
 
