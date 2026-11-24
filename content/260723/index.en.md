@@ -8,7 +8,7 @@ description: "What to do when a product manager and a developer use the same wor
 keywords: 'ubiquitous language, shared domain language, cross-functional communication, gathering requirements, product manager developer communication, grounding common ground, Example Mapping, breadboarding, bounded context, psychological safety engineering team'
 locale: en
 translationOf: '260723'
-sourceHash: 8926ed7af51ed190252ae48d852bc311567622c878f5b43053f7945442f8753c
+sourceHash: f8dd931fe76ccac06d479c1ac1bab02c6b0ec4d2096ec2d16f748e81270c48ea
 ---
 In this post, I want to talk about communicating across functions.
 
@@ -36,7 +36,7 @@ here the word 'meter' meant subtly different things to different parts of the or
 :::
 ::::
 
-The same word, “meter,” meant subtly different things in different parts of the organization. And Fowler adds that this confusion is not an accident particular to that case. He says he has repeatedly seen the same confusion around polysemous words like Customer and Product.
+The same word, “meter,” meant subtly different things in different parts of the organization. Fowler adds that he has seen this confusion recur around polysemous words like Customer and Product.
 
 The cause lay more in the presence of different contexts within the organization than in the meeting participants' abilities. When an organization contains different contexts, the same word naturally diverges. If that is left alone, the code eventually diverges too.
 
@@ -46,7 +46,7 @@ I covered the technical background of this story once in [Domain Model](/260418)
 
 But why does this repeat structurally? There are two lines of explanation.
 
-One comes from organizational structure. In [How Do Committees Invent?](https://melconway.com/Home/Committees_Paper.html), the paper Mel Conway published in Datamation in 1968, he says that to the degree an organization is unable to flexibly change its communication structure, it stamps its own image onto every design it produces. The single sentence usually quoted as Conway's Law is in fact a formulation the author himself produced later, and I find this 1968 passage more direct.
+One comes from organizational structure. In [How Do Committees Invent?](https://melconway.com/Home/Committees_Paper.html), the paper Mel Conway published in Datamation in 1968, he says that to the degree an organization is unable to flexibly change its communication structure, the organization's image is stamped onto every design. The single sentence usually quoted as Conway's Law is in fact a formulation the author himself produced later, and I find this 1968 passage more direct.
 
 What I took from that sentence in practical terms is the word “stamps.” It means that diverging terminology does not end with the conversation but **remains in the artifacts**. The “meter” above is exactly that. If people build separately while holding different understandings of the scope of “meter,” that difference persists not in the meeting notes but in table names, API response fields, and the wording on screens. And from that point on, the cost of fixing it is nowhere near the cost of having one more conversation.
 
@@ -72,15 +72,15 @@ Domain experts object to terms or structures that are awkward or inadequate to c
 
 Domain experts object to terms and structures that are awkward or inadequate for conveying domain understanding, and **developers watch for the ambiguity or inconsistency that will trip up the design**.
 
-Reading that sentence, I corrected my understanding of my own role. Until then I had regarded myself as a receiver in requirements meetings. I thought my job was to take whatever the product side decided and implement it accurately. But the developer's share as Evans defines it was not reception. **It is finding ambiguity and handing it back.** That is not passive cooperation; it is active watching.
+Reading that sentence, I corrected my understanding of my own role. Until then I had regarded myself as a receiver in requirements meetings. I thought my job was to take what the product side decided and implement it. But the developer's share as Evans defines it was not reception. **It is finding ambiguity and handing it back.** Unlike passive cooperation, it is active watching.
 
 (For reference, Fowler rendered this sentence in his own article as “Domain experts **should** object ... developers **should** watch.” The original book has no modal verb. It is a small difference, but the original reads as more definitive. That is the definition of this pattern.)
 
-So how do you find ambiguity? Evans answers that too. Using the terms repeatedly in conversation is what exposes differences in how they are interpreted. This is how I read that sentence: ambiguity is not something you find by reading documents closely. No matter how carefully you read a spec, the fact that “meter” means several different things will not surface. That word has to be used repeatedly against concrete cases before it splits apart. The moment someone asks, “What does everyone else understand meter to mean?” is that point.
+Evans also answers how to find ambiguity. Using the terms repeatedly in conversation is what exposes differences in how they are interpreted. This is how I read that sentence: ambiguity does not surface by reading documents closely. No matter how carefully you read a spec, the fact that “meter” means several different things will not surface. That word has to be used repeatedly against concrete cases before it splits apart. The moment someone asks, “What does everyone else understand meter to mean?” is that point.
 
 ## The principle of least collaborative effort
 
-We may know this method and still fail to practice it. So why do we not ask repeatedly?
+We may know this method and still fail to practice it. Let's look at why we did not ask repeatedly.
 
 Let us go back to Clark and Brennan's paper. The authors give the name grounding to the process of turning what has been said into part of the common ground. And they offer one principle about how people behave during that process: the principle of least collaborative effort. It comes from the observation that people do not like to work harder than they have to.
 
@@ -102,21 +102,21 @@ This paper was written in 1991, and the media the authors compared were things l
 
 Applying it that way explains why I did not ask repeatedly. In an environment where you receive a spec as text and confirm it as text, sending a confirmation message at every ambiguous point is expensive. You do not know when the answer will come, and you worry that asking several times will make you look like you did not understand. So people naturally slide into their own interpretation.
 
-It is worth separating two forces here. One is that the medium raises the cost of confirmation, and that is Clark and Brennan's point. The other is the worry that asking several times will make you look incompetent, and that is related to the psychological safety discussed later. The principle of least collaborative effort predicts that **you will choose a cheaper way to confirm**, not that you will stop confirming. Giving up on confirmation and moving on to a guess is a state in which grounding has failed. And the fact that the interpretation was wrong surfaces only after implementation is done.
+It is worth separating two forces here. One is that the medium raises the cost of confirmation, and that is Clark and Brennan's point. The other is the worry that asking several times will make you look incompetent, and that is related to the psychological safety discussed later. The principle of least collaborative effort predicts **choosing a cheaper way to confirm; giving up on confirmation altogether is a state in which grounding has failed.** And the fact that the interpretation was wrong surfaces only after implementation is done.
 
 ## Reaching a sufficient level
 
-So should you ask about every ambiguity? That is not realistic, and I have never seen anyone do it. The paper offers a standard for this question too: the grounding criterion. It refers to the state in which both parties believe the listener has understood what the speaker meant **to a level sufficient for current purposes**. The authors preface it with the observation that perfect understanding is impossible to begin with.
+You cannot ask about every ambiguity. That is not realistic, and I have never seen anyone do it. The paper offers a standard for deciding how far to ask about an ambiguity too: the grounding criterion. It refers to the state in which both parties believe the listener has understood what the speaker meant **to a level sufficient for current purposes**. The authors preface it with the observation that perfect understanding is impossible to begin with.
 
 The reason this criterion felt practical to me is that it lowers the target. You do not need to understand requirements perfectly. **It is enough to be able to mutually trust that you understand them well enough for what you are about to do.** And the authors say that when the purpose changes, the criterion has to change with it.
 
-In practice, this becomes the standard for calibrating how hard to press for confirmation. If you dig into “What does meter mean here?” in a session that is still exploring direction, the conversation stops moving. What is needed at that stage is agreement on what you are trying to do and why, not the settling of boundary values. Conversely, right before implementation begins, that question absolutely has to come up. At that point you need to be able to trust that both sides are picturing the same scope for “meter,” and if you cannot, code will pile up on a false premise.
+In practice, this becomes the standard for calibrating how hard to press for confirmation. If you dig into “What does meter mean here?” in a session that is still exploring direction, the conversation stops moving. What is needed at that stage is agreement on what you are trying to do and why, and boundary values do not need to be settled yet. Conversely, right before implementation begins, that question absolutely has to come up. At that point you need to be able to trust that both sides are picturing the same scope for “meter,” and if you cannot, code will pile up on a false premise.
 
 So when I meet the same ambiguity, **I handle it differently depending on which stage I am in.** During exploration I write it down on a list and move on; right before implementation I open that list and close the items one by one. Deferring confirmation and abandoning confirmation are different things.
 
-There is one tool that pairs well at this point. Team Topologies, by Matthew Skelton and Manuel Pais, distinguishes three modes of interaction between teams: collaboration, where two teams discover something new together for a defined period; X-as-a-Service, where one side provides and the other consumes; and facilitation, where one side helps and mentors the other.
+There is one tool that pairs well at this point. Team Topologies, by Matthew Skelton and Manuel Pais, distinguishes three modes of interaction between teams: collaboration, X-as-a-Service, and facilitation. In collaboration, teams discover something new together for a defined period; in X-as-a-Service, one side provides and the other consumes; and in facilitation, one side helps and mentors the other.
 
-It is originally a story about organizational design, but I found it practical to shrink it down to the scale of a single meeting. **If the participants hold different beliefs about which mode this conversation is in, the meeting goes off the rails.** If the product manager thinks this is a session for conveying what has already been decided while the developer thinks it is a session for discovering together, the developer's questions sound like objections rather than collaboration. The reverse happens too. If the developer came to receive a finalized spec while the product manager was still exploring, the developer gets frustrated that there is no spec.
+It is originally a story about organizational design, but I found it practical to shrink it down to the scale of a single meeting. **If the participants hold different beliefs about which mode this conversation is in, the meeting goes off the rails.** If the product manager thinks this is a session for conveying what has already been decided while the developer thinks it is a session for discovering together, this mismatch makes the developer's questions sound like objections instead of collaboration. The reverse happens too. If the developer came to receive a finalized spec while the product manager was still exploring, the developer gets frustrated that there is no spec.
 
 So these days I check this at the start of a meeting: “Is this still open, or is this a session to confirm what has already been decided?” That single question changes the character of everything that follows. It is the same thing as adjusting the grounding criterion to fit the purpose.
 
@@ -144,17 +144,17 @@ Consider [Example Mapping](https://cucumber.io/blog/bdd/example-mapping-introduc
 
 Example Mapping splits the discussion across four colors of cards. Yellow is the story under discussion, blue is a rule or acceptance criterion, green is a concrete example that illustrates that rule, and red is a question nobody knows the answer to.
 
-Of these, **I think the red card is the core.** The other three are organizing techniques, but the red card is a device that turns “I don't know” into an official output of the meeting. Saying that you do not know stops being an act that delays the meeting and becomes a result the meeting is supposed to produce.
+Of these, **I think the red card is the core.** The other three are organizing techniques, but the red card is a device that turns “I don't know” into an official output of the meeting. Saying that you do not know does not end as an act that delays the meeting; it becomes a result the meeting is supposed to produce.
 
 Why that matters becomes clear if you imagine the opposite. In a meeting without red cards, running into an ambiguity leaves two options: dig in now and stretch the meeting out, or move on and interpret it alone later. As we saw in the previous section, people generally choose the latter. But with one card available, a third option appears. **You write it down and move on, without letting it disappear.** The meeting keeps moving, and the ambiguity remains on the list.
 
-Green cards play a similar role. When only the rule is written, everyone agrees; the moment someone tries to write a concrete example illustrating that rule, interpretations diverge. It is Evans's “using the terms repeatedly in conversation exposes differences” transposed into a meeting format. If you ask people to attach three examples to a single rule, one of them will usually produce a “wait, what happens in this case?” (In my experience, a meeting where that question does not come up is not a meeting where everyone understood, but a meeting where everyone understood differently.)
+Green cards play a similar role. When only the rule is written, everyone agrees; the moment someone tries to write a concrete example illustrating that rule, interpretations diverge. It is a way of translating Evans's “using the terms repeatedly in conversation exposes differences” into a meeting format. If you ask people to attach three examples to a single rule, one of them will usually produce a “wait, what happens in this case?” (In my experience, a meeting where that question does not come up may look like everyone understood, but in reality everyone understood differently.)
 
-A similar idea long used in BDD circles is the Three Amigos. The point is that the three perspectives of business, development, and testing each ask a different question, and the [Agile Alliance glossary](https://www.agilealliance.org/glossary/three-amigos/) frames those questions as what problem are we trying to solve, how might we build a solution to solve it, and what about this, what could possibly happen. What becomes of a meeting where the third question never gets asked probably does not need spelling out.
+A similar idea long used in BDD circles is the Three Amigos. The three perspectives of business, development, and testing each ask a different question. The [Agile Alliance glossary](https://www.agilealliance.org/glossary/three-amigos/) organizes those questions into three: what problem are we trying to solve, how might we build a solution to solve it, and what about this, what could possibly happen. What becomes of a meeting where the third question never gets asked probably does not need spelling out.
 
 ## Create a process for checking what you do not know
 
-But why do we have such a hard time playing the red card? Let us look at this question from the perspective of psychological safety.
+Let's look at why it is hard to play the red card from the perspective of psychological safety.
 
 The [paper](https://web.mit.edu/curhan/www/docs/Articles/15341_Readings/Group_Performance/Edmondson%20Psychological%20safety.pdf) that Amy Edmondson published in Administrative Science Quarterly in 1999 is the study that formally established the concept of team psychological safety. (The paper itself credits Schein and Bennis's 1965 work as its root.) It defines team psychological safety as a shared belief that the team is safe for interpersonal risk taking. Saying you do not know, voicing dissent, and admitting a mistake all fall under that. The paper surveyed 51 teams at a manufacturing company and showed that psychological safety is associated with learning behavior, and that learning behavior mediates between psychological safety and team performance.
 
@@ -172,13 +172,13 @@ For the most part, this belief tends to be tacit—taken for granted and not giv
 
 This belief is usually **tacit**, and neither individuals nor the team give it direct attention.
 
-From here on this is my own conjecture. What the paper says stops at the belief being tacit; the prescription that you should therefore create a form is not in the paper. I have seen several times that something tacit does not become explicit through declaration. Saying “our team is a team where it is fine to ask about what you do not know” does not change much on its own. That is why I think the red card from the previous section matters. **If you turn “I don't know” into a field inside a form, filling it in becomes procedure rather than courage.**
+From here on this is my own conjecture. What the paper says stops at the belief being tacit; the prescription that you should therefore create a form is not in the paper. I have seen several times that something tacit does not become explicit through declaration. Saying “our team is a team where it is fine to ask about what you do not know” does not change much on its own. That is why I think the red card from the previous section matters. **If you turn “I don't know” into a field inside a form, it becomes following a procedure rather than doing something that requires courage.**
 
 There is an obvious counterargument, of course. On an unsafe team, the red card field will simply stay empty. That is a fair point, and I have no intention of claiming this tool creates safety. If the field exists, at least **the fact that it is empty becomes visible.** It creates an opening to ask whether it is empty because nobody has an open question, or empty because it is hard to speak up.
 
 ![The DDD community's Bounded Context Canvas template, with sections for purpose, strategic classification, ubiquitous language, assumptions, verification metrics, and open questions](3.jpg)
 
-The same idea has made its way into actual document formats. Look at the [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas) created by the DDD community: it is a collaborative tool for designing and documenting a single context, and its fields are as follows. Name and purpose, strategic classification, domain roles, inbound and outbound communication, and then **Ubiquitous Language**, business decisions, **Assumptions**, verification metrics, and **Open Questions**.
+The same idea has made its way into actual document formats. Look at the [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas) created by the DDD community: it is a collaborative tool for designing and documenting a single context, and its fields are as follows. Name and purpose, strategic classification, domain roles, inbound and outbound communication. These are followed by **Ubiquitous Language**, business decisions, **Assumptions**, verification metrics, and **Open Questions**.
 
 There is a separate field for writing the shared language, one for writing assumptions, and one for writing open questions. The canvas's own description says that the act of writing the purpose forces fuzzy thinking to be stated clearly and puts the whole team on the same page.
 
@@ -202,13 +202,13 @@ organizational culture that is high-trust and emphasizes information flow is pre
 :::
 ::::
 
-An organizational culture that is high-trust and **emphasizes information flow** is predictive of software delivery performance. The point is not that teams that communicate well feel good, but that it is a variable moving together with performance.
+An organizational culture that is high-trust and **emphasizes information flow** is predictive of software delivery performance. The point is that communicating well goes beyond creating a pleasant atmosphere and is a variable that moves together with performance.
 
-However, “predictive” must not be read as causal here. DORA's data comes from a survey in which the same respondents answered about both culture and performance, and it is a correlation at the organizational level. It remains possible that people satisfied with their organization rated both generously, and a prescription for how an individual should behave does not follow directly from a relationship at the organizational level. So this is as far as the material takes us: information flow is not a topic confined to matters of taste.
+However, “predictive” must not be read as causal here. DORA's data comes from a survey in which the same respondents answered about both culture and performance, and it is a correlation at the organizational level. It remains possible that people satisfied with their organization rated both generously, and a prescription for how an individual should behave does not follow directly from a relationship at the organizational level. So this is as far as the material takes us: information flow is a topic we can consider in connection with performance.
 
-The same document also lays out Westrum's three properties of good information: it answers the question the receiver needs answered, it is timely, and it is presented in a way the receiver can use effectively. It is worth noticing that all three set the standard at the **receiver**. Sharing a lot is not what makes information flow good.
+The same document also lays out Westrum's three properties of good information: it answers the question the receiver needs answered, it is timely, and it is presented in a way the receiver can use effectively. It is worth noticing that all three set the standard at the **receiver**. The standard for good information flow is whether the receiver can use the information, rather than how much is shared.
 
-Google's Project Aristotle is another frequently cited source. According to [what was published on reWork](https://rework.withgoogle.com/intl/en/guides/understand-team-effectiveness), they studied 180 teams, ran more than 35 statistical models over hundreds of variables, and put forward five factors affecting team effectiveness: psychological safety, dependability, structure and clarity, meaning, and impact. And the conclusion was that how the team worked together mattered more than who was on it.
+Google's Project Aristotle is another frequently cited source. According to [what was published on reWork](https://rework.withgoogle.com/intl/en/guides/understand-team-effectiveness), they studied 180 teams and ran more than 35 statistical models over hundreds of variables. Google put forward five factors affecting team effectiveness: psychological safety, dependability, structure and clarity, meaning, and impact. And the conclusion was that how the team worked together mattered more than who was on it.
 
 The official page states that it lists the five factors in order of importance and puts psychological safety first. But magnitude claims like “overwhelmingly number one,” which show up often in articles citing this research, are not on that page. Having an order and dominating the rest are different claims. So this post makes no claim about magnitude. If you want to argue for the importance of psychological safety, leaning on Edmondson's original paper from the previous section is the accurate move.
 
@@ -218,9 +218,9 @@ Let us return to the article quoted at the start.
 
 While covering information gathering first, James Samuel says the methods from your individual contributor days stop working. As an individual contributor you hold the whole picture of your own work, but once you become responsible for people you can no longer use the old approach. So he names as a required capability the ability to filter out noise and synthesize information into a coherent picture of reality, because no manager can process everything.
 
-I felt this was the same point as Westrum's three properties of good information above. It is not about collecting a lot but about turning it into a usable form. And that is no different from what I am doing right now while handling requirements. Picking out the ambiguous parts of a spec's sentences, redrawing them as a breadboard to confirm, and leaving what I do not know as a red card is exactly the practice of filtering noise into a coherent picture.
+I felt this was the same point as Westrum's three properties of good information above. Rather than collecting a lot of information, it is about turning it into a usable form. And that is no different from what I am doing right now while handling requirements. Picking out the ambiguous parts of a spec's sentences, redrawing them as a breadboard to confirm, and leaving what I do not know as a red card is exactly the practice of filtering noise into a coherent picture.
 
-What the author says about decision making stayed with me too: waiting for certainty is itself a decision, and it carries a cost. Waiting until requirements become completely clear is no different. Which is why the grounding criterion, sufficient for current purposes rather than perfectly understood, becomes the practical standard.
+What the author says about decision making stayed with me too: waiting for certainty is itself a decision, and it carries a cost. Waiting until requirements become completely clear is no different. So the grounding criterion, sufficient for current purposes instead of perfectly understood, becomes the practical standard.
 
 ## Closing thoughts
 
@@ -230,7 +230,7 @@ Cross-functional communication failures are usually not purely a matter of attit
 
 But handing it back takes effort, and people try to minimize that effort. So instead of relying on willpower, I decided to use three things: checking first which mode this conversation is in, drawing the flow at the resolution between prose and mockup and handing it back, and building a field for what you do not know into the meeting format. None of the three demand that you fix your attitude; they make the right thing easier to do.
 
-I am not a leader yet, and I have not verified any of this from that seat. Some of it will not hold at a different team size or in a different organizational culture. One thing I feel confident about now is that the way I handle information later will not be newly learned; it will be the way I handle requirements today, grown to scale. So these days I try to be less embarrassed than I used to be about asking “what do you mean by that?” in meetings.
+I am not a leader yet, and I have not verified any of this from that seat. Some of it will not hold at a different team size or in a different organizational culture. One thing I feel confident about now is that the way I handle information later will be the way I handle requirements today, grown to scale, rather than something new I learn. So these days I try to be less embarrassed than I used to be about asking “what do you mean by that?” in meetings.
 
 If you can think of one word from a recent meeting that you nodded along to without actually being sure about, I would suggest using that word one more time next time. Use it repeatedly and it will surface.
 
