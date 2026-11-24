@@ -8,7 +8,7 @@ description: "Swapping a global isOpen flag for one await: what I gained, what I
 keywords: 'overlay-kit, React modal state management, declarative interface, openAsync, useOverlay, promise based modal, React overlay, nice-modal-react'
 locale: en
 translationOf: '260921'
-sourceHash: 6042c8537c7bdeebe3a022ed8b00005d81517742f16e3c322bd8eb140a57e96d
+sourceHash: f0dd8fb8b50bd354daff397ab0586b251d87ce1713db27811ba92b5618bcf7f8
 ---
 
 In this post, I want to talk about interfaces that treat overlays declaratively.
@@ -48,7 +48,7 @@ Three things about this code bothered me.
 
 **Second, the result comes back through callbacks.** Whether the note was saved or the user simply closed the dialog arrives through two separate branches, `onSubmit` and `onClose`. Anything you want to do after opening the modal goes inside a callback. If you have to open two modals in a row, you get a callback inside a callback.
 
-**Third, closing is the call site's responsibility.** The call site is the one that calls `closePopup(PopupType.ADD_NOTE)`. The side that opened the modal remembers its type and closes it. That is why the same constant appears three times in one function.
+**Third, closing is the call site's responsibility.** The call site is the one that calls `closePopup(PopupType.ADD_NOTE)`. Instead of the modal closing itself, the side that opened it remembers its type and closes it. That is why the same constant appears three times in one function.
 
 What the three have in common is that opening a single modal requires the call site to write three kinds of code: the code that opens it, the callback that receives the result, and the code that closes it.
 
@@ -187,11 +187,11 @@ The last row explains why the closing side is left to the user. On the opening s
 
 The reducer is what makes the closing side work. `CLOSE` only flips, inside `overlayData`, the `isOpen` value, and leaves `overlayOrderList` alone. The provider renders by walking that list, so the component stays alive as long as it remains in the list. It only unmounts once `REMOVE` takes it out.
 
-**But rAF is not always necessary.** react-transition-group [does not run the enter transition on first mount by default](https://reactcommunity.org/react-transition-group/transition). It skips it even when `in` is already `true`, and you have to turn on `appear`. overlay-kit's rAF changes `isOpen` from `false` to `true` after mount, which covers that case.
+**Meanwhile, rAF is not always necessary.** react-transition-group [does not run the enter transition on first mount by default](https://reactcommunity.org/react-transition-group/transition). It skips it even when `in` is already `true`, and you have to turn on `appear`. overlay-kit's rAF changes `isOpen` from `false` to `true` after mount, which covers that case.
 
 ### Twenty lines wrapped in a Promise
 
-`openAsync` is a function that wraps `open`.
+`openAsync` is a thin layer that wraps `open`.
 
 ```ts
 // packages/src/event.ts
@@ -215,7 +215,7 @@ const openAsync = async <T>(controller: OverlayAsyncControllerComponent<T>, opti
 
 All it does is swap the `close` that goes to the controller. The original `close` takes no arguments; this one takes an argument, resolves the Promise with it, and then calls the original `close`. This is also why the result type is decided at the call site. `T` is both the argument type of `close` and the type of the Promise.
 
-This structure has a problem: the Promise only resolves when `close` is called. So if you remove an overlay with `unmount` alone, the Promise stays pending forever. It is filed as [issue #169](https://github.com/toss/overlay-kit/issues/169), and I think it needs fixing, but the issue is still open.
+This structure has a problem: the Promise only resolves when `close` is called. So if you remove an overlay with `unmount` alone, the Promise stays pending forever. It is filed as [issue #169](https://github.com/toss/overlay-kit/issues/169), and I think it needs fixing, and the issue is still open.
 
 The Promise resolves before the closing animation ends, when closing begins. That is fine for a flow that takes a confirmation and then calls an API, but in a flow that takes a confirmation and then opens the next modal, the second modal rises while the first is still disappearing.
 
@@ -252,7 +252,7 @@ case 'ADD': {
   // ...
 ```
 
-If you open an overlay with an explicit `overlayId`, `close` it, and then open it again with the same id, you land in this branch. But the return value reuses the **existing `overlay` object**.
+If you open an overlay with an explicit `overlayId`, `close` it, and then open it again with the same id, you land in this branch. But instead of the newly passed `action.overlay`, the returned state here reuses the **existing `overlay` object**.
 
 Nothing ever uses the incoming `action.overlay` and its `controller`.
 
@@ -314,7 +314,7 @@ overlay.open(({ isOpen, close }) => isOpen ? (
 ) : null);
 ```
 
-So the difference is not whether it is possible but what the default is.
+So the difference is in what the default is, rather than whether it is possible.
 
 In my version every value in the registry file is an `import()` function, so code splitting is structurally enforced. With overlay-kit you have to write it by hand at each call site.
 
@@ -350,7 +350,7 @@ overlay-kit reached the same place and then went one step further: it also puts 
 
 **It was the difference between treating a modal as a function and treating it as data.** Writing JSX at the call site makes the controller a closure, and a closure's contents cannot be changed from outside once it is stored. That structure is where the ignored JSX on reopening with the same id comes from. Treating it with a string key makes the modal a value in a store that you can replace, update, and code split, but the call site only ever learns a name.
 
-I think the feeling that you like a library's interface is a fairly reliable signal. You should put into words what that feeling points to at least once. Without doing that, you cannot tell whether what you liked was the interface or the reputation of the people using the library. I would encourage readers to do that exercise once for a library they are using right now.
+I think the feeling that you like a library's interface is a fairly reliable signal. However, you should put into words what that feeling points to at least once. Without doing that, you cannot tell whether what you liked was the interface or the reputation of the people using the library. I would encourage readers to do that exercise once for a library they are using right now.
 
 :::ref
 - [docs] [overlay-kit official documentation](https://overlay-kit.slash.page/)

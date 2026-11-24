@@ -8,7 +8,7 @@ description: 'Cambiar un flag global isOpen por un await: lo que gané, lo que p
 keywords: 'overlay-kit, gestión de estado de modales en React, interfaz declarativa, openAsync, useOverlay, modal con Promise, overlay React, nice-modal-react'
 locale: es
 translationOf: '260921'
-sourceHash: 6042c8537c7bdeebe3a022ed8b00005d81517742f16e3c322bd8eb140a57e96d
+sourceHash: f0dd8fb8b50bd354daff397ab0586b251d87ce1713db27811ba92b5618bcf7f8
 ---
 
 En este artículo quiero hablar de las interfaces que tratan los overlays de forma declarativa.
@@ -48,7 +48,7 @@ Tres cosas de este código me incomodaban.
 
 **Segunda: el resultado vuelve por callbacks.** Si se guardó la nota o si el usuario simplemente cerró el diálogo llega por dos ramas distintas, `onSubmit` y `onClose`. Todo lo que quieras hacer después de abrir el modal entra dentro de un callback. Y si tienes que abrir dos modales seguidos, aparece un callback dentro de otro callback.
 
-**Tercera: cerrar es responsabilidad de quien llama.** Es quien llama el que invoca `closePopup(PopupType.ADD_NOTE)`. El lado que abrió el modal recuerda de qué tipo de modal se trata y lo cierra. Por eso la misma constante aparece tres veces en una sola función.
+**Tercera: cerrar es responsabilidad de quien llama.** Es quien llama el que invoca `closePopup(PopupType.ADD_NOTE)`. En lugar de que el modal se cierre solo, el lado que abrió el modal recuerda de qué tipo de modal se trata y lo cierra. Por eso la misma constante aparece tres veces en una sola función.
 
 Lo que las tres tienen en común es que abrir un único modal obliga a quien llama a escribir tres clases de código: el que lo abre, el callback que recibe el resultado y el que lo cierra.
 
@@ -187,11 +187,11 @@ La última fila explica por qué el lado que cierra queda en manos de quien usa 
 
 Lo que sostiene el lado que cierra está en el reducer. `CLOSE` solo invierte, dentro de `overlayData`, el valor `isOpen`, y no toca `overlayOrderList`. El provider renderiza recorriendo esa lista, así que el componente sigue vivo mientras permanezca en ella. Solo se desmonta cuando `REMOVE` lo saca.
 
-**Pero rAF no siempre es necesario.** react-transition-group [no ejecuta la transición de entrada en el primer montaje de forma predeterminada](https://reactcommunity.org/react-transition-group/transition). La salta incluso cuando `in` ya es `true`, y hay que activar `appear`. El rAF de overlay-kit cambia `isOpen` de `false` a `true` después del montaje, lo que cubre ese caso.
+**Por otro lado, rAF no siempre es necesario.** react-transition-group [no ejecuta la transición de entrada en el primer montaje de forma predeterminada](https://reactcommunity.org/react-transition-group/transition). La salta incluso cuando `in` ya es `true`, y hay que activar `appear`. El rAF de overlay-kit cambia `isOpen` de `false` a `true` después del montaje, lo que cubre ese caso.
 
 ### Veinte líneas envueltas en una Promise
 
-`openAsync` es una función que envuelve a `open`.
+`openAsync` es una capa fina que envuelve a `open`.
 
 ```ts
 // packages/src/event.ts
@@ -221,7 +221,7 @@ El momento en que se resuelve es cuando empieza el cierre, antes de que termine 
 
 ### Donde el diseño dio la vuelta completa
 
-Seguí el historial de commits para explorar cómo llegó aquí el diseño, y descubrí que esta estructura también cambió una vez a mitad de camino y luego volvió a como estaba. La 1.0 usaba la misma combinación de eventos y reducer que hoy. La 1.2.0 movió el estado a un store externo a nivel de módulo que se leía con `useSyncExternalStore`, y la 1.8.0 lo devolvió a un reducer.
+Seguí el historial de commits para explorar cómo llegó aquí el diseño, y descubrí que esta estructura cambió una vez a mitad de camino y luego volvió a como estaba. La 1.0 usaba la misma combinación de eventos y reducer que hoy. La 1.2.0 movió el estado a un store externo a nivel de módulo que se leía con `useSyncExternalStore`, y la 1.8.0 lo devolvió a un reducer.
 
 El motivo de la vuelta atrás está escrito en el [issue #148](https://github.com/toss/overlay-kit/issues/148).
 
@@ -252,7 +252,7 @@ case 'ADD': {
   // ...
 ```
 
-Si abres un overlay indicando un `overlayId`, haces `close` y luego lo vuelves a abrir con el mismo id, entras en esta rama. Pero el valor de retorno reutiliza el **objeto `overlay` existente**.
+Si abres un overlay indicando un `overlayId`, haces `close` y luego lo vuelves a abrir con el mismo id, entras en esta rama. Pero el estado que devuelve en este caso, en lugar del nuevo `action.overlay` que entra, reutiliza el **objeto `overlay` existente**.
 
 Nada usa nunca el `action.overlay` entrante ni su `controller`.
 
@@ -314,7 +314,7 @@ overlay.open(({ isOpen, close }) => isOpen ? (
 ) : null);
 ```
 
-Así que la diferencia no está en si es posible, sino en cuál es el valor predeterminado.
+Así que la diferencia está en el valor predeterminado en lugar de en si es posible.
 
 En mi versión todos los valores del archivo de registry son funciones `import()`, así que la división de código queda forzada por la estructura. Con overlay-kit hay que escribirla a mano en cada punto de llamada.
 
@@ -350,7 +350,7 @@ overlay-kit llegó al mismo lugar y luego dio un paso más: pone también en el 
 
 **Era la diferencia entre tratar un modal como una función y tratarlo como datos.** Escribir JSX en el punto de llamada convierte al controlador en un closure, y el contenido de un closure no se puede cambiar desde fuera una vez guardado. De esa estructura sale el JSX ignorado al reabrir con el mismo id. Tratarlo con una clave de texto convierte al modal en un valor guardado en un store que puedes reemplazar, actualizar y dividir en chunks, pero quien llama solo llega a conocer un nombre.
 
-Creo que la sensación de que te gusta la interfaz de una librería es una señal bastante fiable. Hay que poner en palabras al menos una vez a qué apunta esa sensación. Si no lo haces, no puedes distinguir si lo que te gustó fue la interfaz o la reputación de quienes usan la librería. Animo a quien lea esto a hacer ese ejercicio una vez con alguna librería que esté usando ahora mismo.
+Creo que la sensación de que te gusta la interfaz de una librería es una señal bastante fiable. Pero hay que poner en palabras al menos una vez a qué apunta esa sensación. Si no lo haces, no puedes distinguir si lo que te gustó fue la interfaz o la reputación de quienes usan la librería. Animo a quien lea esto a hacer ese ejercicio una vez con alguna librería que esté usando ahora mismo.
 
 :::ref
 - [docs] [Documentación oficial de overlay-kit](https://overlay-kit.slash.page/)

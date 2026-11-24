@@ -8,7 +8,7 @@ description: 'Trocar uma flag global isOpen por um await: o que ganhei, o que pe
 keywords: 'overlay-kit, gerenciamento de estado de modais em React, interface declarativa, openAsync, useOverlay, modal com Promise, overlay React, nice-modal-react'
 locale: pt-BR
 translationOf: '260921'
-sourceHash: 6042c8537c7bdeebe3a022ed8b00005d81517742f16e3c322bd8eb140a57e96d
+sourceHash: f0dd8fb8b50bd354daff397ab0586b251d87ce1713db27811ba92b5618bcf7f8
 ---
 
 Neste post quero falar sobre interfaces que tratam overlays de forma declarativa.
@@ -48,7 +48,7 @@ Três coisas nesse código me incomodavam.
 
 **Segunda: o resultado volta por callbacks.** Se a nota foi salva ou se a pessoa simplesmente fechou o diálogo chega por dois ramos distintos, `onSubmit` e `onClose`. Tudo o que você quiser fazer depois de abrir o modal vai para dentro de um callback. E se precisar abrir dois modais em sequência, surge um callback dentro de outro callback.
 
-**Terceira: fechar é responsabilidade de quem chama.** É quem chama que invoca `closePopup(PopupType.ADD_NOTE)`. Quem abriu o modal se lembra do tipo dele e o fecha. É por isso que a mesma constante aparece três vezes em uma só função.
+**Terceira: fechar é responsabilidade de quem chama.** É quem chama que invoca `closePopup(PopupType.ADD_NOTE)`. Em vez de o modal se fechar sozinho, quem abriu o modal se lembra do tipo dele e o fecha. É por isso que a mesma constante aparece três vezes em uma só função.
 
 O que as três têm em comum é que abrir um único modal obriga quem chama a escrever três tipos de código: o que abre, o callback que recebe o resultado e o que fecha.
 
@@ -187,11 +187,11 @@ A última linha explica por que o lado que fecha fica a cargo de quem usa. No la
 
 O que sustenta o lado que fecha está no reducer. `CLOSE` apenas inverte, dentro de `overlayData`, o valor `isOpen`, e não toca em `overlayOrderList`. O provider renderiza percorrendo essa lista, então o componente continua vivo enquanto permanecer nela. Ele só é desmontado quando `REMOVE` o tira de lá.
 
-**Mas o rAF nem sempre é necessário.** O react-transition-group [não executa a transição de entrada na primeira montagem por padrão](https://reactcommunity.org/react-transition-group/transition). Ele a pula mesmo quando `in` já é `true`, e é preciso ativar `appear`. O rAF do overlay-kit muda `isOpen` de `false` para `true` depois da montagem, o que cobre esse caso.
+**Por outro lado, o rAF nem sempre é necessário.** O react-transition-group [não executa a transição de entrada na primeira montagem por padrão](https://reactcommunity.org/react-transition-group/transition). Ele a pula mesmo quando `in` já é `true`, e é preciso ativar `appear`. O rAF do overlay-kit muda `isOpen` de `false` para `true` depois da montagem, o que cobre esse caso.
 
 ### Vinte linhas embrulhadas em uma Promise
 
-`openAsync` é uma função que envolve `open`.
+`openAsync` é uma camada fina que envolve `open`.
 
 ```ts
 // packages/src/event.ts
@@ -215,13 +215,13 @@ const openAsync = async <T>(controller: OverlayAsyncControllerComponent<T>, opti
 
 Tudo o que ele faz é trocar o `close` que chega ao controller. O `close` original não recebe argumentos; este recebe um, resolve a Promise com ele e depois chama o `close` original. É também por isso que o tipo do resultado é decidido no ponto de chamada. `T` é ao mesmo tempo o tipo do argumento de `close` e o tipo da Promise.
 
-Essa estrutura tem um problema: a resolução está vinculada apenas à chamada de `close`. Por isso, se você remover um overlay apenas com `unmount`, a Promise fica pendente para sempre. Está registrado na [issue #169](https://github.com/toss/overlay-kit/issues/169) e acho que precisa ser corrigido, mas a issue continua aberta.
+Essa estrutura tem um problema: a resolução está vinculada apenas à chamada de `close`. Por isso, se você remover um overlay apenas com `unmount`, a Promise fica pendente para sempre. Está registrado na [issue #169](https://github.com/toss/overlay-kit/issues/169) e acho que precisa ser corrigido, e a issue continua aberta.
 
 O momento da resolução é o início do fechamento, antes de a animação de fechamento terminar. Isso não é problema em um fluxo que pede confirmação e depois chama uma API, mas em um fluxo que pede confirmação e depois abre o próximo modal, o segundo sobe enquanto o primeiro ainda está desaparecendo.
 
 ### Onde o design deu uma volta completa
 
-Segui o histórico de commits para explorar como o design chegou até aqui e descobri que essa estrutura também mudou uma vez no meio do caminho antes de voltar ao que era. A 1.0 usava a mesma combinação de eventos e reducer de hoje. A 1.2.0 moveu o estado para uma store externa no nível de módulo, lida com `useSyncExternalStore`, e a 1.8.0 devolveu tudo para um reducer.
+Segui o histórico de commits para explorar como o design chegou até aqui e descobri que essa estrutura mudou uma vez no meio do caminho antes de voltar ao que era. A 1.0 usava a mesma combinação de eventos e reducer de hoje. A 1.2.0 moveu o estado para uma store externa no nível de módulo, lida com `useSyncExternalStore`, e a 1.8.0 devolveu tudo para um reducer.
 
 O motivo da volta atrás está escrito na [issue #148](https://github.com/toss/overlay-kit/issues/148).
 
@@ -252,7 +252,7 @@ case 'ADD': {
   // ...
 ```
 
-Se você abre um overlay informando um `overlayId`, faz `close` e depois o abre de novo com o mesmo id, cai nesse ramo. Só que o valor de retorno reaproveita o **objeto `overlay` existente**.
+Se você abre um overlay informando um `overlayId`, faz `close` e depois o abre de novo com o mesmo id, cai nesse ramo. Só que, nesse caso, em vez de usar o novo `action.overlay`, o estado retornado reaproveita o **objeto `overlay` existente**.
 
 Nada usa o `action.overlay` que acabou de chegar nem o `controller` dele.
 
@@ -350,7 +350,7 @@ O overlay-kit chegou ao mesmo lugar e deu mais um passo: ele coloca também no p
 
 **Era a diferença entre tratar um modal como função e tratá-lo como dados.** Escrever JSX no ponto de chamada transforma o controller em um closure, e o conteúdo de um closure não pode ser alterado de fora depois de guardado. É dessa estrutura que nasce o JSX ignorado ao reabrir com o mesmo id. Tratá-lo com uma chave de texto transforma o modal em um valor guardado em uma store que você pode substituir, atualizar e dividir em chunks, mas quem chama só chega a conhecer um nome.
 
-Acho que a sensação de gostar da interface de uma biblioteca é um sinal bastante confiável. É preciso colocar em palavras pelo menos uma vez o que essa sensação aponta. Sem fazer isso, você não consegue distinguir se o que agradou foi a interface ou a reputação de quem usa a biblioteca. Recomendo a quem estiver lendo fazer esse exercício uma vez com alguma biblioteca que esteja usando agora.
+Acho que a sensação de gostar da interface de uma biblioteca é um sinal bastante confiável. Mas é preciso colocar em palavras pelo menos uma vez o que essa sensação aponta. Sem fazer isso, você não consegue distinguir se o que agradou foi a interface ou a reputação de quem usa a biblioteca. Recomendo a quem estiver lendo fazer esse exercício uma vez com alguma biblioteca que esteja usando agora.
 
 :::ref
 - [docs] [Documentação oficial do overlay-kit](https://overlay-kit.slash.page/)

@@ -8,7 +8,7 @@ description: '把用全局状态保存模态框开关的代码换成一行 await
 keywords: 'overlay-kit, React 模态框状态管理, 声明式接口, openAsync, useOverlay, Promise 模态框, React overlay, nice-modal-react'
 locale: zh-CN
 translationOf: '260921'
-sourceHash: 6042c8537c7bdeebe3a022ed8b00005d81517742f16e3c322bd8eb140a57e96d
+sourceHash: f0dd8fb8b50bd354daff397ab0586b251d87ce1713db27811ba92b5618bcf7f8
 ---
 
 这篇文章想聊聊以声明式方式处理 overlay 的接口。
@@ -48,7 +48,7 @@ const handleAddNote = useCallback(() => {
 
 **第二，结果通过回调返回。** 笔记是否保存了、用户是否直接关掉了，要通过 `onSubmit` 和 `onClose` 两条分支来接收。打开模态框之后要做的事都得写进回调里。如果需要接连打开两个模态框，回调里就会再套一层回调。
 
-**第三，关闭的责任在调用方。** `closePopup(PopupType.ADD_NOTE)` 是调用方来调的。打开模态框的一方记着它是哪一种模态框，然后去关。所以同一个常量会在一个函数里出现三次。
+**第三，关闭的责任在调用方。** `closePopup(PopupType.ADD_NOTE)` 是调用方来调的。不是由模态框自己关闭，而是打开模态框的一方记着它是哪一种模态框，然后去关。所以同一个常量会在一个函数里出现三次。
 
 这三点的共同之处在于，打开一个模态框，调用方要写三种代码：打开的代码、接收结果的回调，以及关闭的代码。
 
@@ -187,11 +187,11 @@ useEffect(() => {
 
 关闭的一侧能够成立，依据在 reducer 里。`CLOSE` 只翻转 `overlayData` 中的 `isOpen`，不碰 `overlayOrderList`。Provider 遍历那个列表来渲染，因此只要还留在列表里，组件就活着。只有 `REMOVE` 把它从列表中移除，才会真正卸载。
 
-**但 rAF 并非总是必要。** react-transition-group [默认不会在首次挂载时执行 enter 过渡](https://reactcommunity.org/react-transition-group/transition)。即使 `in` 已经是 `true` 也会跳过，必须开启 `appear`。overlay-kit 的 rAF 会在挂载之后把 `isOpen` 从 `false` 改为 `true`，正好覆盖了这种情况。
+**另一方面，rAF 并非总是必要。** react-transition-group [默认不会在首次挂载时执行 enter 过渡](https://reactcommunity.org/react-transition-group/transition)。即使 `in` 已经是 `true` 也会跳过，必须开启 `appear`。overlay-kit 的 rAF 会在挂载之后把 `isOpen` 从 `false` 改为 `true`，正好覆盖了这种情况。
 
 ### 用 Promise 包起来的二十行
 
-`openAsync` 是包住 `open` 的函数。
+`openAsync` 是包住 `open` 的一层薄封装。
 
 ```ts
 // packages/src/event.ts
@@ -215,7 +215,7 @@ const openAsync = async <T>(controller: OverlayAsyncControllerComponent<T>, opti
 
 它所做的全部事情，就是把传给 controller 的 `close` 换掉。原本的 `close` 不接收参数，这里则接收参数，用它 resolve Promise，然后再调用原来的 `close`。结果类型之所以在调用处确定，原因也在这里。`T` 既是 `close` 的参数类型，也是 Promise 的类型。
 
-这个结构的问题在于，resolve 只取决于是否调用了 `close`。因此如果只用 `unmount` 移除 overlay，Promise 就会永远停留在 pending。[issue #169](https://github.com/toss/overlay-kit/issues/169)记录了这一点。笔者认为需要解决，但该 issue 目前仍然是打开状态。
+这个结构的问题在于，resolve 只取决于是否调用了 `close`。因此如果只用 `unmount` 移除 overlay，Promise 就会永远停留在 pending。[issue #169](https://github.com/toss/overlay-kit/issues/169)记录了这一点。笔者认为需要解决，而该 issue 目前仍然是打开状态。
 
 resolve 发生在关闭动画结束之前，也就是关闭开始时。如果流程是拿到确认后调用 API 就没问题，但如果是拿到确认后打开下一个模态框，那么前一个还在消失的过程中，后一个就已经升起来了。
 
@@ -252,7 +252,7 @@ case 'ADD': {
   // ...
 ```
 
-指定 `overlayId` 打开一个 overlay，`close` 之后再用同一个 id 打开，就会走进这个分支。但返回值原样沿用了**既有的 `overlay` 对象**。
+指定 `overlayId` 打开一个 overlay，`close` 之后再用同一个 id 打开，就会走进这个分支。但此时返回的状态没有用新传入的 `action.overlay`，而是原样沿用了**既有的 `overlay` 对象**。
 
 新传进来的 `action.overlay` 的 `controller` 哪里都没有被用到。
 
@@ -314,7 +314,7 @@ overlay.open(({ isOpen, close }) => isOpen ? (
 ) : null);
 ```
 
-所以差别不在能不能，而在默认值是什么。
+所以差别不在能不能，而在于默认值。
 
 笔者做的那一版，registry 文件里的值全都是 `import()` 函数，因此代码分割在结构上是被强制的。overlay-kit 则需要在每个调用处手写。
 
@@ -350,7 +350,7 @@ overlay-kit 抵达了同一个位置之后又往前走了一步：把显示什�
 
 **那是把模态框当作函数还是当作数据的差别。** 在调用处写 JSX，controller 就成了闭包，而闭包一旦被存下来，其内容就无法从外部改变。用同一个 id 再次打开时新的 JSX 被忽略，正是从这个结构里来的。用字符串 key 来处理，模态框就变成了装在 store 里的值，可以替换、可以更新、可以代码分割，但调用方只会知道一个名字。
 
-笔者认为，在挑选库的时候，“喜欢这个接口”的感觉是个相当可靠的信号。要把这种感觉究竟指向什么，用语言表述一次。若不表述，就分不清自己喜欢的是接口本身，还是使用这个库的人们的口碑。也建议读到这里的各位，针对现在正在用的库做一次这样的梳理。
+笔者认为，在挑选库的时候，“喜欢这个接口”的感觉是个相当可靠的信号。但要把这种感觉究竟指向什么，用语言表述一次。若不表述，就分不清自己喜欢的是接口本身，还是使用这个库的人们的口碑。也建议读到这里的各位，针对现在正在用的库做一次这样的梳理。
 
 :::ref
 - [docs] [overlay-kit 官方文档](https://overlay-kit.slash.page/)
