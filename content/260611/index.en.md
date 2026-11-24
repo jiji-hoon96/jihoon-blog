@@ -8,8 +8,9 @@ description: 'Measure AI coding token costs with a React POC and cut them using 
 keywords: 'save AI tokens, Claude Code cost, reduce token costs, prompt caching, context engineering, subagent, MCP tokens, Cursor Composer, model routing, context rot, LLM cost optimization'
 locale: en
 translationOf: '260611'
-sourceHash: 536892ae3c34ffd39bc2f91d795d679a4447e1b4f8599f49674dfb895d1a0b1d
+sourceHash: 3838c50acbe0db21fe32f3cf6946622bd683a7c35e7aa97e6bbb70b9f8cb9429
 ---
+
 In this post, I want to talk about how to save AI tokens.
 
 In the early days, I focused on results and process rather than performance and cost. AI-generated output had plenty of gaps, so it needed verification, and the pressure to produce results quickly led many people, myself included, to pay for more tokens or move to a higher subscription tier whenever they ran short. I did the same. (For the first few months, I did not even pay attention to how much tokens were costing me.)

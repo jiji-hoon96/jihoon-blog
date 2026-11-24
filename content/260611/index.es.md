@@ -8,8 +8,9 @@ description: 'Mide costos de tokens con un React POC y redúcelos con prompt cac
 keywords: 'ahorrar tokens de IA, costo de Claude Code, Cursor Composer, React POC, prompt caching, context engineering, subagent, MCP, model routing, context rot'
 locale: es
 translationOf: '260611'
-sourceHash: 536892ae3c34ffd39bc2f91d795d679a4447e1b4f8599f49674dfb895d1a0b1d
+sourceHash: 3838c50acbe0db21fe32f3cf6946622bd683a7c35e7aa97e6bbb70b9f8cb9429
 ---
+
 En este artículo quiero hablar de cómo ahorrar tokens de IA.
 
 Al principio me centraba más en los resultados y el proceso que en el rendimiento y el costo. Como los resultados generados por la IA tenían bastantes fallos, había que verificarlos; y como necesitábamos obtenerlos rápido, muchas personas, incluido yo, comprábamos más tokens o pasábamos a una suscripción superior cuando se agotaban. Yo también lo hice. (De hecho, durante los primeros meses ni siquiera presté atención a cuánto estaba gastando en tokens.)

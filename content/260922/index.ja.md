@@ -9,8 +9,9 @@ description: 'テキストの代わりに確率を返すモデルJevが公開さ
 keywords: 'Jev, TypeSafe AI, System Oneモデル, RLCD, モデルキャリブレーション, ECE, confidence しきい値, 意思決定モデル, Kev オープンソース, Jev 活用事例'
 locale: ja
 translationOf: '260922'
-sourceHash: 81229ad1f2359a9b54ec07493bdb81f85d59ac3207b2564a0bd152eb951ff297
+sourceHash: 7aa67b3cb66a7dcec2de572e45d01b4aaf81e0d921a915a944b4bb17dbd2e3c1
 ---
+
 今回の記事では、先週 TypeSafe AI が公開した、テキストの代わりに確率を返すモデル Jev について話してみたい。モデルが返した確率にしきい値をかけて、人の確認なしに自動処理したい開発者のための記事だ。最後まで読めば、Jev の `confidence` がどう計算されるのか、キャリブレーションが分布によってどれだけ動くのか、そしてしきい値を自分のデータで決める手順が得られる。
 
 最初に目に入った用途はブラウザ自動化だった。Browserbase が Stagehand の `act()` に Jev をつなぐ [PR](https://github.com/browserbase/stagehand/pull/2953) を出した。ページの:term[アクセシビリティツリー]{key="accessibility-tree"}を `state` として送り、「次にクリックする要素はどれか」を選択肢で問う構造だった。40 個の課題で `act()` の中央値が 1.97 秒から 0.46 秒に縮み、147 回の操作のうち LLM に戻ったのは 4 回だった。Playwright スクリプトが selector 一つ変わるだけで壊れる場所を、確率を一つ返してもらう呼び出しで埋めたわけだ。この記事を書いている時点で PR はまだマージされていない。

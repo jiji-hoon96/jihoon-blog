@@ -8,8 +8,9 @@ description: "O que fazer quando product manager e developer usam a mesma palavr
 keywords: 'ubiquitous language, linguagem compartilhada domínio, comunicação entre áreas, como levantar requisitos, comunicação product manager developer, grounding common ground, Example Mapping, breadboarding, bounded context, segurança psicológica time de desenvolvimento'
 locale: pt-BR
 translationOf: '260723'
-sourceHash: f8dd931fe76ccac06d479c1ac1bab02c6b0ec4d2096ec2d16f748e81270c48ea
+sourceHash: af4f1610b5b9fa729514bce6e07341af24e221cfad7fdf955eee8a8801240b0a
 ---
+
 Neste post, quero falar sobre a comunicação com outras áreas.
 
 Enquanto desenvolvo, dedico tanto tempo a descobrir o que precisa ser construído quanto a escrever código. Troco requisitos com o product manager, alinho telas com o designer e pergunto a quem conhece o domínio o que cada termo significa. E já vivi algumas vezes que o custo de esse processo sair do lugar é muito maior do que o custo de escrever o código errado.

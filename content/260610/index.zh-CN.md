@@ -8,8 +8,9 @@ description: 'AI Token 既不是单词也不是字符。本文系统讲解 BPE t
 keywords: 'LLM Token 原理, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, 输入输出 Token 成本, 什么是 AI Token'
 locale: zh-CN
 translationOf: '260610'
-sourceHash: d1a0c865655937afb35145b7ba77e2cff41edf87c67e352bdd514f0a8c429486
+sourceHash: 674245d037f2826681db00fb1349db40da939feaf3655f9f0b24455984654a36
 ---
+
 这篇文章想聊一聊：AI Token 究竟是什么，又按照怎样的原理工作。
 
 过去，我主要关注如何用好 AI 工具、哪些工具正在流行，以及它们为什么会流行。但在整理 [Token 节省方法](/260611)时，我重新意识到一件事：要讲清怎样降低成本，终究得先说明“Token 是什么、费用又是怎样计算的”，可我此前从未认真梳理过这块基础。（写着写着，光是 Token 工作原理就已经足够单独成篇了。）

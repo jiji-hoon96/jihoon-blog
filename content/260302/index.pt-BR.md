@@ -6,10 +6,11 @@ date: '2026-03-02'
 categories: frontend carreira IA
 locale: pt-BR
 translationOf: '260302'
-sourceHash: 05ccc4abb0156bfa0f384bf7654f7a7e71005a623e55a09c83722422e8f0cac4
+sourceHash: bda49d3445c1a164c39224c1d6067f4de0a222c1e2fe2567df834634fcb6b9fa
 description: "Como crescer como engenheiro frontend quando a IA escreve o código: validação, especificação e discernimento, a partir de Karpathy, Vercel v0 e METR."
 keywords: 'frontend na era da IA, desenvolvedor na era da IA, vibe coding, agentic engineering, ferramentas de programação com IA, Product Engineer, plano de carreira para frontend'
 ---
+
 Neste post, quero falar, a partir de uma perspectiva pessoal, sobre **como engenheiros podem crescer e sobreviver na era da IA**.
 
 Um dos textos que mais me marcaram no início da carreira foi [“Plano de carreira para engenheiros frontend: três trilhas de especialização para profissionais juniores”, de Hwidong Bae](https://kr.linkedin.com/posts/hwidongbae_%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C-%EC%97%94%EC%A7%80%EB%8B%88%EC%96%B4-%EC%BB%A4%EB%A6%AC%EC%96%B4-%EB%A1%9C%EB%93%9C%EB%A7%B5-%EC%A3%BC%EB%8B%88%EC%96%B4%EB%A5%BC-%EC%9C%84%ED%95%9C-3%EA%B0%80%EC%A7%80-%EC%A0%84%EB%AC%B8%EC%84%B1-%ED%8A%B8%EB%9E%99-activity-7013888624140189696-XiIz). O artigo organiza a carreira de engenharia frontend em três trilhas: **especialização em web (Software Engineer) / especialização em produto (Product Engineer) / especialização em operações (Full-Stack Engineer)**. O texto também aborda as “cinco competências fundamentais de um engenheiro excepcional” e os “três pontos para se tornar sênior”. Naquela época, a grande questão era decidir quais competências desenvolver em cada trilha. Mas, menos de dois anos depois de eu ler o texto, a própria questão mudou por completo.
@@ -23,6 +24,7 @@ Hoje, quando converso com colegas de engenharia, percebo que as preocupações t
 Passei — e ainda passo — por uma fase parecida. Há apenas um ou dois anos, eu via a IA como “uma boa ferramenta de apoio”; hoje, chegamos a um ambiente em que é difícil até imaginar desenvolver sem ela (inclusive pedi ao Claude que fizesse pesquisas enquanto escrevia este texto). Este artigo funciona como uma espécie de continuação do texto de Hwidong Bae: quero organizar, do meu ponto de vista, como o cenário mudou nesse intervalo e quais outras competências precisamos desenvolver como engenheiros frontend diante dessa nova realidade.
 
 Mais uma vez, procurei consultar e verificar o máximo possível de fontes. Ainda assim, como esta é uma área que muda muito rápido, peço desde já a compreensão de vocês caso parte do conteúdo já esteja desatualizada quando este texto for publicado. Se houver contrapontos ou assuntos que mereçam debate, fiquem à vontade para deixar um comentário.
+
 
 ## “Agora a IA não faz tudo?”
 
@@ -49,6 +51,7 @@ Exatamente um ano depois, em fevereiro de 2026, o mesmo Karpathy [recuou um pouc
 
 Se, um ano atrás, a premissa era “é só pedir que ela faz tudo”, agora “a capacidade de planejar o que pedir à IA e como pedir” se consolidou como uma competência de engenharia. Essa mesma tendência também aparece no texto do engenheiro do Google [Addy Osmani](https://addyosmani.com/). Ele publicou o livro [Beyond Vibe Coding: From Coder to AI-Era Developer](https://www.amazon.com/Beyond-Vibe-Coding-AI-Era-Developer/dp/B0F6S5425Y), afirmando categoricamente: “A IA é apenas uma assistente, não uma programadora em quem se possa confiar de forma autônoma. Você é o desenvolvedor sênior, e o LLM existe para acelerar o seu julgamento.”
 
+
 ### As ferramentas estão avançando sem freio
 
 O ecossistema de ferramentas também evolui rapidamente para acompanhar essa tendência. Em março de 2026, as ferramentas de programação mais mencionadas são Cursor, Claude Code, GitHub Copilot, Windsurf, v0 by Vercel, Bolt.new e Devin.
@@ -60,6 +63,7 @@ As bases de código das big techs são a melhor demonstração dessa mudança.
 Sundar Pichai, do Google, [anunciou na teleconferência de resultados do terceiro trimestre, em outubro de 2024, que “mais de 25% do código novo era gerado por IA e depois revisado e aprovado por engenheiros”](https://fortune.com/2024/10/30/googles-code-ai-sundar-pichai/); em abril de 2025, afirmou que a proporção havia superado 30%. Satya Nadella, da Microsoft, [revelou na LlamaCon, em abril de 2025, que “até 30% do nosso código é escrito por IA”](https://www.cnbc.com/2025/04/29/satya-nadella-says-as-much-as-30percent-of-microsoft-code-is-written-by-ai.html). Na Meta, a meta interna chegou ao ponto de “até o primeiro semestre de 2026, 65% dos engenheiros gerarem com IA pelo menos 75% dos próprios commits”.
 
 Na Coreia do Sul, a tendência não é diferente. A [Toss](https://toss.tech/article/toss-frontend-ai-docs) criou um sistema de documentação baseado em IA para melhorar a DX e eliminar a necessidade de desenvolvedores procurarem documentos, e foi além ao abordar temas como [“O que aconteceu quando eliminamos os designers na era da IA”](https://toss.tech/article/removing_designers_in_ai_era). A Danggeun compartilha experimentos de cada equipe toda terça-feira no [AI Show & Tell](https://medium.com/daangn) e passou a usar o [slogan de recrutamento](https://about.daangn.com/blog/archive/%EB%8B%B9%EA%B7%BC-%ED%95%B4%EC%BB%A4%ED%86%A4-%EC%97%94%EC%A7%80%EB%8B%88%EC%96%B4-%EC%B1%84%EC%9A%A9/) “de engenheiro a builder”. Já a Woowa Brothers vem publicando textos como [“Na era em que a IA escreve código, você ainda quer ser desenvolvedor?”](https://techblog.woowahan.com/22828/), com a mensagem de que “a essência do trabalho de desenvolvimento não está no código, mas na capacidade de definir e resolver problemas”.
+
 
 ### Mas os números contam uma história um pouco diferente
 
@@ -99,6 +103,7 @@ Os sinais são semelhantes quanto à qualidade. A [**GitClear**](https://www.git
 
 A interpretação não é tão difícil. A capacidade de produzir código rapidamente aumentou, mas a capacidade de escrever código que valha a pena aprimorar diminuiu. Os [dados da Apiiro](https://www.softwareseni.com/ai-generated-code-security-risks-why-vulnerabilities-increase-2-74x-and-how-to-prevent-them/), baseados em empresas da Fortune 50, são ainda mais contundentes. Desenvolvedores que usam assistência de IA produzem de três a quatro vezes mais commits que seus colegas, mas também geram dez vezes mais findings de segurança. Os caminhos de escalada de privilégios (privilege escalation) dispararam 322%, e as falhas de projeto arquitetural, 153%.
 
+
 ## O que a IA substituiu e o que não conseguiu substituir
 
 As ferramentas avançam sem freio, mas os números são ambíguos. Vamos separar o que a IA substituiu e o que ainda não conseguiu substituir. Só com essa distinção clara conseguimos enxergar onde devemos investir nosso tempo.
@@ -125,6 +130,7 @@ Daí surge naturalmente uma pergunta. Então as três trilhas do texto de Hwidon
 
 Vejo as trilhas como válidas até hoje. Cada uma evoluiu um estágio para se adaptar à era da IA. Vejamos como o cenário mudou em cada uma delas.
 
+
 ## De produtor a “validador”
 
 No texto original de Hwidong Bae, a trilha de especialização em web era agrupada sob o nome **Software Engineer**. Seus pontos centrais eram “uma compreensão profunda e o domínio da internet, dos navegadores e de HTML/CSS/JS”, o conhecimento dos pontos fortes e fracos das ferramentas do ecossistema web, a experiência com troubleshooting e uma postura atenta a novas tecnologias. O texto sugeria como caminhos para chegar a sênior **engenheiro de empresas que desenvolvem ferramentas para o ecossistema web / educador de frontend / tech lead em organizações com produtos complexos**. Em poucas palavras, são “pessoas que investigam a fundo os princípios de funcionamento dos navegadores e de HTML/CSS/JS”; até um ou dois anos atrás, sua principal arma era “ser capaz de escrever código com mais precisão que qualquer outra pessoa”.
@@ -138,6 +144,7 @@ No estudo da Veracode abordado acima, vimos taxas de falha de 86% em XSS e 88% e
 
 Além disso, surgiu um tema inteiramente novo no território desses especialistas: **UI generativa (Generative UI)** e **design de interfaces de IA**. Alguns exemplos são interfaces de chat que exibem respostas do LLM por streaming, controles de abort para interromper a geração, renderização progressiva de Markdown e blocos de código, UX que exibe inline os resultados de chamadas de ferramentas e integrações de assistentes com o [Vercel AI SDK](https://sdk.vercel.ai/) ou o [MCP (Model Context Protocol)](https://modelcontextprotocol.io/). A demanda por “pessoas que conhecem com precisão os princípios de funcionamento da web e, ao mesmo tempo, entendem as características dos LLMs e sabem aplicá-las” está explodindo nessa área.
 
+
 ## A evolução natural para Product Engineer
 
 A trilha de especialização em produto foi a mais beneficiada. Quem conhece profundamente o mercado e os clientes e se comunica com frequência com stakeholders externos ganhou uma ferramenta muito mais poderosa ao incorporar a IA. Outra característica dessa trilha era a possibilidade de expandir a carreira para outras funções, com caminhos seniores como **engenheiro de growth ou consultor / transição para PM, PO ou CPO**.
@@ -146,6 +153,7 @@ O nome dessa trilha começou a se consolidar como padrão global. O texto origin
 
 Lee Robinson aponta três qualidades essenciais de um Product Engineer.
 
+
 - **Foco em iteração (Iteration)**: percorre rapidamente o ciclo de implantação → feedback → ajuste.
 - **Centralidade no cliente**: conversa diretamente com clientes para melhorar o produto.
 - **Pragmatismo**: “toda escolha tecnológica é apenas um meio”. Ferramentas que não contribuem para o objetivo do produto são abandonadas sem hesitação.
@@ -153,6 +161,7 @@ Lee Robinson aponta três qualidades essenciais de um Product Engineer.
 Há uma armadilha aqui: é perigoso enxergar o engenheiro especializado em produto apenas como “quem faz rápido”. Com a chegada da IA, esse risco aumentou. Afinal, “implementar funcionalidades rapidamente” agora é algo que profissionais de qualquer área podem fazer com ferramentas de IA. O diferencial de um Product Engineer está na “capacidade de definir com precisão o problema do cliente e validá-lo rapidamente com a menor solução possível”, não em “ser rápido com as mãos”.
 
 Nesse movimento, **Design Engineer** começou a ganhar status de cargo formal. A Vercel está contratando [engenheiros de design em uma trilha oficial com salários acima de US$ 200 mil](https://cjroth.com/blog/2026-02-18-building-an-elite-engineering-culture), e Linear e Stripe avançam em uma direção semelhante. É uma função que elimina o próprio handoff entre frontend e design. Como a IA desenha rapidamente, as competências necessárias para lidar ao mesmo tempo com “o que desenhar” e “se o resultado está de acordo com um design system consistente” ficaram ainda mais escassas.
+
 
 ## Orquestrador de IA
 
@@ -171,6 +180,7 @@ O texto original indicava como caminhos seniores dessa trilha cargos como **enge
 
 Enquanto as três trilhas evoluem cada uma à sua maneira, há competências que se tornaram mais importantes em todas elas. Eu queria pensar inicialmente em um horizonte de cinco anos, mas, diante do ritmo atual de avanço, até a unidade de um ano parece longa demais. Por isso, vou limitar o horizonte a algo como “o próximo ano” e destacar as competências que, na minha visão, ganharão mais importância.
 
+
 ## Cinco competências
 
 **A primeira é a capacidade de escrever especificações (Specification).** Na era da IA, o “ponto de partida da programação” é a **especificação**, em vez do teclado. A capacidade de registrar o que pedir à IA se tornou mais importante que o próprio código. Aqui, a especificação não precisa ser um documento RFC grandioso. Pode ser um **teste** que expressa em código o comportamento esperado da lógica de negócio, uma história do **Storybook** que organiza os cenários e o contrato visual de um componente de UI ou uma **definição de tipos** que explicita o contrato do fluxo de dados. É o trabalho de estabelecer previamente critérios para validar de forma automática o resultado criado pela IA. Se programarmos com IA sem essa base, os problemas se acumulam.
@@ -185,6 +195,7 @@ Enquanto as três trilhas evoluem cada uma à sua maneira, há competências que
 
 Se você chegou até aqui, uma pergunta surge naturalmente. Fica a curiosidade de saber como estudar concretamente. Os métodos que uso são, em linhas gerais, quatro.
 
+
 ## Como estudar
 
 O item “aprendizado contínuo” citado no texto original continua válido, mas precisamos mudar **a distribuição do tempo de estudo**.
@@ -196,6 +207,7 @@ O código produzido por IA tende a crescer demais. Ela gera centenas de linhas p
 Há uma prática diretamente ligada ao problema da redução da carga cognitiva apontado no texto de Evan Moon: é bom reservar uma ou duas horas por dia para escrever código sem IA. Desenhar a arquitetura à mão ou ler diretamente, linha por linha, código de uma área pouco familiar são alguns exemplos. (Eu também tento programar sem IA todos os dias naquele período sonolento depois do almoço. É um tempo que reservo para não me afastar de uma familiaridade antiga.)
 
 Esse tempo não serve apenas para preservar métodos antigos; também ajuda a impedir que a profundidade pessoal deixe de crescer na mesma medida em que a IA assume tarefas. Competências como validação e discernimento e compreensão do sistema são função do tempo que você passou enfrentando os problemas diretamente.
+
 
 ## Portanto, nós
 
@@ -216,3 +228,4 @@ Ao examinar os textos de Andrej Karpathy, autoridade em OpenAI, vemos que a ess�
 A mensagem final do texto original também era que se torna sênior “quem não se satisfaz apenas em concluir bem o trabalho recebido, mas observa o contexto anterior e posterior e gera um impacto maior”. Na era da IA, apenas a definição desse “impacto” mudou. Há quem faça merge de uma tela produzida pela IA em uma hora pensando “funciona, então está pronto”; e há quem passe mais trinta minutos verificando até que ponto essa tela é adequada em termos de acessibilidade, segurança, desempenho e coerência com o sistema. Daqui a um ano, quem será reconhecido como sênior é o segundo. Sobrevive quem se posiciona do lado dos 30% na fronteira entre 70% (funcionamento) e 30% (aplicação e uso).
 
 Espero que os engenheiros frontend que lerem este texto também encontrem sua própria resposta para a pergunta “o que mais devo estudar agora?”. Ninguém sabe a resposta certa, mas tenho bastante convicção de que, quanto mais a IA escreve código, mais sobrevivem as pessoas capazes de enxergar “o que existe além do código”. Encerro na esperança de que, daqui a um ano, eu possa voltar a escrever sobre como esse cenário terá mudado mais uma vez. **(Se este texto parecer óbvio demais ou ultrapassado daqui a um ano, talvez isso signifique que reagimos bem.)**
+

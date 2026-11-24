@@ -9,8 +9,9 @@ description: "Calibration is knowing how often you'll be right. How ECE measures
 keywords: "model calibration, ECE, expected calibration error, RLHF overconfidence, LLM overconfidence, calibration vs accuracy, GPT-4 calibration"
 locale: en
 translationOf: '260917'
-sourceHash: 229bbbe6610f079e8804286ab07e76e83d1b8ed72604314330ec215078c20bc8
+sourceHash: adffb28cb4f2125d3f5599453d2a039b35626e2a0f29ced5019bce45af9e1336
 ---
+
 In this post, I want to talk about model calibration and the overconfidence that shows up after RLHF. This is for developers who want to use the probability or confidence a model returns as a decision criterion in code. By the end, you will be able to explain how accuracy and calibration differ, what ECE measures. You will also be able to explain how the probabilities of a model polished on human preference drift from its actual hit rate, and how much of the cause is actually known.
 
 I had to sort out these concepts first while testing the claims of Jev, a decision model released by TypeSafe AI. Instead of sentences, Jev returns a probability for each option, and it puts calibration forward as its training objective. To weigh that claim, I first needed to know what calibration is and why it drifts in existing models.

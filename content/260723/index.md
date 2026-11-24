@@ -7,6 +7,7 @@ categories: 협업 도메인 DDD 소통
 description: '기획자와 개발자가 같은 단어로 다른 것을 말하고 있을 때 무엇을 해야 할까. Evans의 ubiquitous language와 Clark의 grounding 이론으로 타직군 소통 실패의 구조를 짚고, 해상도를 맞추는 실무 도구까지 정리한다.'
 keywords: 'ubiquitous language, 공유 언어 도메인, 타직군 소통, 요구사항 파악 방법, 기획자 개발자 소통, grounding common ground, Example Mapping, breadboarding, bounded context, 심리적 안전감 개발팀'
 ---
+
 이번 포스팅에서는 타직군과의 소통에 대한 이야기를 해보려고 한다.
 
 개발을 하면서 필자가 코드를 작성하는만큼 시간을 많이 할애하는 것은 무엇을 만들어야 하는지 알아내는 일이다. 기획자와 요구사항을 주고받고, 디자이너와 화면을 맞추고, 도메인을 아는 사람과 용어에 대해 무엇을 뜻하는지 묻는다. 그리고 이 과정이 어긋났을 때의 비용이 코드를 잘못 쓴 비용보다 훨씬 크다는 것을 몇 번 겪었다.

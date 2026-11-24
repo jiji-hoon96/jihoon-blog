@@ -8,7 +8,7 @@ description: '这是一篇思考AI时代开发者该优先做什么的复盘。�
 keywords: '开发者复盘, AI时代开发者, 开发者优先级, 开发者思维能力, 判断标准, T型人才, 前端开发者成长'
 locale: zh-CN
 translationOf: '261103'
-sourceHash: 39b3b2ac23387bd8e4ca7b8ef954c5275cea2fefffb26fecd54e80404ffdbdb2
+sourceHash: 067b877d88fc879e14bc8609549291a532e50d7d4d044e90088e202e3d10c52c
 ---
 
 这篇文章想聊一聊，在AI飞速变化的当下，笔者会把什么放在优先位置。

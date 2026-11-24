@@ -9,8 +9,9 @@ description: '有个模型不返回文本，只返回概率。confidence 不是�
 keywords: 'Jev, TypeSafe AI, System One 模型, RLCD, 模型校准, ECE, confidence 阈值, 决策模型, Kev 开源, Jev 应用案例'
 locale: zh-CN
 translationOf: '260922'
-sourceHash: 81229ad1f2359a9b54ec07493bdb81f85d59ac3207b2564a0bd152eb951ff297
+sourceHash: 7aa67b3cb66a7dcec2de572e45d01b4aaf81e0d921a915a944b4bb17dbd2e3c1
 ---
+
 这篇文章想聊聊上周 TypeSafe AI 公开的 Jev，一个不返回文本、只返回概率的模型。本文写给想给模型返回的概率设阈值、在没有人工确认的情况下自动处理的开发者。读完之后，你会知道 Jev 的 `confidence` 是怎么算出来的，校准会随分布变化多少，以及用自己的数据定阈值的步骤。
 
 最先映入眼帘的用途是浏览器自动化。Browserbase 提交了一个把 Jev 接进 Stagehand 的 `act()` 的 [PR](https://github.com/browserbase/stagehand/pull/2953)。结构是把页面的:term[无障碍树]{key="accessibility-tree"}作为 `state` 发过去，再以选项的形式问「下一步该点击哪个元素」。40 个任务里 `act()` 的中位数从 1.97 秒降到 0.46 秒，147 次操作中回退到 LLM 的只有 4 次。Playwright 脚本只要一个 selector 变了就会坏掉的那个位置，被一次只返回一个概率的调用填上了。写这篇文章的时候，这个 PR 还没有合并。

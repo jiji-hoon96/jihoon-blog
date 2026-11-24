@@ -8,8 +8,9 @@ description: "What to do when a product manager and a developer use the same wor
 keywords: 'ubiquitous language, shared domain language, cross-functional communication, gathering requirements, product manager developer communication, grounding common ground, Example Mapping, breadboarding, bounded context, psychological safety engineering team'
 locale: en
 translationOf: '260723'
-sourceHash: f8dd931fe76ccac06d479c1ac1bab02c6b0ec4d2096ec2d16f748e81270c48ea
+sourceHash: af4f1610b5b9fa729514bce6e07341af24e221cfad7fdf955eee8a8801240b0a
 ---
+
 In this post, I want to talk about communicating across functions.
 
 As a developer, I spend as much time working out what to build as I spend writing code. I exchange requirements with product managers, align on screens with designers, and ask people who know the domain what a term actually means. And I have experienced several times that the cost of getting this process wrong is far greater than the cost of writing the wrong code.

@@ -8,8 +8,9 @@ description: 'How BPE creates tokens, embeddings feed LLMs, prefill and decode s
 keywords: 'how LLM tokens work, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, input output token costs, what is an AI token'
 locale: en
 translationOf: '260610'
-sourceHash: d1a0c865655937afb35145b7ba77e2cff41edf87c67e352bdd514f0a8c429486
+sourceHash: 674245d037f2826681db00fb1349db40da939feaf3655f9f0b24455984654a36
 ---
+
 In this post, I want to explore what AI tokens actually are and how they work.
 
 Until now, I have mainly written about how to use AI tools effectively, which tools are gaining popularity, and why. But while putting together my guide to [saving tokens](/260611), I was reminded of something important: before explaining how to reduce costs, I first needed to explain what tokens are and how they are billed. Yet I had never properly covered that foundation. (As I wrote the cost-saving guide, the explanation of how tokens work grew substantial enough to become a post of its own.)

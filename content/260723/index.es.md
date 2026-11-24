@@ -8,7 +8,7 @@ description: "Qué hacer cuando product manager y developer usan la misma palabr
 keywords: 'ubiquitous language, lenguaje compartido dominio, comunicación entre disciplinas, cómo definir requisitos, comunicación product manager developer, grounding common ground, Example Mapping, breadboarding, bounded context, seguridad psicológica equipo de desarrollo'
 locale: es
 translationOf: '260723'
-sourceHash: f8dd931fe76ccac06d479c1ac1bab02c6b0ec4d2096ec2d16f748e81270c48ea
+sourceHash: af4f1610b5b9fa729514bce6e07341af24e221cfad7fdf955eee8a8801240b0a
 ---
 
 En este artículo quiero hablar de la comunicación con otras disciplinas.

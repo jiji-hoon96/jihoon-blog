@@ -9,7 +9,7 @@ description: "Cómo cargan los agentes CLAUDE.md, AGENTS.md, SKILL.md y Cursor r
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, archivos de contexto, agente de codificación con IA, Claude Code, estudio ETH Zurich AGENTS.md"
 locale: es
 translationOf: '260529'
-sourceHash: 29d011872ecd87f355d5017d6e3004b6081ed4ed375c85ceacdaf8ca4b2e270e
+sourceHash: c484f11fe6907c8d505f0125e670586079460b7325a8dd04836994471634dcbd
 ---
 
 En esta publicación quiero hablar sobre **los archivos de contexto que leen los agentes de codificación con IA**.

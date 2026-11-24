@@ -8,7 +8,7 @@ description: 'Qué priorizo como desarrollador en la era de la IA: el pensamient
 keywords: 'retrospectiva de desarrollador, desarrollador en la era de la IA, prioridades de un desarrollador, pensamiento crítico para desarrolladores, toma de decisiones, perfil en T, crecimiento como desarrollador frontend'
 locale: es
 translationOf: '261103'
-sourceHash: 39b3b2ac23387bd8e4ca7b8ef954c5275cea2fefffb26fecd54e80404ffdbdb2
+sourceHash: 067b877d88fc879e14bc8609549291a532e50d7d4d044e90088e202e3d10c52c
 ---
 
 En este artículo quiero hablar de qué voy a poner en primer lugar ahora que la IA cambia tan rápido.

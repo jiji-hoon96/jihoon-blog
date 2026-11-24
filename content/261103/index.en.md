@@ -8,7 +8,7 @@ description: 'What to prioritize as a developer in the AI era: why I put thinkin
 keywords: 'developer retrospective, developer in the AI era, developer priorities, critical thinking for developers, decision making, T-shaped developer, frontend developer growth'
 locale: en
 translationOf: '261103'
-sourceHash: 39b3b2ac23387bd8e4ca7b8ef954c5275cea2fefffb26fecd54e80404ffdbdb2
+sourceHash: 067b877d88fc879e14bc8609549291a532e50d7d4d044e90088e202e3d10c52c
 ---
 
 In this post, I want to talk about what I will put first while AI is changing this fast.

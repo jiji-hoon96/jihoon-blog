@@ -8,6 +8,7 @@ categories: AI calibration
 description: "calibration은 정확도가 아니라 자기가 몇 퍼센트 맞힐지 아는 능력이다. ECE가 그 어긋남을 어떻게 재는지, GPT-4 기술 보고서에서 post-training 뒤 ECE가 0.007에서 0.074로 나빠진 결과와 그 원인이 어디까지 밝혀졌는지 정리한다."
 keywords: "모델 calibration, ECE, expected calibration error, RLHF overconfidence, LLM overconfidence, calibration 정확도 차이, GPT-4 calibration"
 ---
+
 이번 포스팅에서는 모델의 calibration과 RLHF 뒤에 나타나는 overconfidence에 대한 이야기를 해보려고 한다. 모델이 돌려주는 확률이나 확신도를 코드에서 판단 기준으로 쓰려는 개발자를 위한 글이다. 끝까지 읽으면 정확도와 calibration이 어떻게 다른지, ECE가 무엇을 재는지 설명할 수 있다. 또 사람의 선호로 다듬은 모델의 확률이 실제 적중률과 어떻게 어긋나는지, 그 원인이 어디까지 밝혀졌는지도 설명할 수 있다.
 
 필자는 TypeSafe AI가 공개한 결정 모델 Jev의 주장을 검증하면서 이 개념부터 정리해야 했다. Jev는 문장 대신 선택지마다 확률을 돌려주고, calibration을 학습 목표로 내세운다. 그 주장을 따지려면 calibration이 무엇이고 기존 모델에서 왜 어긋나는지부터 알아야 했다.

@@ -7,6 +7,7 @@ categories: AI 에이전트
 description: '프롬프트에서 컨텍스트 엔지니어링으로, 그 다음은 어디인가. Anthropic 엔지니어링 블로그의 최근 흐름을 단서로 harness 설계, eval, containment(격리) 세 방향과 토큰 절약 논의의 연결을 정리한다.'
 keywords: 'context engineering, harness 설계, AI 에이전트 eval, agent evaluation, containment, 에이전트 격리, AI 트렌드 2026, 프롬프트 엔지니어링, LLM 에이전트, 토큰 절약 다음'
 ---
+
 이번 포스팅에서는 프롬프트 엔지니어링과 컨텍스트 엔지니어링, 그 다음에 대한 이야기를 해보려고 한다.
 
 바로 앞 글인 [토큰 절약법](/260611)을 정리하면서 줄곧 머릿속을 떠나지 않던 질문이 하나 있었다. "개별적 프롬프팅에서 비우고 골라내는 기술(context engineering)로 무게중심이 옮겨가고 있다" 고 생각하는데, 글을 닫고 나니 자연스럽게 다음 질문이 따라왔다. 그러면 컨텍스트 다음은 무엇인가?

@@ -8,8 +8,9 @@ description: '从 prompt engineering 到 context engineering，下一步将走�
 keywords: 'context engineering, harness 设计, AI agent eval, agent evaluation, containment, agent 隔离, 2026 AI 趋势, prompt engineering, LLM agent, token 节省之后'
 locale: zh-CN
 translationOf: '260622'
-sourceHash: 1ecf02e9e2162d8abe02b95d83aff2d4feb62ecae522c0cf1431de2c11363233
+sourceHash: 97f5111404c885a53f680b07de74dc666d80fea4bc7d181bda185cae58068289
 ---
+
 这篇文章想谈谈 prompt engineering、context engineering，以及再往后的方向。
 
 在整理上一篇关于[token 节省方法](/260611)的文章时，有一个问题始终萦绕在我脑海中。我认为，重心正在从逐个雕琢 prompt，转向去除无关信息并筛选所需内容的技术（context engineering）。文章写完后，下一个问题自然浮现：那么，context 之后是什么？

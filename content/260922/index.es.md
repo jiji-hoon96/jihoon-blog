@@ -9,8 +9,9 @@ description: 'Jev devuelve probabilidades en vez de texto. Su confidence no se a
 keywords: 'Jev, TypeSafe AI, modelo System One, RLCD, calibración de modelos, ECE, umbral de confidence, modelos de decisión, Kev open source, casos de uso de Jev'
 locale: es
 translationOf: '260922'
-sourceHash: 81229ad1f2359a9b54ec07493bdb81f85d59ac3207b2564a0bd152eb951ff297
+sourceHash: 7aa67b3cb66a7dcec2de572e45d01b4aaf81e0d921a915a944b4bb17dbd2e3c1
 ---
+
 En este artículo quiero hablar de Jev, un modelo que TypeSafe AI presentó la semana pasada y que devuelve probabilidades en vez de texto. Está pensado para desarrolladores que quieren poner un umbral a la probabilidad que devuelve un modelo y procesar casos automáticamente sin revisión humana. Al terminar sabrás cómo se calcula el `confidence` de Jev, cuánto se mueve la calibración según la distribución y un procedimiento para fijar el umbral con tus propios datos.
 
 El primer uso que me llamó la atención fue la automatización del navegador. Browserbase abrió un [PR](https://github.com/browserbase/stagehand/pull/2953) que conecta Jev al `act()` de Stagehand. La estructura era enviar el :term[árbol de accesibilidad]{key="accessibility-tree"} de la página como `state` y preguntar, con opciones cerradas, «cuál es el siguiente elemento que hay que pulsar». En 40 tareas, la mediana de `act()` bajó de 1,97 segundos a 0,46, y de 147 acciones solo 4 volvieron a un LLM. El punto donde un script de Playwright se rompe en cuanto cambia un selector quedó cubierto por una llamada que devuelve una sola probabilidad. Mientras escribo esto, el PR todavía no se ha fusionado.

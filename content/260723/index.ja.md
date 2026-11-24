@@ -8,8 +8,9 @@ description: '企画者とdeveloperが同じ単語で違うものを指してい
 keywords: 'ubiquitous language, 共有言語 ドメイン, 他職種 コミュニケーション, 要件定義 方法, 企画者 開発者 コミュニケーション, grounding common ground, Example Mapping, breadboarding, bounded context, 心理的安全性 開発チーム'
 locale: ja
 translationOf: '260723'
-sourceHash: f8dd931fe76ccac06d479c1ac1bab02c6b0ec4d2096ec2d16f748e81270c48ea
+sourceHash: af4f1610b5b9fa729514bce6e07341af24e221cfad7fdf955eee8a8801240b0a
 ---
+
 今回は、他職種とのコミュニケーションについて書いてみたい。
 
 開発をしていて、私がコードを書くのと同じくらい時間を割いているのは、何を作るべきかを突き止める作業だ。企画者と要件をやり取りし、デザイナーと画面をすり合わせ、ドメインを知る人に用語が何を指すのかを尋ねる。そして、この過程がずれたときのコストがコードを書き間違えたコストよりはるかに大きいことを、何度か経験してきた。

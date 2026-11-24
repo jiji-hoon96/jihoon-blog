@@ -9,19 +9,22 @@ description: "Como agentes carregam CLAUDE.md, AGENTS.md, SKILL.md e regras do C
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, regras do Cursor, copilot-instructions.md, arquivos de contexto, agente de programação com IA, Claude Code, estudo ETH Zurich AGENTS.md"
 locale: pt-BR
 translationOf: '260529'
-sourceHash: 29d011872ecd87f355d5017d6e3004b6081ed4ed375c85ceacdaf8ca4b2e270e
+sourceHash: c484f11fe6907c8d505f0125e670586079460b7325a8dd04836994471634dcbd
 ---
+
 Neste post, quero falar sobre **os arquivos de contexto que os agentes de programação com IA leem**.
 
 Este texto é para quem tem `CLAUDE.md`, `AGENTS.md`, `SKILL.md` e `.cursor/rules` acumulados no mesmo projeto e não sabe ao certo quando cada um é lido nem o que escrever nele. Ao final, você conhecerá as diferenças entre esses arquivos, como os agentes os carregam e um critério apoiado por um estudo da ETH Zurich: escrever apenas as informações que o agente não consegue inferir.
 
 Trabalho como desenvolvedor frontend e uso Claude no dia a dia. Com isso, em algum momento surgiu um `CLAUDE.md` na raiz do projeto, ao lado havia um `AGENTS.md` criado por alguém, um `.cursorrules` continuava esquecido em algum canto e eu cheguei até a criar uma pasta `.claude/skills/` seguindo um artigo que encontrei por aí. (Quando me dei conta, havia uns cinco arquivos com conteúdos parecidos.)
 
+
 ## Agentes sem memória persistente
 
 Os agentes de programação com IA têm uma limitação fundamental: **não possuem memória persistente**. Toda sessão começa do zero, e na conversa seguinte eles não se lembram de convenções combinadas ontem nem da estrutura de pastas explicada uma hora antes. Os arquivos de contexto são o mecanismo mais simples para resolver esse problema. Se o projeto tiver um arquivo lido automaticamente no início de cada sessão, não será necessário repetir sempre as mesmas explicações.
 
 O problema é que cada ferramenta criou seu próprio arquivo a partir da mesma ideia. Claude Code lê `CLAUDE.md`; Cursor, `.cursorrules` (que hoje está deprecated, e a recomendação é usar `.cursor/rules`); GitHub Copilot, `.github/copilot-instructions.md`; e OpenAI Codex, `AGENTS.md`. Quando uma equipe usa várias ferramentas, acaba tendo de copiar o mesmo conteúdo para quatro lugares diferentes.
+
 
 ### CLAUDE.md
 
@@ -35,6 +38,7 @@ Se os três níveis existirem, Claude **lê todos e os concatena (concatenate)**
 
 Há um detalhe frequentemente ignorado: **todos os arquivos `CLAUDE.md` encontrados ao subir do diretório de trabalho atual até a raiz do repositório são lidos**. Assim, ao trabalhar em `packages/ui/` dentro de um monorepo, tanto o `CLAUDE.md` da raiz quanto `packages/ui/CLAUDE.md` são carregados. (Isso é poderoso, mas também significa que o contexto pode crescer sem que ninguém perceba.)
 
+
 ### AGENTS.md
 
 `AGENTS.md` é um padrão criado para resolver a proliferação de arquivos específicos de cada ferramenta descrita acima. Em dezembro de 2025, a OpenAI doou esse padrão à **Agentic AI Foundation (AAIF)**, vinculada à Linux Foundation. Segundo o [anúncio da Linux Foundation](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation), a AAIF foi cofundada por Anthropic, Block e OpenAI. Seus projetos fundadores são três: o MCP da Anthropic (o protocolo que conecta agentes a sistemas externos), o goose da Block e o `AGENTS.md` da OpenAI. O site oficial (`agents.md`) afirma que **mais de 60 mil repositórios open source já adotam esse arquivo**.
@@ -47,6 +51,7 @@ Mesmo sendo chamado de padrão, é razoável desconfiar se ele está realmente s
 - O próprio repositório **OpenAI/codex** mantém seu `AGENTS.md`.
 
 Do ponto de vista estratégico, a abordagem que vem se consolidando é esta: manter **`AGENTS.md` como single source of truth** e reduzir `CLAUDE.md` ao mínimo, deixando nele apenas uma linha que referencia `AGENTS.md` e instruções específicas do Claude Code. Isso elimina duplicações e, como o Claude Code lê os dois arquivos, não há perda de informação.
+
 
 ### SKILL.md
 
@@ -66,6 +71,7 @@ Claude Skills foi lançado simultaneamente no Claude.ai, Claude Code, API e Agen
 O MCP (Model Context Protocol), com o qual as Skills foram comparadas aqui, é um protocolo padrão que conecta o agente a sistemas externos como Slack, GitHub ou um banco de dados para que ele possa chamá-los. Se os arquivos de contexto tratam do que informar ao agente, o MCP trata do que permitir que ele faça. Como o MCP difere de function calling está explicado à parte em [MCP e function calling](/260524).
 
 As ferramentas que reduzem o custo de o agente encontrar o código relevante (Repomix, Aider, CodeGraph, Serena) reduzem custos diferentes conforme a profundidade com que entendem o código. Essa comparação está explicada à parte em [Quatro camadas de inteligência de código](/260526).
+
 
 ### Arquivos de outras ferramentas
 
@@ -92,6 +98,7 @@ As demais ferramentas também convergem para padrões parecidos. A tabela abaixo
 
 **O `CONVENTIONS.md` do Aider inclui o arquivo inteiro no contexto a cada solicitação**. A documentação oficial informa que o arquivo inteiro é incluído no contexto a cada solicitação, por isso especifica: **“mantenha-o com no máximo 200 linhas”**. (O Aider reconhece essa limitação cedo e a comunica diretamente aos usuários.)
 
+
 ### MEMORY.md
 
 Além dos arquivos anteriores, outro padrão aparece com frequência cada vez maior: `MEMORY.md`. Não é um padrão oficial, mas uma convenção que surgiu organicamente na comunidade para **registrar decisões e erros ao longo do tempo**.
@@ -106,6 +113,7 @@ Prisma 쿼리 결과에 optional chaining 쓰지 말 것 — null은 if-check로
 ```
 
 Se `CLAUDE.md` e `AGENTS.md` registram **as regras vigentes no momento**, `MEMORY.md` registra **a história de por que essas regras foram criadas**. (Os dois se complementam.)
+
 
 ### Como o agente lê esses arquivos
 
@@ -152,6 +160,7 @@ O efeito da posição também é importante. Pesquisadores de Stanford demonstra
 
 Ao reunir esses fenômenos, surge uma imagem única. Um arquivo de contexto é apenas **um texto adicional inserido fora do sistema antes do primeiro turno do usuário**. Diferentemente de um mecanismo que força as decisões do modelo, ele é apenas mais um bloco de tokens que cai na janela de contexto. Quanto maior ele for — e quanto mais longa ficar a conversa —, mais suas instruções serão empurradas para o “meio” e menor será a frequência com que são consultadas. O resultado da ETH Zurich pode ser visto como uma confirmação quantitativa desse limite estrutural.
 
+
 ### O estudo da ETH Zurich
 
 Muitas pessoas devem ter pensado: “Então é melhor colocar o máximo possível nesses arquivos, certo?”. Um estudo recente rebateu essa intuição: a pesquisa da ETH Zurich mencionada ao longo da seção anterior.
@@ -171,6 +180,7 @@ A recomendação do Aider mencionada antes — “200 linhas”, “como entra s
 - **O que precisa ser registrado são as informações que não podem ser inferidas**: ferramentas não convencionais, convenções específicas do projeto e falhas do passado. O modelo já conhece as boas práticas gerais de programação.
 - Use AGENTS.md como fonte única; deixe em CLAUDE.md apenas instruções curtas específicas da ferramenta; e separe workflows detalhados em Skills.
 
+
 ## E então?
 
 Os arquivos de contexto mudam de uma ferramenta para outra no nome, no local e no momento em que são lidos. Só neste artigo vimos CLAUDE.md, AGENTS.md, SKILL.md, regras do Cursor, copilot-instructions.md e MEMORY.md. Qual ferramenta oferece suporte a qual arquivo continua mudando. Decorar uma lista de arquivos fica obsoleto rapidamente.
@@ -180,6 +190,7 @@ Por isso, meu objetivo neste artigo não foi recomendar um formato de arquivo es
 No fim, o que permanece é uma intuição transmitida pelo estudo da ETH Zurich: **o modelo já sabe muitas coisas.** Encher um arquivo de contexto com todo tipo de informação não faz o agente segui-lo melhor. É preferível manter apenas o que o modelo provavelmente não conhece — convenções específicas do projeto, ferramentas não convencionais e erros do passado — e remover o restante. Escrever um arquivo de contexto longo e escrevê-lo bem são problemas diferentes.
 
 Em vez de ampliar CLAUDE.md para centenas de linhas agora mesmo, recomendo que quem leu este artigo investigue ao menos uma vez quando, onde e com que força as ferramentas que já usa leem esse arquivo. Acredito que essa compreensão cria uma base estável, independentemente de como os formatos de arquivo mudarem.
+
 
 :::ref
 - [docs] [Claude Code Memory, Anthropic](https://code.claude.com/docs/en/memory)

@@ -8,7 +8,7 @@ description: 'AI時代にエンジニアとして何を優先するかを考え�
 keywords: 'エンジニア 振り返り, AI時代 エンジニア, エンジニア 優先順位, エンジニア 思考力, 判断基準, T型人材, フロントエンドエンジニア 成長'
 locale: ja
 translationOf: '261103'
-sourceHash: 39b3b2ac23387bd8e4ca7b8ef954c5275cea2fefffb26fecd54e80404ffdbdb2
+sourceHash: 067b877d88fc879e14bc8609549291a532e50d7d4d044e90088e202e3d10c52c
 ---
 
 今回の記事では、AIが急速に変わっている今、筆者が何を優先するのかについての話をしてみたい。

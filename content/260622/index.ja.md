@@ -8,8 +8,9 @@ description: 'prompt engineeringからcontext engineeringへ、その次はど�
 keywords: 'context engineering, harness設計, AI agent eval, agent evaluation, containment, agent隔離, AIトレンド2026, prompt engineering, LLM agent, token節約の次'
 locale: ja
 translationOf: '260622'
-sourceHash: 1ecf02e9e2162d8abe02b95d83aff2d4feb62ecae522c0cf1431de2c11363233
+sourceHash: 97f5111404c885a53f680b07de74dc666d80fea4bc7d181bda185cae58068289
 ---
+
 今回は、prompt engineeringとcontext engineering、そしてその次について考えてみたい。
 
 直前の記事である[token節約法](/260611)をまとめながら、ずっと頭から離れない問いが一つあった。「個別のpromptを工夫する段階から、不要な情報を取り除き、必要な情報を選び取る技術（context engineering）へ重心が移っている」と考えていたが、記事を書き終えると自然に次の問いが続いた。では、コンテキストの次には何が来るのか。

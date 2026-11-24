@@ -7,6 +7,7 @@ categories: AI 토큰
 description: 'AI 코딩 도구의 토큰 비용은 어디서 발생하고 어떻게 줄일까. Anthropic 가격표와 prompt caching, subagent, MCP 다이어트, context engineering, Cursor Composer까지 절약 패턴을 React POC로 측정한다.'
 keywords: 'AI 토큰 절약, Claude Code 비용, 토큰 비용 절감, prompt caching, context engineering, subagent, MCP 토큰, Cursor Composer, 모델 라우팅, context rot, LLM 비용 최적화'
 ---
+
 이번 포스팅에서는 AI 토큰을 절약하는 방법에 대한 이야기를 해보려고 한다.
 
 옛날에는 성능과 비용보다는 결과와 과정에 집중했다. AI가 산출한 결과물에 허점이 많다 보니 그것들을 검증해야 했고, 빠르게 결과물을 뽑아야 하다 보니 나를 비롯한 수많은 사람들이 토큰이 부족하면 결제하고 더 높은 구독제를 활용했다. 필자도 그랬다. (사실 처음 몇 달은 토큰 비용이 얼마나 들었는지조차 신경 쓰지 않았다.)

@@ -8,8 +8,9 @@ description: 'Cómo BPE crea tokens, los embeddings alimentan los LLM, prefill y
 keywords: 'cómo funcionan los tokens LLM, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, coste tokens de entrada y salida, qué es un token de IA'
 locale: es
 translationOf: '260610'
-sourceHash: d1a0c865655937afb35145b7ba77e2cff41edf87c67e352bdd514f0a8c429486
+sourceHash: 674245d037f2826681db00fb1349db40da939feaf3655f9f0b24455984654a36
 ---
+
 En este artículo quiero explicar qué son en realidad los tokens de IA y cómo funcionan.
 
 Hasta ahora he escrito sobre todo acerca de cómo aprovechar bien las herramientas de IA, cuáles están de moda y por qué. Sin embargo, mientras preparaba el artículo sobre [cómo ahorrar tokens](/260611), volví a reparar en algo: para hablar de reducir costes, primero hay que entender «qué es un token y cómo se factura», pero nunca había explicado bien esos fundamentos. (Al escribir la guía de ahorro, la parte dedicada al funcionamiento de los tokens creció lo suficiente como para merecer un artículo propio.)

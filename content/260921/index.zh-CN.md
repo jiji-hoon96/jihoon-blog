@@ -8,7 +8,7 @@ description: '把用全局状态保存模态框开关的代码换成一行 await
 keywords: 'overlay-kit, React 模态框状态管理, 声明式接口, openAsync, useOverlay, Promise 模态框, React overlay, nice-modal-react'
 locale: zh-CN
 translationOf: '260921'
-sourceHash: 93ab7c5e806b87b19b6a9b660b97982d5066f0b8b77e8b106300b8e865f84fdb
+sourceHash: 6042c8537c7bdeebe3a022ed8b00005d81517742f16e3c322bd8eb140a57e96d
 ---
 
 这篇文章想聊聊以声明式方式处理 overlay 的接口。

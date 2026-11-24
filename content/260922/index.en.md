@@ -9,8 +9,9 @@ description: "Jev returns probabilities instead of text. Its confidence is arith
 keywords: 'Jev, TypeSafe AI, System One model, RLCD, model calibration, ECE, confidence threshold, decision model, Kev open source, Jev use cases'
 locale: en
 translationOf: '260922'
-sourceHash: 81229ad1f2359a9b54ec07493bdb81f85d59ac3207b2564a0bd152eb951ff297
+sourceHash: 7aa67b3cb66a7dcec2de572e45d01b4aaf81e0d921a915a944b4bb17dbd2e3c1
 ---
+
 In this post, I want to talk about Jev, a model TypeSafe AI released last week that returns probabilities instead of text. This is for developers who want to put a threshold on a model's returned probability and handle cases automatically without a human check. By the end, you will know how Jev's `confidence` is calculated, how much calibration moves with the distribution, and a procedure for setting the threshold on your own data.
 
 The first use that caught my eye was browser automation. Browserbase opened a [PR](https://github.com/browserbase/stagehand/pull/2953) that wires Jev into Stagehand's `act()`. The page's :term[accessibility tree]{key="accessibility-tree"} goes in as `state`, and the question "which element should be clicked next" is asked as a set of options. Across 40 tasks the median `act()` latency dropped from 1.97 seconds to 0.46, and of 147 actions only 4 fell back to an LLM. The spot where a Playwright script breaks the moment one selector changes was filled with a call that returns a single probability. As I write this, the PR has not been merged.

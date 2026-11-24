@@ -8,6 +8,7 @@ categories: AI calibration
 description: '텍스트 대신 확률을 돌려주는 모델 Jev가 나왔다. confidence는 학습된 값이 아니라 산술이고, calibration은 모델이 아니라 분포의 성질이다. 공개된 Jev 실측 5,743건과, 재현 구현 Kev를 이 블로그의 음차 게이트에 직접 돌린 결과로 확인한다.'
 keywords: 'Jev, TypeSafe AI, System One 모델, RLCD, 모델 calibration, ECE, confidence 임계값, 결정 모델, Kev 오픈소스, Jev 활용 사례'
 ---
+
 이번 포스팅에서는 지난주 TypeSafe AI가 공개한, 텍스트 대신 확률을 돌려주는 모델 Jev에 대한 이야기를 해보려고 한다. 모델이 돌려준 확률에 임계값을 걸어 사람 확인 없이 자동 처리하려는 개발자를 위한 글이다. 끝까지 읽으면 Jev의 `confidence`가 어떻게 계산되는지, calibration이 분포에 따라 얼마나 움직이는지, 그리고 임계값을 자기 데이터로 정하는 절차를 얻을 수 있다.
 
 가장 먼저 눈에 들어온 사용처는 브라우저 자동화였다. Browserbase가 Stagehand의 `act()`에 Jev를 붙이는 [PR](https://github.com/browserbase/stagehand/pull/2953)을 올렸다. 페이지의 :term[접근성 트리]{key="accessibility-tree"}를 `state`로 보내고 "다음에 클릭할 요소는 어느 것인가"를 선택지로 묻는 구조였다. 40개 과제에서 `act()` 중앙값이 1.97초에서 0.46초로 줄었고, 147번의 동작 중 LLM으로 되돌아간 것은 4번이었다. Playwright 스크립트가 selector 하나 바뀌면 깨지는 자리를, 확률 하나 돌려받는 호출로 메운 것이다. 이 글을 쓰는 시점에 PR은 아직 머지되지 않았다.

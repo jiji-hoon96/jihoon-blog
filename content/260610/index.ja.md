@@ -8,7 +8,7 @@ description: 'AIのトークンは単語でも文字でもない。BPEトーク�
 keywords: 'LLMトークンの仕組み, BPE, Byte Pair Encoding, トークナイザー, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, 入力出力トークン料金, AIトークンとは'
 locale: ja
 translationOf: '260610'
-sourceHash: d1a0c865655937afb35145b7ba77e2cff41edf87c67e352bdd514f0a8c429486
+sourceHash: 674245d037f2826681db00fb1349db40da939feaf3655f9f0b24455984654a36
 ---
 
 この記事では、AIのトークンとはそもそも何なのか、どのような仕組みで動くのかを掘り下げる。

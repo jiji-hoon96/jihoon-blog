@@ -8,8 +8,9 @@ description: '当产品经理和 developer 用同一个词指代不同事物时�
 keywords: 'ubiquitous language, 共享语言 领域, 跨职能沟通, 需求梳理方法, 产品经理 开发者 沟通, grounding common ground, Example Mapping, breadboarding, bounded context, 开发团队 心理安全感'
 locale: zh-CN
 translationOf: '260723'
-sourceHash: f8dd931fe76ccac06d479c1ac1bab02c6b0ec4d2096ec2d16f748e81270c48ea
+sourceHash: af4f1610b5b9fa729514bce6e07341af24e221cfad7fdf955eee8a8801240b0a
 ---
+
 这篇文章想聊聊与其他职能的沟通。
 
 做开发时，我花在弄清楚该做什么上的时间，和写代码的时间一样多。与产品经理来回确认需求，与设计师对齐界面，向懂领域的人询问某个术语究竟指什么。而这个过程一旦错位，代价远大于把代码写错的代价，这一点我已经经历过好几次。

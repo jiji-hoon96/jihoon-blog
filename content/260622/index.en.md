@@ -8,8 +8,9 @@ description: "After prompts gave way to context engineering, what comes next? An
 keywords: 'context engineering, harness design, AI agent evals, agent evaluation, containment, agent isolation, AI trends 2026, prompt engineering, LLM agents, beyond token efficiency'
 locale: en
 translationOf: '260622'
-sourceHash: 1ecf02e9e2162d8abe02b95d83aff2d4feb62ecae522c0cf1431de2c11363233
+sourceHash: 97f5111404c885a53f680b07de74dc666d80fea4bc7d181bda185cae58068289
 ---
+
 In this post, I want to look at what may come after prompt engineering and context engineering.
 
 While wrapping up the previous article on [saving tokens](/260611), one question kept nagging at me. I believe the center of gravity is shifting away from crafting individual prompts and toward the practice of clearing away and selecting information—context engineering. Once that article was finished, the next question followed naturally: what comes after context?

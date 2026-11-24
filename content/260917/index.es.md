@@ -9,8 +9,9 @@ description: "Calibrar es saber cuánto vas a acertar. Cómo lo mide el ECE, el 
 keywords: "calibración de modelos, ECE, expected calibration error, exceso de confianza en RLHF, LLM sobreconfiados, calibración vs exactitud, calibración de GPT-4"
 locale: es
 translationOf: '260917'
-sourceHash: 229bbbe6610f079e8804286ab07e76e83d1b8ed72604314330ec215078c20bc8
+sourceHash: adffb28cb4f2125d3f5599453d2a039b35626e2a0f29ced5019bce45af9e1336
 ---
+
 En este artículo quiero hablar de la calibración de los modelos y del exceso de confianza que aparece después de RLHF. Está pensado para desarrolladores que quieren usar en su código, como criterio de decisión, la probabilidad o la confianza que devuelve un modelo. Al terminar podrás explicar en qué se diferencian la exactitud y la calibración, qué mide el ECE. También podrás explicar cómo las probabilidades de un modelo pulido con preferencias humanas se separan de su tasa real de acierto y hasta dónde se conoce la causa.
 
 Tuve que ordenar primero estos conceptos mientras ponía a prueba las afirmaciones de Jev, un modelo de decisión presentado por TypeSafe AI. En lugar de frases, Jev devuelve una probabilidad para cada opción y presenta la calibración como su objetivo de entrenamiento. Para examinar esa afirmación, primero necesitaba saber qué es la calibración y por qué se desajusta en los modelos existentes.

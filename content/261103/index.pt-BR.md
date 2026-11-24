@@ -8,7 +8,7 @@ description: 'O que priorizar como dev na era da IA: por que coloco o raciocíni
 keywords: 'retrospectiva de desenvolvedor, desenvolvedor na era da IA, prioridades de desenvolvedor, pensamento crítico para desenvolvedores, tomada de decisão, profissional em T, crescimento como desenvolvedor frontend'
 locale: pt-BR
 translationOf: '261103'
-sourceHash: 39b3b2ac23387bd8e4ca7b8ef954c5275cea2fefffb26fecd54e80404ffdbdb2
+sourceHash: 067b877d88fc879e14bc8609549291a532e50d7d4d044e90088e202e3d10c52c
 ---
 
 Neste post, quero falar sobre o que vou colocar em primeiro lugar agora que a IA está mudando tão rápido.
