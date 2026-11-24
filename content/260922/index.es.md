@@ -9,7 +9,7 @@ description: 'Jev devuelve probabilidades en vez de texto. Su confidence no se a
 keywords: 'Jev, TypeSafe AI, modelo System One, RLCD, calibración de modelos, ECE, umbral de confidence, modelos de decisión, Kev open source, casos de uso de Jev'
 locale: es
 translationOf: '260922'
-sourceHash: bf47207b164b742f25ac8cfc422a3b7ad7bda87ba85769d7fed16bceb99a7ff3
+sourceHash: 81229ad1f2359a9b54ec07493bdb81f85d59ac3207b2564a0bd152eb951ff297
 ---
 En este artículo quiero hablar de Jev, un modelo que TypeSafe AI presentó la semana pasada y que devuelve probabilidades en vez de texto. Está pensado para desarrolladores que quieren poner un umbral a la probabilidad que devuelve un modelo y procesar casos automáticamente sin revisión humana. Al terminar sabrás cómo se calcula el `confidence` de Jev, cuánto se mueve la calibración según la distribución y un procedimiento para fijar el umbral con tus propios datos.
 
@@ -43,7 +43,7 @@ Hay un [análisis](https://archerhume.com/posts/jevs-architecture-unmasked/) de 
 
 ## Decisiones que nadie mira
 
-La velocidad y el precio llaman la atención, pero la pregunta que Almeida lanzó en su artículo de presentación iba por otro lado: si los modelos llevan años siendo sobrehumanos conversando, ¿adónde ha ido toda la automatización?
+La velocidad y el precio aparecen primero, pero la pregunta que Almeida lanzó en su artículo de presentación iba por otro lado: si los modelos llevan años siendo sobrehumanos conversando, ¿adónde ha ido toda la automatización?
 
 Su respuesta es que se trata de dos clases de trabajo distintas. Un chatbot, un copilot y un agente de programación tienen como objetivo satisfacer a la persona que mira desde al lado. Las decisiones que se ejecutan en silencio en un servidor y que nadie mira no tienen ese objetivo. Si llamamos assistant a lo primero y automation a lo segundo, todos los modelos publicados hasta hoy se hicieron para lo primero.
 
@@ -53,19 +53,19 @@ Ya hice una distinción parecida al ordenar [el diseño de harness](/260622). De
 
 Pero ¿por qué hacía falta un método de entrenamiento nuevo? ¿No basta con pedirle solo sí/no a un modelo de los de siempre?
 
-La pista está en la :term[calibración]{key="calibration"}. Si la exactitud es qué porcentaje aciertas, la calibración es si sabes qué porcentaje vas a acertar, y la métrica que mide ese desajuste es el :term[ECE]{key="ece"} (expected calibration error). Es la media de la diferencia entre la probabilidad declarada y la tasa real de acierto en cada tramo de probabilidad, ponderada por la proporción de muestras, así que 0 es la perfección. Pero hay un caso en que esta escala se desajustó tras pasar por :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback), que optimiza la preferencia humana. En la Figure 8 del [informe técnico de GPT-4](https://arxiv.org/abs/2303.08774), el ECE del modelo preentrenado era **0.007**, y el del modelo tras el post-training, **0.074**, más de diez veces peor. El informe no da la causa, y yo tampoco encontré una fuente primaria que la establezca. La definición y hasta dónde se conoce la causa los dejé explicados aparte en [Calibración y exceso de confianza en los LLM](/260917).
+La pista está en la :term[calibración]{key="calibration"}. Si la exactitud es qué porcentaje aciertas, la calibración es si sabes qué porcentaje vas a acertar. La métrica que mide ese desajuste es el :term[ECE]{key="ece"} (expected calibration error). Es la media de la diferencia entre la probabilidad declarada y la tasa real de acierto en cada tramo de probabilidad, ponderada por la proporción de muestras, así que 0 es la perfección. :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback) es un método que optimiza la preferencia humana. Hay casos en que esta escala se desajustó tras pasar por él. En la Figure 8 del [informe técnico de GPT-4](https://arxiv.org/abs/2303.08774), el ECE del modelo preentrenado era **0.007**, y el del modelo tras el post-training, **0.074**, más de diez veces peor. El informe no da la causa, y yo tampoco encontré una fuente primaria que la establezca. La definición y hasta dónde se conoce la causa los dejé explicados aparte en [Calibración y exceso de confianza en los LLM](/260917).
 
 **Pero el ECE por sí solo no basta.** Un predictor constante que estampa 0.6 en todas las entradas también tiene ECE 0 si su tasa real de acierto es del 60%. Si la probabilidad solo es honesta pero no se separa caso por caso, no hay sitio donde trazar la línea. Por eso, al margen de la calibración, hay que mirar también **si la probabilidad de verdad se separa**, y «la proporción que se puede automatizar dentro de un presupuesto de error», que usaré más adelante, es la métrica que reúne esas dos cosas en una sola cifra.
 
 Desde el punto de vista del software, lo que importa es esta parte. Si la probabilidad es honesta y se separa, se puede trazar la línea. Sale una estructura en la que por encima de 0.95 se procesa automáticamente y por debajo se pasa a una persona.
 
-TypeSafe dice haber abierto un tercer camino apuntando a ese lugar: RLHF, que optimiza la preferencia humana; RLVR (reinforcement learning with verifiable rewards), que optimiza respuestas correctas que una máquina puede puntuar; y RLCD, que según ellos optimiza decisiones calibradas.
+TypeSafe dice haber abierto un tercer camino apuntando a ese lugar. El primero es RLHF, que optimiza la preferencia humana; el segundo es RLVR (reinforcement learning with verifiable rewards), que optimiza respuestas correctas que una máquina puede puntuar; y el tercero es RLCD, que según ellos optimiza decisiones calibradas.
 
 Pero de RLCD lo único publicado son tres líneas de contrato de salida. A fecha de 23 de septiembre de 2026, cuando escribo este artículo, no hay artículo ni informe técnico en ninguna parte de la documentación ni del artículo de presentación de TypeSafe. Existe por separado un [artículo de ICLR 2024](https://arxiv.org/abs/2307.12950) que usa la misma sigla, pero ahí significa reinforcement learning from contrastive distillation, un método distinto. Conviene no mezclarlos al buscar.
 
 ## Qué es en realidad confidence
 
-Entonces, ¿es honesto el número que devuelve Jev? Antes de responder hay que ver una cosa. **El número que devuelve no es uno solo.**
+Entonces, ¿es honesto el número que devuelve Jev? Antes de responder hay que ver una cosa. **Devuelve varios números.**
 
 ![En la respuesta de Jev, probabilities se produce mediante el entrenamiento y confidence es esa distribución plegada por aritmética; la afirmación de calibración recae solo sobre probabilities](3.png?w=720)
 
@@ -86,7 +86,7 @@ def choice_confidence(probs: list[float]) -> float:
 
 No hay llamada al modelo ni parámetros aprendidos. Entra un vector de `probabilities` y sale un número real. Escrito como fórmula es `c = (p_max − 1/K) / (1 − 1/K)`, y si hay tres opciones y la probabilidad máxima es 0.8, da 0.7.
 
-Este repositorio no es el servidor Jev de producción, sino una implementación alternativa que imita la misma API con un LLM. Así que esto por sí solo no permite afirmarlo con rotundidad. Pero hay dos pruebas más que apuntan a la misma fórmula. La [página sobre confidence](https://docs.typesafe.ai/confidence) de la documentación oficial de TypeSafe describe este valor como "a statistic computed from the probability distribution" y en su código de demostración incluye `(3 × largest probability − 1) / 2` como fórmula aproximada para tres opciones. Con K igual a 3 coincide con la fórmula de arriba. Y un [registro de auditoría de afirmaciones](https://github.com/SamuelSacco/jev-exploration) dejó anotado que, en la API real, con una respuesta a la que se dieron solo dos opciones, ambas incorrectas, y cuya ganadora valía 0.52, el `confidence` llegó como 0.04. Con K igual a 2, `(0.52 − 0.5) / (1 − 0.5) = 0.04`. Coincide con la fórmula.
+Este repositorio es una implementación alternativa que imita la misma API con un LLM, distinta del servidor Jev de producción. Así que esto por sí solo no permite afirmarlo con rotundidad. Pero hay dos pruebas más que apuntan a la misma fórmula. La [página sobre confidence](https://docs.typesafe.ai/confidence) de la documentación oficial de TypeSafe describe este valor como "a statistic computed from the probability distribution". El código de demostración incluye `(3 × largest probability − 1) / 2` como fórmula aproximada para tres opciones. Con K igual a 3 coincide con la fórmula de arriba. Y un [registro de auditoría de afirmaciones](https://github.com/SamuelSacco/jev-exploration) dejó anotado que, en la API real, con una respuesta a la que se dieron solo dos opciones, ambas incorrectas, y cuya ganadora valía 0.52, el `confidence` llegó como 0.04. Con K igual a 2, `(0.52 − 0.5) / (1 − 0.5) = 0.04`. Coincide con la fórmula.
 
 En el mismo repositorio, `Score` usa directamente otra fórmula: divide la distancia absoluta media respecto al nivel más frecuente entre la que daría una distribución uniforme y luego **lo resta de 1**. La documentación no publica la fórmula de `Score`. Es decir, bajo un mismo nombre, `confidence`, hay dos fórmulas, y si cambia el tipo el mismo número significa otra cosa. Que `Noul` no tenga `confidence` obedece a la misma razón: no hay distribución que plegar.
 
@@ -122,11 +122,11 @@ Si se sacan del `report.json` de ese mismo directorio las métricas de los siete
 
 Se leen dos cosas.
 
-Primera: **el ECE se mueve casi diez veces.** Va de 0.011 a 0.105. Mismo corrector, mismo modelo. «Está calibrado» no es una propiedad del modelo, sino una relación entre el modelo y la distribución. Que la calibración se venga abajo cuando cambia la distribución es un resultado ya conocido. Lo nuevo aquí es que **la misma forma aparece también en un modelo que presenta la calibración como objetivo de entrenamiento**.
+Primera: **el ECE se mueve casi diez veces.** Va de 0.011 a 0.105. Mismo corrector, mismo modelo. La frase «está calibrado», que parece describir una propiedad del modelo, apunta en realidad a una relación entre el modelo y la distribución. Que la calibración se venga abajo cuando cambia la distribución es un resultado ya conocido. Lo nuevo aquí es que **la misma forma aparece también en un modelo que presenta la calibración como objetivo de entrenamiento**.
 
 El 0.105 del conjunto con mayor ECE es incluso mayor que el 0.074 del GPT-4 post-RLHF que vimos antes. Aun así, estos dos no deben leerse como un ranking. Las tareas son distintas, y el ECE es un estimador cuyo valor se mueve según en cuántos tramos se divida y en qué tramo se acumulen las muestras, de modo que enfrentar cifras salidas de correctores distintos no constituye una comparación válida.
 
-Segunda: **el ECE medido se explica casi por completo con el exceso de confianza.** La diferencia entre ambas columnas está, en los siete casos, entre 0.002 y 0.011. Como el ECE es la media ponderada de las brechas por tramo, no puede ser menor que el exceso de confianza global; que esa diferencia sea casi 0 significa que **las brechas de cada tramo no son ruido que se cancela entre sí, sino que están inclinadas en una misma dirección**.
+Segunda: **el ECE medido se explica casi por completo con el exceso de confianza.** La diferencia entre ambas columnas está, en los siete casos, entre 0.002 y 0.011. Como el ECE es la media ponderada de las brechas por tramo, no puede ser menor que el exceso de confianza global. Pero que esa diferencia sea casi 0 significa que **las brechas por tramo no se cancelan entre sí en direcciones distintas, sino que están inclinadas en una misma dirección**.
 
 Por qué ocurre se ve leyendo la tabla en vertical. Si quitamos `semif`, seis valores de confianza media se apelotonan entre 0.851 y 0.906. En ese mismo rango, la exactitud se mueve entre 0.753 y 0.857, el doble de ancho. **La confianza apenas se mueve aunque cambie la distribución; solo se mueve la exactitud. La diferencia que queda es directamente el ECE.**
 
@@ -134,15 +134,15 @@ Por qué ocurre se ve leyendo la tabla en vertical. Si quitamos `semif`, seis va
 
 Otro benchmark muestra cómo se manifiesta esta propiedad en la práctica. En una [medición](https://github.com/anisselbd/jev-phishing-bench) sobre 2,000 correos de phishing con Claude Haiku 4.5 como grupo de control, la exactitud de Jev fue del 62.6% y la de Haiku del 81.3%. El ECE es 0.154 para Jev y 0.097 para Haiku, según el repositorio, y si el registro de auditoría de afirmaciones vuelve a medir el valor `P(phishing)` de Jev en 10 tramos de 0 a 1, sale 0.170. Se lea como se lea, **el modelo que presenta la calibración como objetivo de entrenamiento perdió en calibración frente a un LLM hecho con RLHF.** El mismo autor sacó un 91.6% solo con una regla de lista de hosts de enlaces.
 
-Si se mira la misma métrica en varios conjuntos, la amplitud queda más clara. La proporción que se puede automatizar con un :term[presupuesto de error]{key="error-budget"} del 5% es 0.486 en el conjunto `scienthoon`, 0.695 en `transfer-v9` y 1.000 en `semif`. El corrector de Kev anota que este valor es el máximo obtenido eligiendo el umbral dentro de la muestra, y no una garantía de error tras el despliegue. **Ninguna de ellas debe citarse como si fuera una especificación del modelo.**
+Si se mira la misma métrica en varios conjuntos, la amplitud queda más clara. La proporción que se puede automatizar con un :term[presupuesto de error]{key="error-budget"} del 5% es 0.486 en el conjunto `scienthoon`, 0.695 en `transfer-v9` y 1.000 en `semif`. El corrector de Kev anota que este valor es el máximo obtenido eligiendo el umbral dentro de la muestra, un valor que no puede interpretarse como una garantía del error tras el despliegue. **Ninguna de ellas debe citarse como si fuera una especificación del modelo.**
 
 ## La compuerta de transcripciones
 
 Leer el benchmark de otro y medir sobre mis propios datos son cosas distintas. Así que hice pasar de verdad por el modelo la compuerta del principio.
 
-Todavía no tengo una clave de API de Jev. En su lugar **ejecuté en local el Kev-9B** que mencioné antes. Es una implementación de reproducción que monta un :term[LoRA]{key="lora"} de rank 16 y una pointer head sobre Qwen3.5-9B-Base, con licencia Apache-2.0. Las cifras de abajo no son las de Jev. Los datos de entrenamiento de Kev son tareas de decisión en inglés, y en la medición de su propio autor Kev-9B queda por detrás de Jev incluso en tareas en inglés: su proporción de automatización con un presupuesto de error del 5% va de 0.45 a 0.57, mientras que la de Jev es 0.70, y en MMLU-Pro es 0.52 frente a 0.84. Además, la propia documentación de TypeSafe declara sobre Jev que [el inglés es su lengua principal de entrenamiento y el CJK no está al mismo nivel](https://docs.typesafe.ai/models).
+Todavía no tengo una clave de API de Jev. En su lugar **ejecuté en local el Kev-9B** que mencioné antes. Es una implementación de reproducción que monta un :term[LoRA]{key="lora"} de rank 16 y una pointer head sobre Qwen3.5-9B-Base. La licencia es Apache-2.0. **Las cifras de abajo son de Kev, no de Jev.** Los datos de entrenamiento de Kev son tareas de decisión en inglés, y en la medición de su propio autor Kev-9B queda por detrás de Jev incluso en tareas en inglés: su proporción de automatización con un presupuesto de error del 5% va de 0.45 a 0.57, mientras que la de Jev es 0.70, y en MMLU-Pro es 0.52 frente a 0.84. Además, la propia documentación de TypeSafe declara sobre Jev que [el inglés es su lengua principal de entrenamiento y el CJK no está al mismo nivel](https://docs.typesafe.ai/models).
 
-El conjunto de evaluación lo saqué de 18 artículos en coreano de este repositorio. El criterio de verdad de las etiquetas es **con qué grafía escribe este repositorio esa palabra de forma consistente**. Es decir, no es el consenso de la comunidad de documentación técnica coreana, sino la costumbre de este blog; en las palabras donde ambas cosas divergen, el modelo puede acertar según el criterio de la comunidad y fallar según este.
+El conjunto de evaluación lo saqué de 18 artículos en coreano de este repositorio. El criterio de verdad de las etiquetas es **con qué grafía escribe este repositorio esa palabra de forma consistente**. Es decir, la referencia es la costumbre de este blog en lugar del consenso de la comunidad de documentación técnica coreana. En las palabras donde ambas cosas divergen, el modelo puede acertar según el criterio de la comunidad y fallar según este.
 
 - **Conjunto de la compuerta, 102 frases**: Son palabras que la compuerta ya conoce. Los positivos son 23 **frases contrafácticas** en las que palabras que el texto escribe en inglés, como `calendar`, `picker` o `adapter`, se han devuelto a su transcripción en hangul; los negativos son 79 frases en las que aparecen de verdad palabras que `write-post.md` declara como excepción, como `리렌더링` o `콜 스택`. Aquí la compuerta de expresiones regulares actual acierta el 100% por definición.
 - **Conjunto en reserva, 60 frases**: **Son palabras que la compuerta no ha visto nunca.** Es lo que en machine learning se llama conjunto :term[held-out]{key="held-out-set"}. Los positivos son 30 casos en los que `loader`, `mutation` y `prefill`, que el texto escribe solo en inglés, se han devuelto a su transcripción; los negativos son 30 casos con `리듀서`, `스냅샷` y `런타임`, que el texto escribe solo en hangul. Aquí la expresión regular no atrapa ni un solo positivo.
@@ -170,7 +170,7 @@ La línea base de clase mayoritaria es la puntuación que se obtiene sin leer la
 
 La última fila es la respuesta de este experimento. **En el conjunto en reserva, por muy alto que pusiera el umbral, no hubo ni una sola decisión que pudiera procesarse automáticamente dentro de un 5% de error.**
 
-Mirando la distribución de predicciones se ve qué ocurrió. El modelo respondió **«hay que devolverla» en las 162 frases.** En las 37 palabras distintas, todas. Acertó todos los positivos y falló todos los negativos. Por eso el 0.500 del conjunto en reserva es una cifra que sale del equilibrio del conjunto, no un resultado que demuestre la capacidad del modelo.
+Mirando la distribución de predicciones se ve qué ocurrió. El modelo respondió **«hay que devolverla» en las 162 frases.** En las 37 palabras distintas, todas. Acertó todos los positivos y falló todos los negativos. Por eso el 0.500 del conjunto en reserva es una cifra que sale del equilibrio del conjunto; no refleja la capacidad del modelo.
 
 Y con eso la confianza media era 0.876. En el conjunto de la compuerta, el 49% superó una confianza de 0.9, y el acierto real de ese tramo es 0.240.
 
@@ -207,19 +207,19 @@ Cogí los párrafos de reglas que ya están escritos en `write-post.md`, los met
 | Automatización con presupuesto del 5% | 0.010 | 0.314 | 0.000 | 0.050 |
 | Latencia mediana | 2,924ms | 6,903ms | 2,908ms | 6,918ms |
 
-La latencia corresponde a inferencia local en un M2 Max, así que no está en el mismo eje que la latencia de la API de Jev que vimos antes. Lo que hay que mirar aquí es el factor de 2.4 que aparece al meter el material de referencia.
+La latencia corresponde a inferencia local en un M2 Max, así que está en un eje distinto al de la latencia de la API de Jev que vimos antes. Aquí lo que importa es el factor de 2.4 al meter el material de referencia.
 
 **En el conjunto en reserva, que está equilibrado, la exactitud por frase pasó de 0.500 a 0.500: no se movió en absoluto.** Por palabra incluso bajó, de 7/13 a 5/13.
 
 ![Antes y después de añadir el párrafo de reglas al state, en las 60 frases fuera de la compuerta. Antes acertó las 30 frases a revertir y falló las 30 a conservar; después acertó 8 y 22. El total de aciertos es 30 en ambos casos](7.png?w=720)
 
-El salto de 0.225 a 0.676 en el conjunto de la compuerta no es una mejora de habilidad. Antes respondía «se devuelve» en las 102 frases, y al darle el material de referencia solo respondió así en 12. Los negativos subieron de 0/79 a 68/79, pero los positivos se hundieron de 23/23 a 1/23. En ese conjunto los negativos ganan por 79 a 23, así que una constante del tipo «déjalo casi siempre» recibe automáticamente una puntuación más alta. **No aprendió a distinguir: cambió la inclinación.**
+El salto de 0.225 a 0.676 en el conjunto de la compuerta no puede interpretarse como una mejora de habilidad. Antes respondía «se devuelve» en las 102 frases, y al darle el material de referencia solo respondió así en 12. Los negativos subieron de 0/79 a 68/79, pero los positivos se hundieron de 23/23 a 1/23. En ese conjunto los negativos ganan por 79 a 23, así que una constante del tipo «déjalo casi siempre» recibe automáticamente una puntuación más alta. **No aprendió a distinguir: cambió la inclinación.**
 
-Eso no significa que el modelo no lea las frases. Con las mismas frases de las mismas palabras, al darle el material de referencia las predicciones se dispersaron frase a frase. La desviación típica de `로더` subió de 0.096 a 0.217, y la de `뮤테이션` de 0.042 a 0.236. **Lee, pero no distingue.**
+Aun así, el modelo lee las frases hasta cierto punto. Con las mismas frases de las mismas palabras, al darle el material de referencia las predicciones se dispersaron frase a frase. La desviación típica de `로더` subió de 0.096 a 0.217, y la de `뮤테이션` de 0.042 a 0.236. **Lee, pero no distingue.**
 
-Y este resultado también sacude la interpretación de la sección anterior. Si un solo texto del state da la vuelta por completo a la salida, el «devolverlas todas» de la primera ejecución podría no ser un límite del modelo, sino una carencia en la redacción de la pregunta. Este artículo no ha podido descartar esa posibilidad.
+Y este resultado también sacude la interpretación de la sección anterior. Si un solo texto del state da la vuelta por completo a la salida, el «devolverlas todas» de la primera ejecución pudo deberse a una carencia en la redacción de la pregunta, en vez de a un límite del modelo. Este artículo no ha podido descartar esa posibilidad.
 
-Una cosa sí mejoró de forma visible. La suma de las probabilidades de «se devuelve» y «se deja» se acercó, en el conjunto en reserva, de 1.508 a 0.963, y las frases que se alejaban mucho de 1 bajaron de 59 a 18. **Pero la exactitud no se movió.** Que las probabilidades de dos preguntas encajen entre sí y que esas probabilidades sean correctas son cosas distintas.
+Una cosa sí mejoró mucho. La suma de las probabilidades de «se devuelve» y «se deja» se acercó, en el conjunto en reserva, de 1.508 a 0.963, y las frases que se alejaban mucho de 1 bajaron de 59 a 18. **Pero la exactitud no se movió.** Que las probabilidades de dos preguntas encajen entre sí y que esas probabilidades sean correctas son cosas distintas.
 
 ## El lugar de los modelos de decisión
 

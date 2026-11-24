@@ -9,9 +9,8 @@ description: "Jev returns probabilities instead of text. Its confidence is arith
 keywords: 'Jev, TypeSafe AI, System One model, RLCD, model calibration, ECE, confidence threshold, decision model, Kev open source, Jev use cases'
 locale: en
 translationOf: '260922'
-sourceHash: bf47207b164b742f25ac8cfc422a3b7ad7bda87ba85769d7fed16bceb99a7ff3
+sourceHash: 81229ad1f2359a9b54ec07493bdb81f85d59ac3207b2564a0bd152eb951ff297
 ---
-
 In this post, I want to talk about Jev, a model TypeSafe AI released last week that returns probabilities instead of text. This is for developers who want to put a threshold on a model's returned probability and handle cases automatically without a human check. By the end, you will know how Jev's `confidence` is calculated, how much calibration moves with the distribution, and a procedure for setting the threshold on your own data.
 
 The first use that caught my eye was browser automation. Browserbase opened a [PR](https://github.com/browserbase/stagehand/pull/2953) that wires Jev into Stagehand's `act()`. The page's :term[accessibility tree]{key="accessibility-tree"} goes in as `state`, and the question "which element should be clicked next" is asked as a set of options. Across 40 tasks the median `act()` latency dropped from 1.97 seconds to 0.46, and of 147 actions only 4 fell back to an LLM. The spot where a Playwright script breaks the moment one selector changes was filled with a call that returns a single probability. As I write this, the PR has not been merged.
@@ -20,7 +19,7 @@ The first use that caught my eye was browser automation. Browserbase opened a [P
 
 The line that PR drew is the question of this post. It accepts Jev's answer at a [probability of 0.7](https://www.browserbase.com/blog/what-is-jev) and hands anything below that to an LLM. **Can you trust the probabilities that model returns and draw a line in your code?**
 
-Someone else's benchmark cannot settle that, so I want to verify it on my own data. This blog has a gate that blocks transliterated loanwords. The rule says to write `피커` as `picker`, but the regular expressions only catch the half that is certain, and words that sit inside a compound or are already settled in Korean, like `멀티스레드` or `콜 스택`, I judge by hand every time. There are only two answers, revert or keep, anyone who knows decides in a second, and the pass or fail has to be decided inside a build script with no human checking. It has the same shape as Stagehand's selector decision.
+Someone else's benchmark cannot settle that, so I want to verify it on my own data. This blog has a gate that blocks transliterated loanwords. The rule says to write `피커` instead of `picker`, but the regular expressions only catch the half that is certain, and words that sit inside a compound or are already settled in Korean, like `멀티스레드` or `콜 스택`, I judge by hand every time. There are only two answers, revert or keep, anyone who knows decides in a second, and the pass or fail has to be decided inside a build script with no human checking. It has the same shape as Stagehand's selector decision.
 
 So the order is this. What Jev returns, what kind of training produces that probability, what numbers come out when I hand it my gate, and where those numbers can be used.
 
@@ -44,7 +43,7 @@ A developer named Archer Hume called the API roughly ten thousand times and reco
 
 ## Decisions nobody watches
 
-The speed and the price stand out, but the question Almeida raised in the launch post pointed elsewhere. Models have been superhuman at conversation for years now, so where did all the automation go?
+The speed and the price come first, but the question Almeida raised in the launch post pointed elsewhere. Models have been superhuman at conversation for years now, so where did all the automation go?
 
 His answer is that the two kinds of work are different. Chatbots, copilots, and coding agents have the goal of satisfying a person watching from beside you. A judgment that runs quietly on a server with nobody watching does not. If you call the former assistant and the latter automation, every model released so far was built for the former.
 
@@ -54,19 +53,19 @@ I drew a similar distinction while writing up [harness design](/260622). An agen
 
 But why did this call for a new training method? Could you not simply make an existing model answer yes or no?
 
-The clue lies in :term[calibration]{key="calibration"}. If accuracy is what percentage you get right, calibration is whether you know what percentage you will get right, and the metric for that gap is :term[ECE]{key="ece"} (expected calibration error). It averages the difference between the stated probability and the actual hit rate in each probability bin, weighted by sample share, so 0 is perfect. Yet there is a case where this scale drifted after :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback), which optimizes human preference. In Figure 8 of the [GPT-4 technical report](https://arxiv.org/abs/2303.08774), the pre-trained model's ECE was **0.007**, while the post-trained model's was **0.074**, more than ten times worse. The report does not state the cause, and I have not found a primary source that establishes one either. I wrote up the definitions and how much of the cause is known separately in [LLM Calibration and Overconfidence](/260917).
+The clue lies in :term[calibration]{key="calibration"}. If accuracy is what percentage you get right, calibration is whether you know what percentage you will get right. The metric for that gap is :term[ECE]{key="ece"} (expected calibration error). It averages the difference between the stated probability and the actual hit rate in each probability bin, weighted by sample share, so 0 is perfect. :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback) is a method for optimizing human preference. There is a case where this scale drifted after going through it. In Figure 8 of the [GPT-4 technical report](https://arxiv.org/abs/2303.08774), the pre-trained model's ECE was **0.007**, while the post-trained model's was **0.074**, more than ten times worse. The report does not state the cause, and I have not found a primary source that establishes one either. I wrote up the definitions and how much of the cause is known separately in [LLM Calibration and Overconfidence](/260917).
 
 **But ECE alone is not enough.** A constant predictor that stamps 0.6 on every input also has an ECE of 0 as long as its real hit rate is 60%. If the probabilities are merely honest and do not separate from case to case, there is nowhere to draw a line. So alongside calibration you have to watch **whether the probabilities actually separate**, and the "share that can be automated inside an error budget" I use later on is the metric that folds those two into one number.
 
 From a software point of view, this is the part that matters. If the probabilities are honest and they separate, you can draw a line. You get a structure where anything above 0.95 is handled automatically and anything below goes to a person.
 
-TypeSafe says it opened a third road aimed at that spot: RLHF, which optimizes human preference; RLVR (reinforcement learning with verifiable rewards), which optimizes answers a machine can grade; and RLCD, which it says optimizes calibrated decisions.
+TypeSafe says it opened a third road aimed at that spot. First is RLHF, which optimizes human preference; second is RLVR (reinforcement learning with verifiable rewards), which optimizes answers a machine can grade; third is RLCD, which it says optimizes calibrated decisions.
 
 But what has actually been published as RLCD is only three lines of output contract. As of September 23, 2026, when I am writing this, there is no paper or technical report anywhere in TypeSafe's documentation or launch post. There is a separate [ICLR 2024 paper](https://arxiv.org/abs/2307.12950) using the same acronym, but that one is reinforcement learning from contrastive distillation, a different method. Take care not to mix them up when searching.
 
 ## What confidence really is
 
-So, are the numbers Jev returns honest? Before answering, there is something to look at first. **It does not return one number.**
+So, are the numbers Jev returns honest? Before answering, there is something to look at first. **It returns several numbers.**
 
 ![A diagram showing that in a Jev response probabilities are produced by training while confidence is that distribution folded by arithmetic, and that the calibration claim attaches only to probabilities](3.png?w=720)
 
@@ -87,7 +86,7 @@ def choice_confidence(probs: list[float]) -> float:
 
 There is no model call and no learned parameter. One `probabilities` vector goes in and one real number comes out. Written as a formula it is `c = (p_max − 1/K) / (1 − 1/K)`, and with three options and a peak probability of 0.8 it comes to 0.7.
 
-This repository is not the production Jev server but a substitute implementation that imitates the same API with an LLM. So this alone cannot settle it. There are, however, two further pieces of evidence pointing at the same formula. The [confidence page](https://docs.typesafe.ai/confidence) of TypeSafe's official documentation describes this value as "a statistic computed from the probability distribution" and, in its demo code, gives `(3 × largest probability − 1) / 2` as an approximation for three options. With K at 3, that is the formula above. And a [claims audit ledger](https://github.com/SamuelSacco/jev-exploration) recorded that on the real API, when the winner of a response given only two options that were both wrong was 0.52, `confidence` came back as 0.04. With a K of 2, `(0.52 − 0.5) / (1 − 0.5) = 0.04`. It matches the formula.
+This repository, unlike the production Jev server, is a substitute implementation that imitates the same API with an LLM. So this alone cannot settle it. But there are two more pieces of evidence pointing to the same formula. The [confidence page](https://docs.typesafe.ai/confidence) in TypeSafe's official documentation describes this value as "a statistic computed from the probability distribution." The demo code gives `(3 × largest probability − 1) / 2` as an approximation for three options. With K at 3, that is the formula above. And a [claims audit ledger](https://github.com/SamuelSacco/jev-exploration) recorded that on the real API, when the winner of a response given only two options that were both wrong was 0.52, `confidence` came back as 0.04. With K at 2, `(0.52 − 0.5) / (1 − 0.5) = 0.04`. It matches the formula.
 
 In the same repository, `Score` uses an entirely different formula. It divides the mean absolute distance from the modal level by the same quantity for a uniform distribution and then **subtracts the result from 1**. The documentation does not publish the formula for `Score`. So there are two formulas under the single name `confidence`, and with a different type the same number means something different. `Noul` having no `confidence` is for the same reason. There is no distribution to fold.
 
@@ -123,11 +122,11 @@ Pulling the metrics for seven evaluation sets out of `report.json` in the same d
 
 Two things read out of it.
 
-First, **the ECE moves by nearly ten times.** From 0.011 to 0.105. Same scorer, same model. "Calibrated" is not a property of the model but a relation between the model and the distribution. That calibration collapses when the distribution shifts is itself a known result. What is new here is that **the same shape appears even in a model that puts calibration forward as its training objective**.
+First, **the ECE moves by nearly ten times.** From 0.011 to 0.105. Same scorer, same model. The phrase "calibrated," which sounds like a property of the model, points to a relationship between the model and the distribution. That calibration collapses when the distribution shifts is itself a known result. What is new here is that **the same shape appears even in a model that puts calibration forward as its training objective**.
 
 The 0.105 of the set with the largest ECE is bigger even than the 0.074 of the post-RLHF GPT-4 seen earlier. Still, you must not read these two as a ranking. The tasks differ, and ECE is an estimator whose value moves with how many bins you split into and which bins the samples pile up in, so placing numbers from different scorers side by side does not make a valid comparison.
 
-Second, **the measured ECE is almost entirely explained by overconfidence alone.** The difference between the two columns runs from 0.002 to 0.011 for all seven. ECE is a weighted average of per-bin gaps, so it cannot be smaller than the overall overconfidence, and that difference being nearly 0 means **the gaps in each bin lean in the same direction rather than being noise that cancels out**.
+Second, **the measured ECE is almost entirely explained by overconfidence alone.** The difference between the two columns runs from 0.002 to 0.011 for all seven. ECE is a weighted average of per-bin gaps, so it cannot be smaller than the overall overconfidence. But that difference being nearly 0 means **the gaps are skewed in one direction, rather than canceling one another across bins**.
 
 Reading down the columns shows why. Leave out `semif` and six of the mean peak probabilities sit packed between 0.851 and 0.906. Over the same stretch accuracy moves twice as wide, from 0.753 to 0.857. **Peak probability barely moves when the distribution changes, and only accuracy moves. The difference left over is the ECE.**
 
@@ -135,22 +134,22 @@ Reading down the columns shows why. Leave out `semif` and six of the mean peak p
 
 Another benchmark shows how this property surfaces in practice. In a [measurement](https://github.com/anisselbd/jev-phishing-bench) on 2,000 phishing emails with Claude Haiku 4.5 as the control, Jev's accuracy was 62.6% and Haiku's was 81.3%. The ECE is 0.154 for Jev and 0.097 for Haiku as reported in the repository, and when the claims audit ledger re-bins Jev's `P(phishing)` values into 10 bins from 0 to 1, it comes to 0.170. Read either way, **a model that puts calibration forward as its training objective lost on calibration to an LLM built with RLHF.** The same author got 91.6% from the link host list rule alone.
 
-Looking at the same metric across several sets makes the spread plainer. The share that can be handled automatically at a 5% :term[error budget]{key="error-budget"} is 0.486 on the `scienthoon` set, 0.695 on `transfer-v9`, and 1.000 on `semif`. Kev's scorer notes that this value is the maximum with the threshold chosen inside the sample, not an error guarantee after deployment. **You must not cite any one of them as if it were the model's spec.**
+Looking at the same metric across several sets makes the spread plainer. The share that can be handled automatically at a 5% :term[error budget]{key="error-budget"} is 0.486 on the `scienthoon` set, 0.695 on `transfer-v9`, and 1.000 on `semif`. Kev's scorer notes that this value is the maximum with the threshold chosen inside the sample, and it cannot be read as a guarantee of post-deployment error. **You must not cite any one of them as if it were the model's spec.**
 
 ## The transliteration gate
 
 Reading someone else's benchmark and measuring on my own data are different things. So I put the gate from the opening through it for real.
 
-I do not have a Jev API key yet. Instead I **ran Kev-9B locally**, the reimplementation mentioned above. It puts a rank-16 :term[LoRA]{key="lora"} and a pointer head on Qwen3.5-9B-Base, and it is Apache-2.0. The numbers below are not Jev's numbers. Kev's training data is English decision tasks, and in the same author's measurements Kev-9B trails Jev even on English tasks. Its automation share at a 5% error budget is 0.45 to 0.57 against Jev's 0.70, and on MMLU-Pro it is 0.52 against 0.84. The TypeSafe documentation also states, about Jev, that [English is the primary training language and CJK is not equivalent](https://docs.typesafe.ai/models).
+I do not have a Jev API key yet. Instead I **ran Kev-9B locally**, the reimplementation mentioned above. It puts a rank-16 :term[LoRA]{key="lora"} and a pointer head on Qwen3.5-9B-Base. Its license is Apache-2.0. **The numbers below are Kev's, not Jev's.** Kev's training data is English decision tasks, and in the same author's measurements Kev-9B trails Jev even on English tasks. Its automation share at a 5% error budget is 0.45 to 0.57 against Jev's 0.70, and on MMLU-Pro it is 0.52 against 0.84. The TypeSafe documentation also states, about Jev, that [English is the primary training language and CJK is not equivalent](https://docs.typesafe.ai/models).
 
-The evaluation sets were drawn from 18 Korean posts in this repository. The ground truth for a label is **which spelling this repository consistently uses for that word**. That means it is this blog's convention rather than a consensus of the Korean technical writing community, and on words where the two diverge the model can be right by the community standard and wrong by this one.
+The evaluation sets were drawn from 18 Korean posts in this repository. The ground truth for a label is **which spelling this repository consistently uses for that word**. This means the blog's convention is the standard here instead of a consensus of the Korean technical writing community. On words where the two diverge, the model can be right by the community standard and wrong by this one.
 
 - **The gate set, 102 sentences**: These are words the gate already knows. The positives are 23 **counterfactual sentences** in which words the body writes in English, such as `calendar`, `picker`, and `adapter`, were turned back into Korean transliterations; the negatives are 79 sentences that actually use the exceptions `write-post.md` spells out, such as `리렌더링` and `콜 스택`. On this set the current regular expression gate is right 100% of the time by definition.
 - **The held-out set, 60 sentences**: **These are words the gate has never seen.** This is what machine learning calls a :term[held-out]{key="held-out-set"} set. The positives are 30 sentences that turn `loader`, `mutation`, and `prefill`, which the body writes only in English, back into transliterations; the negatives are 30 sentences with `리듀서`, `스냅샷`, and `런타임`, which the body writes only in Korean. Here the regular expressions catch none of the positives.
 
 ![Diagram of the 102-sentence gate set and 60-sentence held-out set, their positive and negative composition, and how the regex gate covers the gate set completely but catches none of the held-out positives](6.png?w=720)
 
-Let me disclose up front the asymmetry that the positives are counterfactual sentences I built while the negatives are real sentences. And **the effective sample is the number of words, not the number of sentences.** Labels are decided per word, so sentences containing the same word are not independent observations. The gate set has 24 distinct words and the held-out set 13.
+Let me disclose up front the asymmetry that the positives are counterfactual sentences I built while the negatives are real sentences. And **the effective sample is the number of words, not the number of sentences.** Labels are decided per word, so sentences containing the same word cannot be treated as independent observations. The gate set has 24 distinct words and the held-out set 13.
 
 The table below tallies only the one `noul` question asking "should this word be turned back into English." I put four questions in the same request, but the other three were a negated form, a `Choice` variant, and a compound-word judgment whose labels I could not set properly, so they are not mixed in here. The **5% budget automation share** is the largest share you get by cutting down from the highest peak probability such that the error above the cut does not exceed 5%.
 
@@ -171,7 +170,7 @@ The majority class baseline is the score you get by never reading the sentence a
 
 The last row is this experiment's answer. **On the held-out set, no matter how high I set the threshold, there was not a single decision that could be handled automatically within a 5% error.**
 
-The prediction distribution shows what happened. The model answered **"it should be turned back" on all 162 sentences.** All 37 distinct words. Every positive right and every negative wrong. So the 0.500 on the held-out set is a number that comes from the set being balanced, not a result that shows the model's skill.
+The prediction distribution shows what happened. The model answered **"it should be turned back" on all 162 sentences.** All 37 distinct words. Every positive right and every negative wrong. So the 0.500 on the held-out set is a number that comes from the set being balanced; it says nothing about the model's skill.
 
 And while doing that, its mean peak probability was 0.876. On the gate set, 49% came in above a peak probability of 0.9, and the actual hit rate in that band is 0.240.
 
@@ -208,19 +207,19 @@ I took the rules paragraph already written in `write-post.md`, put it into `stat
 | 5% budget automation share | 0.010 | 0.314 | 0.000 | 0.050 |
 | Median latency | 2,924ms | 6,903ms | 2,908ms | 6,918ms |
 
-The latency is local inference run on an M2 Max, so it is not on the same axis as the Jev API latencies seen earlier. What to look at here is the 2.4x when the reference material is added.
+The latency is local inference run on an M2 Max, so it is on a different axis from the Jev API latencies seen earlier. What to look at here is the 2.4x when the reference material is added.
 
 **On the balanced held-out set, sentence-level accuracy went from 0.500 to 0.500, not moving at all.** At the word level it actually went down, from 7/13 to 5/13.
 
 ![Before and after adding the rule paragraph to state, on the 60 held-out sentences. Before, all 30 revert sentences were right and all 30 keep sentences wrong; after, 8 and 22 were right. The total correct is 30 both times](7.png?w=720)
 
-The 0.225 to 0.676 on the gate set is not an improvement in skill. Before, it said "turn it back" on all 102 sentences; once given the reference material it answered that way on only 12. Negatives climbed from 0/79 to 68/79, but positives collapsed from 23/23 to 1/23. That set has more negatives, 79 against 23, so a constant that says "mostly leave it" automatically scores higher. **It did not learn the distinction; it changed which way it leans.**
+The 0.225 to 0.676 on the gate set cannot be read as an improvement in skill. Before, it said "turn it back" on all 102 sentences; once given the reference material it answered that way on only 12. Negatives climbed from 0/79 to 68/79, but positives collapsed from 23/23 to 1/23. That set has more negatives, 79 against 23, so a constant that says "mostly leave it" automatically scores higher. **It did not learn the distinction; it changed which way it leans.**
 
-Still, the model is not failing to read the sentences altogether. For the same sentences containing the same word, the predictions scattered sentence by sentence once the reference material was given. The standard deviation for `로더` grew from 0.096 to 0.217, and `뮤테이션` from 0.042 to 0.236. **It reads, but it cannot distinguish.**
+Still, the model reads the sentences to some extent. For the same sentences containing the same word, the predictions scattered sentence by sentence once the reference material was given. The standard deviation for `로더` grew from 0.096 to 0.217, and `뮤테이션` from 0.042 to 0.236. **It reads, but it cannot distinguish.**
 
-And this result also shakes the previous section's reading. If a single piece of state text flips the output wholesale, then the "turn everything back" of the first run may be a shortcoming of the question's wording rather than a limit of the model. This post has not ruled that possibility out.
+And this result also shakes the previous section's reading. If a single piece of state text flips the output wholesale, then the "turn everything back" of the first run may have come from the question's wording being inadequate rather than a limit of the model. This post has not ruled that possibility out.
 
-One thing improved noticeably. The sum of the probabilities for "turn it back" and "leave it" closed from 1.508 to 0.963 on the held-out set, and the sentences deviating far from 1 fell from 59 to 18. **Yet the accuracy did not move.** Two questions' probabilities agreeing with each other and those probabilities being right are different things.
+One thing improved greatly. The sum of the probabilities for "turn it back" and "leave it" closed from 1.508 to 0.963 on the held-out set, and the sentences deviating far from 1 fell from 59 to 18. **Yet the accuracy did not move.** Two questions' probabilities agreeing with each other and those probabilities being right are different things.
 
 ## Where decision models belong
 
@@ -245,7 +244,7 @@ In a TechCrunch article, Armin Ronacher, the CTO of Earendil, which builds the P
 
 > At the end of the day, it delegates the hallucination problem a little bit to the user.
 
-It has not removed hallucination; it has handed the judgment to the developer. The TypeSafe documentation also writes that calibration is a property that holds over a batch of predictions, not a guarantee that an individual answer is right, and under the 0% hallucination bar in the launch post, the Nuance entry reads "Our number is not empirical." The form is guaranteed and the content is not.
+It has not removed hallucination; it has handed the judgment to the developer. The TypeSafe documentation says calibration holds only over a batch of predictions and does not guarantee that an individual answer is right. Under the 0% hallucination bar in the launch post, the Nuance entry reads "Our number is not empirical." The form is guaranteed, but the content falls outside its scope.
 
 ## The 194 projects on jevable
 
