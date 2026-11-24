@@ -8,7 +8,7 @@ description: '在 AI 代替人编写代码的时代，前端工程师该如何�
 keywords: 'AI 时代前端, AI 时代开发者, vibe coding, agentic engineering, AI 编程工具, Product Engineer, 前端职业路线图'
 locale: zh-CN
 translationOf: '260302'
-sourceHash: bda49d3445c1a164c39224c1d6067f4de0a222c1e2fe2567df834634fcb6b9fa
+sourceHash: 9f431fbea4187fbd156968103997543bf136d94c8643c67712902a2a245509b7
 ---
 
 这篇文章想从个人视角聊一聊：**在 AI 时代，工程师该如何成长并生存下去**。
@@ -49,7 +49,7 @@ There's a new kind of coding I call 'vibe coding', where you fully give in to th
 - **Vibe coding**：描述自己想要什么，然后接受产出
 - **Agentic engineering**：设计系统、明确约束，再用 AI 加速实现那些已经在脑中推理完成的方案
 
-一年前，“只要吩咐一下，它就全都能做出来”还是基本共识；如今，“设计该让 AI 做什么、怎么做的能力”本身，已经成为一种工程能力。同样的趋势也体现在 Google 工程师 [Addy Osmani](https://addyosmani.com/) 的文章中。他出版了《[Beyond Vibe Coding: From Coder to AI-Era Developer](https://www.amazon.com/Beyond-Vibe-Coding-AI-Era-Developer/dp/B0F6S5425Y)》，并明确指出：“AI 只是助手，不是可以自主信赖的程序员。你才是资深开发者，LLM 的存在是为了加速你的判断。”
+一年前，“只要吩咐一下，它就全都能做出来”还是基本共识；如今，“设计该让 AI 做什么、怎么做的能力”本身，已经成为一种工程能力。同一时期，Google 工程师 [Addy Osmani](https://addyosmani.com/) 出版的《[Beyond Vibe Coding: From Coder to AI-Era Developer](https://www.amazon.com/Beyond-Vibe-Coding-AI-Era-Developer/dp/B0F6S5425Y)》一书中也体现了同样的趋势。他在书中明确指出：“AI 只是助手，不是可以自主信赖的程序员。你才是资深开发者，LLM 的存在是为了加速你的判断。”
 
 
 ### 工具正在狂飙
@@ -108,7 +108,7 @@ Google 的 Sundar Pichai [在 2024 年 10 月的第三季度财报电话会议�
 
 工具在狂飙，数据却很微妙。让我们来梳理一下 AI 取代了什么、还有什么尚未取代。只有把这条界线划清楚，我们才知道该把时间投入在哪里。
 
-被取代的，是开发者亲手输入代码的那部分工作。编写样板代码和重复代码的场景减少了；只要有设计稿，几分钟内就能产出符合约定水准的页面；搜索语法和 API 所需的时间，以及学习曲线，也都大幅缩短。简而言之，AI **拉平了“生产速度”**。
+被 AI 取代的，是开发者亲手输入代码的那部分工作。编写样板代码和重复代码的场景减少了，只要有设计稿，几分钟内就能产出符合约定水准的页面。搜索语法和 API 所需的时间，以及学习曲线，也都大幅缩短。简而言之，AI **拉平了“生产速度”**。
 
 但在“判断”这一领域，它还没能取代人。（可以说，它还没有达到我们的预期。虽然每个人运用 AI 的能力存在差距，但这里以平均使用体验为准展开讨论。）
 
@@ -116,7 +116,7 @@ Google 的 Sundar Pichai [在 2024 年 10 月的第三季度财报电话会议�
 
 如前文所述，45% 的 OWASP 漏洞意味着**安全与风险评估**也不能忽视。新组件是否与现有系统的 token、无障碍规范和交互模式一致，需要检查，这属于**维护设计系统与一致性**；为什么需要这项功能、它应该放进哪条用户流程，则需要判断，这属于**理解客户与市场语境**。这些领域也是如此。
 
-最后，借用[yceffort](https://yceffort.kr/2026/02/frontend-engineering-in-ai-era)文章中的说法，“系统的复杂度与团队对该系统理解程度之间的差距”被称为认知债务(Cognitive Debt)。认知债务管理是在引入 AI 后反而更快变得重要的领域，缩小这条差距本身仍然是人的职责。
+最后，借用[yceffort](https://yceffort.kr/2026/02/frontend-engineering-in-ai-era)文章中的说法，“系统的复杂度与团队对该系统理解程度之间的差距”被称为认知债务(Cognitive Debt)。**认知债务管理**是在引入 AI 后这种差距反而更快扩大的领域，缩小差距本身仍然是人的职责。
 
 > 消失的不是开发者，而是开发者过去所做工作的形式。瓶颈已从“创造的速度”转移到“决策的速度”。
 
@@ -158,7 +158,7 @@ Lee Robinson 将 Product Engineer 的核心素质归纳为三项。
 - **以客户为中心**：直接与客户交谈并改进产品。
 - **务实**：“所有技术选择都只是手段。”对产品目标没有贡献的工具要果断舍弃。
 
-这里有一个陷阱：如果产品专精工程师只被理解为“做得快的人”，就会很危险。AI 出现后，这种风险更大了，因为“快速塞进功能”如今任何职能的人都可以借助 AI 工具完成。Product Engineer 的差异化优势在于“准确定义客户问题，并用最小的解决方案快速验证”，而不在于“手快”。
+这里有一个陷阱：产品专精工程师可能会只被理解为“做得快的人”。AI 出现后，这种风险更大了，因为“快速塞进功能”如今任何职能的人都可以借助 AI 工具完成。Product Engineer 的差异化优势在于“准确定义客户问题，并用最小的解决方案快速验证”，而不在于“手快”。
 
 在这股趋势下，**Design Engineer** 开始升级为正式岗位。Vercel 正在把设计工程师作为[年薪 20 万美元以上的正式发展路径](https://cjroth.com/blog/2026-02-18-building-an-elite-engineering-culture)进行招聘，Linear 和 Stripe 也在朝类似方向发展。这个岗位直接消除了前端与设计之间的交接。AI 能快速把图画出来，因此，同时处理“该画什么 + 画出的结果是否符合一致的设计系统”的能力变得更加稀缺。
 
@@ -185,11 +185,11 @@ Lee Robinson 将 Product Engineer 的核心素质归纳为三项。
 
 **第一项是编写规格（Specification）的能力。** AI 时代，“编程的起点”不是键盘，而是**规格**。准确写清楚要让 AI 做什么的能力，已经比代码本身更重要。这里所说的规格不必是宏大的 RFC 文档，而是像这样一些东西：用代码写下业务逻辑预期行为的**测试**；整理 UI 组件场景和视觉契约的 **Storybook story**；明确数据流契约的**类型定义**。这是预先铺设一套能自动验证 AI 产出的标准。缺少这一步就开始让 AI 编程，问题会不断累积。
 
-**第二项是验证与判断力。** AI 会自信地生成看似合理、实则错误的代码。因此，我认为“快速而准确地审查 AI 代码的能力”本身就是核心。要能判断它是否漏掉了安全标头、输入净化、CSRF 令牌。还要检查无障碍能力（ARIA、键盘导航、焦点陷阱）是否仍然有效，以及渲染成本、内存、包体积等性能影响是否存在问题。不经审查就把 AI 垃圾代码扔进 PR，是工程师的失职。点击合并按钮的仍然是人，这份责任不能推给 AI。Stack Overflow 调查中，资深工程师对 AI 的信任度最低，很可能正是因为他们拥有发现这些细节的眼光。
+**第二项是验证与判断力。** AI 会自信地生成看似合理、实则错误的代码。因此，我认为“快速而准确地审查 AI 代码的能力”本身就是核心。要能判断它是否漏掉了安全标头、输入净化、CSRF 令牌，无障碍能力（ARIA、键盘导航、焦点陷阱）是否仍然有效，以及渲染成本、内存、包体积等性能影响是否存在问题。不经审查就把 AI 垃圾代码扔进 PR，是工程师的失职。点击合并按钮的仍然是人，这份责任不能推给 AI。Stack Overflow 调查中，资深工程师对 AI 的信任度最低，很可能正是因为他们拥有发现这些细节的眼光。
 
 **第三项是系统理解与架构思维。** AI 擅长一次处理一个文件，对流程和关联也具备出色的理解能力。AI 能快速修复症状，但能力出众的开发者会寻找根本原因。培养这项能力的方法之一，是有意识地开展 Architecture Retrospective 等活动。代码变化得越快，团队就越需要主动提升对系统的理解，否则认知债务会迅速积累。
 
-**第四项是 AI 编排能力。** 运用 AI 本身的能力，也正在分化成独立的技能组合。除了把工作拆分成小工单、为同一项工作选择合适模型的能力，还需要设计智能体评估与验证流水线，以及制定智能体失败时的回滚策略。这些都属于需要作为一个整体来掌握的领域。[Steve Yegge](https://sourcegraph.com/blog/revenge-of-the-junior-developer) 将这一趋势归纳为**六个阶段（traditional → completions → chat → coding agents → agent clusters → agent fleets）**。
+**第四项是 AI 编排能力。** 运用 AI 本身的能力，也正在分化成独立的技能组合。除了写好提示词之外，把工作拆分成小工单的能力、为同一项工作选择合适模型的能力、设计智能体评估与验证流水线的能力，以及制定智能体失败时的回滚策略，都成了需要作为一个整体来掌握的领域。[Steve Yegge](https://sourcegraph.com/blog/revenge-of-the-junior-developer) 将这一趋势归纳为**六个阶段（traditional → completions → chat → coding agents → agent clusters → agent fleets）**。
 
 **第五项是 Context Engineering。** 这是从 2025 年年中起，[Karpathy 与 Shopify CEO Tobi Lütke 一同推动](https://www.faros.ai/blog/context-engineering-for-developers)的概念。简单说，就是“设计要让 AI 看到哪些上下文、以什么形式呈现、呈现多少的能力”。具体来说，可以把项目约定、架构原则和禁忌事项整理到 AI 随时能够触及的地方，即维护 **CLAUDE.md / rules 文件**；不把所有文件都塞进上下文，只筛选相关模块展示给 AI，即**有意缩减上下文**。此外，还可以将计划 → 实现 → 验证拆分到不同会话，避免上下文污染，即**明确划分阶段**；通过标准接口接入设计系统、API schema、监控数据等外部上下文，即**通过 MCP 引入外部上下文**。[Anthropic 官方文档](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)称其为“the new prompt engineering”。文档还明确指出，单个提示词绝不可能容纳系统的架构知识、模式和隐性经验。换句话说，比起“一次写出好的提示词”，“设计一个让 AI 始终获得优质上下文的环境”已经重要得多。
 

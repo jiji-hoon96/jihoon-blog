@@ -8,7 +8,7 @@ description: "How frontend engineers grow when AI writes the code: new skills in
 keywords: 'frontend in the AI era, developers in the AI era, vibe coding, agentic engineering, AI coding tools, Product Engineer, frontend career roadmap'
 locale: en
 translationOf: '260302'
-sourceHash: bda49d3445c1a164c39224c1d6067f4de0a222c1e2fe2567df834634fcb6b9fa
+sourceHash: 9f431fbea4187fbd156968103997543bf136d94c8643c67712902a2a245509b7
 ---
 
 In this post, I want to share my personal perspective on **how engineers can grow and survive alongside AI**.
@@ -49,7 +49,7 @@ Yet exactly one year later, in February 2026, the same Karpathy [took a step bac
 - **Vibe coding**: Describing what you want and accepting the result
 - **Agentic engineering**: Designing the system, specifying constraints, and using AI to accelerate an implementation you have already reasoned through in your head
 
-A year ago, the baseline assumption was, “Just tell it what to do and it will build everything.” Now, “the ability to design what to ask AI to do and how to ask it” has itself become an engineering capability. The same trend can be seen in a post by Google engineer [Addy Osmani](https://addyosmani.com/). He published [Beyond Vibe Coding: From Coder to AI-Era Developer](https://www.amazon.com/Beyond-Vibe-Coding-AI-Era-Developer/dp/B0F6S5425Y), stating plainly: “AI is an assistant, not an autonomously trustworthy coder. You are the senior developer, and the LLM exists to accelerate your judgment.”
+A year ago, the baseline assumption was, “Just tell it what to do and it will build everything.” Now, “the ability to design what to ask AI to do and how to ask it” has itself become an engineering capability. The same trend can be seen in a book published around the same time by Google engineer [Addy Osmani](https://addyosmani.com/), [Beyond Vibe Coding: From Coder to AI-Era Developer](https://www.amazon.com/Beyond-Vibe-Coding-AI-Era-Developer/dp/B0F6S5425Y). In this book, he stated plainly: “AI is an assistant, not an autonomously trustworthy coder. You are the senior developer, and the LLM exists to accelerate your judgment.”
 
 
 ### The Tools Are Racing Ahead
@@ -108,7 +108,7 @@ The interpretation is not difficult. Our ability to produce code quickly has inc
 
 The tools are racing ahead, yet the numbers are nuanced. Let’s separate what AI has replaced from what it has not yet replaced. This distinction needs to be clear before we can see where to invest our time.
 
-What AI has replaced is a large share of developers’ manual typing. We spend less time writing boilerplate and repetitive code; given a design mockup, a screen that follows the conventions can appear within minutes; and the time spent searching for syntax and APIs, as well as the learning curve, has fallen sharply. In short, AI has **flattened the speed of production**.
+What AI has replaced is the share of developers’ manual typing. We spend less time writing boilerplate and repetitive code, and given a design mockup, a screen that follows the conventions appears within minutes. The time spent searching for syntax and APIs, as well as the learning curve, has also fallen sharply. In short, AI has **flattened the speed of production**.
 
 But it has not yet replaced the domain of “judgment.” (This can be understood as saying it has not yet met expectations. People differ in their ability to use AI, but this discussion is based on the average user experience.)
 
@@ -116,7 +116,7 @@ The first sticking point is **translating requirements into specifications**. Tu
 
 **Security and risk assessment** also cannot be left out, as illustrated by the 45% OWASP vulnerability rate above. The same goes for **maintaining the design system and consistency**, checking whether a new component aligns with the existing system’s tokens, accessibility rules, and interaction patterns, and **understanding customer and market context**, such as why a feature is needed and where it belongs in the user flow.
 
-Finally, borrowing a phrase from [yceffort’s article](https://yceffort.kr/2026/02/frontend-engineering-in-ai-era), “the gap between a system’s complexity and the degree to which the team understands that system” is called cognitive debt. Managing cognitive debt is an area becoming more important even faster since AI adoption, so closing that gap itself remains a human responsibility.
+Finally, borrowing a phrase from [yceffort’s article](https://yceffort.kr/2026/02/frontend-engineering-in-ai-era), “the gap between a system’s complexity and the degree to which the team understands that system” is called cognitive debt. **Managing cognitive debt** is an area where this gap widens even faster since AI adoption, so closing the gap itself remains a human responsibility.
 
 > Developers are not disappearing; the form of developers’ work is changing. The bottleneck has shifted from “the speed of building” to “the speed of deciding.”
 
@@ -138,7 +138,7 @@ In Hwidong Bae’s original article, the web specialization track was grouped un
 Their value is different in the AI era. In terms of coding speed alone, AI has caught up. Yet **the ability to accurately evaluate AI-generated code** has become something they almost uniquely possess.
 
 - Non-developer using AI: It implemented my requirements, and it works correctly.
-- Developer using AI: It works, but this dependency could cause certain problems, and improving this pattern in this way would better fit our conventions. Let’s examine the related areas again.
+- Developer using AI: It works, but certain problems could arise because of this dependency, and improving this pattern in this way would better fit our conventions. Let’s examine the related areas again.
 
 The Veracode study discussed earlier found failure rates of 86% for XSS and 88% for log injection. Experts like us are the people capable of finding and fixing those failures. They naturally evolve into senior quality-assurance roles for AI output.
 
@@ -158,7 +158,7 @@ Lee Robinson identifies three core qualities of a Product Engineer.
 - **Customer centricity**: Improving the product by speaking directly with customers.
 - **Pragmatism**: “Every technology choice is merely a means to an end.” Tools that do not advance the product goal are discarded without hesitation.
 
-There is one trap here: it is dangerous when product-focused engineers are perceived merely as “people who build quickly.” With the arrival of AI, that danger has grown. “Shipping features fast” is now something people in virtually any role can do with AI tools. A Product Engineer’s differentiator is “the ability to define the customer’s problem accurately and validate it quickly with the smallest possible solution,” not “having fast hands.”
+There is one trap here: product-focused engineers can be perceived merely as “people who build quickly.” With the arrival of AI, that danger has grown. “Shipping features fast” is now something people in virtually any role can do with AI tools. A Product Engineer’s differentiator is “the ability to define the customer’s problem accurately and validate it quickly with the smallest possible solution,” not “having fast hands.”
 
 Within this trend, **Design Engineer** has begun to rise into a formal role. Vercel is hiring [design engineers as a formal career track with compensation above $200K](https://cjroth.com/blog/2026-02-18-building-an-elite-engineering-culture), and Linear and Stripe are moving in similar directions. The role eliminates the handoff between frontend and design itself. Because AI can draw quickly, the combined ability to decide “what to draw” and determine “whether the result fits a consistent design system” has become even scarcer.
 
@@ -185,11 +185,11 @@ While the three tracks are each evolving, there are also capabilities that have 
 
 **The first is the ability to write specifications.** In the AI era, the “starting point of coding” is the **specification**, not the keyboard. The ability to state what AI should do has become more important than the code itself. A specification here does not have to be a grand RFC document. It can be **tests** that express the expected behavior of business logic in code, **Storybook stories** that define a UI component’s scenarios and visual contract, or **type definitions** that specify the contract for data flow. The work is to establish in advance the criteria that will automatically verify AI-generated output. If AI coding proceeds without those criteria, problems accumulate.
 
-**The second is verification and judgment.** AI confidently produces code that looks plausible but is wrong. That is why I believe “the ability to review AI-generated code quickly and accurately” is itself a core capability. We need to check whether security headers, input sanitization, or CSRF tokens are missing. We also need to check whether accessibility—ARIA, keyboard navigation, and focus traps—remains intact, and whether there are performance issues involving rendering cost, memory, or bundle size. Throwing AI slop into a PR without review is a dereliction of an engineer’s duty. A human still clicks the merge button, and that responsibility cannot be shifted onto AI. Senior developers may have the lowest trust in AI in the Stack Overflow survey precisely because they have the eye to catch these details.
+**The second is verification and judgment.** AI confidently produces code that looks plausible but is wrong. That is why I believe “the ability to review AI-generated code quickly and accurately” is itself a core capability. We need to check whether security headers, input sanitization, or CSRF tokens are missing, whether accessibility (ARIA, keyboard navigation, and focus traps) remains intact, and whether there are performance issues involving rendering cost, memory, or bundle size. Throwing AI slop into a PR without review is a dereliction of an engineer’s duty. A human still clicks the merge button, and that responsibility cannot be shifted onto AI. Senior developers may have the lowest trust in AI in the Stack Overflow survey precisely because they have the eye to catch these details.
 
 **The third is system understanding and architectural thinking.** AI handles one file at a time well and has strong awareness of flows and relationships. AI fixes symptoms quickly, but highly capable developers find root causes. One way to build this capability is through deliberate practices such as Architecture Retrospectives. As the rate of code change accelerates, cognitive debt will accumulate quickly unless the team deliberately raises its understanding of the system as well.
 
-**The fourth is AI orchestration.** The ability to work with AI is separating into its own skill set. The area now encompasses breaking work into small tickets and choosing which model to use for a given task, as well as designing agent evaluation and verification pipelines and defining recovery strategies, including rollback, when an agent fails. [Steve Yegge](https://sourcegraph.com/blog/revenge-of-the-junior-developer) describes this progression as **six waves (traditional → completions → chat → coding agents → agent clusters → agent fleets)**.
+**The fourth is AI orchestration.** The ability to work with AI is separating into its own skill set. Beyond writing good prompts, the area now encompasses the ability to break work into small tickets, the ability to choose which model to use for a given task, the ability to design agent evaluation and verification pipelines, and recovery (rollback) strategies when an agent fails. [Steve Yegge](https://sourcegraph.com/blog/revenge-of-the-junior-developer) describes this progression as **six waves (traditional → completions → chat → coding agents → agent clusters → agent fleets)**.
 
 **The fifth is Context Engineering.** It is a concept that [Karpathy and Shopify CEO Tobi Lütke began promoting together](https://www.faros.ai/blog/context-engineering-for-developers) in mid-2025. In short, it is “the ability to design what context to show AI, in what form, and how much of it.” In practice, it includes maintaining **CLAUDE.md / rules files** that place project conventions, architectural principles, and prohibitions within AI’s reach, and **deliberately reducing context** by selecting only relevant modules instead of loading every file. It also takes the form of **explicitly separating phases**, dividing planning → implementation → verification into separate sessions to prevent context contamination, and **providing external context through MCP**, connecting design systems, API schemas, monitoring data, and other resources through standard interfaces. [Anthropic’s official documentation](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) calls this “the new prompt engineering.” It states plainly that a single prompt can never contain a system’s architectural knowledge, patterns, and tribal wisdom. Put differently, “designing an environment where AI consistently receives good context” has become far more important than “writing one good prompt.”
 
