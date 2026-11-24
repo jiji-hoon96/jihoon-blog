@@ -68,7 +68,7 @@ TypeSafe는 그 자리를 겨냥해 세 번째 길을 냈다고 말한다. 사�
 
 `Choice`와 `Score` 응답에는 `probabilities`와 `confidence`가 같이 들어 있다. 앞은 선택지 전체에 걸친 확률 분포이고, 뒤는 0에서 1 사이 숫자 하나다. 코드에서 임계값을 걸 때 손이 먼저 가는 쪽은 `confidence`다.
 
-이 값은 어댑터 코드가 확률 분포에서 계산한다. TypeSafe 조직이 공개한 [system-one-adapter-python](https://github.com/typesafe-ai/system-one-adapter-python)의 `_utils/confidence_metrics.py`의 `Choice` 부분은 아래와 같다.
+이 값은 adapter 코드가 확률 분포에서 계산한다. TypeSafe 조직이 공개한 [system-one-adapter-python](https://github.com/typesafe-ai/system-one-adapter-python)의 `_utils/confidence_metrics.py`의 `Choice` 부분은 아래와 같다.
 
 ```python
 def choice_confidence(probs: list[float]) -> float:

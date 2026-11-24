@@ -9,7 +9,7 @@ description: "Jev returns probabilities instead of text. Its confidence is arith
 keywords: 'Jev, TypeSafe AI, System One model, RLCD, model calibration, ECE, confidence threshold, decision model, Kev open source, Jev use cases'
 locale: en
 translationOf: '260922'
-sourceHash: b4d23dbbaba40d3fdbc441fb1fa73a171f94c1f5c1a78639ca4214905aa3b6fb
+sourceHash: bf47207b164b742f25ac8cfc422a3b7ad7bda87ba85769d7fed16bceb99a7ff3
 ---
 
 In this post, I want to talk about Jev, a model TypeSafe AI released last week that returns probabilities instead of text. This is for developers who want to put a threshold on a model's returned probability and handle cases automatically without a human check. By the end, you will know how Jev's `confidence` is calculated, how much calibration moves with the distribution, and a procedure for setting the threshold on your own data.
