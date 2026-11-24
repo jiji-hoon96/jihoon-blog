@@ -8,14 +8,14 @@ description: 'How BPE creates tokens, embeddings feed LLMs, prefill and decode s
 keywords: 'how LLM tokens work, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, input output token costs, what is an AI token'
 locale: en
 translationOf: '260610'
-sourceHash: adf71925c6c41a82012d86b683eeb35e03ba92c030f35ff559c348dc437d7546
+sourceHash: 4d57fefa7cba860f5f8b3c57585ce21338bffba7a6b0411d4dfc7eb260bc8dbf
 ---
 
 In this post, I want to explore what AI tokens actually are and how they work.
 
 Until now, I have mainly written about how to use AI tools effectively, which tools are gaining popularity, and why. But while putting together my guide to [saving tokens](/260611), I was reminded of something important: before explaining how to reduce costs, I first needed to explain what tokens are and how they are billed. Yet I had never properly covered that foundation. (As I wrote the cost-saving guide, the explanation of how tokens work grew substantial enough to become a post of its own.)
 
-This post, then, lays the groundwork before we get into cost-saving techniques. We will go through what tokens are if they are neither words nor characters (BPE), what form they take when they enter a model (embeddings), and why output is more expensive than input (prefill/decode). We will also look at where inside the Transformer architecture prompt caching gets its cost advantage (KV cache), and why longer contexts become more expensive (the quadratic cost of attention). If you are looking for practical ways to save, continue with How to Save Tokens after this article.
+This post, then, lays the groundwork before we get into cost-saving techniques. We will go through what exactly tokens are if they are neither words nor characters (BPE), what form they take when they enter a model (embeddings), and why output is more expensive than input (prefill/decode). We will also look at where inside the Transformer architecture prompt caching gets its cost advantage (KV cache), and why longer contexts become more expensive (the quadratic cost of attention). If you are looking for practical ways to save, continue with How to Save Tokens after this article.
 
 ## Tokens Are Neither Words nor Characters
 
@@ -29,11 +29,11 @@ The algorithm used to build this vocabulary is BPE, a common foundation of nearl
 
 BPE (Byte Pair Encoding) is an algorithm that grows a vocabulary by repeatedly merging the most frequent pair of adjacent symbols into a new symbol.
 
-BPE was not originally an algorithm for natural language processing. Philip Gage first proposed it in 1994 as a [data compression](/240706) technique. The method replaced the most frequently occurring byte pair in a dataset with a single byte not otherwise used in the data, then stored those replacement rules separately in a table.
+Interestingly, this was not an algorithm originally born for natural language processing. Philip Gage first proposed BPE in 1994 as a [data compression](/240706) technique. The method replaced the most frequently occurring byte pair in a dataset with a single byte not otherwise used in the data, then stored those replacement rules separately in a table.
 
 A research team led by Sennrich at the University of Edinburgh brought the technique to the vocabulary problem in neural machine translation. The paper “Neural Machine Translation of Rare Words with Subword Units” was released in 2015 and presented at ACL 2016. The researchers used BPE to overcome the inability of a fixed vocabulary to handle rare or previously unseen words. The idea was that instead of memorizing whole words, a model could represent them as combinations of smaller subword pieces, allowing even out-of-vocabulary words to be encoded from known parts.
 
-The process itself is simple.
+The process itself is surprisingly simple.
 
 1. Initially, each individual character is one token.
 2. Find the pair of tokens that appears adjacent most often in the corpus.
@@ -56,7 +56,7 @@ The material OpenAI published alongside GPT-4o illustrates this difference clear
 
 Looking more broadly, there are also disparities between languages themselves. In Yennie Jun's comparison of multiple languages using cl100k_base, English almost always required the fewest tokens for sentences with the same meaning, while languages with their own writing systems tended to require more. Hindi and Bengali could use five times as many tokens as English, and Burmese more than ten times as many. Korean and Chinese also tokenize into more pieces than English, but do not become as much longer as Hindi, Bengali, and Burmese.
 
-Here, an important practical implication emerges. When Anthropic introduced a new tokenizer starting with Opus 4.7, its official pricing documentation stated that the same text could be billed as up to 35% more tokens than with previous models. **Even when the per-token rate stays the same, the bill rises in direct proportion to the token count.** Model comparisons should therefore use the rate multiplied by the expected token count, rather than looking at the rate alone.
+Here, an important practical implication emerges. When Anthropic introduced a new tokenizer starting with Opus 4.7, its official pricing documentation stated that the same text could be billed as up to 35% more tokens than with previous models. **Even when the per-token rate stays the same, the bill rises in direct proportion to the token count.** To be fair, model comparisons should look at the product of the rate × expected token count, rather than looking at the rate alone.
 
 But when these segmented tokens enter the model, they do not go in as literal characters or words. So what form does a token take as model input?
 
@@ -79,13 +79,13 @@ Here, the model dimension (d_model) is the length of the vector used to represen
 
 Methods of injecting positional information have also changed across generations. The original Transformer added position vectors built from sine and cosine functions directly to the embeddings. Modern open LLMs use RoPE (Rotary Position Embedding), now effectively the standard. It injects relative position during the attention calculation by rotating the Query and Key vectors. (Though the mechanism differs, the purpose is the same: giving the Transformer a sense of order.)
 
-In short, the flow is **text → tokens → token IDs → embedding vectors (+ positional information) → Transformer input**. The “token count” on a bill refers to the second stage of this pipeline: how many tokens the text was split into.
+In short, the flow is **text → tokens → token IDs → embedding vectors (+ positional information) → Transformer input**. In effect, the “token count” on a bill refers to the second stage of this pipeline: how many tokens the text was split into.
 
-At this point, we know how tokens are created and what form they take when they enter a model. Next, we will look at why input and output costs differ and how to reduce the cost of sending the same input repeatedly.
+At this point, we know how tokens are created and what form they take when they enter a model. When these tokens are processed inside the model, why do input and output costs differ so much, and how can we cut the cost of sending the same input repeatedly?
 
 ## Why Input Is Cheap and Output Is Expensive
 
-Anyone who has worked with tokens has probably wondered about this at some point: on pricing tables, **output tokens cost several times more than input tokens.** For Anthropic, the output rate is five times the input rate across every model. (Opus is $5 for input and $25 for output, while Haiku is $1 for input and $5 for output.) Why should the same token have a different price depending on whether it is going in or coming out?
+Anyone who has worked with tokens has probably wondered about this at some point: on pricing tables, **output tokens cost several times more than input tokens.** For Anthropic, the output rate is exactly five times the input rate across every model. (Opus is $5 for input and $25 for output, while Haiku is $1 for input and $5 for output.) Why should the same token have a different price depending on whether it is going in or coming out?
 
 The answer is that models process tokens in completely different ways for input and output. LLM inference has two stages.
 
@@ -96,11 +96,11 @@ That asymmetry creates the cost difference. According to Databricks' analysis of
 
 In other words, **input tokens are processed efficiently together in parallel during prefill, while output tokens must be squeezed out inefficiently one by one.** Commercial factors such as demand and margins may also affect pricing, but at the technical level, this decode-stage inefficiency is part of the underlying reason. The principle of “keep outputs short” goes beyond being a simple cost-saving tip: it reduces the most expensive stage.
 
-Decode has a way to ease this inefficiency, and that way is KV cache.
+Is there a way to make this inefficient decode stage even a little less inefficient? That is where KV cache comes in.
 
 ## How Caching Lowers the Price
 
-Prompt caching stores static input in a cache once, then lets subsequent calls read it back at a much lower price. According to Anthropic's official documentation, a cache read costs 0.1 times the base input rate, or 10%. A cache write costs 1.25 times the base rate with a five-minute TTL (Time To Live, the period for which the cache remains valid), or twice the base rate with a one-hour TTL. You pay a little extra on the first call, then save 90% from the second call onward.
+Prompt caching stores static input in a cache once, then lets subsequent calls read it back at a much lower price. According to Anthropic's official documentation, a cache read costs 0.1 times the base input rate, or exactly 10%. A cache write costs 1.25 times the base rate with a five-minute TTL (Time To Live, the period for which the cache remains valid), or twice the base rate with a one-hour TTL. In effect, you pay a little extra on the first call, then save 90% from the second call onward.
 
 But how can the price fall by 90%? And why is the requirement that “the prefix must match exactly” so strict? Both answers become clear once we look inside the Transformer.
 
@@ -118,7 +118,7 @@ KV cache was introduced to eliminate this duplication. It stores previously calc
 
 If KV cache was originally designed to accelerate decoding within a single response, prompt caching is the idea of **reusing this memory structure across calls instead of only within a single call.**
 
-The K/V values of a static prefix (such as a system prompt, tool definitions, or code snippets whose beginning remains nearly identical) stay in GPU memory for a five-minute or one-hour TTL. The next call, if it starts with the same prefix, skips that prefix's K/V computation entirely and reads it directly from the cache. **When the cache hits, the GPU computation itself needed to process those input tokens disappears, so the rate for input tokens is lower.** The 90% price reduction reflects the computation that has been avoided.
+The K/V values of a static prefix (such as a system prompt, tool definitions, or code snippets whose beginning remains nearly identical) stay in GPU memory for a five-minute or one-hour TTL, and if the next call starts with the same prefix, it skips that prefix's K/V computation entirely and reads it directly from the cache. So, strictly speaking, the rate for input tokens is not magically discounted; rather, **the GPU work itself needed to compute those tokens disappears.** The 90% price reduction reflects the computation that has been avoided.
 
 Once you understand this mechanism, the strict requirement that “the prefix must match exactly” also makes sense. A cache hit is determined by whether a cumulative hash of the prefix matches. Because self-attention is causal, changing even one earlier token changes the K/V values of every token that follows. Put just one timestamp at the beginning of a prompt, and its value changes on every call, causing the prefix hash to diverge and invalidating the entire cache after it.
 
@@ -136,7 +136,7 @@ The reason lies in the computational structure of self-attention. Attention invo
 
 [Hugging Face's estimates](https://huggingface.co/docs/transformers/en/llm_tutorial_optimization) show just how steep this quadratic growth becomes. With standard, unoptimized attention, storing the attention score matrix alone requires only about 50 MB for an input of 1,000 tokens, but about 19 GB for 16,000 tokens and nearly 1 TB for 100,000 tokens.
 
-The KV cache described earlier also consumes memory in proportion to the number of tokens. As the context grows, the K/V values the model must retain accumulate linearly. The context-window limit is a boundary the model sets to match the physical limits of memory and computation, beyond which they become unmanageable.
+The KV cache described earlier also consumes memory in proportion to the number of tokens. As the context grows, the K/V values the model must retain accumulate linearly. Ultimately, the context-window limit is, in effect, a boundary the model sets to match the physical limits of memory and computation, beyond which they become unmanageable.
 
 So carrying a long conversation forward unchanged increases the input token count, makes attention costs grow quadratically, and reduces the model's accuracy in handling information as the token count approaches its limit. (This loss of accuracy is directly related to context rot, which I discuss in the token-saving guide. It is precisely why keeping context lean benefits both cost and answer quality.)
 
