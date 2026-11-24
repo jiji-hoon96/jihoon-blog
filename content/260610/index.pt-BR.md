@@ -8,14 +8,13 @@ description: 'Como BPE cria tokens, embeddings alimentam LLMs, prefill e decode 
 keywords: 'como funcionam tokens LLM, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, custo de tokens de entrada e saída, o que é token de IA'
 locale: pt-BR
 translationOf: '260610'
-sourceHash: 251f25269141cd5d2afc4087bcee9529da8128d60a92b48b6ed9d31273846278
+sourceHash: d1a0c865655937afb35145b7ba77e2cff41edf87c67e352bdd514f0a8c429486
 ---
-
 Neste artigo, quero explicar o que são, afinal, os tokens de IA e como eles funcionam.
 
-Até agora, escrevi principalmente sobre como usar bem as ferramentas de IA, quais estão em alta e por quê. Mas, ao preparar o texto sobre [como economizar tokens](/260611), percebi novamente algo importante: para falar em reduzir custos, primeiro é preciso entender “o que é um token e como ele é cobrado”, mas eu nunca havia explicado essa base de forma adequada. (Enquanto escrevia o guia de economia, a parte sobre o funcionamento dos tokens cresceu o bastante para virar um artigo próprio.)
+Até agora, escrevi principalmente sobre como usar bem as ferramentas de IA, quais estão em alta e por quê. Mas, ao preparar o texto sobre [como economizar tokens](/260611), percebi novamente algo importante: para falar em reduzir custos, primeiro é preciso entender “o que é um token e como ele é cobrado”, mas eu nunca havia explicado essa base. (Enquanto escrevia o guia de economia, a parte sobre o funcionamento dos tokens cresceu o bastante para virar um artigo próprio.)
 
-Este texto, portanto, estabelece os fundamentos antes das técnicas de economia. Vamos ver o que é um token, se não é palavra nem caractere (BPE); em que formato ele entra no modelo (embedding); por que a saída custa mais que a entrada (prefill/decode); de onde, dentro do Transformer — a arquitetura da rede neural — vem a redução de preço do prompt caching (KV cache); e por que um contexto mais longo fica mais caro (o custo quadrático da atenção). Para medidas práticas, depois deste artigo continue em Como economizar tokens.
+Este texto, portanto, estabelece os fundamentos antes das técnicas de economia. Vamos ver o que são os tokens, que não são palavras nem caracteres (BPE), em que formato entram no modelo (embedding) e por que a saída custa mais que a entrada (prefill/decode). Também veremos de onde, dentro do Transformer — a arquitetura da rede neural — vem a redução de preço do prompt caching (KV cache) e por que um contexto mais longo fica mais caro (o custo quadrático da atenção). Para medidas práticas, depois deste artigo continue em Como economizar tokens.
 
 ## Token não é palavra nem caractere
 
@@ -31,7 +30,7 @@ BPE (Byte Pair Encoding, ou codificação de pares de bytes) expande o vocabulá
 
 O BPE não era originalmente um algoritmo de processamento de linguagem natural. Philip Gage o propôs pela primeira vez em 1994 como técnica de [compressão de dados](/240706). O método substituía o par de bytes mais frequente por um byte não utilizado nos dados e armazenava as regras de substituição separadamente em uma tabela.
 
-A equipe de Sennrich, da Universidade de Edimburgo, levou a ideia para o problema de vocabulário na tradução neural. No artigo “Neural Machine Translation of Rare Words with Subword Units”, publicado em 2015 e apresentado na ACL 2016, os pesquisadores usaram BPE para superar a incapacidade de um vocabulário fixo de lidar com palavras raras ou desconhecidas. Em vez de memorizar palavras inteiras, elas são representadas como combinações de fragmentos subword menores; assim, até uma palavra fora do vocabulário pode ser codificada com partes conhecidas.
+A equipe de Sennrich, da Universidade de Edimburgo, levou a ideia para o problema de vocabulário na tradução neural. O artigo “Neural Machine Translation of Rare Words with Subword Units” foi publicado em 2015 e apresentado na ACL 2016. Os pesquisadores usaram BPE para superar a incapacidade de um vocabulário fixo de lidar com palavras raras ou desconhecidas. Em vez de memorizar palavras inteiras, elas são representadas como combinações de fragmentos subword menores; assim, até uma palavra fora do vocabulário pode ser codificada com partes conhecidas.
 
 O processo em si é simples.
 
@@ -44,7 +43,7 @@ Assim, embora no começo cada caractere seja um token, combinações frequentes 
 
 ![Como um tokenizer BPE expande o vocabulário ao fundir repetidamente pares frequentes de caracteres adjacentes](2.webp?w=500)
 
-A família GPT vai além e usa **BPE em nível de bytes**. Primeiro, o texto é convertido em um fluxo de bytes UTF-8; depois, aplica-se BPE. Isso permite começar com um vocabulário-base de apenas 256 itens — um para cada byte possível — e ainda codificar qualquer texto representável em UTF-8 sem tokens desconhecidos. Seja um emoji, um ideograma chinês ou um símbolo especial, sempre existe pelo menos uma representação no nível de byte.
+A família GPT vai além e usa **BPE em nível de bytes**. Primeiro, o texto é convertido em um fluxo de bytes UTF-8 em vez de caracteres; depois, aplica-se BPE. Isso permite começar com um vocabulário-base de apenas 256 itens — um para cada byte possível — e ainda codificar qualquer texto representável em UTF-8 sem tokens desconhecidos. Seja um emoji, um ideograma chinês ou um símbolo especial, sempre existe pelo menos uma representação no nível de byte.
 
 ### Mesmo texto, quantidades diferentes de tokens
 
@@ -54,7 +53,7 @@ Por causa dessa estrutura, o mesmo texto pode gerar números de tokens muito dif
 
 O material publicado pela OpenAI com o GPT-4o mostra bem essa diferença. O novo tokenizer o200k_base da família GPT-4o representa o mesmo texto com menos tokens que o cl100k_base da família GPT-4. Em inglês, ele é apenas cerca de 1,1 vez mais eficiente, mas a diferença cresce em outros idiomas. Nos exemplos curtos publicados, a contagem caiu aproximadamente 1,4 vez em chinês e japonês, 1,7 vez em coreano e até 2,9 vezes em hindi. (Para quem usa coreano, a diferença entre gerações de tokenizer é mais perceptível do que em inglês.)
 
-Em uma visão mais ampla, também há diferenças entre os próprios idiomas. Na análise de Yennie Jun com cl100k_base, frases com o mesmo sentido quase sempre usaram menos tokens em inglês, enquanto idiomas com sistemas de escrita próprios tenderam a usar mais. Hindi e bengali podem consumir cinco vezes mais tokens que o inglês; birmanês, mais de dez vezes. Coreano e chinês também são tokenizados em mais partes que o inglês, embora sem chegar a esses extremos.
+Em uma visão mais ampla, também há diferenças entre os próprios idiomas. Na análise de Yennie Jun com cl100k_base, frases com o mesmo sentido quase sempre usaram menos tokens em inglês, enquanto idiomas com sistemas de escrita próprios tenderam a usar mais. Hindi e bengali podem consumir cinco vezes mais tokens que o inglês; birmanês, mais de dez vezes. Coreano e chinês também são tokenizados em mais partes que o inglês, mas em menor grau que esses idiomas extremos.
 
 Daí surge uma consequência prática importante. Ao adotar um novo tokenizer a partir do Opus 4.7, a Anthropic declarou na documentação oficial de preços que “o mesmo texto pode ser cobrado como até 35% mais tokens do que nos modelos anteriores”. **Mesmo que o preço por token permaneça igual, a conta cresce na mesma proporção da quantidade de tokens.** Para comparar modelos, é preciso considerar a tarifa multiplicada pela quantidade esperada de tokens.
 
@@ -62,7 +61,7 @@ Mas, quando esses tokens segmentados entram no modelo, eles não entram como car
 
 ## Como os tokens entram no modelo
 
-Redes neurais não trabalham diretamente com texto. No fim das contas, o modelo só calcula com números — mais precisamente, vetores, que são conjuntos de números. Por isso, antes de entrar no modelo, os tokens passam por várias etapas que os transformam em valores numéricos.
+Redes neurais não trabalham diretamente com texto. No fim das contas, o modelo só calcula com números — ou seja, vetores, que são conjuntos de números. Por isso, antes de entrar no modelo, os tokens passam por várias etapas que os transformam em valores numéricos.
 
 A sequência é esta.
 
@@ -73,11 +72,11 @@ A sequência é esta.
 
 Como isso soa abstrato apenas em palavras, incluí uma ferramenta interativa para explorar as quatro etapas. Ao mudar a frase ou clicar em um token, é possível acompanhar o caminho do ID ao vetor de embedding e ver a informação posicional ser adicionada até formar o vetor de entrada final. (Só algumas dimensões são exibidas, mas vale lembrar que o vetor real do GPT-4 tem 12.288.)
 
-A dimensão do modelo (d_model) é o comprimento do vetor que representa um token. No artigo original do Transformer, o valor era 512, mas nos LLMs atuais é muito maior. (Até o Llama 2 7B usa 4.096 dimensões.) Uma dimensão maior representa diferenças sutis de significado com mais riqueza, porém também aumenta o volume de cálculo e memória.
+A dimensão do modelo (d_model) é o comprimento do vetor que representa um token. No artigo original do Transformer, o valor era 512, mas nos LLMs atuais é muito maior. (Até o Llama 2 7B usa 4.096 dimensões.) Uma dimensão maior representa diferenças de significado com mais riqueza, porém também aumenta o volume de cálculo e memória.
 
 ![Como um token ID consulta uma linha da matriz de embeddings e se transforma em um vetor de dimensão d_model](4.png)
 
-A forma de injetar informação posicional também mudou ao longo das gerações. O Transformer original somava aos embeddings vetores de posição construídos com funções seno e cosseno. Já o RoPE (Rotary Position Embedding), hoje padrão de fato em LLMs abertos, injeta a posição relativa durante o cálculo da atenção ao rotacionar os vetores Query e Key. (O mecanismo muda, mas o objetivo é o mesmo: dar ao Transformer noção de ordem.)
+A forma de injetar informação posicional também mudou ao longo das gerações. O Transformer original somava aos embeddings vetores de posição construídos com funções seno e cosseno. Já o RoPE (Rotary Position Embedding), padrão na prática entre os LLMs abertos atuais, injeta a posição relativa durante o cálculo da atenção ao rotacionar os vetores Query e Key. (O mecanismo muda, mas o objetivo é o mesmo: dar ao Transformer noção de ordem.)
 
 Em resumo, o fluxo é **texto → tokens → token IDs → vetores de embedding (+ informação posicional) → entrada do Transformer**. A “contagem de tokens” da fatura corresponde à segunda etapa desse fluxo: quantos tokens resultaram da segmentação do texto.
 
@@ -85,7 +84,7 @@ Agora sabemos como os tokens são criados e em que formato entram no modelo. Mas
 
 ## Por que a entrada é barata e a saída é cara
 
-Quem já trabalhou com tokens provavelmente se perguntou: nas tabelas de preços, **tokens de saída custam várias vezes mais que tokens de entrada.** Na Anthropic, em todos os modelos, a tarifa de saída é exatamente cinco vezes a de entrada. (No Opus, são $5 de entrada e $25 de saída; no Haiku, $1 e $5.) Se é o mesmo token, por que o preço muda conforme entra ou sai?
+Quem já trabalhou com tokens provavelmente se perguntou: nas tabelas de preços, **tokens de saída custam várias vezes mais que tokens de entrada.** Na Anthropic, em todos os modelos, a tarifa de saída é cinco vezes a de entrada. (No Opus, são $5 de entrada e $25 de saída; no Haiku, $1 e $5.) Se é o mesmo token, por que o preço muda conforme entra ou sai?
 
 A resposta é que o modelo processa tokens de maneiras completamente diferentes na entrada e na saída. A inferência de um LLM tem duas etapas.
 
@@ -100,7 +99,7 @@ Existe alguma forma de tornar decode ao menos um pouco menos ineficiente? É aqu
 
 ## Como o armazenamento em cache reduz o preço
 
-Prompt caching armazena uma vez a entrada estática para que as chamadas seguintes a leiam por um preço bem menor. Segundo a documentação oficial da Anthropic, uma leitura custa 0,1 vez a tarifa-base de entrada, ou exatamente 10%. A escrita custa 1,25 vez com TTL (Time To Live, período de validade dos dados armazenados) de cinco minutos e 2 vezes com TTL de uma hora. Paga-se um pouco mais na primeira chamada e economiza-se 90% a partir da segunda.
+Prompt caching armazena uma vez a entrada estática para que as chamadas seguintes a leiam por um preço bem menor. Segundo a documentação oficial da Anthropic, uma leitura custa 0,1 vez a tarifa-base de entrada, ou seja, 10%. A escrita custa 1,25 vez com TTL (Time To Live, período de validade dos dados armazenados) de cinco minutos e 2 vezes com TTL de uma hora. Paga-se um pouco mais na primeira chamada e economiza-se 90% a partir da segunda.
 
 Mas como o preço pode cair 90%? E por que a exigência de que “o prefixo coincida exatamente” é tão rigorosa? As duas respostas ficam claras quando olhamos dentro do Transformer.
 
@@ -112,11 +111,11 @@ Ao processar tokens de entrada, o modelo cria os vetores Query/Key/Value (Q/K/V)
 
 ![Estrutura de funcionamento do KV cache do Transformer](1.webp)
 
-O KV cache elimina essa duplicação. Ele armazena os K/V já calculados e, ao gerar um novo token, lê e reutiliza os K/V anteriores, em vez de calculá-los novamente. Dentro de uma sequência, o custo de gerar mais um token cai de O(n²), que recalcularia toda a sequência a cada etapa, para O(n), que apenas lê os dados armazenados. (A rigor, esse é o custo por etapa; a ideia central é simples: não recalcular o que já foi calculado.) É também por isso que decode é limitado pela memória: cada etapa precisa reler o KV cache da memória.
+O KV cache elimina essa duplicação. Ele armazena os K/V já calculados e, ao gerar um novo token, lê e reutiliza os K/V anteriores, em vez de calculá-los novamente. Dentro de uma sequência, o custo de gerar mais um token cai de O(n²), que recalcularia toda a sequência a cada etapa, para O(n), que apenas lê os dados armazenados. (A rigor, esse é o custo por etapa, mas a ideia é simples: não recalcular o que já foi calculado.) É também por isso que decode é limitado pela memória: cada etapa precisa reler o KV cache da memória.
 
 ### Reutilização entre chamadas
 
-Se o KV cache foi criado para acelerar decode dentro de uma resposta, prompt caching propõe reutilizar essa estrutura de memória **não apenas dentro de uma chamada, mas também entre uma chamada e a próxima**.
+Se o KV cache foi criado para acelerar decode dentro de uma resposta, prompt caching propõe reutilizar essa estrutura de memória **não só dentro de uma chamada, mas também entre chamadas**.
 
 Os K/V de um prefixo estático — como uma instrução de sistema, definições de ferramentas ou trechos de código cujo início muda pouco — permanecem na memória da GPU por um TTL de cinco minutos ou uma hora. Se a chamada seguinte começar com o mesmo prefixo, o modelo ignora por completo o cálculo desses K/V e os lê diretamente dos dados armazenados. **Quando o cache acerta, o preço dos tokens de entrada cai porque o trabalho de GPU necessário para calculá-los deixa de existir.** A redução de 90% reflete a computação evitada.
 
@@ -130,19 +129,19 @@ O armazenamento em cache também tem restrições menos conhecidas. A quantidade
 
 O último conceito indispensável é a janela de contexto: o número máximo de tokens que um modelo aceita de uma vez. Entender por que esse limite existe também esclarece o conhecido aviso de que “um contexto mais longo custa mais”.
 
-A chave está na estrutura de cálculo da autoatenção. A atenção faz cada token consultar todos os outros uma vez. Com n tokens, existem n × n pares; portanto, **a computação e a memória da autoatenção crescem com o quadrado do comprimento n da sequência.** Ao dobrar o número de tokens, o custo da atenção quadruplica. (Vale esclarecer que não é o modelo inteiro que tem custo O(n²), mas a etapa de atenção.)
+A razão está na estrutura de cálculo da autoatenção. A atenção faz cada token consultar todos os outros uma vez. Com n tokens, existem n × n pares; portanto, **a computação e a memória da autoatenção crescem com o quadrado do comprimento n da sequência.** Ao dobrar o número de tokens, o custo da atenção quadruplica. (Vale esclarecer que não é o modelo inteiro que tem custo O(n²), mas a etapa de atenção.)
 
 ![Matriz de autoatenção em que cada token consulta todos os outros; com n tokens, o número de pares cresce como n×n](5.png)
 
 As [estimativas da Hugging Face](https://huggingface.co/docs/transformers/en/llm_tutorial_optimization) mostram como esse crescimento quadrático é acentuado. Com atenção padrão, sem otimização, apenas armazenar a matriz de pontuações exige cerca de 50 MB para uma entrada de 1.000 tokens, aproximadamente 19 GB para 16.000 tokens e quase 1 TB para 100.000.
 
-O KV cache também ocupa memória proporcionalmente ao número de tokens. À medida que o contexto cresce, os K/V que precisam ser mantidos se acumulam linearmente. No fim, o limite da janela de contexto é uma fronteira física definida pelo modelo: além dela, memória e computação se tornam inviáveis.
+O KV cache também ocupa memória proporcionalmente ao número de tokens. À medida que o contexto cresce, os K/V que precisam ser mantidos se acumulam linearmente. O limite da janela de contexto é a fronteira que o modelo define conforme o limite físico de memória e computação: além dela, esses recursos não dão conta.
 
 Assim, ao manter uma conversa longa, aumentam os tokens de entrada, o custo da atenção cresce ao quadrado e a precisão com que o modelo lida com a informação também cai. (Essa perda de precisão está diretamente ligada à degradação do contexto, abordada no guia de economia; manter o contexto enxuto beneficia tanto o custo quanto a qualidade das respostas.)
 
 ## Conclusão
 
-Em conjunto, o funcionamento dos tokens se resume a alguns fatos simples. **Token é uma unidade de vocabulário criada pelo BPE ao agrupar padrões frequentes**; depois de ser mapeado para um token ID, ele vira um vetor de embedding e entra no modelo. **A entrada é processada de uma só vez com prefill paralelo, enquanto a saída é mais cara porque precisa ser extraída token por token**; o KV cache reduz essa ineficiência ao reutilizar os K/V. **O armazenamento reduz o preço não por mágica, mas porque o Transformer evita recalcular K/V já obtidos**, e a exigência rigorosa de um prefixo idêntico decorre diretamente dessa estrutura. Por fim, um contexto mais longo custa mais porque o custo da atenção cresce com o quadrado do número de tokens.
+Em conjunto, o funcionamento dos tokens se resume a alguns fatos simples. **Token é uma unidade de vocabulário criada pelo BPE ao agrupar padrões frequentes**; depois de ser mapeado para um token ID, ele vira um vetor de embedding e entra no modelo. **A entrada é processada de uma só vez com prefill paralelo, enquanto a saída é mais cara porque precisa ser extraída token por token**; o KV cache reduz essa ineficiência ao reutilizar os K/V. **O cache reduz a tarifa de processamento dos tokens de entrada armazenados porque evita recalcular K/V já obtidos**, e a exigência rigorosa de um prefixo idêntico decorre diretamente dessa estrutura. Por fim, um contexto mais longo custa mais porque o custo da atenção cresce com o quadrado do número de tokens.
 
 Com essa base, a economia dos tokens fica muito mais clara. Encurtar a saída, organizar a instrução para preservar os dados armazenados, manter o contexto enxuto e migrar para um modelo mais barato quando ele oferece a mesma resposta são estratégias apoiadas nesses princípios. Se você chegou até aqui para entender o mecanismo, recomendo continuar no guia de economia de tokens e ver como essas ideias reduzem custos reais.
 
