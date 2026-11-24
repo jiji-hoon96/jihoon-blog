@@ -8,7 +8,7 @@ description: 'How BPE creates tokens, embeddings feed LLMs, prefill and decode s
 keywords: 'how LLM tokens work, BPE, Byte Pair Encoding, tokenizer, token embedding, prefill decode, KV cache, prompt caching, context window, self-attention, input output token costs, what is an AI token'
 locale: en
 translationOf: '260610'
-sourceHash: 674245d037f2826681db00fb1349db40da939feaf3655f9f0b24455984654a36
+sourceHash: adf71925c6c41a82012d86b683eeb35e03ba92c030f35ff559c348dc437d7546
 ---
 
 In this post, I want to explore what AI tokens actually are and how they work.
@@ -54,15 +54,15 @@ Because of this structure, the same text can produce very different token counts
 
 The material OpenAI published alongside GPT-4o illustrates this difference clearly. The o200k_base tokenizer used by the GPT-4o family represents the same text with fewer tokens than cl100k_base, the tokenizer used by the GPT-4 family. It is only about 1.1 times as efficient for English, but the gap widens for other languages. In the short examples OpenAI published, token counts fell by about 1.4 times for Chinese and Japanese, 1.7 times for Korean, and as much as 2.9 times for Hindi. (For Korean users, the difference between tokenizer generations is more noticeable than it is for English users.)
 
-Looking more broadly, there are also disparities between languages themselves. In Yennie Jun's comparison of multiple languages using cl100k_base, English almost always required the fewest tokens for sentences with the same meaning, while languages with their own writing systems tended to require more. Hindi and Bengali could use five times as many tokens as English, and Burmese more than ten times as many. Korean and Chinese also tokenize into more pieces than English, though less so than those languages.
+Looking more broadly, there are also disparities between languages themselves. In Yennie Jun's comparison of multiple languages using cl100k_base, English almost always required the fewest tokens for sentences with the same meaning, while languages with their own writing systems tended to require more. Hindi and Bengali could use five times as many tokens as English, and Burmese more than ten times as many. Korean and Chinese also tokenize into more pieces than English, but do not become as much longer as Hindi, Bengali, and Burmese.
 
-Here, an important practical implication emerges. When Anthropic introduced a new tokenizer starting with Opus 4.7, its official pricing documentation stated that the same text could be billed as up to 35% more tokens than with previous models. **Even when the per-token rate stays the same, the bill rises in direct proportion to the token count.** Model comparisons should therefore use the product of the rate and the expected token count.
+Here, an important practical implication emerges. When Anthropic introduced a new tokenizer starting with Opus 4.7, its official pricing documentation stated that the same text could be billed as up to 35% more tokens than with previous models. **Even when the per-token rate stays the same, the bill rises in direct proportion to the token count.** Model comparisons should therefore use the rate multiplied by the expected token count, rather than looking at the rate alone.
 
 But when these segmented tokens enter the model, they do not go in as literal characters or words. So what form does a token take as model input?
 
 ## How Tokens Enter the Model
 
-Neural networks cannot work with text directly. Ultimately, a model can compute only with numbers, namely vectors, which are arrays of numbers. Before entering the model, tokens therefore pass through several stages that convert them into numerical form.
+Neural networks cannot work with text directly. Ultimately, a model can compute only with numbers, specifically vectors, which are arrays of numbers. Before entering the model, tokens therefore pass through several stages that convert them into numerical form.
 
 Here is the sequence.
 
@@ -73,7 +73,7 @@ Here is the sequence.
 
 That can feel abstract in words alone, so I have included a widget that lets you interact with all four stages. Change the input sentence or click a token, and you can follow its path from ID to embedding vector, then see positional information added to produce the final input vector. (Only a few dimensions are displayed, but keep in mind that the actual GPT-4 vector has 12,288 dimensions.)
 
-Here, the model dimension (d_model) is the length of the vector used to represent one token. The original Transformer paper used a value of 512, but modern LLMs are much larger. (Even the 7B version of Llama 2 uses 4,096 dimensions.) A larger model dimension can represent differences in token meaning more richly, but it also increases computation and memory requirements.
+Here, the model dimension (d_model) is the length of the vector used to represent one token. The original Transformer paper used a value of 512, but modern LLMs are much larger. (Even the 7B version of Llama 2 uses 4,096 dimensions.) A larger model dimension can represent subtle differences in token meaning more richly, but it also increases computation and memory requirements.
 
 ![How a token ID looks up one row of the embedding matrix and becomes a d_model-dimensional vector](4.png)
 
@@ -81,7 +81,7 @@ Methods of injecting positional information have also changed across generations
 
 In short, the flow is **text → tokens → token IDs → embedding vectors (+ positional information) → Transformer input**. The “token count” on a bill refers to the second stage of this pipeline: how many tokens the text was split into.
 
-At this point, we know how tokens are created and what form they take when they enter a model. But when the model processes them, why do input and output cost so differently, and how can the cost of sending the same input repeatedly be reduced?
+At this point, we know how tokens are created and what form they take when they enter a model. Next, we will look at why input and output costs differ and how to reduce the cost of sending the same input repeatedly.
 
 ## Why Input Is Cheap and Output Is Expensive
 
@@ -94,9 +94,9 @@ The answer is that models process tokens in completely different ways for input 
 
 That asymmetry creates the cost difference. According to Databricks' analysis of inference performance, prefill is a compute-bound stage, while decode is memory-bound. During decode, the model has to read all of its weights from GPU memory again for every token it produces, yet each pass yields exactly one token. The GPU's enormous compute capacity sits almost idle. (To borrow Databricks' phrasing, you are paying to keep the GPU running without using its available compute.)
 
-In other words, **input tokens are processed efficiently together in parallel during prefill, while output tokens must be squeezed out inefficiently one by one.** Commercial factors such as demand and margins may also affect pricing, but at the technical level, this decode-stage inefficiency is part of the underlying reason. The principle of “keep outputs short” reduces the most expensive stage.
+In other words, **input tokens are processed efficiently together in parallel during prefill, while output tokens must be squeezed out inefficiently one by one.** Commercial factors such as demand and margins may also affect pricing, but at the technical level, this decode-stage inefficiency is part of the underlying reason. The principle of “keep outputs short” goes beyond being a simple cost-saving tip: it reduces the most expensive stage.
 
-Is there any way to make this inefficient decode stage even slightly less inefficient? This is where KV cache enters the picture.
+Decode has a way to ease this inefficiency, and that way is KV cache.
 
 ## How Caching Lowers the Price
 
@@ -118,7 +118,7 @@ KV cache was introduced to eliminate this duplication. It stores previously calc
 
 If KV cache was originally designed to accelerate decoding within a single response, prompt caching is the idea of **reusing this memory structure across calls instead of only within a single call.**
 
-The K/V values of a static prefix—such as a system prompt, tool definitions, or code snippets whose beginning remains nearly identical—stay in GPU memory for a five-minute or one-hour TTL. If the next call starts with the same prefix, the model skips that prefix's K/V computation entirely and reads it directly from the cache. **When the cache hits, the input token rate is lower because the GPU work required to compute those tokens disappears.** The 90% price reduction reflects the computation that has been avoided.
+The K/V values of a static prefix (such as a system prompt, tool definitions, or code snippets whose beginning remains nearly identical) stay in GPU memory for a five-minute or one-hour TTL. The next call, if it starts with the same prefix, skips that prefix's K/V computation entirely and reads it directly from the cache. **When the cache hits, the GPU computation itself needed to process those input tokens disappears, so the rate for input tokens is lower.** The 90% price reduction reflects the computation that has been avoided.
 
 Once you understand this mechanism, the strict requirement that “the prefix must match exactly” also makes sense. A cache hit is determined by whether a cumulative hash of the prefix matches. Because self-attention is causal, changing even one earlier token changes the K/V values of every token that follows. Put just one timestamp at the beginning of a prompt, and its value changes on every call, causing the prefix hash to diverge and invalidating the entire cache after it.
 
@@ -138,13 +138,13 @@ The reason lies in the computational structure of self-attention. Attention invo
 
 The KV cache described earlier also consumes memory in proportion to the number of tokens. As the context grows, the K/V values the model must retain accumulate linearly. The context-window limit is a boundary the model sets to match the physical limits of memory and computation, beyond which they become unmanageable.
 
-So carrying a long conversation forward unchanged increases the input token count, makes attention costs grow quadratically, and reduces the model's accuracy in handling information. (This loss of accuracy is directly related to context rot, which I discuss in the token-saving guide. It is precisely why keeping context lean benefits both cost and answer quality.)
+So carrying a long conversation forward unchanged increases the input token count, makes attention costs grow quadratically, and reduces the model's accuracy in handling information as the token count approaches its limit. (This loss of accuracy is directly related to context rot, which I discuss in the token-saving guide. It is precisely why keeping context lean benefits both cost and answer quality.)
 
 ## Conclusion
 
-Putting it all together, the way tokens work comes down to a few simple facts. **A token is a vocabulary unit created by BPE from frequently used patterns**, and it enters the model as an embedding vector after being mapped to a token ID. **Input is processed all at once through parallel prefill, while output is more expensive because it must be squeezed out one token at a time**, and the KV cache reduces that inefficiency by reusing K/V values. **Caching lowers the processing rate for cached input tokens because it avoids recalculating K/V values that have already been computed**, and the demanding requirement for an exact prefix follows directly from this architecture. Finally, longer context costs more because attention cost grows with the square of the token count.
+Putting it all together, the way tokens work comes down to a few simple facts. **A token is a vocabulary unit created by BPE from frequently used patterns**, and it enters the model as an embedding vector after being mapped to a token ID. **Input is processed all at once through parallel prefill, while output is more expensive because it must be squeezed out one token at a time**, and the KV cache reduces that inefficiency by reusing K/V values. **The cache lowers the rate because the Transformer does not recalculate K/V values it has already computed**, and the demanding requirement for an exact prefix follows directly from this architecture. Finally, longer context costs more because attention cost grows with the square of the token count.
 
-Once you understand this foundation, the economics become much clearer. Strategies such as shortening output, arranging prompts so the cache remains intact, keeping context lean, and switching to a cheaper model when it gives the same answer all rest on these principles. If you have read this far because you wanted to understand the mechanics, I recommend continuing with the token-saving guide to see how these principles translate into real cost reductions.
+Once you understand this foundation, the economics become much clearer. That is because strategies such as shortening output, arranging prompts so the cache remains intact, keeping context lean, and switching to a cheaper model when it gives the same answer all follow from these principles. If you have read this far because you wanted to understand the mechanics, I recommend continuing with the token-saving guide to see how these principles translate into real cost reductions.
 
 :::ref
 - [paper] [Philip Gage, A New Algorithm for Data Compression (1994)](https://en.wikipedia.org/wiki/Byte-pair_encoding)
