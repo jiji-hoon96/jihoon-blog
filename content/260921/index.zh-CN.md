@@ -8,14 +8,14 @@ description: '把用全局状态保存模态框开关的代码换成一行 await
 keywords: 'overlay-kit, React 模态框状态管理, 声明式接口, openAsync, useOverlay, Promise 模态框, React overlay, nice-modal-react'
 locale: zh-CN
 translationOf: '260921'
-sourceHash: 8aefce5f5d9e49873607ae837ab6471f9e7a7cd3103294996ceccb562bd5c71d
+sourceHash: 93ab7c5e806b87b19b6a9b660b97982d5066f0b8b77e8b106300b8e865f84fdb
 ---
 
 这篇文章想聊聊以声明式方式处理 overlay 的接口。
 
 笔者喜欢声明式的代码。打开 overlay、关闭它、在其中做异步处理，这一连串行为笔者认为应该由 overlay 自己管理。调用方持有 `isOpen` 并来回切换的做法，会把处理状态的代码和渲染该状态的组件放到两个不同的地方。
 
-然而笔者在公司负责的页面，模态框却正好相反。是否打开被放在全局 store 里，调用方打开，调用方关闭。连关闭模态框的代码和接收结果的回调，都是调用方直接写的。所以笔者花了很长时间琢磨如何把它挪向声明式的方向，最后干脆重写了一遍。
+然而笔者在公司负责的页面，模态框却正好相反。是否打开被放在全局 store 里，调用方打开，调用方关闭。连关闭模态框的代码和接收结果的回调，都是调用方直接写的。所以笔者花了很长时间琢磨如何把它挪向声明式的方向，最后直接重写了一遍。
 
 做这项工作时笔者看了 [overlay-kit](https://github.com/toss/overlay-kit)。它和笔者想要的接口很接近。本文记录 overlay-kit 的声明式接口，以及笔者如何设计公司内部的模态框系统。
 
@@ -65,7 +65,7 @@ if (result.reason !== 'confirmed') return;
 await saveNote(result.value);
 ```
 
-变化有三点。打开用的函数从 hook 变成模块函数，因此可以在组件外调用。结果从回调参数变成返回值，因此后续处理留在了调用函数自身的流程里。而关闭这件事交给了模态框组件自己。
+变化有三点。打开用的函数从 hook 改为模块函数，因此可以在组件外调用。结果从回调参数改为返回值，因此后续处理留在了调用函数自身的流程里。而关闭这件事交给了模态框组件自己。
 
 由于返回类型是 `Promise<ModalResult<V>>`，模态框的结束被收拢成了一个值。
 
@@ -187,7 +187,7 @@ useEffect(() => {
 
 关闭的一侧能够成立，依据在 reducer 里。`CLOSE` 只翻转 `overlayData` 中的 `isOpen`，不碰 `overlayOrderList`。Provider 遍历那个列表来渲染，因此只要还留在列表里，组件就活着。只有 `REMOVE` 把它从列表中移除，才会真正卸载。
 
-**rAF 并非总是必要。** react-transition-group [默认不会在首次挂载时执行 enter 过渡](https://reactcommunity.org/react-transition-group/transition)。即使 `in` 已经是 `true` 也会跳过，必须开启 `appear`。overlay-kit 的 rAF 会在挂载之后把 `isOpen` 从 `false` 改为 `true`，正好覆盖了这种情况。
+**但 rAF 并非总是必要。** react-transition-group [默认不会在首次挂载时执行 enter 过渡](https://reactcommunity.org/react-transition-group/transition)。即使 `in` 已经是 `true` 也会跳过，必须开启 `appear`。overlay-kit 的 rAF 会在挂载之后把 `isOpen` 从 `false` 改为 `true`，正好覆盖了这种情况。
 
 ### 用 Promise 包起来的二十行
 
@@ -221,7 +221,7 @@ resolve 发生在关闭动画结束之前，也就是关闭开始时。如果流
 
 ### 设计绕了一圈的地方
 
-为了探究设计的过程，笔者顺着提交记录看了一遍，发现这个结构并非一开始就是如此。1.0 用的是和现在相同的事件加 reducer 的组合。1.2.0 把状态挪到模块层级的外部 store，改用 `useSyncExternalStore` 读取，而 1.8.0 又退回了 reducer。
+为了探究设计的过程，笔者顺着提交记录看了一遍，发现这个结构也曾中途改过一次，后来又恢复了。1.0 用的是和现在相同的事件加 reducer 的组合。1.2.0 把状态挪到模块层级的外部 store，改用 `useSyncExternalStore` 读取，而 1.8.0 又退回了 reducer。
 
 退回的理由写在 [issue #148](https://github.com/toss/overlay-kit/issues/148) 里。
 
@@ -292,7 +292,7 @@ overlayOrderList: [...state.overlayOrderList.filter((item) => item !== action.ov
 
 ### 与注释不符的实际行为
 
-保持 DOM 顺序并再次打开后，是否会立刻在画面上出现问题，笔者并未确认。测试只看到 DOM 顺序为止，而大多数对话框库都使用自己的 z-index 或 portal，所以 DOM 顺序并不等同于视觉顺序。
+保持 DOM 顺序并再次打开后，是否会立刻在画面上出现问题，笔者并未确认。测试只检查了 DOM 顺序。大多数对话框库都使用自己的 z-index 或 portal，所以画面上看到的顺序可能与 DOM 顺序不同。
 
 笔者做的那一版把同样的情况作为选项暴露出来。再次打开同一种模态框时，由调用方选择是保留既有的还是用新的 props 替换。选择替换的话，既有的 Promise 会以 `replaced` 结束。前面把结果类型分成五种的原因之一就是这个。
 
@@ -334,7 +334,7 @@ overlay.open(({ isOpen, close }) => isOpen ? (
 
 **声明式的接口并不是消灭命令式的流程，而是把它挪到边界的另一侧，并给那条边界起个名字。** 前面看到的 overlay-kit 内部正是这样。调用处只有一行，而内部跑着发出事件、两次 dispatch 的流程。
 
-那么来看各个项目把这个词用在哪里。overlay-kit 的文档把以往的方式称为命令式。它所指的是用 `useState` 持有开关标志、在事件处理器里翻转那个值的代码。相反，它称为声明式的，是把 overlay 当作行为而非状态来处理的那一侧。toss 技术博客的[关于声明式代码的文章](https://toss.tech/article/frontend-declarative-code)把这个词定义得更宽：声明式的代码就是抽象层级更高的代码，而把显示 overlay 这一行为抽象出来的 hook 就是一个例子。
+那么来看各个项目把这个词用在哪里。overlay-kit 的文档把以往的方式称为命令式。它所指的是用 `useState` 持有开关标志、在事件处理器里翻转那个值的代码。相反，它称为声明式的，是把 overlay 当作状态的替代物来处理的那一侧。toss 技术博客的[关于声明式代码的文章](https://toss.tech/article/frontend-declarative-code)把这个词定义得更宽：声明式的代码就是抽象层级更高的代码，而把显示 overlay 这一行为抽象出来的 hook 就是一个例子。
 
 于是笔者决定把这个词收窄成这样。**调用方不写关闭的代码。** 什么时候关、关闭过程中留下什么，由 overlay 一侧决定；调用方只写显示什么，以及期望拿回什么结果。
 

@@ -8,14 +8,14 @@ description: 'Cambiar un flag global isOpen por un await: lo que gané, lo que p
 keywords: 'overlay-kit, gestión de estado de modales en React, interfaz declarativa, openAsync, useOverlay, modal con Promise, overlay React, nice-modal-react'
 locale: es
 translationOf: '260921'
-sourceHash: 8aefce5f5d9e49873607ae837ab6471f9e7a7cd3103294996ceccb562bd5c71d
+sourceHash: 93ab7c5e806b87b19b6a9b660b97982d5066f0b8b77e8b106300b8e865f84fdb
 ---
 
 En este artículo quiero hablar de las interfaces que tratan los overlays de forma declarativa.
 
 Me gusta el código declarativo. Abrir un overlay, cerrarlo y hacer trabajo asíncrono dentro de él es una secuencia que, en mi opinión, debería gestionar el propio overlay. Cuando quien llama guarda `isOpen` y lo enciende y apaga, el código que maneja el estado acaba en un lugar distinto del componente que lo dibuja.
 
-Pero los modales de las pantallas de las que me ocupaba en la empresa eran justo lo contrario. Si un modal estaba abierto vivía en un store global, quien llamaba lo abría y quien llamaba lo cerraba. También era quien llamaba el que escribía el código que cerraba el modal y los callbacks que recibían su resultado. Por eso estuve mucho tiempo pensando cómo llevar esto hacia algo declarativo, y al final lo reescribí.
+Pero los modales de las pantallas de las que me ocupaba en la empresa eran justo lo contrario. Si un modal estaba abierto vivía en un store global, quien llamaba lo abría y quien llamaba lo cerraba. También era quien llamaba el que escribía el código que cerraba el modal y los callbacks que recibían su resultado. Por eso estuve mucho tiempo pensando cómo llevar esto hacia algo declarativo, y lo reescribí por completo.
 
 Mientras hacía ese trabajo miré [overlay-kit](https://github.com/toss/overlay-kit). Se parecía a la interfaz que yo buscaba. Este artículo recoge la interfaz declarativa de overlay-kit y cómo diseñé el sistema de modales interno.
 
@@ -65,7 +65,7 @@ if (result.reason !== 'confirmed') return;
 await saveNote(result.value);
 ```
 
-Cambiaron tres cosas. La función de apertura pasó a ser una función de módulo en lugar de un hook, así que se puede llamar fuera de un componente. El resultado pasó a ser un valor de retorno en lugar de un argumento de callback, así que el trabajo posterior se quedó dentro del flujo de la función que llama. Y cerrar pasó a ser tarea del propio componente del modal.
+Cambiaron tres cosas. La función de apertura pasó a ser una función de módulo en vez de un hook, así que se puede llamar fuera de un componente. El resultado pasó a ser un valor de retorno en vez de un argumento de callback, así que el trabajo posterior se quedó dentro del flujo de la función que llama. Y cerrar pasó a ser tarea del propio componente del modal.
 
 Como el tipo de retorno es `Promise<ModalResult<V>>`, el final del modal se concentró en un único valor.
 
@@ -187,7 +187,7 @@ La última fila explica por qué el lado que cierra queda en manos de quien usa 
 
 Lo que sostiene el lado que cierra está en el reducer. `CLOSE` solo invierte, dentro de `overlayData`, el valor `isOpen`, y no toca `overlayOrderList`. El provider renderiza recorriendo esa lista, así que el componente sigue vivo mientras permanezca en ella. Solo se desmonta cuando `REMOVE` lo saca.
 
-**rAF no siempre es necesario.** react-transition-group [no ejecuta la transición de entrada en el primer montaje de forma predeterminada](https://reactcommunity.org/react-transition-group/transition). La salta incluso cuando `in` ya es `true`, y hay que activar `appear`. El rAF de overlay-kit cambia `isOpen` de `false` a `true` después del montaje, lo que cubre ese caso.
+**Pero rAF no siempre es necesario.** react-transition-group [no ejecuta la transición de entrada en el primer montaje de forma predeterminada](https://reactcommunity.org/react-transition-group/transition). La salta incluso cuando `in` ya es `true`, y hay que activar `appear`. El rAF de overlay-kit cambia `isOpen` de `false` a `true` después del montaje, lo que cubre ese caso.
 
 ### Veinte líneas envueltas en una Promise
 
@@ -221,7 +221,7 @@ El momento en que se resuelve es cuando empieza el cierre, antes de que termine 
 
 ### Donde el diseño dio la vuelta completa
 
-Seguí el historial de commits para explorar cómo llegó aquí el diseño, y descubrí que la estructura no fue así desde el principio. La 1.0 usaba la misma combinación de eventos y reducer que hoy. La 1.2.0 movió el estado a un store externo a nivel de módulo que se leía con `useSyncExternalStore`, y la 1.8.0 lo devolvió a un reducer.
+Seguí el historial de commits para explorar cómo llegó aquí el diseño, y descubrí que esta estructura también cambió una vez a mitad de camino y luego volvió a como estaba. La 1.0 usaba la misma combinación de eventos y reducer que hoy. La 1.2.0 movió el estado a un store externo a nivel de módulo que se leía con `useSyncExternalStore`, y la 1.8.0 lo devolvió a un reducer.
 
 El motivo de la vuelta atrás está escrito en el [issue #148](https://github.com/toss/overlay-kit/issues/148).
 
@@ -292,7 +292,7 @@ Dice que reabrir después de cerrar trae el overlay al frente. Pero como la rama
 
 ### Un comportamiento que contradice el comentario
 
-No comprobé si mantener el orden del DOM al reabrir provoca un problema visible en pantalla. La prueba solo miró el orden del DOM y, como la mayoría de las librerías de diálogos usan su propio z-index o portales, el orden del DOM no equivale al orden visual.
+No comprobé si mantener el orden del DOM al reabrir provoca un problema visible en pantalla. La prueba solo miró el orden del DOM. Como la mayoría de las librerías de diálogos usan su propio z-index o portales, el orden visible en pantalla puede diferir del orden del DOM.
 
 Mi versión expone esta misma situación como una opción. Al reabrir un modal del mismo tipo, quien llama elige si conservar el existente o reemplazarlo con props nuevas. Si elige el reemplazo, la Promise existente termina como `replaced`. Esta es una de las razones por las que antes dividí el tipo del resultado en cinco ramas.
 
@@ -334,7 +334,7 @@ La analogía del mismo documento es más nítida. Lo imperativo es ir cantando c
 
 **Una interfaz declarativa no elimina el procedimiento imperativo: lo mueve al otro lado de una frontera y le pone nombre a esa frontera.** El interior de overlay-kit que hemos visto es así. El punto de llamada es una línea, mientras que dentro corre un procedimiento que emite un evento y hace dos dispatch.
 
-Veamos entonces dónde aplica cada proyecto la palabra. La documentación de overlay-kit llama imperativo al enfoque anterior. Lo que señala es el código que guarda el indicador de apertura con `useState` y lo invierte en un manejador de eventos. Lo que llama declarativo es el lado que trata el overlay como una acción y no como estado. El [artículo sobre código declarativo](https://toss.tech/article/frontend-declarative-code) del blog técnico de toss define la palabra de forma más amplia: el código declarativo es código con un nivel de abstracción más alto, y un hook que abstrae la acción de mostrar un overlay es un ejemplo de ello.
+Veamos entonces dónde aplica cada proyecto la palabra. La documentación de overlay-kit llama imperativo al enfoque anterior. Lo que señala es el código que guarda el indicador de apertura con `useState` y lo invierte en un manejador de eventos. Lo que llama declarativo es el lado que trata el overlay como una acción en vez de como estado. El [artículo sobre código declarativo](https://toss.tech/article/frontend-declarative-code) del blog técnico de toss define la palabra de forma más amplia: el código declarativo es código con un nivel de abstracción más alto, y explica que un hook que abstrae la acción de mostrar un overlay es un ejemplo de ello.
 
 Por eso decidí estrechar la palabra así: **quien llama no escribe el código que cierra**. Cuándo cerrar, y qué queda en pantalla mientras se cierra, lo decide el overlay; quien llama escribe solo qué mostrar y qué espera recibir de vuelta.
 

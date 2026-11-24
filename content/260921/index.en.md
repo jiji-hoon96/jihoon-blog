@@ -8,14 +8,14 @@ description: "Swapping a global isOpen flag for one await: what I gained, what I
 keywords: 'overlay-kit, React modal state management, declarative interface, openAsync, useOverlay, promise based modal, React overlay, nice-modal-react'
 locale: en
 translationOf: '260921'
-sourceHash: 8aefce5f5d9e49873607ae837ab6471f9e7a7cd3103294996ceccb562bd5c71d
+sourceHash: 93ab7c5e806b87b19b6a9b660b97982d5066f0b8b77e8b106300b8e865f84fdb
 ---
 
 In this post, I want to talk about interfaces that treat overlays declaratively.
 
 I like declarative code. When it comes to opening an overlay, closing it, and doing asynchronous work inside it, I think the overlay itself should manage that sequence. When the calling side holds `isOpen` and flips it on and off, the code that handles the state ends up in a different place from the component that renders it.
 
-The modals on the screens I owned at work were the opposite. Whether a modal was open lived in a global store, the call site opened it, and the call site closed it. The call site was also writing the code that closed the modal and the callbacks that received its result. So I spent a long time working out how to move this in a declarative direction, and in the end I rewrote it.
+The modals on the screens I owned at work were the opposite. Whether a modal was open lived in a global store, the call site opened it, and the call site closed it. The call site was also writing the code that closed the modal and the callbacks that received its result. So I spent a long time working out how to move this in a declarative direction, and rewrote it myself.
 
 While doing that work I looked at [overlay-kit](https://github.com/toss/overlay-kit). It was close to the interface I was aiming for. This post is a record of overlay-kit's declarative interface and of how I designed our internal modal system.
 
@@ -65,7 +65,7 @@ if (result.reason !== 'confirmed') return;
 await saveNote(result.value);
 ```
 
-Three things changed. The opening function became a module function rather than a hook, so it can be called outside a component. The result became a return value rather than a callback argument, so the follow-up work stayed inside the flow of the calling function. And closing became the modal component's own job.
+Three things changed. The opening function became a module function instead of a hook, so it can be called outside a component. The result became a return value instead of a callback argument, so the follow-up work stayed inside the flow of the calling function. And closing became the modal component's own job.
 
 Because the return type is `Promise<ModalResult<V>>`, the end of a modal collapsed into a single value.
 
@@ -187,7 +187,7 @@ The last row explains why the closing side is left to the user. On the opening s
 
 The reducer is what makes the closing side work. `CLOSE` only flips, inside `overlayData`, the `isOpen` value, and leaves `overlayOrderList` alone. The provider renders by walking that list, so the component stays alive as long as it remains in the list. It only unmounts once `REMOVE` takes it out.
 
-**rAF is not always necessary.** react-transition-group [does not run the enter transition on first mount by default](https://reactcommunity.org/react-transition-group/transition). It skips it even when `in` is already `true`, and you have to turn on `appear`. overlay-kit's rAF changes `isOpen` from `false` to `true` after mount, which covers that case.
+**But rAF is not always necessary.** react-transition-group [does not run the enter transition on first mount by default](https://reactcommunity.org/react-transition-group/transition). It skips it even when `in` is already `true`, and you have to turn on `appear`. overlay-kit's rAF changes `isOpen` from `false` to `true` after mount, which covers that case.
 
 ### Twenty lines wrapped in a Promise
 
@@ -221,7 +221,7 @@ The Promise resolves before the closing animation ends, when closing begins. Tha
 
 ### Where the design came full circle
 
-I followed the commit history to explore how the design got here, and found that the structure was not like this from the start. 1.0 used the same event and reducer combination as today. 1.2.0 moved the state into a module-level external store read through `useSyncExternalStore`, and then 1.8.0 moved it back to a reducer.
+I followed the commit history to explore how the design got here, and found that the structure had changed once in between and then returned. 1.0 used the same event and reducer combination as today. 1.2.0 moved the state into a module-level external store read through `useSyncExternalStore`, and then 1.8.0 moved it back to a reducer.
 
 The reason for reverting is written in [issue #148](https://github.com/toss/overlay-kit/issues/148).
 
@@ -292,7 +292,7 @@ It says that reopening after closing brings the overlay to the front. But becaus
 
 ### Behavior that contradicts the comment
 
-I did not confirm whether reopening while preserving the DOM order shows an immediate visible problem on screen. The test only looked at DOM order, and since most dialog libraries use their own z-index or portals, DOM order is not the same as visual order.
+I did not confirm whether reopening while preserving the DOM order shows an immediate visible problem on screen. The test only looked at DOM order. Most dialog libraries use their own z-index or portals, so the order visible on screen can differ from DOM order.
 
 My version exposes the same situation as an option. When the same kind of modal is opened again, the call site chooses whether to keep the existing one or replace it with new props. Choosing replacement settles the existing Promise as `replaced`. This is one of the reasons I split the result type into five branches earlier.
 
