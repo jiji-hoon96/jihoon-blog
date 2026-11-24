@@ -9,9 +9,8 @@ description: 'Jev devuelve probabilidades en vez de texto. Su confidence no se a
 keywords: 'Jev, TypeSafe AI, modelo System One, RLCD, calibración de modelos, ECE, umbral de confidence, modelos de decisión, Kev open source, casos de uso de Jev'
 locale: es
 translationOf: '260922'
-sourceHash: 5c9dfaaf13880df9237ac0b3d8ee8acf63ea576d1e319a1de375d9a179acc499
+sourceHash: b4d23dbbaba40d3fdbc441fb1fa73a171f94c1f5c1a78639ca4214905aa3b6fb
 ---
-
 En este artículo quiero hablar de Jev, un modelo que TypeSafe AI presentó la semana pasada y que devuelve probabilidades en vez de texto. Está pensado para desarrolladores que quieren poner un umbral a la probabilidad que devuelve un modelo y procesar casos automáticamente sin revisión humana. Al terminar sabrás cómo se calcula el `confidence` de Jev, cuánto se mueve la calibración según la distribución y un procedimiento para fijar el umbral con tus propios datos.
 
 El primer uso que me llamó la atención fue la automatización del navegador. Browserbase abrió un [PR](https://github.com/browserbase/stagehand/pull/2953) que conecta Jev al `act()` de Stagehand. La estructura era enviar el :term[árbol de accesibilidad]{key="accessibility-tree"} de la página como `state` y preguntar, con opciones cerradas, «cuál es el siguiente elemento que hay que pulsar». En 40 tareas, la mediana de `act()` bajó de 1,97 segundos a 0,46, y de 147 acciones solo 4 volvieron a un LLM. El punto donde un script de Playwright se rompe en cuanto cambia un selector quedó cubierto por una llamada que devuelve una sola probabilidad. Mientras escribo esto, el PR todavía no se ha fusionado.
@@ -56,13 +55,13 @@ Pero ¿por qué hacía falta un método de entrenamiento nuevo? ¿No basta con p
 
 La pista está en la :term[calibración]{key="calibration"}. Si la exactitud es qué porcentaje aciertas, la calibración es si sabes qué porcentaje vas a acertar, y la métrica que mide ese desajuste es el :term[ECE]{key="ece"} (expected calibration error). Es la media de la diferencia entre la probabilidad declarada y la tasa real de acierto en cada tramo de probabilidad, ponderada por la proporción de muestras, así que 0 es la perfección. Pero hay un caso en que esta escala se desajustó tras pasar por :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback), que optimiza la preferencia humana. En la Figure 8 del [informe técnico de GPT-4](https://arxiv.org/abs/2303.08774), el ECE del modelo preentrenado era **0.007**, y el del modelo tras el post-training, **0.074**, más de diez veces peor. El informe no da la causa, y yo tampoco encontré una fuente primaria que la establezca. La definición y hasta dónde se conoce la causa los dejé explicados aparte en [Calibración y exceso de confianza en los LLM](/260917).
 
-**Aun así, el ECE por sí solo no basta.** Un predictor constante que estampa 0.6 en todas las entradas también tiene ECE 0 si su tasa real de acierto es del 60%. Si la probabilidad solo es honesta pero no se separa caso por caso, no hay sitio donde trazar la línea. Por eso, al margen de la calibración, hay que mirar también **si la probabilidad de verdad se separa**, y «la proporción que se puede automatizar dentro de un presupuesto de error», que usaré más adelante, es la métrica que reúne esas dos cosas en una sola cifra.
+**Pero el ECE por sí solo no basta.** Un predictor constante que estampa 0.6 en todas las entradas también tiene ECE 0 si su tasa real de acierto es del 60%. Si la probabilidad solo es honesta pero no se separa caso por caso, no hay sitio donde trazar la línea. Por eso, al margen de la calibración, hay que mirar también **si la probabilidad de verdad se separa**, y «la proporción que se puede automatizar dentro de un presupuesto de error», que usaré más adelante, es la métrica que reúne esas dos cosas en una sola cifra.
 
 Desde el punto de vista del software, lo que importa es esta parte. Si la probabilidad es honesta y se separa, se puede trazar la línea. Sale una estructura en la que por encima de 0.95 se procesa automáticamente y por debajo se pasa a una persona.
 
 TypeSafe dice haber abierto un tercer camino apuntando a ese lugar: RLHF, que optimiza la preferencia humana; RLVR (reinforcement learning with verifiable rewards), que optimiza respuestas correctas que una máquina puede puntuar; y RLCD, que según ellos optimiza decisiones calibradas.
 
-Ahora bien, de RLCD lo único publicado son tres líneas de contrato de salida. A fecha de 23 de septiembre de 2026, cuando escribo este artículo, no hay artículo ni informe técnico en ninguna parte de la documentación ni del artículo de presentación de TypeSafe. Existe por separado un [artículo de ICLR 2024](https://arxiv.org/abs/2307.12950) que usa la misma sigla, pero ahí significa reinforcement learning from contrastive distillation, un método distinto. Conviene no mezclarlos al buscar.
+Pero de RLCD lo único publicado son tres líneas de contrato de salida. A fecha de 23 de septiembre de 2026, cuando escribo este artículo, no hay artículo ni informe técnico en ninguna parte de la documentación ni del artículo de presentación de TypeSafe. Existe por separado un [artículo de ICLR 2024](https://arxiv.org/abs/2307.12950) que usa la misma sigla, pero ahí significa reinforcement learning from contrastive distillation, un método distinto. Conviene no mezclarlos al buscar.
 
 ## Qué es en realidad confidence
 
@@ -72,7 +71,7 @@ Entonces, ¿es honesto el número que devuelve Jev? Antes de responder hay que v
 
 Las respuestas de `Choice` y `Score` traen juntos `probabilities` y `confidence`. Lo primero es una distribución de probabilidad sobre todas las opciones; lo segundo, un único número entre 0 y 1. Cuando pones un umbral en el código, la mano va primero hacia `confidence`.
 
-Este valor no lo produce el modelo. El archivo `_utils/confidence_metrics.py` de [system-one-adapter-python](https://github.com/typesafe-ai/system-one-adapter-python), publicado por la organización TypeSafe, tiene 32 líneas en total, y la parte de `Choice` es así.
+Este valor lo calcula el código del adaptador a partir de la distribución de probabilidad. El archivo `_utils/confidence_metrics.py` de [system-one-adapter-python](https://github.com/typesafe-ai/system-one-adapter-python), publicado por la organización TypeSafe, tiene 32 líneas en total, y la parte de `Choice` es así.
 
 ```python
 def choice_confidence(probs: list[float]) -> float:
@@ -125,15 +124,15 @@ Se leen dos cosas.
 
 Primera: **el ECE se mueve casi diez veces.** Va de 0.011 a 0.105. Mismo corrector, mismo modelo. «Está calibrado» no es una propiedad del modelo, sino una relación entre el modelo y la distribución. Que la calibración se venga abajo cuando cambia la distribución es un resultado ya conocido. Lo nuevo aquí es que **la misma forma aparece también en un modelo que presenta la calibración como objetivo de entrenamiento**.
 
-El 0.105 del conjunto con mayor ECE es incluso mayor que el 0.074 del GPT-4 post-RLHF que vimos antes. Ahora bien, estos dos no deben leerse como un ranking. Las tareas son distintas, y el ECE es un estimador cuyo valor se mueve según en cuántos tramos se divida y en qué tramo se acumulen las muestras, de modo que enfrentar cifras salidas de correctores distintos no constituye una comparación válida.
+El 0.105 del conjunto con mayor ECE es incluso mayor que el 0.074 del GPT-4 post-RLHF que vimos antes. Aun así, estos dos no deben leerse como un ranking. Las tareas son distintas, y el ECE es un estimador cuyo valor se mueve según en cuántos tramos se divida y en qué tramo se acumulen las muestras, de modo que enfrentar cifras salidas de correctores distintos no constituye una comparación válida.
 
-Segunda: **el ECE medido se explica casi por completo con el exceso de confianza.** La diferencia entre ambas columnas está, en los siete casos, entre 0.002 y 0.011. Como el ECE es la media ponderada de las brechas por tramo, no puede ser menor que el exceso de confianza global; que esa diferencia sea casi 0 significa que **el signo del desajuste de cada tramo se inclina en una sola dirección**. No es ruido que se cruce y se cancele entre tramos.
+Segunda: **el ECE medido se explica casi por completo con el exceso de confianza.** La diferencia entre ambas columnas está, en los siete casos, entre 0.002 y 0.011. Como el ECE es la media ponderada de las brechas por tramo, no puede ser menor que el exceso de confianza global; que esa diferencia sea casi 0 significa que **las brechas de cada tramo no son ruido que se cancela entre sí, sino que están inclinadas en una misma dirección**.
 
 Por qué ocurre se ve leyendo la tabla en vertical. Si quitamos `semif`, seis valores de confianza media se apelotonan entre 0.851 y 0.906. En ese mismo rango, la exactitud se mueve entre 0.753 y 0.857, el doble de ancho. **La confianza apenas se mueve aunque cambie la distribución; solo se mueve la exactitud. La diferencia que queda es directamente el ECE.**
 
 ![Gráfico de siete conjuntos de evaluación con llamadas reales a Jev: la confianza media se agrupa entre 0,851 y 0,906 mientras solo la exactitud se mueve de 0,753 a 0,965, y esa brecha casi coincide con el ECE](5.png?w=720)
 
-Otro benchmark muestra cómo se manifiesta esta propiedad en la práctica. En una [medición](https://github.com/anisselbd/jev-phishing-bench) sobre 2,000 correos de phishing con Claude Haiku 4.5 como grupo de control, la exactitud de Jev fue del 62.6% y la de Haiku del 81.3%. Pero lo que más llama la atención es el ECE. El ECE que reporta el repositorio es 0.154 para Jev y 0.097 para Haiku, y si el registro de auditoría de afirmaciones vuelve a medir el valor `P(phishing)` de Jev en 10 tramos de 0 a 1, sale 0.170. Se lea como se lea, **el modelo que presenta la calibración como objetivo de entrenamiento perdió en calibración frente a un LLM hecho con RLHF.** El mismo autor sacó un 91.6% solo con una regla de lista de hosts de enlaces.
+Otro benchmark muestra cómo se manifiesta esta propiedad en la práctica. En una [medición](https://github.com/anisselbd/jev-phishing-bench) sobre 2,000 correos de phishing con Claude Haiku 4.5 como grupo de control, la exactitud de Jev fue del 62.6% y la de Haiku del 81.3%. El ECE es 0.154 para Jev y 0.097 para Haiku, según el repositorio, y si el registro de auditoría de afirmaciones vuelve a medir el valor `P(phishing)` de Jev en 10 tramos de 0 a 1, sale 0.170. Se lea como se lea, **el modelo que presenta la calibración como objetivo de entrenamiento perdió en calibración frente a un LLM hecho con RLHF.** El mismo autor sacó un 91.6% solo con una regla de lista de hosts de enlaces.
 
 Si se mira la misma métrica en varios conjuntos, la amplitud queda más clara. La proporción que se puede automatizar con un :term[presupuesto de error]{key="error-budget"} del 5% es 0.486 en el conjunto `scienthoon`, 0.695 en `transfer-v9` y 1.000 en `semif`. El corrector de Kev anota que este valor es el máximo obtenido eligiendo el umbral dentro de la muestra, y no una garantía de error tras el despliegue. **Ninguna de ellas debe citarse como si fuera una especificación del modelo.**
 
@@ -171,7 +170,7 @@ La línea base de clase mayoritaria es la puntuación que se obtiene sin leer la
 
 La última fila es la respuesta de este experimento. **En el conjunto en reserva, por muy alto que pusiera el umbral, no hubo ni una sola decisión que pudiera procesarse automáticamente dentro de un 5% de error.**
 
-Mirando la distribución de predicciones se ve qué ocurrió. El modelo respondió **«hay que devolverla» en las 162 frases.** En las 37 palabras distintas, todas. Acertó todos los positivos y falló todos los negativos. Por eso el 0.500 del conjunto en reserva no es habilidad: es la cifra que sale porque el conjunto está equilibrado.
+Mirando la distribución de predicciones se ve qué ocurrió. El modelo respondió **«hay que devolverla» en las 162 frases.** En las 37 palabras distintas, todas. Acertó todos los positivos y falló todos los negativos. Por eso el 0.500 del conjunto en reserva es una cifra que sale del equilibrio del conjunto, no un resultado que demuestre la capacidad del modelo.
 
 Y con eso la confianza media era 0.876. En el conjunto de la compuerta, el 49% superó una confianza de 0.9, y el acierto real de ese tramo es 0.240.
 
@@ -191,13 +190,13 @@ Si fuera un modelo que dice que sí a cualquier cosa que le preguntes, este resu
 | Coreano / inglés | Is this sentence written in English? | 0.01 |
 | Inglés / inglés | Is this sentence about software? | 0.96 |
 
-**Lee coreano, dice «no» y separa 0.02 de 0.98.** No es un sesgo global de complacencia. Lo que esto descarta llega hasta ahí. Queda la posibilidad de que la redacción misma de la pregunta de la compuerta sea mala.
+**Lee coreano, dice «no» y separa 0.02 de 0.98.** Queda descartado que responda globalmente «sí» a cualquier cosa, y permanece la posibilidad de que la propia redacción de la pregunta de la compuerta sea mala.
 
 ## El resultado de meter las reglas en el state
 
 Entonces, ¿cambia algo si le doy directamente el conocimiento que hace falta para decidir? El método de adaptación a un dominio que recomienda la documentación de TypeSafe es este: sin tocar los pesos, envías el material de referencia dentro del `state`.
 
-Cogí los párrafos de reglas que ya están escritos en `write-post.md`, los metí también en el `state` y volví a ejecutarlo. La entrada pasó de 100 tokens por frase a 450. **El conjunto de la compuerta es una :term[filtración]{key="data-leakage"}**, porque ese material de referencia enumera por su nombre tanto las palabras de la compuerta como las excepciones. Por eso ese lado es el grupo de control que sirve para ver «si al menos lee el material de referencia», y la prueba de verdad es el conjunto en reserva.
+Cogí los párrafos de reglas que ya están escritos en `write-post.md`, los metí también en el `state` y volví a ejecutarlo. La entrada pasó de 100 tokens por frase a 450. **El lado de las palabras de la compuerta es una :term[filtración de datos]{key="data-leakage"}**, porque ese material de referencia enumera por su nombre tanto las palabras de la compuerta como las excepciones. Por eso ese lado es el grupo de control que sirve para ver «si al menos lee el material de referencia», y la prueba son las palabras que no están en la compuerta.
 
 | | Compuerta (filtración) | Compuerta + reglas | Reserva | Reserva + reglas |
 |---|---|---|---|---|
@@ -208,7 +207,7 @@ Cogí los párrafos de reglas que ya están escritos en `write-post.md`, los met
 | Automatización con presupuesto del 5% | 0.010 | 0.314 | 0.000 | 0.050 |
 | Latencia mediana | 2,924ms | 6,903ms | 2,908ms | 6,918ms |
 
-La latencia corresponde a inferencia local en un M2 Max, así que no está en el mismo eje que la latencia de la API de Jev que vimos antes. Lo que hay que mirar aquí no es el valor absoluto, sino el factor de 2.4 que aparece al meter el material de referencia.
+La latencia corresponde a inferencia local en un M2 Max, así que no está en el mismo eje que la latencia de la API de Jev que vimos antes. Lo que hay que mirar aquí es el factor de 2.4 que aparece al meter el material de referencia.
 
 **En el conjunto en reserva, que está equilibrado, la exactitud por frase pasó de 0.500 a 0.500: no se movió en absoluto.** Por palabra incluso bajó, de 7/13 a 5/13.
 
@@ -239,7 +238,7 @@ Solo la fila de rerank es una métrica de calidad de ranking de búsqueda, así 
 
 **La brecha se abre cuando la distribución es nueva y no hay etiquetas.** En el spam :term[fuera de la distribución]{key="out-of-distribution"}, 98.6% frente a 73.0%. El clasificador ajustado se viene abajo ante una forma que no ha visto nunca, y este aguanta. El lugar de los modelos de decisión son **las decisiones para las que no se pueden reunir datos, etiquetarlos y entrenar**. Es el sitio donde cada situación es nueva, no se logran reunir etiquetas y aun así hay que decidir en cuestión de segundos.
 
-Este marco explica también por qué falló mi discriminación de transcripciones. Lo que esa decisión necesita no es razonamiento general, sino **el conocimiento de dominio concreto de qué palabras se han asentado en la documentación técnica coreana**, y para una implementación de reproducción de 9B entrenada con tareas de decisión en inglés eso no está fuera de la distribución: sencillamente no existe en ella. Ahí está la razón de que tampoco funcionara darle las reglas por escrito.
+Este marco explica también por qué falló mi discriminación de transcripciones. Lo que esa decisión necesita es conocimiento de dominio específico sobre qué términos se han asentado en la documentación técnica coreana, y ese elemento no figura en el conocimiento de una implementación de reproducción de 9B entrenada con tareas de decisión en inglés. Es un conocimiento que no está en el modelo, más que un conocimiento fuera de su distribución. Ahí está la razón de que tampoco funcionara darle las reglas por escrito.
 
 En un artículo de TechCrunch, Armin Ronacher, CTO de Earendil, la empresa que hace el harness Pi, [dijo lo siguiente](https://techcrunch.com/2026/09/18/a-new-kind-of-ai-model-from-a-chatgpt-inventor-is-thrilling-developers/).
 
@@ -269,7 +268,7 @@ Si en vez de por categoría se reagrupan por «qué se le pregunta», salen tres
 
 **Tercera, interfaces que muestran la probabilidad al usuario.** Ask Jev, que devuelve solo el veredicto en lugar de una respuesta; JevForm, un formulario ramificado que elige la siguiente pregunta por probabilidad; Upweight, que reordena la portada de Hacker News con seis deslizadores como profundidad técnica y drama. Como el umbral no está metido en el código y es una persona quien lee la probabilidad, es donde menos pesa la exigencia de calibración que este artículo ha puesto en cuestión.
 
-Una cosa llama la atención. De las 194 descripciones, 30 anotan el coste y 53 la velocidad, pero solo 7 anotan la exactitud o una línea de base. Los resúmenes solo recogen el inicio de cada post, así que es una cota inferior, pero la dirección está clara. Que es rápido y barato se sabe el primer día; si acierta, solo se sabe midiendo, y los que miden son pocos. Uno de esos 7 es `jevcal`. Su autor dice que todo el mundo elige el umbral a ojo, y la herramienta devuelve el umbral y la proporción de procesamiento automático a partir de tus datos y la exactitud objetivo. Es exactamente el procedimiento que recomienda la sección siguiente, convertido en herramienta.
+De las 194 descripciones, 30 anotan el coste y 53 la velocidad, pero solo 7 anotan la exactitud o una línea de base. Los resúmenes solo recogen el inicio de cada post, así que es una cota inferior, pero la dirección está clara. Que es rápido y barato se sabe el primer día; si acierta, solo se sabe midiendo, y los que miden son pocos. Uno de esos 7 es `jevcal`. Su autor dice que todo el mundo elige el umbral a ojo, y la herramienta devuelve el umbral y la proporción de procesamiento automático a partir de tus datos y la exactitud objetivo. Es exactamente el procedimiento que recomienda la sección siguiente, convertido en herramienta.
 
 ## Cómo trazar la línea
 
@@ -277,9 +276,9 @@ La conclusión de este artículo es esta. **No leas como una especificación la 
 
 El procedimiento para medir es este. Reúnes un centenar largo de casos etiquetados, construyes una tabla de tasa real de acierto por tramo de probabilidad y vas bajando el umbral desde arriba mirando la tasa de error del tramo superior. Si has fijado un presupuesto de error, la cobertura máxima que respeta ese presupuesto es justamente la proporción que puedes automatizar. Que en mi experimento el acierto real del tramo con confianza de 0.9 o más fuera 0.240 salió a la luz con 102 frases.
 
-**Una escala desajustada suele poder arreglarse.** Si el exceso de confianza está repartido de forma uniforme por todos los tramos, una sola temperatura lo corrige casi del todo. Kev hizo justamente eso y bajó su ECE de 0.106 a 0.042. El problema es que ajustar esa temperatura exige tener las etiquetas de esa distribución, y eso es exactamente lo que no hay en producción. Además, la temperatura no puede cambiar el orden de las probabilidades, así que la proporción automatizable no sube en la misma medida. Por eso el orden importa más que la escala, y la cobertura bajo presupuesto de error es una métrica más práctica que el ECE.
+**Una escala desajustada suele poder arreglarse.** Si el exceso de confianza está repartido de forma uniforme por todos los tramos, una sola temperatura lo corrige casi del todo. Kev hizo justamente eso y bajó su ECE de 0.106 a 0.042. El problema es que ajustar esa temperatura exige tener las etiquetas de esa distribución, y eso es lo que no hay en producción. Además, la temperatura no puede cambiar el orden de las probabilidades, así que la proporción automatizable no sube en la misma medida. Por eso el orden importa más que la escala, y la cobertura bajo presupuesto de error es una métrica más práctica que el ECE.
 
-Si hubiera clavado en el código el 0.9 que la documentación usa en su ejemplo, esta compuerta habría corregido mal, en silencio, 38 casos. Como no salta ningún error, es un fallo difícil de advertir. La documentación de TypeSafe también escribe, justo debajo de ese ejemplo, que lo pruebes con tus propios datos. Lo que acaba clavado en el código no suele ser la frase de debajo, sino el número de arriba.
+Si hubiera clavado en el código el 0.9 que la documentación usa en su ejemplo, esta compuerta habría corregido mal, en silencio, 38 casos. Como no salta ningún error, es un fallo difícil de advertir. La documentación de TypeSafe también escribe, justo debajo de ese ejemplo, que lo pruebes con tus propios datos. El número de arriba suele quedarse en el código, y la frase de abajo no.
 
 Aunque no tengas clave, medir puede empezarse hoy mismo. Kev está publicado bajo Apache-2.0 y corre en un portátil.
 

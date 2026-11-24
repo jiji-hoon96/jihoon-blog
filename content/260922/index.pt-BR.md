@@ -9,9 +9,8 @@ description: 'O Jev devolve probabilidades em vez de texto. O confidence não é
 keywords: 'Jev, TypeSafe AI, modelos System One, RLCD, calibração de modelos, ECE, limiar de confidence, modelo de decisão, Kev open source, casos de uso do Jev'
 locale: pt-BR
 translationOf: '260922'
-sourceHash: 5c9dfaaf13880df9237ac0b3d8ee8acf63ea576d1e319a1de375d9a179acc499
+sourceHash: b4d23dbbaba40d3fdbc441fb1fa73a171f94c1f5c1a78639ca4214905aa3b6fb
 ---
-
 Neste post quero falar sobre o Jev, um modelo que a TypeSafe AI lançou na semana passada e que devolve probabilidades em vez de texto. É para desenvolvedores que querem aplicar um limiar à probabilidade devolvida por um modelo e tratar casos automaticamente, sem conferência humana. Ao final, você vai saber como o `confidence` do Jev é calculado, quanto a calibração se move conforme a distribuição e um procedimento para definir o limiar com os seus próprios dados.
 
 O primeiro uso que me chamou atenção foi a automação de navegador. A Browserbase abriu um [PR](https://github.com/browserbase/stagehand/pull/2953) que liga o Jev ao `act()` do Stagehand. A estrutura era mandar a :term[árvore de acessibilidade]{key="accessibility-tree"} da página como `state` e perguntar, com alternativas fechadas, "qual é o próximo elemento a clicar". Em 40 tarefas, a mediana do `act()` caiu de 1,97 segundo para 0,46, e de 147 ações só 4 voltaram para um LLM. O ponto onde um script de Playwright quebra assim que um selector muda foi preenchido por uma chamada que devolve uma única probabilidade. Enquanto escrevo, o PR ainda não foi mesclado.
@@ -56,13 +55,13 @@ Mas por que foi preciso um método de treino novo? Não dá para simplesmente pe
 
 A pista está na :term[calibração]{key="calibration"}. Se acurácia é quantos por cento você acerta, calibração é saber quantos por cento você vai acertar, e o indicador que mede esse descompasso é o :term[ECE]{key="ece"} (expected calibration error). É a média da diferença entre a probabilidade declarada e a taxa real de acerto em cada faixa de probabilidade, ponderada pela fração de amostras, então 0 é o valor perfeito. Só que há um caso em que essa escala saiu do lugar depois do :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback), que otimiza a preferência humana. Na Figure 8 do [relatório técnico do GPT-4](https://arxiv.org/abs/2303.08774), o ECE do modelo pré-treinado era **0.007**, e o do modelo pós-treinado, **0.074**, mais de dez vezes pior. O relatório não aponta a causa, e eu também não encontrei uma fonte primária que a estabeleça. A definição e até onde a causa é conhecida estão explicadas à parte em [Calibração e excesso de confiança em LLMs](/260917).
 
-**Só que o ECE sozinho não basta.** Um preditor constante que estampa 0.6 em qualquer entrada também tem ECE 0 se a taxa real de acerto for 60%. Se a probabilidade é apenas honesta e não varia de caso para caso, não há onde traçar a linha. Por isso, além da calibração, é preciso olhar **se a probabilidade de fato se separa**, e a “fração que dá para tratar automaticamente dentro de um orçamento de erro”, que uso adiante, é o indicador que junta essas duas coisas num número só.
+**Mas o ECE sozinho não basta.** Um preditor constante que estampa 0.6 em qualquer entrada também tem ECE 0 se a taxa real de acerto for 60%. Se a probabilidade é apenas honesta e não varia de caso para caso, não há onde traçar a linha. Por isso, além da calibração, é preciso olhar **se a probabilidade de fato se separa**, e a “fração que dá para tratar automaticamente dentro de um orçamento de erro”, que uso adiante, é o indicador que junta essas duas coisas num número só.
 
 Do ponto de vista do software, o que importa é esta parte. Se a probabilidade é honesta e se separa, dá para traçar uma linha. Sai uma estrutura em que acima de 0.95 vai para o automático e abaixo disso vai para uma pessoa.
 
 A TypeSafe diz ter aberto um terceiro caminho mirando esse lugar. O RLHF otimiza a preferência humana; o RLVR (reinforcement learning with verifiable rewards) otimiza respostas que a máquina consegue corrigir; e o RLCD, dizem, otimiza decisões calibradas.
 
-Só que tudo o que foi divulgado sobre o RLCD são três linhas de contrato de saída. Até 23 de setembro de 2026, data em que escrevo este texto, não há artigo nem relatório técnico em lugar nenhum da documentação e do texto de anúncio da TypeSafe. Existe um [artigo do ICLR 2024](https://arxiv.org/abs/2307.12950) que usa a mesma sigla, mas ali ela significa reinforcement learning from contrastive distillation, um método diferente. Cuidado para não misturar os dois na hora de pesquisar.
+Mas tudo o que foi divulgado sobre o RLCD são três linhas de contrato de saída. Até 23 de setembro de 2026, data em que escrevo este texto, não há artigo nem relatório técnico em lugar nenhum da documentação e do texto de anúncio da TypeSafe. Existe um [artigo do ICLR 2024](https://arxiv.org/abs/2307.12950) que usa a mesma sigla, mas ali ela significa reinforcement learning from contrastive distillation, um método diferente. Cuidado para não misturar os dois na hora de pesquisar.
 
 ## O que o confidence é de fato
 
@@ -72,7 +71,7 @@ Então o número que o Jev devolve é honesto? Antes de responder, há uma coisa
 
 As respostas de `Choice` e `Score` trazem `probabilities` e `confidence` juntos. O primeiro é a distribuição de probabilidade sobre todas as alternativas; o segundo é um único número entre 0 e 1. Na hora de pôr um limiar no código, a mão vai primeiro para o `confidence`.
 
-Esse valor não foi feito pelo modelo. O arquivo `_utils/confidence_metrics.py` do [system-one-adapter-python](https://github.com/typesafe-ai/system-one-adapter-python), publicado pela organização TypeSafe, tem 32 linhas ao todo, e a parte de `Choice` é esta.
+Esse valor é calculado pelo código do adaptador a partir da distribuição de probabilidades. O arquivo `_utils/confidence_metrics.py` do [system-one-adapter-python](https://github.com/typesafe-ai/system-one-adapter-python), publicado pela organização TypeSafe, tem 32 linhas ao todo, e a parte de `Choice` é esta.
 
 ```python
 def choice_confidence(probs: list[float]) -> float:
@@ -125,15 +124,15 @@ Duas coisas se leem aqui.
 
 Primeira, **o ECE varia quase dez vezes.** De 0.011 a 0.105. Mesmo corretor, mesmo modelo. “Ser calibrado” não é uma propriedade do modelo, mas da relação entre o modelo e a distribuição. Que a calibração desmorone quando a distribuição muda já é um resultado conhecido. O que há de novo aqui é que **o mesmo padrão aparece num modelo que ergueu a calibração como objetivo de treino**.
 
-Os 0.105 do conjunto com maior ECE são até maiores que os 0.074 do GPT-4 pós-RLHF que vimos antes. Mas esses dois não devem ser lidos como um ranking. As tarefas são diferentes, e o ECE é um estimador cujo valor se move conforme o número de faixas em que você divide e conforme a faixa em que as amostras se concentram, de modo que confrontar números vindos de corretores diferentes não constitui comparação.
+Os 0.105 do conjunto com maior ECE são até maiores que os 0.074 do GPT-4 pós-RLHF que vimos antes. Ainda assim, esses dois não devem ser lidos como um ranking. As tarefas são diferentes, e o ECE é um estimador cujo valor se move conforme o número de faixas em que você divide e conforme a faixa em que as amostras se concentram, de modo que confrontar números vindos de corretores diferentes não constitui comparação.
 
-Segunda, **o ECE medido é explicado quase inteiramente pelo excesso de certeza.** A diferença entre as duas colunas fica entre 0.002 e 0.011 nos sete conjuntos. Como o ECE é a média ponderada das defasagens por faixa, ele não pode ser menor que o excesso global; essa diferença ser quase 0 significa que **o sinal do desvio de cada faixa está todo inclinado para o mesmo lado**. Não é ruído que se alterna entre faixas e se cancela.
+Segunda, **o ECE medido é explicado quase inteiramente pelo excesso de certeza.** A diferença entre as duas colunas fica entre 0.002 e 0.011 nos sete conjuntos. Como o ECE é a média ponderada das defasagens por faixa, ele não pode ser menor que o excesso global; essa diferença ser quase 0 significa que **o desvio em cada faixa está inclinado para o mesmo lado, em vez de ser ruído que se cancela entre faixas**.
 
 Por que é assim se vê lendo na vertical. A certeza média, tirando o `semif`, tem seis valores grudados entre 0.851 e 0.906. No mesmo intervalo, a acurácia se move duas vezes mais largo, de 0.753 a 0.857. **A certeza quase não se move quando a distribuição muda; só a acurácia se move. A diferença que sobra é o próprio ECE.**
 
 ![Gráfico de sete conjuntos de avaliação com chamadas reais ao Jev: a confiança média se concentra entre 0,851 e 0,906 enquanto só a acurácia se move de 0,753 a 0,965, e essa diferença quase coincide com o ECE](5.png?w=720)
 
-Como essa propriedade aparece na prática, outro benchmark mostra. Numa [medição](https://github.com/anisselbd/jev-phishing-bench) com 2,000 e-mails de phishing e o Claude Haiku 4.5 como grupo de controle, a acurácia do Jev foi 62.6% e a do Haiku, 81.3%. Mas o que mais chama atenção é o ECE. O ECE reportado pelo repositório é 0.154 para o Jev e 0.097 para o Haiku, e quando o registro de auditoria de afirmações remede o `P(phishing)` do Jev em 10 faixas de 0 a 1, dá 0.170. Lido de qualquer dos dois jeitos, **o modelo que ergueu a calibração como objetivo de treino perdeu em calibração para um LLM feito com RLHF.** O mesmo autor tirou 91.6% só com a regra da lista de hosts dos links.
+Como essa propriedade aparece na prática, outro benchmark mostra. Numa [medição](https://github.com/anisselbd/jev-phishing-bench) com 2,000 e-mails de phishing e o Claude Haiku 4.5 como grupo de controle, a acurácia do Jev foi 62.6% e a do Haiku, 81.3%. O ECE reportado pelo repositório é 0.154 para o Jev e 0.097 para o Haiku, e quando o registro de auditoria de afirmações remede o `P(phishing)` do Jev em 10 faixas de 0 a 1, dá 0.170. Lido de qualquer dos dois jeitos, **o modelo que ergueu a calibração como objetivo de treino perdeu em calibração para um LLM feito com RLHF.** O mesmo autor tirou 91.6% só com a regra da lista de hosts dos links.
 
 Olhando o mesmo indicador em vários conjuntos, a amplitude fica ainda mais clara. A fração que dá para tratar automaticamente com :term[orçamento de erro]{key="error-budget"} de 5% é 0.486 no conjunto `scienthoon`, 0.695 no `transfer-v9` e 1.000 no `semif`. O corretor do Kev anota que esse valor é o máximo obtido escolhendo o limiar dentro da amostra, e não uma garantia de erro depois do deploy. **Nenhum desses deve ser citado como se fosse a especificação do modelo.**
 
@@ -171,7 +170,7 @@ O baseline da classe majoritária é a nota de quem não lê a frase e chuta sem
 
 A última linha é a resposta deste experimento. **No conjunto pendente, por mais alto que eu colocasse o limiar, não houve uma única decisão que desse para tratar automaticamente dentro de 5% de erro.**
 
-Olhando a distribuição das predições, aparece o que aconteceu. O modelo respondeu **“deve ser revertida” a todas as 162 frases.** A todos os 37 tipos de palavra. Todos os positivos certos, todos os negativos errados. Por isso o 0.500 do conjunto pendente não é competência: é o número que sai porque o conjunto está balanceado.
+Olhando a distribuição das predições, aparece o que aconteceu. O modelo respondeu **“deve ser revertida” a todas as 162 frases.** A todos os 37 tipos de palavra. Todas as frases que deveriam ser revertidas foram classificadas corretamente e todas as que deveriam ser mantidas foram classificadas incorretamente. Por isso, o 0.500 das palavras que não estão no gate vem do equilíbrio do conjunto, não é um resultado que demonstre a capacidade do modelo.
 
 E, ainda assim, a certeza média foi 0.876. No conjunto do gate, 49% passaram de 0.9 de certeza, e o acerto real dessa faixa é 0.240.
 
@@ -191,13 +190,13 @@ Se fosse um modelo que diz sim a qualquer coisa, este resultado seria sem sentid
 | Coreano / inglês | Is this sentence written in English? | 0.01 |
 | Inglês / inglês | Is this sentence about software? | 0.96 |
 
-**Ele lê coreano, diz “não” e separa 0.02 de 0.98.** Não é um viés global de concordância. O que isso descarta vai só até aí. Continua de pé a possibilidade de que o enunciado da própria pergunta do gate seja ruim.
+**Lê coreano, diz “não” e distingue 0.02 de 0.98.** Fica descartada a hipótese de que globalmente responde sim a tudo, e continua de pé a possibilidade de que a formulação da pergunta do gate seja ruim.
 
 ## O resultado de pôr as regras no state
 
 E se eu der diretamente o conhecimento necessário para distinguir? O método de adaptação de domínio que a documentação da TypeSafe recomenda é esse: sem tocar nos pesos, você manda material de referência dentro do `state`.
 
-Peguei o parágrafo de regras que já está escrito no `write-post.md`, coloquei junto no `state` e rodei de novo. A entrada subiu de 100 tokens por frase para 450. **O conjunto do gate é :term[vazamento]{key="data-leakage"}**, porque esse material de referência lista pelo nome as palavras do gate e as palavras de exceção. Então aquele lado é um grupo de controle para ver “ele ao menos lê o material de referência?”, e o teste de verdade é o conjunto pendente.
+Peguei o parágrafo de regras que já está escrito no `write-post.md`, coloquei junto no `state` e rodei de novo. A entrada subiu de 100 tokens por frase para 450. **O lado das palavras que estão no gate é :term[vazamento de dados]{key="data-leakage"}**. Isso porque o material de referência lista pelo nome as palavras do gate e as palavras de exceção. Por isso, esse lado é um grupo de controle para ver “ele ao menos lê o material de referência?”, e o conjunto de palavras que não estão no gate é o que está sendo testado.
 
 | | Gate (vazamento) | Gate +regras | Pendente | Pendente +regras |
 |---|---|---|---|---|
@@ -208,7 +207,7 @@ Peguei o parágrafo de regras que já está escrito no `write-post.md`, coloquei
 | Automação com orçamento de 5% | 0.010 | 0.314 | 0.000 | 0.050 |
 | Latência mediana | 2,924ms | 6,903ms | 2,908ms | 6,918ms |
 
-A latência é inferência local rodada num M2 Max, então não está no mesmo eixo da latência de API do Jev vista antes. O que interessa aqui não é o valor absoluto, e sim o fator de 2.4 vezes ao incluir o material de referência.
+A latência é inferência local rodada num M2 Max, então não está no mesmo eixo da latência de API do Jev vista antes. O que interessa aqui é que a inclusão do material de referência a multiplica por 2.4.
 
 **No conjunto pendente, que é balanceado, a acurácia por frase foi de 0.500 para 0.500: não se moveu em nada.** Por palavra, chegou a cair de 7/13 para 5/13.
 
@@ -216,7 +215,7 @@ A latência é inferência local rodada num M2 Max, então não está no mesmo e
 
 O salto de 0.225 para 0.676 no conjunto do gate não é ganho de competência. Antes, ele dizia “reverter” para todas as 102 frases; com o material de referência, passou a responder isso em apenas 12. Os negativos subiram de 0/79 para 68/79, mas os positivos desabaram de 23/23 para 1/23. Como naquele conjunto os negativos são 79 contra 23, uma constante do tipo “em geral, deixe como está” recebe automaticamente uma nota mais alta. **Não aprendeu a distinguir; mudou a inclinação.**
 
-Isso não quer dizer que o modelo não leia a frase. São as mesmas frases das mesmas palavras, e ao receber o material de referência as predições se espalharam frase a frase. O desvio padrão de `로더` foi de 0.096 para 0.217, e o de `뮤테이션`, de 0.042 para 0.236. **Ele lê, mas não consegue distinguir.**
+Mesmo assim, o modelo não deixa de ler as frases. São as mesmas frases das mesmas palavras, mas, ao receber o material de referência, as predições se espalharam frase a frase. O desvio padrão de `로더` foi de 0.096 para 0.217, e o de `뮤테이션`, de 0.042 para 0.236. **Ele lê, mas não consegue distinguir.**
 
 E este resultado também abala a interpretação da seção anterior. Se um único texto no state vira a saída inteira do avesso, o “reverte tudo” da primeira execução também pode não ser limite do modelo, e sim insuficiência do enunciado da pergunta. Este texto não conseguiu descartar essa possibilidade.
 
@@ -239,7 +238,7 @@ Só a linha de rerank é um indicador de qualidade de ranking de busca, então e
 
 **A distância se abre quando a distribuição é nova e não há rótulos.** No spam :term[fora da distribuição]{key="out-of-distribution"}, 98.6% contra 73.0%. O classificador ajustado desmorona diante de um formato que nunca viu, e este lado aguenta. O lugar dos modelos de decisão é **a decisão para a qual não dá para juntar dados, rotular e treinar**. É onde a situação é nova toda vez, os rótulos não se acumulam e mesmo assim a decisão precisa sair em segundos.
 
-Por que a minha detecção de transliteração falhou também se explica por esse quadro. O que aquele julgamento exige não é raciocínio geral, e sim **um conhecimento de domínio específico: que palavras se consolidaram na documentação técnica em coreano**. Para uma implementação de reprodução de 9B treinada em tarefas de decisão em inglês, isso não está fora da distribuição: simplesmente não existe ali. É aí que está a razão de dar as regras por escrito também não ter funcionado.
+Por que a minha detecção de transliteração falhou também se explica por esse quadro. O que aquele julgamento exige é um conhecimento de domínio específico: quais termos se consolidaram na documentação técnica em coreano. A lista de conhecimentos de uma implementação de reprodução de 9B treinada em tarefas de decisão em inglês não inclui esse item. Trata-se de um conhecimento que o modelo simplesmente não tem, mais do que um conhecimento fora da distribuição. É aí que está a razão de dar as regras por escrito também não ter funcionado.
 
 Numa matéria do TechCrunch, Armin Ronacher, CTO da Earendil, que faz o harness Pi, [disse o seguinte](https://techcrunch.com/2026/09/18/a-new-kind-of-ai-model-from-a-chatgpt-inventor-is-thrilling-developers/).
 
@@ -269,7 +268,7 @@ Se, em vez de por categoria, reagrupamos por “o que se pergunta”, saem três
 
 **Terceira, UIs que mostram a probabilidade ao usuário.** O Ask Jev, que devolve só o veredito em vez de uma resposta; o JevForm, formulário ramificado que escolhe a próxima pergunta por probabilidade; o Upweight, que reordena a primeira página do Hacker News com seis sliders como profundidade técnica e drama. Como o limiar não fica cravado no código e é uma pessoa que lê a probabilidade, é onde a exigência de calibração que este texto questionou é mais baixa.
 
-Uma coisa salta aos olhos. Das 194 descrições, 30 mencionam custo e 53 mencionam velocidade, mas só 7 mencionam acurácia ou uma linha de base. Como os resumos só trazem o começo de cada post, isso é um piso, mas a direção é clara. Que é rápido e barato dá para saber no primeiro dia; se está certo, só dá para saber medindo, e quem mede é raro. Um desses 7 é o `jevcal`. Partindo de que todo mundo escolhe o limiar no chute, é uma ferramenta que recebe os seus dados e a acurácia alvo e devolve o limiar e a fração de processamento automático. É exatamente o procedimento que a próxima seção recomenda, transformado em ferramenta.
+194 descrições mencionam custo em 30 casos e velocidade em 53, mas acurácia ou uma linha de base em apenas 7. Como os resumos só trazem o começo de cada post, isso é um piso, mas a direção é clara. Que é rápido e barato dá para saber no primeiro dia; se está certo, só dá para saber medindo, e quem mede é raro. Um desses 7 é o `jevcal`. Partindo de que todo mundo escolhe o limiar no chute, é uma ferramenta que recebe os seus dados e a acurácia alvo e devolve o limiar e a fração de processamento automático. É exatamente o procedimento que a próxima seção recomenda, transformado em ferramenta.
 
 ## Como traçar a linha
 
@@ -277,9 +276,9 @@ A conclusão deste texto é esta. **Não leia a probabilidade que o modelo devol
 
 O procedimento para medir é este. Junte uns 100 casos rotulados, monte a tabela de taxa real de acerto por faixa de probabilidade e vá baixando o limiar de cima para baixo, olhando a taxa de erro da faixa acima dele. Se você definiu um orçamento de erro, a cobertura máxima que respeita esse orçamento é a fração que dá para automatizar. No meu experimento, que o acerto real da faixa acima de 0.9 de certeza fosse 0.240 apareceu com 102 frases.
 
-**Uma escala desalinhada quase sempre dá para consertar.** Se o excesso de certeza está espalhado de forma uniforme por todas as faixas, uma única temperatura acerta a maior parte. Foi assim que o Kev baixou o ECE de 0.106 para 0.042. O problema é que ajustar essa temperatura exige os rótulos daquela distribuição, e é exatamente isso que não existe em produção. Além do mais, a temperatura não muda a ordem das probabilidades, então a fração automatizável não sobe na mesma medida. Por isso a ordem vale mais que a escala, e a cobertura dentro do orçamento de erro é um indicador mais prático que o ECE.
+**Uma escala desalinhada quase sempre dá para consertar.** Se o excesso de certeza está espalhado de forma uniforme por todas as faixas, uma única temperatura acerta a maior parte. Foi assim que o Kev baixou o ECE de 0.106 para 0.042. O problema é que ajustar essa temperatura exige os rótulos daquela distribuição, e é isso que não existe em produção. Além do mais, a temperatura não muda a ordem das probabilidades, então a fração automatizável não sobe na mesma medida. Por isso a ordem vale mais que a escala, e a cobertura dentro do orçamento de erro é um indicador mais prático que o ECE.
 
-Se eu tivesse cravado no código o 0.9 que a documentação usa no exemplo, este gate teria corrigido 38 casos errados em silêncio. É uma falha difícil de perceber, porque não dá erro. A documentação da TypeSafe também escreve, logo abaixo daquele exemplo, que você deve testar nos seus próprios dados. O que acaba cravado no código costuma ser o número de cima, não a frase de baixo.
+Se eu tivesse cravado no código o 0.9 que a documentação usa no exemplo, este gate teria corrigido 38 casos errados em silêncio. É uma falha difícil de perceber, porque não dá erro. A documentação da TypeSafe também escreve, logo abaixo daquele exemplo, que você deve testar nos seus próprios dados. O número de cima fica no código, enquanto a frase de baixo muitas vezes não fica.
 
 Mesmo sem a chave, medir já dá para começar hoje. O Kev está publicado sob Apache-2.0 e roda em um notebook.
 
