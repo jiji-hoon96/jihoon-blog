@@ -58,7 +58,7 @@ console.log(ece(answers.map((a) => ({ ...a, p: 0.95 }))).toFixed(3)) // 매번 0
 
 ## RLHF의 목표 함수
 
-그렇다면 사람의 피드백으로 다듬은 모델은 왜 이 눈금이 어긋날까. 먼저 :term[RLHF]{key="rlhf"}(reinforcement learning from human feedback)가 무엇을 최적화하는지 봐야 한다. 사람의 선호 비교로 보상 모델을 세우는 골격은 [Christiano et al. 2017](https://arxiv.org/abs/1706.03741)에서 나왔고, 이것을 언어 모델에 옮긴 초기 작업이 [Ziegler et al. 2019](https://arxiv.org/abs/1909.08593)이며, [InstructGPT](https://arxiv.org/abs/2203.02155)가 지시 따르기에 적용했다. 이때 끌어올리는 값은 **사람의 선호를 흉내 낸 보상 모델의 점수**다. 언어 모델 쪽 작업은 강화학습을 시작하기 전 모델에서 너무 멀어지지 않도록 KL penalty를 보상에 더한다. InstructGPT는 사전학습 데이터의 기울기도 섞었다(PPO-ptx). 하지만 끌어올리는 대상은 여전히 그 점수다.
+그렇다면 사람의 피드백으로 다듬은 모델은 왜 이 눈금이 어긋날까. 먼저 :term[RLHF]{key="rlhf"}(reinforcement learning from human feedback)가 무엇을 최적화하는지 봐야 한다. 사람의 선호 비교로 보상 모델을 세우는 골격은 [Christiano et al. 2017](https://arxiv.org/abs/1706.03741)에서 나왔다. 이것을 언어 모델에 옮긴 초기 작업이 [Ziegler et al. 2019](https://arxiv.org/abs/1909.08593)이며, [InstructGPT](https://arxiv.org/abs/2203.02155)가 지시 따르기에 적용했다. 이때 끌어올리는 값은 **사람의 선호를 흉내 낸 보상 모델의 점수**다. 언어 모델 쪽 작업은 강화학습을 시작하기 전 모델에서 너무 멀어지지 않도록 KL penalty를 보상에 더하고, InstructGPT는 사전학습 데이터의 기울기도 섞었지만(PPO-ptx), 끌어올리는 대상은 여전히 그 점수다.
 
 챗봇에는 사람의 선호가 맞는 목표다. 문제는 그 선호가 불확실성을 드러낸 말투를 피하는 쪽으로 기울어 있다는 것이다. [Zhou et al. 2024](https://arxiv.org/abs/2401.06730)는 네 개의 공개 선호 데이터셋에서 주석자가 "I'm not sure, maybe" 같은 약화 표현이 든 답을 덜 고른다는 것을 보였다. 차이는 작지만 유의했다. 그렇다고 확신을 강조한 표현이 든 답을 더 고르지는 않았다. [Leng et al. 2025](https://arxiv.org/abs/2410.09724)는 보상 모델이 답의 실제 품질과 상관없이 높은 확신 점수를 적은 답에 점수를 더 준다는 것을 보였다. 둘 다 토큰 확률 대신 문장 속 확신 표현(verbalized confidence)을 다룬 결과다. RLHF를 대신할 학습법을 내놓은 TypeSafe도 자사의 [입문 문서](https://docs.typesafe.ai/introduction/machine-learning-primer)에서 RLHF가 자신 있게 들리는 환각(confident-sounding hallucinations)을 보상할 수 있다고 적는다. 대안을 파는 쪽의 입장이다.
 
@@ -74,7 +74,7 @@ Figure 8의 오른쪽(PPO) 패널에서 0.4 이상 구간의 막대는 대각선
 
 이 패널은 위 개념도와 두 가지가 다르다. 먼저 개념도의 곡선처럼 대각선 아래로만 처지지 않고, 대각선을 한 번 가로지른다. 또 보기 네 개의 확률을 전부 구간에 넣었으므로, 위 코드처럼 고른 답 하나의 확률로 재는 정의와도 다르다. 그래서 0.074와 위 코드의 0.35를 같은 눈금에 놓고 비교하지는 않는다.
 
-그러면 왜 나빠졌을까. 보고서 본문은 사전학습 모델이 잘 calibration되어 있었고 post-training 뒤에 calibration이 줄었다고만 적고, 원인은 말하지 않는다. 단서는 Anthropic의 [Kadavath et al. 2022](https://arxiv.org/abs/2207.05221)에 있다. 이들이 자기 언어 모델로 학습한 RLHF 정책은 겉보기에 calibration이 매우 나빴다. 논문은 이것이 놀랍지 않다며, RL fine-tuning이 보상을 가장 많이 받는 행동 쪽으로 예측을 몰아주는 경향이 있기 때문이라고 적었다. 논문 본론과 별도로 짧게 덧붙인 실험이다. 그런데 모든 평가에 같은 온도 T=2.5 하나를 적용하자 세 평가에서 calibration 문제가 대부분 풀렸다. 온도는 logit을 나누는 값이고, 1보다 크면 답의 순서는 그대로 둔 채 확률 분포만 평평하게 편다. 필자는 값 하나로 대부분 풀렸다는 결과를, 어긋남이 일부 구간에 몰리지 않고 분포 전체가 한쪽으로 좁혀진 모양으로 읽는다. 논문은 더 강한 RL 학습은 이렇게 고칠 수 없는 방식으로 calibration을 망가뜨릴 수 있다는 단서도 함께 달았다.
+그러면 왜 나빠졌을까. 보고서 본문은 사전학습 모델이 잘 calibration되어 있었고 post-training 뒤에 calibration이 줄었다고만 적고, 원인은 말하지 않는다. 단서는 Anthropic의 [Kadavath et al. 2022](https://arxiv.org/abs/2207.05221)에 있다. 이들이 자기 언어 모델로 학습한 RLHF 정책은 겉보기에 calibration이 매우 나빴다. 논문은 이것이 놀랍지 않다며, RL fine-tuning이 보상을 가장 많이 받는 행동 쪽으로 예측을 몰아주는 경향이 있기 때문이라고 적었다. 이 논문은 본론과 별도로 짧은 실험을 덧붙였다. 그런데 모든 평가에 같은 온도 T=2.5 하나를 적용하자 세 평가에서 calibration 문제가 대부분 풀렸다. 온도는 logit을 나누는 값이고, 1보다 크면 답의 순서는 그대로 둔 채 확률 분포만 평평하게 편다. 필자는 값 하나로 대부분 풀렸다는 결과를, 어긋남이 일부 구간에 몰리지 않고 분포 전체가 한쪽으로 좁혀진 모양으로 읽는다. 논문은 더 강한 RL 학습은 이렇게 고칠 수 없는 방식으로 calibration을 망가뜨릴 수 있다는 단서도 함께 달았다.
 
 이것은 Anthropic 모델의 결과라서 Figure 8의 원인으로 바로 옮길 수는 없다. 앞 절의 연구들도 문장 속 확신 표현을 다뤘다. 사람이 불확실한 말투를 피한다는 결과와 토큰 확률의 어긋남을 직접 이어 주는 1차 근거는 필자가 찾지 못했다.
 
