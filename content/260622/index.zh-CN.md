@@ -8,7 +8,7 @@ description: '从 prompt engineering 到 context engineering，下一步将走�
 keywords: 'context engineering, harness 设计, AI agent eval, agent evaluation, containment, agent 隔离, 2026 AI 趋势, prompt engineering, LLM agent, token 节省之后'
 locale: zh-CN
 translationOf: '260622'
-sourceHash: 97f5111404c885a53f680b07de74dc666d80fea4bc7d181bda185cae58068289
+sourceHash: f42dd76b2b95e32c7e7771a963c40d11649f96e5be496c8cdcb108865d68f9db
 ---
 
 这篇文章想谈谈 prompt engineering、context engineering，以及再往后的方向。
@@ -23,7 +23,7 @@ sourceHash: 97f5111404c885a53f680b07de74dc666d80fea4bc7d181bda185cae58068289
 
 先厘清术语。曾有一段时间，业界的核心话题是 **prompt engineering**。问题在于如何写好发给模型的一次性指令，也就是如何设计清晰的指示、恰当的示例和输出格式。
 
-后来，工作的单位变大了。随着不再是单次提问、而是运行数十个轮次的 agent 日益普及，重要的不再是一次 prompt，而是如何组织**模型在每个轮次看到的完整 context**（system prompt + 工具定义 + 对话记录 + 搜索结果 + 记忆）。这就是 **context engineering**。Anthropic 在 2025 年 9 月的“Effective context engineering for AI agents”一文中梳理了这一框架。同年 Chroma 研究团队（Hong et al.）发表的 context rot 研究又提供了定量依据。他们测试了 GPT-4.1、Claude 4、Gemini 2.5、Qwen3 等 18 个模型。研究发现，即使只是原样抄写单词这样的简单任务，输入越长，性能也会出现不均匀的下降。模型会同等处理第 100 个 token 和第 10,000 个 token 这一常见假设，在现实中并不成立。与“context 越长越好”这一常见假设相反，“信息如何摆放，与其中包含什么同样重要”这一结论推动了从填满 context 向筛选 context 的转变，也让这个术语迅速普及。
+后来，工作的单位变大了。随着不再是单次提问、而是运行数十个轮次的 agent 日益普及，重要的不再是一次 prompt，而是如何组织**模型在每个轮次看到的完整 context**（system prompt + 工具定义 + 对话记录 + 搜索结果 + 记忆）。这就是 **context engineering**。Anthropic 在 2025 年 9 月的“Effective context engineering for AI agents”一文中梳理了这一框架。同年 Chroma 研究团队（Hong et al.）发表的 context rot 研究又提供了定量依据。他们测试了 GPT-4.1、Claude 4、Gemini 2.5、Qwen3 等 18 个模型。研究发现，即使只是原样抄写单词这样的简单任务，输入越长，性能也会出现不均匀的下降。模型会同等处理第 100 个 token 和第 10,000 个 token 这一常见假设，在现实中并不成立。与“context 越长越好”这一假设相反，“信息如何摆放，与其中包含什么同样重要”的结论推动了从填满 context 向筛选 context 的转变。结果，这个术语迅速普及。
 
 人们常误以为 prompt engineering 已被 context engineering 取代。写好 prompt 依然是基础，而 context engineering 则**在包含 prompt engineering 的同时拓展了范围**。（关注点从写好代码转向设计好系统，并不意味着 coding 不再必要。）context engineering 可以看作比 prompt engineering 更上位的概念。
 
@@ -43,7 +43,7 @@ sourceHash: 97f5111404c885a53f680b07de74dc666d80fea4bc7d181bda185cae58068289
 - 2026 年 4 月，Scaling Managed Agents：分离大脑与双手
 - 2026 年 5 月，如何在所有产品中 contain Claude
 
-退一步看这份列表，关键词聚成三条线：**harness**、**eval** 和 **containment**。我将其理解为：讨论正在从如何恰当地填充、清理 context，再向外迈出一步，转向设计、测量和控制整个 agent 系统。（当然，这里有一个局限：这只是一家公司的侧重点。考虑到该公司在 coding agent 生态中的分量，也很难把它仅仅视为单一 vendor 的兴趣。）
+退一步看这份列表，关键词聚成三条线：**harness**、**eval** 和 **containment**。我将其理解为：讨论正在从如何恰当地填充、清理 context，再向外迈出一步，转向设计、测量和控制整个 agent 系统。（当然，这里有一个局限：这只是一家公司的侧重点。不过考虑到该公司在 coding agent 生态中的分量，也很难把它仅仅视为单一 vendor 的兴趣。）
 
 下面逐一展开。
 
@@ -55,7 +55,7 @@ harness 这个词可能有些陌生。直译是马具，即套在马身上、把
 
 这一点的重要性，在[Anthropic 工程团队亲身遭遇的失败](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)中体现得很清楚。他们把顶级编程模型 Opus 4.5 放在 Claude Agent SDK 上，只给出“做一个 claude.ai 复刻版”之类的高层指令，并运行多个会话。但模型本身虽然聪明，却没能产出生产级应用。失败反复呈现两种形态。一种是试图一次做完所有事情，实作中途耗尽 context，让下一个会话接手半成品功能。另一种是后来加入的会话看到“已经做得差不多了”，便丢下尚未完成的工作直接宣布结束。（可以想象一项漫长工作由多人轮班接续，但每个接班者都完全没有前一人的记忆。）
 
-解决办法不是让模型更聪明，而是改变骨架。第一个会话获得用于搭建环境的专用 prompt（initializer agent），把 200 多项功能规格展开到 `feature_list.json`，并创建启动开发服务器的 `init.sh` 和进度日志（`claude-progress.txt`）。此后的每个会话（coding agent）每次只处理一个功能，以 git commit 和进度记录留下整洁状态，然后结束。下一个会话先读取进度文件和 git log，弄清“上一班做到哪里”，再继续工作。同一个模型放到这套骨架上，结果就变了。（Anthropic 提出的做法，正是资深开发者每天在做的事。功能清单、小步 commit、进度记录、每次都执行的 smoke test 都是如此。所谓适合 agent 的良好骨架，就是把良好的工程习惯嵌入环境。）
+解决办法不是让模型更聪明，而是改变骨架。第一个会话获得用于搭建环境的专用 prompt（initializer agent），把 200 多项功能规格展开到 `feature_list.json`，并创建启动开发服务器的 `init.sh` 和进度日志（`claude-progress.txt`）。此后的每个会话（coding agent）每次只处理一个功能，以 git commit 和进度记录留下整洁状态，然后结束。下一个会话先读取进度文件和 git log，弄清“上一班做到哪里”，再继续工作。同一个模型放到这套骨架上，结果就变了。也就是说，即便模型相同，harness 也决定了成败。（Anthropic 提出的做法并无新意，正是资深开发者每天在做的事。功能清单、小步 commit、进度记录、每次都执行的 smoke test 都是如此。所谓适合 agent 的良好骨架，可以看作是把良好的工程习惯嵌入环境。）
 
 这条脉络与 token 节省讨论的交点也很明确。上一篇文章谈到的 subagent 隔离、tool 定义瘦身和 model routing，单独看是不同的节省技巧；合在一起看，都是**如何设计一个 harness**的组成部分。决定哪类工作送往哪个 model lane、只开启哪些 tool、把 verbose 的探索隔离到哪里，这整个过程就是 harness 设计。节省是设计所带来的副产品。
 
@@ -81,15 +81,15 @@ agent 评估之所以棘手，是因为它与一次性问答性质不同。agent
 
 ## containment
 
-第三条线的性质略有不同。它关注**安全与控制**。
+第三条线与成本或性能的性质略有不同。它关注**安全与控制**。
 
 agent 掌握越多 tool、行动越自主，一次错误的影响范围（blast radius）也越大。对于能删除 file、向外部发送 request、代为执行特权操作的 agent，“做得有多好”与“出错时在哪里止损”同样重要。2026 年 5 月，[Anthropic 关于全产品 containment 的文章](https://www.anthropic.com/engineering/how-we-contain-claude)被放到突出位置，也可从这一背景理解。文章把 agent 风险分为三类：user 出于恶意或疏忽要求有害操作的 **user misuse**；model 在无人指示时自行行动的 **model misbehavior**；以及通过 tool、file、network 从外部进入的 **external attack**。文章也指出，model 变聪明并不只会降低风险。能力较弱的 model 会误读情境、犯明显错误；能力更强的 model 错误较少，却更善于找到意料之外的路径，绕过无人明确写下的约束。
 
-他们认为，“每次都由人监督”这一方式有其局限。Claude Code 早期通过在每次写入、执行、network access 前请求 user 批准来保障安全，但 telemetry 显示，user 直接同意了约 93% 的请求。批准窗口越多，人对每一个就越不注意，形成 **approval fatigue**。依赖人的 click 的概率性防御最终仍会留洞。因此重心从“监控 agent 正在做什么”移向“限制 agent 能做什么”。防御分三层叠加：sandbox、VM、egress control 等构成的**环境层**，system prompt、classifier 等构成的 **model 层**，以及 MCP、plugin、搜索结果等构成的**外部内容层**。核心原则是**建立能以确定方式阻断行为的环境层**。在 Gray Swan benchmark 上，model 层防御的单次攻击成功率约为 0.1%，表现出色。即便如此，适应性地尝试 100 次后，成功率仍会升至 5～6%，而概率性防御本质上不可能达到 100% 命中率。因此，在最后会撞上的硬边界也被设置好。（引入 OS 级 sandbox 后，批准窗口减少了 84%。安全机制反而降低了摩擦。）
+他们认为，“每次都由人监督”这一方式有其局限。Claude Code 早期通过在每次写入、执行、network access 前请求 user 批准来保障安全，但 telemetry 显示，user 直接同意了约 93% 的请求。批准窗口越多，人对每一个就越不注意，形成 **approval fatigue**。依赖人的 click 的概率性防御最终仍会留洞。因此重心从“监控 agent 正在做什么”移向“限制 agent 能做什么”。防御分三层叠加：sandbox、VM、egress control 等构成的**环境层**，system prompt、classifier 等构成的 **model 层**，以及 MCP、plugin、搜索结果等构成的**外部内容层**。核心原则是**建立能以确定方式阻断行为的环境层**。model 层防御也很强。在测试 prompt injection 的 Gray Swan benchmark 上，单次攻击成功率约为 0.1%，属于顶尖水平。即便如此，适应性地尝试 100 次后，成功率仍会升至 5～6%，而概率性防御本质上不可能达到 100% 命中率。因此，在最后会撞上的硬边界也被设置好。（引入 OS 级 sandbox 后，批准窗口减少了 84%。安全机制反而降低了摩擦。）
 
 ![containment 3 层防御结构：在环境层（确定性、最后防线）之上叠加 model 层与外部内容层（概率性）](2.png?w=720)
 
-这似乎与 token 节省相距很远，实则同根。两者都在问：**“给 agent 什么，又给到什么程度？”** Anthropic 用两个案例很好地说明了这种联系。其一，内部 red team 通过 phishing 让员工用恶意 prompt 运行 Claude Code。悄悄夹入的指令让它读取 `~/.aws/credentials` 并向外 POST，25 次中成功了 24 次。由于指令由用户亲自输入，模型分类器看不出可疑之处。环境边界与 egress control 从一开始就把凭据留在 sandbox 外，阻止了攻击。另一案例更微妙。egress allowlist 正常放行了 `api.anthropic.com`，但攻击者植入的文件使用攻击者自己的 API key 调用 Anthropic 的文件上传 API，让数据流向攻击者账户。sandbox 完美工作，数据却依然泄漏。教训是，allowlist 应被视为“允许使用该域名所有功能的权限”，而不是“目的地过滤器”。（Anthropic 反复强调这一原则：经过验证的 hypervisor、syscall filter 和 container runtime 都安然无恙，**真正出问题的是他们自己在其上构建的组件**。）移除不用的 MCP 工具也是同一个道理：既节省成本，又减少 attack surface。保持轻量的设计不仅更便宜、更准确，也更安全。
+这似乎与 token 节省相距很远，实则同根。两者都在问：**“给 agent 什么，又给到什么程度？”** Anthropic 举的两个案例很好地说明了这种联系。其一，内部 red team 通过 phishing 让员工用恶意 prompt 运行 Claude Code。悄悄夹入的指令让它读取 `~/.aws/credentials` 并向外 POST，25 次中成功了 24 次。由于指令由用户亲自输入，模型分类器看不出可疑之处。阻止攻击的不是聪明的模型，而是从一开始就把凭据留在 sandbox 外的环境边界与 egress control。另一案例更微妙。egress allowlist 正常放行了 `api.anthropic.com`，但攻击者植入的文件使用攻击者自己的 API key 调用 Anthropic 的文件上传 API，让数据流向攻击者账户。sandbox 完美工作，数据却依然泄漏。教训是，allowlist 应被视为“允许使用该域名所有功能的权限”，而不是“目的地过滤器”。（Anthropic 反复强调这一原则：经过验证的 hypervisor、syscall filter 和 container runtime 都安然无恙，**真正出问题的是他们自己在其上构建的组件**。）移除不用的 MCP 工具也是同一个道理：既节省成本，又减少 attack surface。保持轻量的设计不仅更便宜、更准确，也更安全。
 
 ## 总结
 
