@@ -8,7 +8,7 @@ description: '从 prompt engineering 到 context engineering，下一步将走�
 keywords: 'context engineering, harness 设计, AI agent eval, agent evaluation, containment, agent 隔离, 2026 AI 趋势, prompt engineering, LLM agent, token 节省之后'
 locale: zh-CN
 translationOf: '260622'
-sourceHash: f42dd76b2b95e32c7e7771a963c40d11649f96e5be496c8cdcb108865d68f9db
+sourceHash: 4fd94d99fdc53bd174761253e72f801417b0093a55adf381df4c729d84b97126
 ---
 
 这篇文章想谈谈 prompt engineering、context engineering，以及再往后的方向。
@@ -25,7 +25,7 @@ sourceHash: f42dd76b2b95e32c7e7771a963c40d11649f96e5be496c8cdcb108865d68f9db
 
 后来，工作的单位变大了。随着不再是单次提问、而是运行数十个轮次的 agent 日益普及，重要的不再是一次 prompt，而是如何组织**模型在每个轮次看到的完整 context**（system prompt + 工具定义 + 对话记录 + 搜索结果 + 记忆）。这就是 **context engineering**。Anthropic 在 2025 年 9 月的“Effective context engineering for AI agents”一文中梳理了这一框架。同年 Chroma 研究团队（Hong et al.）发表的 context rot 研究又提供了定量依据。他们测试了 GPT-4.1、Claude 4、Gemini 2.5、Qwen3 等 18 个模型。研究发现，即使只是原样抄写单词这样的简单任务，输入越长，性能也会出现不均匀的下降。模型会同等处理第 100 个 token 和第 10,000 个 token 这一常见假设，在现实中并不成立。与“context 越长越好”这一假设相反，“信息如何摆放，与其中包含什么同样重要”的结论推动了从填满 context 向筛选 context 的转变。结果，这个术语迅速普及。
 
-人们常误以为 prompt engineering 已被 context engineering 取代。写好 prompt 依然是基础，而 context engineering 则**在包含 prompt engineering 的同时拓展了范围**。（关注点从写好代码转向设计好系统，并不意味着 coding 不再必要。）context engineering 可以看作比 prompt engineering 更上位的概念。
+这里需要指出一个常见的误解。prompt engineering 并不是被 context engineering **取代**了。写好 prompt 依然是基础，而 context engineering 更接近叠加在其上的上位概念。（关注点从写好代码转向设计好系统，并不意味着 coding 不再必要。）也就是说，准确的描述不是“换掉了”，而是“**在包含的同时拓展了范围**”。
 
 那么再问一次：这种扩展止步于 context 了吗？看起来并没有。
 
@@ -51,21 +51,21 @@ sourceHash: f42dd76b2b95e32c7e7771a963c40d11649f96e5be496c8cdcb108865d68f9db
 
 harness 这个词可能有些陌生。直译是马具，即套在马身上、把力量引向预期方向的装置。在 AI agent 中，harness 指的是**在 model 外部包围 model、驱动其工作的完整骨架**。包括允许它以什么顺序使用哪些 tool、一次失败后如何恢复、授予多大权限，以及 loop 何时停止。
 
-如果 context engineering 解决的是“给 model 看什么”，那么 harness 设计解决的是“让 model 在其中如何行动”。它位于更外一层。若把 model 比作聪明的新员工，context 是交给新人的工作材料，harness 则是其工作环境和操作规程。同一个人在混乱的环境中表现会不稳定，而在设计良好的流程上，凭同样能力也能走得更远。
+如果 context engineering 解决的是“给 model 看什么”，那么 harness 设计解决的是“让 model 在其中如何行动”。它位于更外一层。若把 model 比作聪明的新员工，context 是交给新人的工作材料，harness 则更接近其工作环境和操作规程。同一个人在混乱的环境中表现会不稳定，而在设计良好的流程上，凭同样能力也能走得更远。
 
 这一点的重要性，在[Anthropic 工程团队亲身遭遇的失败](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)中体现得很清楚。他们把顶级编程模型 Opus 4.5 放在 Claude Agent SDK 上，只给出“做一个 claude.ai 复刻版”之类的高层指令，并运行多个会话。但模型本身虽然聪明，却没能产出生产级应用。失败反复呈现两种形态。一种是试图一次做完所有事情，实作中途耗尽 context，让下一个会话接手半成品功能。另一种是后来加入的会话看到“已经做得差不多了”，便丢下尚未完成的工作直接宣布结束。（可以想象一项漫长工作由多人轮班接续，但每个接班者都完全没有前一人的记忆。）
 
-解决办法不是让模型更聪明，而是改变骨架。第一个会话获得用于搭建环境的专用 prompt（initializer agent），把 200 多项功能规格展开到 `feature_list.json`，并创建启动开发服务器的 `init.sh` 和进度日志（`claude-progress.txt`）。此后的每个会话（coding agent）每次只处理一个功能，以 git commit 和进度记录留下整洁状态，然后结束。下一个会话先读取进度文件和 git log，弄清“上一班做到哪里”，再继续工作。同一个模型放到这套骨架上，结果就变了。也就是说，即便模型相同，harness 也决定了成败。（Anthropic 提出的做法并无新意，正是资深开发者每天在做的事。功能清单、小步 commit、进度记录、每次都执行的 smoke test 都是如此。所谓适合 agent 的良好骨架，可以看作是把良好的工程习惯嵌入环境。）
+解决办法不是让模型更聪明，而是改变骨架。第一个会话获得用于搭建环境的专用 prompt（initializer agent），把 200 多项功能规格展开到 `feature_list.json`，并创建启动开发服务器的 `init.sh` 和进度日志（`claude-progress.txt`）。此后的每个会话（coding agent）每次只处理一个功能，以 git commit 和进度记录留下整洁状态，然后结束。下一个会话先读取进度文件和 git log，弄清“上一班做到哪里”，再继续工作。同一个模型放到这套骨架上，结果就变了。也就是说，决定成败的不是模型，而是 harness。（Anthropic 提出的做法并无新意，正是资深开发者每天在做的事。功能清单、小步 commit、进度记录、每次都执行的 smoke test 都是如此。所谓适合 agent 的良好骨架，归根结底更接近把良好的工程习惯嵌入环境。）
 
-这条脉络与 token 节省讨论的交点也很明确。上一篇文章谈到的 subagent 隔离、tool 定义瘦身和 model routing，单独看是不同的节省技巧；合在一起看，都是**如何设计一个 harness**的组成部分。决定哪类工作送往哪个 model lane、只开启哪些 tool、把 verbose 的探索隔离到哪里，这整个过程就是 harness 设计。节省是设计所带来的副产品。
+这条脉络与 token 节省讨论的交点也很明确。上一篇文章谈到的 subagent 隔离、tool 定义瘦身和 model routing，单独看是不同的节省技巧；合在一起看，都是**如何设计一个 harness**的组成部分。决定哪类工作送往哪个 model lane、只开启哪些 tool、把 verbose 的探索隔离到哪里，这整个过程就是 harness 设计。节省更接近该设计的副产品。
 
 不过，harness 设计有一个陷阱：**骨架设计得越好，model 进步后就越可能过时。** harness 本质上是一组关于“model 无法独自完成什么”的假设。model 一旦能够自行完成，这些假设就成了冗余。Anthropic 提到的[案例](https://www.anthropic.com/engineering/managed-agents)就是如此。Sonnet 4.5 在接近 context 上限时有匆忙收尾的习惯（context anxiety），因此团队在骨架中加入了 context reset 机制。可同一套骨架换成 Opus 4.5 后，这种习惯已经消失，费心加入的 reset 成了不再需要的装置。model 每聪明一步，骨架的一部分就会失去用处。
 
-于是出现了更进一步的思路：与其精心打造某个特定骨架，不如**设计即使骨架变化也保持稳定的接口**。Anthropic 的 Managed Agents 正朝这个方向发展，而其思想源头是操作系统。OS 能维持数十年，是因为它把硬件虚拟化为进程、文件等抽象，提前造出了能容纳尚不存在的程序的容器。一行 `read()`，无论面对 1970 年代的磁盘还是今天的 SSD，都以相同方式工作。用同样思路把 agent 分为三部分：负责判断的**大脑**（Claude 与 harness）、实际动手的**双手**（code execution sandbox 与工具），以及以 append 方式记录一切的**会话日志**。三者分离后，即便容器崩溃，大脑也能将其当成 tool call error 处理；即便 harness 崩溃，也能从会话日志的最后位置恢复。副作用是成本与延迟也降低了。只在真正需要时启动容器后，time to first token（TTFT）据称在中位数上下降约 60%，p95 下降超过 90%。（这里再次与 token 节省文章相接。上一篇建议为 prompt caching 把静态部分放在前面；“如何安排 context 才能提高 cache hit 率”，正是大脑旁边的 harness 所负责的工作。）
+于是出现了更进一步的思路：与其精心打造某个特定骨架，不如**设计即使骨架变化也保持稳定的接口**。Anthropic 的 Managed Agents 正朝这个方向发展，而其思想源头出人意料地是操作系统。OS 能维持数十年，是因为它把硬件虚拟化为进程、文件等抽象，提前造出了能容纳尚不存在的程序的容器。一行 `read()`，无论面对 1970 年代的磁盘还是今天的 SSD，都以相同方式工作。用同样思路把 agent 分为三部分：负责判断的**大脑**（Claude 与 harness）、实际动手的**双手**（code execution sandbox 与工具），以及以 append 方式记录一切的**会话日志**。三者分离后，即便容器崩溃，大脑也能将其当成 tool call error 处理；即便 harness 崩溃，也能从会话日志的最后位置恢复。副作用是成本与延迟也降低了。只在真正需要时启动容器后，time to first token（TTFT）据称在中位数上下降约 60%，p95 下降超过 90%。（这里再次与 token 节省文章相接。上一篇建议为 prompt caching 把静态部分放在前面；“如何安排 context 才能提高 cache hit 率”，正是大脑旁边的 harness 所负责的工作。）
 
 ## eval
 
-第二条线是我个人最留意的部分。2026 年初的文章仿佛事先约好一样，全都聚向**评估（eval）**。
+第二条线是我个人最感兴趣的部分。2026 年初的文章仿佛事先约好一样，全都聚向**评估（eval）**。
 
 想想原因就很自然。context 是否组织得当，harness 是否设计得好，cost 是否真的节省了，要**用什么来确认？** agent 越是自主处理漫长而复杂的工作，人就越难逐项用肉眼确认。信任的依据会转向测量。因此，围绕评估的主题走到了前台。“如何设计 agent 评估”“如何消除评估本身的噪声”“如何处理 model 察觉评估后改变行为的 eval awareness”等等。
 
@@ -75,7 +75,7 @@ agent 评估之所以棘手，是因为它与一次性问答性质不同。agent
 
 为一次尝试评分时，同一篇文章把 grader 分为三类。**code-based**（test 是否通过、static analysis、tool call 验证）快速、便宜且客观，却不擅长存在多个正确答案的开放任务。**model-based**（LLM-as-judge、按 rubric 评分）能捕捉细致的质量，但具有非确定性，必须定期与人工评分校准。**human-based** 最准确，却缓慢而昂贵。实际工作中会混合三者，尽可能以确定性评分打底，再用 model 评分辅助。还要区分另一组概念。**capability eval** 问“这个 agent 能做到什么”，所以会从低分起步，给出可以攀登的坡度。**regression eval** 问“过去能做到的现在还能不能”，因此必须维持接近 100%。分数下降就是某处损坏的信号。
 
-这里常被忽略的陷阱是：**低分的原因可能在评估中。** Anthropic 报告称，Opus 4.5 最初在 CORE-Bench 上得到 42%。调查后发现，原因包括僵硬的评分方式——期待“96.124991…”，却把“96.12”判错——以及含糊的题目规格和无法复现的随机任务。修复 bug 并用放宽约束的 scaffold 重跑后，分数跃升至 95%。因此他们强调一项原则：**不要照单全收分数，要亲自阅读 transcript（运行记录）。** 如果 frontier model 尝试 100 次仍是 0%，原因通常不在模型能力，而在任务本身的题目规格有问题。
+这里常被忽略的陷阱是：**分数低可能不是因为 agent，而是因为评估**。Anthropic 报告称，Opus 4.5 最初在 CORE-Bench 上得到 42%。调查后发现，原因包括僵硬的评分方式（期待“96.124991…”，却把“96.12”判错），以及含糊的题目规格和无法复现的随机任务。修复 bug 并用放宽约束的 scaffold 重跑后，分数跃升至 95%。因此他们强调一项原则：**不要照单全收分数，要亲自阅读 transcript（运行记录）**。如果 frontier model 尝试 100 次仍是 0%，原因通常不在模型能力，而在任务本身的题目规格有问题。
 
 测量进步后，基准线本身也在快速移动。一个代表性的 coding agent benchmark 是 SWE-bench Verified（给出真实 GitHub issue，并按 test 是否通过评分）。在这个 benchmark 上，frontier model 的分数在 1 年内就从 30% 多升到 80% 以上。到了这里，简单题已全部解决，分数触及天花板（saturation），于是产生悖论：能力的大幅提升只能显示为很小的分差。据说有一家 code review startup 起初只看一次性评估，对新 model 不以为然；改用衡量更长、更复杂任务的 agent 型评估后，才真正看见进步。因此，评估需要持续换成更难的版本。（Anthropic 将其比作安全工程中的“Swiss cheese model”。一片有孔的奶酪无法挡住失败，但把自动评估、production monitoring 和人工 transcript review 层层叠加，穿过一层的失败就会被下一层捕获。）
 
@@ -97,7 +97,7 @@ agent 掌握越多 tool、行动越自主，一次错误的影响范围（blast 
 
 ![关注点从 prompt 到 context、再到整个 agent 系统的3 阶段扩展结构，以及 harness、eval、containment 三条分支](1.png?w=720)
 
-这三条线是作者**从已经公开的资料中读出的重心转移**。“2026 年下半年它们将成为标准”之类的预言，我并不做。有些趋势会继续扩大，有些会被吸收到别的名称之下。prompt 和 context 都不会消失，而会作为更大框架的一部分留下。这个领域一直在新词之上再加一层，而不是用新词抹掉旧词；未来也很可能如此。
+再次强调一下，这三条线是作者**从已经公开的资料中读出的重心转移**，而不是“2026 年下半年它们将成为标准”之类的预言。有些趋势会继续扩大，有些会被吸收到别的名称之下。但可以确定的是，prompt 和 context 都不会消失，而会作为更大框架的一部分留下。这个领域一直是在旧词之上再加一层，而不是用新词抹掉旧词；未来也很可能如此。
 
 我们从 cost 谈起，一路来到这里。上一篇建议读者拿出 token 账本，这篇则更进一步：不妨同时审视，节省的 cost **用什么确认**（eval），这种节省**在哪种骨架上可以重复**（harness），以及该骨架**安全到什么程度**（containment）。归根结底，最持久的也许不是某一种节省技巧，而是测量并控制自己系统的习惯。
 
