@@ -9,7 +9,7 @@ description: 'Jev devuelve probabilidades en vez de texto. Su confidence no se a
 keywords: 'Jev, TypeSafe AI, modelo System One, RLCD, calibración de modelos, ECE, umbral de confidence, modelos de decisión, Kev open source, casos de uso de Jev'
 locale: es
 translationOf: '260922'
-sourceHash: f77751ad7d90a95a5a88ad894e2c548d0646f522ba648f7780bb2f68f3e76838
+sourceHash: a51a817257fd907d27e13c18efda01a7ff86d547eb823719f3d1a405467fdf9e
 ---
 
 En este artículo quiero hablar de Jev, un modelo que TypeSafe AI presentó la semana pasada y que devuelve probabilidades en vez de texto. Está pensado para desarrolladores que quieren poner un umbral a la probabilidad que devuelve un modelo y procesar casos automáticamente sin revisión humana. Al terminar sabrás cómo se calcula el `confidence` de Jev, cuánto se mueve la calibración según la distribución y un procedimiento para fijar el umbral con tus propios datos.
@@ -72,7 +72,7 @@ Entonces, ¿es honesto el número que devuelve Jev? Antes de responder hay que v
 
 Las respuestas de `Choice` y `Score` traen juntos `probabilities` y `confidence`. Lo primero es una distribución de probabilidad sobre todas las opciones; lo segundo, un único número entre 0 y 1. Cuando pones un umbral en el código, la mano va primero hacia `confidence`.
 
-Parece que este valor no lo genera directamente el modelo. En `_utils/confidence_metrics.py` de [system-one-adapter-python](https://github.com/typesafe-ai/system-one-adapter-python), publicado por la organización TypeSafe, la parte de `Choice` es así.
+Este valor no lo genera el modelo. En `_utils/confidence_metrics.py` de [system-one-adapter-python](https://github.com/typesafe-ai/system-one-adapter-python), publicado por la organización TypeSafe, la parte de `Choice` es así.
 
 ```python
 def choice_confidence(probs: list[float]) -> float:
@@ -123,11 +123,11 @@ Si se sacan del `report.json` de ese mismo directorio las métricas de los siete
 
 Se leen dos cosas.
 
-Primera: **el ECE se mueve casi diez veces.** Va de 0.011 a 0.105. Mismo corrector, mismo modelo. La frase «está calibrado», que parece describir una propiedad del modelo, apunta en realidad a una relación entre el modelo y la distribución. Que la calibración se venga abajo cuando cambia la distribución es un resultado ya conocido. Lo nuevo aquí es que **la misma forma aparece también en un modelo que presenta la calibración como objetivo de entrenamiento**.
+Primera: **el ECE se mueve casi diez veces.** Va de 0.011 a 0.105. Mismo corrector, mismo modelo. «Está calibrado» no es una propiedad del modelo, sino una relación entre el modelo y la distribución. Que la calibración se venga abajo cuando cambia la distribución es un resultado ya conocido. Lo nuevo aquí es que **la misma forma aparece también en un modelo que presenta la calibración como objetivo de entrenamiento**.
 
 El 0.105 del conjunto con mayor ECE es incluso mayor que el 0.074 del GPT-4 post-RLHF que vimos antes. Aun así, estos dos no deben leerse como un ranking. Las tareas son distintas, y el ECE es un estimador cuyo valor se mueve según en cuántos tramos se divida y en qué tramo se acumulen las muestras, de modo que enfrentar cifras salidas de correctores distintos no constituye una comparación válida.
 
-Segunda: **el ECE medido se explica casi por completo con el exceso de confianza.** La diferencia entre ambas columnas está, en los siete casos, entre 0.002 y 0.011. Como el ECE es la media ponderada de las brechas por tramo, no puede ser menor que el exceso de confianza global. Pero que esa diferencia sea casi 0 significa que **las brechas por tramo están inclinadas en una misma dirección**. Si se cancelaran entre sí en direcciones opuestas, la diferencia sería mayor que esta.
+Segunda: **el ECE medido se explica casi por completo con el exceso de confianza.** La diferencia entre ambas columnas está, en los siete casos, entre 0.002 y 0.011. Como el ECE es la media ponderada de las brechas por tramo, no puede ser menor que el exceso de confianza global, y que esa diferencia sea casi 0 significa que **el signo de la desviación por tramo está inclinado en una misma dirección**. No es ruido que se cancele entre sí por tramos.
 
 Por qué ocurre se ve leyendo la tabla en vertical. Si quitamos `semif`, seis valores de confianza media se apelotonan entre 0.851 y 0.906. En ese mismo rango, la exactitud se mueve entre 0.753 y 0.857, el doble de ancho. **La confianza apenas se mueve aunque cambie la distribución; solo se mueve la exactitud. La diferencia que queda es directamente el ECE.**
 
@@ -141,7 +141,7 @@ Si se mira la misma métrica en varios conjuntos, la amplitud queda más clara. 
 
 Leer el benchmark de otro y medir sobre mis propios datos son cosas distintas. Así que hice pasar de verdad por el modelo la compuerta del principio.
 
-**Ejecuté en local el Kev-9B** que mencioné antes. Es una implementación de reproducción que monta un :term[LoRA]{key="lora"} de rank 16 y una pointer head sobre Qwen3.5-9B-Base. La licencia es Apache-2.0. **Las cifras de abajo son de Kev, no de Jev.** Los datos de entrenamiento de Kev son tareas de decisión en inglés, y en la medición de su propio autor Kev-9B queda por detrás de Jev incluso en tareas en inglés: su proporción de automatización con un presupuesto de error del 5% va de 0.45 a 0.57, mientras que la de Jev es 0.70, y en MMLU-Pro es 0.52 frente a 0.84. Además, la propia documentación de TypeSafe declara sobre Jev que [el inglés es su lengua principal de entrenamiento y el CJK no está al mismo nivel](https://docs.typesafe.ai/models).
+**Ejecuté en local el Kev-9B** que mencioné antes. Es una implementación de reproducción que monta un :term[LoRA]{key="lora"} de rank 16 y una pointer head sobre Qwen3.5-9B-Base y es Apache-2.0. Las cifras de abajo no son las de Jev. Los datos de entrenamiento de Kev son tareas de decisión en inglés, y en la medición de su propio autor Kev-9B queda por detrás de Jev incluso en tareas en inglés: su proporción de automatización con un presupuesto de error del 5% va de 0.45 a 0.57, mientras que la de Jev es 0.70, y en MMLU-Pro es 0.52 frente a 0.84. Además, la propia documentación de TypeSafe declara sobre Jev que [el inglés es su lengua principal de entrenamiento y el CJK no está al mismo nivel](https://docs.typesafe.ai/models).
 
 El conjunto de evaluación lo saqué de 18 artículos en coreano de este repositorio. El criterio de verdad de las etiquetas es **con qué grafía escribe este repositorio esa palabra de forma consistente**. Es decir, la referencia es la costumbre de este blog en lugar del consenso de la comunidad de documentación técnica coreana. En las palabras donde ambas cosas divergen, el modelo puede acertar según el criterio de la comunidad y fallar según este.
 
@@ -191,7 +191,7 @@ Si fuera un modelo que dice que sí a cualquier cosa que le preguntes, este resu
 | Coreano / inglés | Is this sentence written in English? | 0.01 |
 | Inglés / inglés | Is this sentence about software? | 0.96 |
 
-**Lee coreano, dice «no» y separa 0.02 de 0.98.** No parece que sea un sesgo de responder globalmente «sí» a cualquier cosa, y permanece la posibilidad de que la propia redacción de la pregunta de la compuerta sea mala.
+**Lee coreano, dice «no» y separa 0.02 de 0.98.** No es un sesgo global de aquiescencia. Hasta ahí es lo que queda descartado. Permanece la posibilidad de que la propia redacción de la pregunta de la compuerta sea mala.
 
 ## El resultado de meter las reglas en el state
 
@@ -216,7 +216,7 @@ La latencia corresponde a inferencia local en un M2 Max, así que está en un ej
 
 El salto de 0.225 a 0.676 en el conjunto de la compuerta no puede interpretarse como una mejora de habilidad. Antes respondía «se devuelve» en las 102 frases, y al darle el material de referencia solo respondió así en 12. Los negativos subieron de 0/79 a 68/79, pero los positivos se hundieron de 23/23 a 1/23. En ese conjunto los negativos ganan por 79 a 23, así que una constante del tipo «déjalo casi siempre» recibe automáticamente una puntuación más alta. **No aprendió a distinguir, solo cambió la inclinación.**
 
-Aun así, el modelo lee las frases hasta cierto punto. Con las mismas frases de las mismas palabras, al darle el material de referencia las predicciones se dispersaron frase a frase. La desviación típica de `로더` subió de 0.096 a 0.217, y la de `뮤테이션` de 0.042 a 0.236. **Lee, pero no distingue.**
+Aun así, no es que el modelo no lea las frases. Con las mismas frases de las mismas palabras, al darle el material de referencia las predicciones se dispersaron frase a frase. La desviación típica de `로더` subió de 0.096 a 0.217, y la de `뮤테이션` de 0.042 a 0.236. **Lee, pero no distingue.**
 
 Y este resultado también sacude la interpretación de la sección anterior. Si un solo texto del state da la vuelta por completo a la salida, el «devolverlas todas» de la primera ejecución pudo deberse a una carencia en la redacción de la pregunta, en vez de a un límite del modelo. Este artículo no ha podido descartar esa posibilidad.
 
@@ -239,7 +239,7 @@ Solo la fila de rerank es una métrica de calidad de ranking de búsqueda, así 
 
 **La brecha se abre cuando la distribución es nueva y no hay etiquetas.** En el spam :term[fuera de la distribución]{key="out-of-distribution"}, 98.6% frente a 73.0%. El clasificador ajustado se viene abajo ante una forma que no ha visto nunca, y este aguanta. El lugar de los modelos de decisión son **las decisiones para las que no se pueden reunir datos, etiquetarlos y entrenar**. Es el sitio donde cada situación es nueva, no se logran reunir etiquetas y aun así hay que decidir en cuestión de segundos.
 
-Este marco explica también por qué falló mi discriminación de transcripciones. Lo que esa decisión necesita es conocimiento de dominio específico sobre qué términos se han asentado en la documentación técnica coreana, más que razonamiento general, y una implementación de reproducción de 9B entrenada con tareas de decisión en inglés no tiene ese elemento. Este conocimiento, más que estar fuera de su distribución, ni siquiera está en el modelo desde el principio. Ahí está la razón de que tampoco funcionara darle las reglas por escrito.
+Este marco explica también por qué falló mi discriminación de transcripciones. Lo que esa decisión necesita no es razonamiento general, sino **conocimiento de dominio específico sobre qué términos se han asentado en la documentación técnica coreana**, y para una implementación de reproducción de 9B entrenada con tareas de decisión en inglés, eso no está fuera de su distribución, sino que simplemente no existe. Ahí está la razón de que tampoco funcionara darle las reglas por escrito.
 
 En un artículo de TechCrunch, Armin Ronacher, CTO de Earendil, la empresa que hace el harness Pi, [dijo lo siguiente](https://techcrunch.com/2026/09/18/a-new-kind-of-ai-model-from-a-chatgpt-inventor-is-thrilling-developers/).
 
@@ -277,7 +277,7 @@ La conclusión de este artículo es esta. **No leas como una especificación la 
 
 El procedimiento para medir es este. Reúnes un centenar largo de casos etiquetados, construyes una tabla de tasa real de acierto por tramo de probabilidad y vas bajando el umbral desde arriba mirando la tasa de error del tramo superior. Si has fijado un presupuesto de error, la cobertura máxima que respeta ese presupuesto es justamente la proporción que puedes automatizar. Que en mi experimento el acierto real del tramo con confianza de 0.9 o más fuera 0.240 salió a la luz con 102 frases.
 
-**Una escala desajustada suele poder arreglarse.** Si el exceso de confianza está repartido de forma uniforme por todos los tramos, una sola temperatura lo corrige casi del todo. Kev hizo justamente eso y bajó su ECE de 0.106 a 0.042. El problema es que ajustar esa temperatura exige tener las etiquetas de esa distribución, y eso es lo que no hay en producción. Además, la temperatura no puede cambiar el orden de las probabilidades, así que la proporción automatizable no sube en la misma medida. Por eso el orden importa más que la escala, y la cobertura bajo presupuesto de error es una métrica más práctica que el ECE.
+**Una escala desajustada suele poder arreglarse.** Si el exceso de confianza está repartido de forma uniforme por todos los tramos, una sola temperatura lo corrige casi del todo. Kev hizo justamente eso y bajó su ECE de 0.106 a 0.042. El problema es que ajustar esa temperatura exige tener las etiquetas de esa distribución, y eso es exactamente lo que no hay en producción. Además, la temperatura no puede cambiar el orden de las probabilidades, así que la proporción automatizable no sube en la misma medida. Por eso el orden importa más que la escala, y la cobertura bajo presupuesto de error es una métrica más práctica que el ECE.
 
 Si hubiera clavado en el código el 0.9 que la documentación usa en su ejemplo, esta compuerta habría corregido mal, en silencio, 38 casos. Como no salta ningún error, es un fallo difícil de advertir. La documentación de TypeSafe también escribe, justo debajo de ese ejemplo, que lo pruebes con tus propios datos. El número de arriba suele quedarse en el código, y la frase de abajo no.
 

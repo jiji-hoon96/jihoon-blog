@@ -9,7 +9,7 @@ description: "Jev returns probabilities instead of text. Its confidence is arith
 keywords: 'Jev, TypeSafe AI, System One model, RLCD, model calibration, ECE, confidence threshold, decision model, Kev open source, Jev use cases'
 locale: en
 translationOf: '260922'
-sourceHash: f77751ad7d90a95a5a88ad894e2c548d0646f522ba648f7780bb2f68f3e76838
+sourceHash: a51a817257fd907d27e13c18efda01a7ff86d547eb823719f3d1a405467fdf9e
 ---
 
 In this post, I want to talk about Jev, a model TypeSafe AI released last week that returns probabilities instead of text. This is for developers who want to put a threshold on a model's returned probability and handle cases automatically without a human check. By the end, you will know how Jev's `confidence` is calculated, how much calibration moves with the distribution, and a procedure for setting the threshold on your own data.
@@ -72,7 +72,7 @@ So, are the numbers Jev returns honest? Before answering, there is something to 
 
 `Choice` and `Score` responses carry both `probabilities` and `confidence`. The first is a probability distribution across all the options, the second a single number between 0 and 1. When you set a threshold in code, the one your hand reaches for first is `confidence`.
 
-This value does not seem to be produced directly by the model. In `_utils/confidence_metrics.py` in [system-one-adapter-python](https://github.com/typesafe-ai/system-one-adapter-python), published by the TypeSafe organization, the `Choice` part looks like this.
+This value is not produced by the model. In `_utils/confidence_metrics.py` in [system-one-adapter-python](https://github.com/typesafe-ai/system-one-adapter-python), published by the TypeSafe organization, the `Choice` part looks like this.
 
 ```python
 def choice_confidence(probs: list[float]) -> float:
@@ -123,11 +123,11 @@ Pulling the metrics for seven evaluation sets out of `report.json` in the same d
 
 Two things read out of it.
 
-First, **the ECE moves by nearly ten times.** From 0.011 to 0.105. Same scorer, same model. The phrase "calibrated," which sounds like a property of the model, points to a relationship between the model and the distribution. That calibration collapses when the distribution shifts is itself a known result. What is new here is that **the same shape appears even in a model that puts calibration forward as its training objective**.
+First, **the ECE moves by nearly ten times.** From 0.011 to 0.105. Same scorer, same model. "Calibrated" is not a property of the model, but a relationship between the model and the distribution. That calibration collapses when the distribution shifts is itself a known result. What is new here is that **the same shape appears even in a model that puts calibration forward as its training objective**.
 
 The 0.105 of the set with the largest ECE is bigger even than the 0.074 of the post-RLHF GPT-4 seen earlier. Still, you must not read these two as a ranking. The tasks differ, and ECE is an estimator whose value moves with how many bins you split into and which bins the samples pile up in, so placing numbers from different scorers side by side does not make a valid comparison.
 
-Second, **the measured ECE is almost entirely explained by overconfidence alone.** The difference between the two columns runs from 0.002 to 0.011 for all seven. ECE is a weighted average of per-bin gaps, so it cannot be smaller than the overall overconfidence. But that difference being nearly 0 means **the per-bin gaps are skewed in one direction**. If they went in opposite directions and canceled out, the gap would be wider than this.
+Second, **the measured ECE is almost entirely explained by overconfidence alone.** The difference between the two columns runs from 0.002 to 0.011 for all seven. ECE is a weighted average of per-bin gaps, so it cannot be smaller than the overall overconfidence, and that difference being nearly 0 means **the sign of the discrepancy in each bin is skewed in one direction**. It is not noise that goes in opposite directions and cancels out across bins.
 
 Reading down the columns shows why. Leave out `semif` and six of the mean peak probabilities sit packed between 0.851 and 0.906. Over the same stretch accuracy moves twice as wide, from 0.753 to 0.857. **Peak probability barely moves when the distribution changes, and only accuracy moves. The difference left over is the ECE.**
 
@@ -141,7 +141,7 @@ Looking at the same metric across several sets makes the spread plainer. The sha
 
 Reading someone else's benchmark and measuring on my own data are different things. So I put the gate from the opening through it for real.
 
-I **ran Kev-9B locally**, the reimplementation mentioned above. It puts a rank-16 :term[LoRA]{key="lora"} and a pointer head on Qwen3.5-9B-Base. Its license is Apache-2.0. **The numbers below are Kev's, not Jev's.** Kev's training data is English decision tasks, and in the same author's measurements Kev-9B trails Jev even on English tasks. Its automation share at a 5% error budget is 0.45 to 0.57 against Jev's 0.70, and on MMLU-Pro it is 0.52 against 0.84. The TypeSafe documentation also states, about Jev, that [English is the primary training language and CJK is not equivalent](https://docs.typesafe.ai/models).
+I **ran Kev-9B locally**, the reimplementation mentioned above. It puts a rank-16 :term[LoRA]{key="lora"} and a pointer head on Qwen3.5-9B-Base and is Apache-2.0. The numbers below are not Jev's numbers. Kev's training data is English decision tasks, and in the same author's measurements Kev-9B trails Jev even on English tasks. Its automation share at a 5% error budget is 0.45 to 0.57 against Jev's 0.70, and on MMLU-Pro it is 0.52 against 0.84. The TypeSafe documentation also states, about Jev, that [English is the primary training language and CJK is not equivalent](https://docs.typesafe.ai/models).
 
 The evaluation sets were drawn from 18 Korean posts in this repository. The ground truth for a label is **which spelling this repository consistently uses for that word**. This means the blog's convention is the standard here instead of a consensus of the Korean technical writing community. On words where the two diverge, the model can be right by the community standard and wrong by this one.
 
@@ -191,7 +191,7 @@ If the model says yes to whatever you ask, this result is meaningless. That is w
 | Korean / English | Is this sentence written in English? | 0.01 |
 | English / English | Is this sentence about software? | 0.96 |
 
-**It reads Korean, it says "no," and it separates 0.02 from 0.98.** A global bias toward answering yes to everything does not seem to be the case, and the possibility that the wording of the gate question itself is bad remains.
+**It reads Korean, it says "no," and it separates 0.02 from 0.98.** It is not a global acquiescence bias. That is as far as what can be ruled out goes. The possibility that the wording of the gate question itself is bad remains.
 
 ## Putting the rules into state
 
@@ -216,7 +216,7 @@ The latency is local inference run on an M2 Max, so it is on a different axis fr
 
 The 0.225 to 0.676 on the gate set cannot be read as an improvement in skill. Before, it said "turn it back" on all 102 sentences; once given the reference material it answered that way on only 12. Negatives climbed from 0/79 to 68/79, but positives collapsed from 23/23 to 1/23. That set has more negatives, 79 against 23, so a constant that says "mostly leave it" automatically scores higher. **It did not learn the distinction; it only changed which way it leans.**
 
-Still, the model reads the sentences to some extent. For the same sentences containing the same word, the predictions scattered sentence by sentence once the reference material was given. The standard deviation for `로더` grew from 0.096 to 0.217, and `뮤테이션` from 0.042 to 0.236. **It reads, but it cannot distinguish.**
+That does not mean the model does not read the sentences. For the same sentences containing the same word, the predictions scattered sentence by sentence once the reference material was given. The standard deviation for `로더` grew from 0.096 to 0.217, and `뮤테이션` from 0.042 to 0.236. **It reads, but it cannot distinguish.**
 
 And this result also shakes the previous section's reading. If a single piece of state text flips the output wholesale, then the "turn everything back" of the first run may have come from the question's wording being inadequate rather than a limit of the model. This post has not ruled that possibility out.
 
@@ -239,7 +239,7 @@ Only the rerank row is a search ranking quality metric, so it sits on a differen
 
 **The gap opens when the distribution is new and there are no labels.** On :term[out-of-distribution]{key="out-of-distribution"} spam it is 98.6% against 73.0%. The fitted classifier collapses in front of a shape it has never seen, while this side holds. The place for decision models is **judgments you cannot collect data for, label, and train on**. It is where every situation is new, so labels cannot be gathered, yet the judgment has to be made within seconds.
 
-This frame also explains why my transliteration judgment failed. What that judgment needs is specific domain knowledge of which words have settled in Korean technical writing rather than general reasoning, and the 9B reimplementation trained on English decision tasks does not have that item. Rather than being out of distribution, this knowledge is not in the model in the first place. That is why giving it the rules in prose did not work either.
+This frame also explains why my transliteration judgment failed. What that judgment needs is not general reasoning, but **specific domain knowledge of which words have settled in Korean technical writing**, and for the 9B reimplementation trained on English decision tasks, that is not out of distribution, it is simply knowledge that is not there. That is why giving it the rules in prose did not work either.
 
 In a TechCrunch article, Armin Ronacher, the CTO of Earendil, which builds the Pi harness, [put it this way](https://techcrunch.com/2026/09/18/a-new-kind-of-ai-model-from-a-chatgpt-inventor-is-thrilling-developers/).
 
@@ -277,7 +277,7 @@ This post's conclusion is this. **Do not read the probabilities a model returns 
 
 The measuring procedure goes like this. Gather 100 or so labeled items, build a table of the actual hit rate per probability bin, and lower the threshold from the top while watching the error rate above it. Once you have set an error budget, the maximum coverage that keeps that budget is the share you can automate. In my experiment, the fact that the actual hit rate above a peak probability of 0.9 was 0.240 was exposed by 102 sentences.
 
-**A scale that is off can usually be fixed.** If the overconfidence is spread evenly across all the bins, a single temperature straightens out most of it. Kev did exactly that and brought its ECE down from 0.106 to 0.042. The catch is that fitting that temperature requires labels from that distribution, and what you do not have in production is that. On top of that, temperature cannot change the ordering of the probabilities, so the automatable share does not rise by the same amount. Which is why ordering matters more than scale, and error budget coverage is a more practical metric than ECE.
+**A scale that is off can usually be fixed.** If the overconfidence is spread evenly across all the bins, a single temperature straightens out most of it. Kev did exactly that and brought its ECE down from 0.106 to 0.042. The catch is that fitting that temperature requires labels from that distribution, and what you do not have in production is precisely that. On top of that, temperature cannot change the ordering of the probabilities, so the automatable share does not rise by the same amount. Which is why ordering matters more than scale, and error budget coverage is a more practical metric than ECE.
 
 Had I hardcoded the 0.9 the documentation uses in its example, this gate would have quietly mis-corrected 38 items. No error is raised, so it is a failure that is hard to notice. The TypeSafe documentation does say, right below that example, to test it on your own data. The number above often stays in the code, while the sentence below does not.
 
