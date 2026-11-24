@@ -8,9 +8,8 @@ description: "What to do when a product manager and a developer use the same wor
 keywords: 'ubiquitous language, shared domain language, cross-functional communication, gathering requirements, product manager developer communication, grounding common ground, Example Mapping, breadboarding, bounded context, psychological safety engineering team'
 locale: en
 translationOf: '260723'
-sourceHash: adf36bd375ece6026d5959d3cbe7a60585adf215a2f5bb429d88b18ce2381384
+sourceHash: 8926ed7af51ed190252ae48d852bc311567622c878f5b43053f7945442f8753c
 ---
-
 In this post, I want to talk about communicating across functions.
 
 As a developer, I spend as much time working out what to build as I spend writing code. I exchange requirements with product managers, align on screens with designers, and ask people who know the domain what a term actually means. And I have experienced several times that the cost of getting this process wrong is far greater than the cost of writing the wrong code.
@@ -21,7 +20,7 @@ I recently read [Engineering Leaders' Day-to-Day Activities](https://softwarelea
 
 I do hope to take on a leadership role someday, but what struck me after reading that passage was slightly different. **If the first thing a leader handles is gathering information, then the individual contributor's counterpart to that is understanding requirements.** The way I handle requirements now will become the way I handle an organization's information later.
 
-I am not trying to write about leadership here. This is about what I have been doing wrong as an individual contributor communicating across functions, and what I can use as tools. To state the conclusion first, I came to believe this is not purely a matter of attitude. There is an alternative framing available, called ubiquitous language, and it is worth looking at what that means.
+This is about what I have been doing wrong as an individual contributor communicating across functions, and what I can use as tools. To state the conclusion first, I came to believe this is not purely a matter of attitude. There is an alternative framing available, called ubiquitous language, and it is worth looking at what that means.
 
 ## The same word, different meanings
 
@@ -39,7 +38,7 @@ here the word 'meter' meant subtly different things to different parts of the or
 
 The same word, “meter,” meant subtly different things in different parts of the organization. And Fowler adds that this confusion is not an accident particular to that case. He says he has repeatedly seen the same confusion around polysemous words like Customer and Product.
 
-**This did not happen because the meeting participants were bad at meetings.** When an organization contains different contexts, it is natural for the same word to diverge, and if that divergence is left alone it eventually splits the code as well.
+The cause lay more in the presence of different contexts within the organization than in the meeting participants' abilities. When an organization contains different contexts, the same word naturally diverges. If that is left alone, the code eventually diverges too.
 
 I covered the technical background of this story once in [Domain Model](/260418). That post was about how to express a model inside the code. This post is about the stage before that model exists, when people are still talking to each other.
 
@@ -75,7 +74,7 @@ Domain experts object to terms and structures that are awkward or inadequate for
 
 Reading that sentence, I corrected my understanding of my own role. Until then I had regarded myself as a receiver in requirements meetings. I thought my job was to take whatever the product side decided and implement it accurately. But the developer's share as Evans defines it was not reception. **It is finding ambiguity and handing it back.** That is not passive cooperation; it is active watching.
 
-(For reference, Fowler rendered this sentence in his own article as “Domain experts **should** object ... developers **should** watch.” The original book has no modal verb. It is a small difference, but the original reads as more definitive. The tone is not that doing so would be good advice, but that doing so is the definition of the pattern.)
+(For reference, Fowler rendered this sentence in his own article as “Domain experts **should** object ... developers **should** watch.” The original book has no modal verb. It is a small difference, but the original reads as more definitive. That is the definition of this pattern.)
 
 So how do you find ambiguity? Evans answers that too. Using the terms repeatedly in conversation is what exposes differences in how they are interpreted. This is how I read that sentence: ambiguity is not something you find by reading documents closely. No matter how carefully you read a spec, the fact that “meter” means several different things will not surface. That word has to be used repeatedly against concrete cases before it splits apart. The moment someone asks, “What does everyone else understand meter to mean?” is that point.
 
@@ -99,11 +98,11 @@ By the principle of least collaborative effort, people should try to ground with
 
 **What takes effort changes dramatically depending on the medium.** A confirmation technique available in one medium may be outright impossible in another, or possible only at a much higher cost. The authors point out in particular that in media where the other party does not receive your words immediately, the cost of relying on someone else to correct a misunderstanding becomes very high, so speakers try to avoid it.
 
-There is one thing to note here. This paper was written in 1991, and the media the authors compared were things like face-to-face conversation, telephone, letters, and answering machines. **It does not deal with Slack or Notion.** The framework that grounding cost varies by medium is theirs; applying it to today's asynchronous work channels is my interpretation.
+This paper was written in 1991, and the media the authors compared were things like face-to-face conversation, telephone, letters, and answering machines. **It does not deal with Slack or Notion.** The framework that grounding cost varies by medium is theirs; applying it to today's asynchronous work channels is my interpretation.
 
 Applying it that way explains why I did not ask repeatedly. In an environment where you receive a spec as text and confirm it as text, sending a confirmation message at every ambiguous point is expensive. You do not know when the answer will come, and you worry that asking several times will make you look like you did not understand. So people naturally slide into their own interpretation.
 
-It is worth separating two forces here. One is that the medium raises the cost of confirmation, and that is Clark and Brennan's point. The other is the worry that asking several times will make you look incompetent, and that is not what their principle predicts but belongs to the psychological safety discussion later on. To be precise, what the principle of least collaborative effort predicts is that **you will choose a cheaper way to confirm**, not that you will stop confirming. Abandoning confirmation and moving on to a guess is not the principle operating; it is grounding failing. And the fact that the interpretation was wrong surfaces only after implementation is done.
+It is worth separating two forces here. One is that the medium raises the cost of confirmation, and that is Clark and Brennan's point. The other is the worry that asking several times will make you look incompetent, and that is related to the psychological safety discussed later. The principle of least collaborative effort predicts that **you will choose a cheaper way to confirm**, not that you will stop confirming. Giving up on confirmation and moving on to a guess is a state in which grounding has failed. And the fact that the interpretation was wrong surfaces only after implementation is done.
 
 ## Reaching a sufficient level
 
@@ -127,11 +126,11 @@ Even with the mode aligned, a problem remains. Another misalignment I have run i
 
 Requirements handed over as prose from a product manager are usually too abstract. A sentence like “so users can conveniently check their reservation history” does not say how many screens there are or what leads where. Conversely, a designer's mockup is too concrete. Button colors and spacing are already decided, which makes it hard to discuss the very question of whether this flow is right.
 
-Shape Up, written by Ryan Singer at Basecamp, names this problem precisely. Starting from wireframes or concrete visual layouts traps you in unnecessary detail and prevents you from exploring as broadly as you need to. So what [Shape Up proposes](https://basecamp.com/shapeup/1.3-chapter-04) is a representation in between. It is called breadboarding, a concept borrowed from electrical engineering. A breadboard is a prototype that has all the components and wiring of the real device but none of the industrial design. So there are exactly three things you draw: the places you can navigate to, the affordances the user can act on, and the connection lines that show where those actions take the user.
+Shape Up, written by Ryan Singer at Basecamp, addresses this problem. Starting from wireframes or concrete visual layouts traps you in unnecessary detail and prevents you from exploring as broadly as you need to. So what [Shape Up proposes](https://basecamp.com/shapeup/1.3-chapter-04) is a representation in between. It is called breadboarding, a concept borrowed from electrical engineering. A breadboard is a prototype that has all the components and wiring of the real device but none of the industrial design. So there are exactly three things you draw: the places you can navigate to, the affordances the user can act on, and the connection lines that show where those actions take the user.
 
 The reason I liked this technique is that it is an artifact a developer can produce. Instead of asking the product manager to write in more detail or waiting on the designer for a mockup, you can draw the flow as you currently understand it, right there, and hand it back with “this is how I understood it, is that right?” It is a concrete way of executing the watching Evans described, the handing back of ambiguity. And seen through the lens of the previous section, it is a device that lowers grounding cost. One picture stands in for several rounds of confirmation over text.
 
-But this resolution is harder to hold than it sounds. As you draw the flow, you naturally slide down into things like “wouldn't this button be better in the bottom right?” I have done it several times myself. Once you slide down like that, the question that was being discussed, namely whether this flow is right, quietly disappears. If you are deciding button positions while the flow is not settled yet, all that discussion gets thrown away wholesale when the flow changes later.
+But this resolution is harder to hold than it sounds. As you draw the flow, you naturally slide down into things like “wouldn't this button be better in the bottom right?” I have done it several times myself. Once you slide down like that, the question that was being discussed, namely whether this flow is right, is no longer discussed. If you are deciding button positions while the flow is not settled yet, all that discussion gets thrown away wholesale when the flow changes later.
 
 So at this stage I try to keep the drawing **deliberately bad**. If it is nothing but boxes, arrows, and names, the other person does not think to point at details and responds only to the flow. Low fidelity is a feature of this tool rather than a defect. (Suppressing the urge to make it pretty is harder than it sounds.)
 
@@ -141,7 +140,7 @@ The idea that the level of abstraction can itself be a tool for collaboration co
 
 Another way to align resolution is to structure the discussion itself.
 
-Consider [Example Mapping](https://cucumber.io/blog/bdd/example-mapping-introduction/), introduced in 2015 by Matt Wynne, who led the Cucumber project. He diagnoses the reason many teams struggle with requirements discussions as the lack of structure, which makes them long and boring. And so teams end up not doing them regularly or consistently. That was precisely my situation. When a requirements meeting runs long, you try to keep the next one short, and when you keep it short the ambiguities stay in place.
+Consider [Example Mapping](https://cucumber.io/blog/bdd/example-mapping-introduction/), introduced in 2015 by Matt Wynne, who led the Cucumber project. He diagnoses the reason many teams struggle with requirements discussions as the lack of structure, which makes them long and boring. And so teams end up not doing them regularly or consistently. I was the same. When a requirements meeting runs long, you try to keep the next one short, and when you keep it short the ambiguities stay in place.
 
 Example Mapping splits the discussion across four colors of cards. Yellow is the story under discussion, blue is a rule or acceptance criterion, green is a concrete example that illustrates that rule, and red is a question nobody knows the answer to.
 
@@ -155,11 +154,11 @@ A similar idea long used in BDD circles is the Three Amigos. The point is that t
 
 ## Create a process for checking what you do not know
 
-But why do we have such a hard time playing the red card? At this point there is no avoiding a discussion of psychological safety.
+But why do we have such a hard time playing the red card? Let us look at this question from the perspective of psychological safety.
 
 The [paper](https://web.mit.edu/curhan/www/docs/Articles/15341_Readings/Group_Performance/Edmondson%20Psychological%20safety.pdf) that Amy Edmondson published in Administrative Science Quarterly in 1999 is the study that formally established the concept of team psychological safety. (The paper itself credits Schein and Bennis's 1965 work as its root.) It defines team psychological safety as a shared belief that the team is safe for interpersonal risk taking. Saying you do not know, voicing dissent, and admitting a mistake all fall under that. The paper surveyed 51 teams at a manufacturing company and showed that psychological safety is associated with learning behavior, and that learning behavior mediates between psychological safety and team performance.
 
-But the sentence I found most practical in that paper was not the definition; it was the one right after it.
+But the sentence I found most practical in that paper was the sentence immediately after the definition.
 
 ::::quote
 :::translation
@@ -173,13 +172,13 @@ For the most part, this belief tends to be tacit—taken for granted and not giv
 
 This belief is usually **tacit**, and neither individuals nor the team give it direct attention.
 
-From here on this is my own conjecture. What the paper says stops at the belief being tacit; the prescription that you should therefore create a form is not in the paper. That said, I have seen several times that a tacit thing does not change through declaration. Saying “our team is a team where it is fine to ask about what you do not know” does not change much on its own. That is why I think the red card from the previous section matters. **If you turn “I don't know” into a field inside a form, filling it in becomes procedure rather than courage.**
+From here on this is my own conjecture. What the paper says stops at the belief being tacit; the prescription that you should therefore create a form is not in the paper. I have seen several times that something tacit does not become explicit through declaration. Saying “our team is a team where it is fine to ask about what you do not know” does not change much on its own. That is why I think the red card from the previous section matters. **If you turn “I don't know” into a field inside a form, filling it in becomes procedure rather than courage.**
 
-There is an obvious counterargument, of course. On an unsafe team, the red card field will simply stay empty. That is a fair point, and I have no intention of claiming this tool creates safety. But if the field exists, at least **the fact that it is empty becomes visible.** It creates an opening to ask whether it is empty because nobody has an open question, or empty because it is hard to speak up.
+There is an obvious counterargument, of course. On an unsafe team, the red card field will simply stay empty. That is a fair point, and I have no intention of claiming this tool creates safety. If the field exists, at least **the fact that it is empty becomes visible.** It creates an opening to ask whether it is empty because nobody has an open question, or empty because it is hard to speak up.
 
 ![The DDD community's Bounded Context Canvas template, with sections for purpose, strategic classification, ubiquitous language, assumptions, verification metrics, and open questions](3.jpg)
 
-The same idea has made its way into actual document formats. Look at the [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas) created by the DDD community: it is a collaborative tool for designing and documenting a single context, and its arrangement of fields is interesting. Name and purpose, strategic classification, domain roles, inbound and outbound communication, and then **Ubiquitous Language**, business decisions, **Assumptions**, verification metrics, and **Open Questions**.
+The same idea has made its way into actual document formats. Look at the [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas) created by the DDD community: it is a collaborative tool for designing and documenting a single context, and its fields are as follows. Name and purpose, strategic classification, domain roles, inbound and outbound communication, and then **Ubiquitous Language**, business decisions, **Assumptions**, verification metrics, and **Open Questions**.
 
 There is a separate field for writing the shared language, one for writing assumptions, and one for writing open questions. The canvas's own description says that the act of writing the purpose forces fuzzy thinking to be stated clearly and puts the whole team on the same page.
 
@@ -203,15 +202,15 @@ organizational culture that is high-trust and emphasizes information flow is pre
 :::
 ::::
 
-An organizational culture that is high-trust and **emphasizes information flow** is predictive of software delivery performance. The claim is not that teams communicating well feel good, but that it is a variable moving together with performance.
+An organizational culture that is high-trust and **emphasizes information flow** is predictive of software delivery performance. The point is not that teams that communicate well feel good, but that it is a variable moving together with performance.
 
-That said, “predictive” must not be read as causal here. DORA's data comes from a survey in which the same respondents answered about both culture and performance, and it is a correlation at the organizational level. It remains possible that people satisfied with their organization rated both generously, and a prescription for how an individual should behave does not follow directly from a relationship at the organizational level. So this is as far as the material takes us: information flow does not live only in the realm of taste, it sits where it moves together with performance.
+However, “predictive” must not be read as causal here. DORA's data comes from a survey in which the same respondents answered about both culture and performance, and it is a correlation at the organizational level. It remains possible that people satisfied with their organization rated both generously, and a prescription for how an individual should behave does not follow directly from a relationship at the organizational level. So this is as far as the material takes us: information flow is not a topic confined to matters of taste.
 
 The same document also lays out Westrum's three properties of good information: it answers the question the receiver needs answered, it is timely, and it is presented in a way the receiver can use effectively. It is worth noticing that all three set the standard at the **receiver**. Sharing a lot is not what makes information flow good.
 
 Google's Project Aristotle is another frequently cited source. According to [what was published on reWork](https://rework.withgoogle.com/intl/en/guides/understand-team-effectiveness), they studied 180 teams, ran more than 35 statistical models over hundreds of variables, and put forward five factors affecting team effectiveness: psychological safety, dependability, structure and clarity, meaning, and impact. And the conclusion was that how the team worked together mattered more than who was on it.
 
-One thing is worth flagging, though. The official page states that it lists the five factors in order of importance and puts psychological safety first. But magnitude claims like “overwhelmingly number one,” which show up often in articles citing this research, are not on that page. Having an order and dominating the rest are different claims. So this post makes no claim about magnitude. If you want to argue for the importance of psychological safety, leaning on Edmondson's original paper from the previous section is the accurate move.
+The official page states that it lists the five factors in order of importance and puts psychological safety first. But magnitude claims like “overwhelmingly number one,” which show up often in articles citing this research, are not on that page. Having an order and dominating the rest are different claims. So this post makes no claim about magnitude. If you want to argue for the importance of psychological safety, leaning on Edmondson's original paper from the previous section is the accurate move.
 
 ## Back to the leader question
 
@@ -231,7 +230,7 @@ Cross-functional communication failures are usually not purely a matter of attit
 
 But handing it back takes effort, and people try to minimize that effort. So instead of relying on willpower, I decided to use three things: checking first which mode this conversation is in, drawing the flow at the resolution between prose and mockup and handing it back, and building a field for what you do not know into the meeting format. None of the three demand that you fix your attitude; they make the right thing easier to do.
 
-I am not a leader yet, and I have not verified any of this from that seat. Some of it will not hold at a different team size or in a different organizational culture. But there is one thing I feel confident about now. The way I handle information later will not be newly learned; it will be the way I handle requirements today, grown to scale. So these days I try to be less embarrassed than I used to be about asking “what do you mean by that?” in meetings.
+I am not a leader yet, and I have not verified any of this from that seat. Some of it will not hold at a different team size or in a different organizational culture. One thing I feel confident about now is that the way I handle information later will not be newly learned; it will be the way I handle requirements today, grown to scale. So these days I try to be less embarrassed than I used to be about asking “what do you mean by that?” in meetings.
 
 If you can think of one word from a recent meeting that you nodded along to without actually being sure about, I would suggest using that word one more time next time. Use it repeatedly and it will surface.
 

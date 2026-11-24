@@ -8,7 +8,7 @@ description: "O que fazer quando product manager e developer usam a mesma palavr
 keywords: 'ubiquitous language, linguagem compartilhada domínio, comunicação entre áreas, como levantar requisitos, comunicação product manager developer, grounding common ground, Example Mapping, breadboarding, bounded context, segurança psicológica time de desenvolvimento'
 locale: pt-BR
 translationOf: '260723'
-sourceHash: adf36bd375ece6026d5959d3cbe7a60585adf215a2f5bb429d88b18ce2381384
+sourceHash: 8926ed7af51ed190252ae48d852bc311567622c878f5b43053f7945442f8753c
 ---
 
 Neste post, quero falar sobre a comunicação com outras áreas.
@@ -21,7 +21,7 @@ Recentemente li [As atividades cotidianas de um líder de engenharia](https://so
 
 Eu quero assumir um papel de liderança algum dia, mas o que me ocorreu ao ler essa passagem foi um pouco diferente. **Se a primeira coisa que um líder trata é coletar informação, o correspondente disso para quem está na execução é entender requisitos.** O jeito como lido com requisitos hoje será o jeito como vou lidar com a informação de uma organização depois.
 
-Não é minha intenção falar de liderança neste texto. Falo do que eu vinha fazendo errado ao me comunicar com outras áreas na posição em que estou e do que posso usar como ferramenta. Começando pela conclusão: passei a achar que esse problema não é só uma questão de atitude. Existe uma formulação alternativa disponível, chamada ubiquitous language, e vale a pena ver do que se trata.
+Falo do que eu vinha fazendo errado ao me comunicar com outras áreas na posição em que estou e do que posso usar como ferramenta. Começando pela conclusão: passei a achar que esse problema não é só uma questão de atitude. Existe uma formulação alternativa disponível, chamada ubiquitous language, e vale a pena ver do que se trata.
 
 ## A mesma palavra, significados diferentes
 
@@ -39,7 +39,7 @@ here the word 'meter' meant subtly different things to different parts of the or
 
 A mesma palavra, “meter”, significava coisas sutilmente diferentes conforme a área da organização. E Fowler acrescenta que essa confusão não é um acaso daquele caso específico: diz ter visto a mesma confusão se repetir com palavras polissêmicas como Customer e Product.
 
-**Isso não aconteceu porque os participantes eram ruins de reunião.** Quando uma organização contém contextos diferentes, é natural que a mesma palavra se divida, e deixar isso correr acaba dividindo também o código.
+A causa estava na existência de contextos diferentes dentro da organização, mais do que na capacidade dos participantes de conduzir reuniões. Quando uma organização contém contextos diferentes, é natural que a mesma palavra se divida. Se isso não for resolvido, o código também acaba se dividindo.
 
 O pano de fundo técnico dessa história eu tratei uma vez em [Modelo de domínio](/260418). Naquele texto falei de como expressar o modelo dentro do código. Neste, trato da etapa anterior à existência desse modelo, a da conversa entre pessoas.
 
@@ -75,7 +75,7 @@ Os especialistas de domínio contestam termos e estruturas desajeitados ou insuf
 
 Ao ler essa frase, corrigi meu entendimento do próprio papel. Até então eu me via como receptor nas reuniões de requisitos. Achava que meu trabalho era receber com exatidão o que o produto decidisse e implementar. Mas a parte que Evans atribui ao developer não era a recepção. **É encontrar a ambiguidade e devolvê-la.** Isso não é cooperação passiva, é vigilância ativa.
 
-(A propósito, Fowler traduziu essa frase no próprio artigo como “Domain experts **should** object ... developers **should** watch”. O livro original não tem verbo modal. É uma diferença pequena, mas o original se lê de forma mais categórica: o tom não é que seria bom fazer assim, e sim que fazer assim é a definição do padrão.)
+(A propósito, Fowler traduziu essa frase no próprio artigo como “Domain experts **should** object ... developers **should** watch”. O livro original não tem verbo modal. É uma diferença pequena, mas o original se lê de forma mais categórica. Fazer assim é a definição do padrão.)
 
 Então como se encontra a ambiguidade? Evans também responde: usar os termos repetidamente na conversa é o que revela as diferenças de interpretação. Eu li essa frase assim. A ambiguidade não é algo que se acha lendo documentos com lupa. Por mais cuidadosa que seja a leitura de uma especificação, o fato de “meter” ter vários significados não aparece. Essa palavra precisa ser usada repetidamente contra casos concretos para se dividir. O momento em que surge uma pergunta como “o que as outras pessoas entendem por meter?” é exatamente esse ponto.
 
@@ -99,11 +99,11 @@ By the principle of least collaborative effort, people should try to ground with
 
 **O ponto em que o esforço recai muda dramaticamente conforme o meio.** Uma técnica de confirmação disponível em um meio pode ser simplesmente impossível em outro ou, sendo possível, muito mais cara. Os autores apontam em especial que, em meios nos quais o interlocutor não recebe o que foi dito de imediato, o custo de contar que outra pessoa corrija o mal-entendido fica muito alto, então quem fala tende a evitá-lo.
 
-Vale registrar uma coisa aqui. Esse artigo foi escrito em 1991, e os meios comparados pelos autores são a conversa presencial, o telefone, cartas e secretária eletrônica. **Ele não trata de Slack nem de Notion.** O arcabouço de que o custo de grounding varia conforme o meio é dos autores; aplicá-lo aos canais de trabalho assíncronos de hoje é interpretação minha.
+Esse artigo foi escrito em 1991, e os meios comparados pelos autores são a conversa presencial, o telefone, cartas e secretária eletrônica. **Ele não trata de Slack nem de Notion.** O arcabouço de que o custo de grounding varia conforme o meio é dos autores; aplicá-lo aos canais de trabalho assíncronos de hoje é interpretação minha.
 
 Aplicando assim, fica explicado por que eu não perguntava repetidamente. Num ambiente em que você recebe a especificação como texto e confirma como texto, mandar uma mensagem de confirmação a cada ponto ambíguo é caro. Você não sabe quando virá a resposta e teme que perguntar várias vezes faça você parecer alguém que não entendeu. Então a pessoa naturalmente escorrega para a própria interpretação.
 
-Convém separar duas forças aqui. Uma é que o meio encarece a confirmação, e isso é o que dizem Clark e Brennan. A outra é o receio de parecer incompetente por perguntar várias vezes, e isso não é o que o princípio deles prevê, mas pertence à discussão sobre segurança psicológica que vem adiante. Com precisão: o que o princípio do mínimo esforço colaborativo prevê é que **você escolherá um jeito mais barato de confirmar**, não que deixará de confirmar. Abandonar a confirmação e partir para o palpite não é o princípio operando, é o grounding falhando. E o fato de que aquela interpretação estava errada aparece só depois que a implementação termina.
+Convém separar duas forças aqui. Uma é que o meio encarece a confirmação, e isso é o que dizem Clark e Brennan. A outra é o receio de parecer incompetente por perguntar várias vezes, e isso tem a ver com a segurança psicológica que vem adiante. O que o princípio do mínimo esforço colaborativo prevê é que **você escolherá um jeito mais barato de confirmar**, não que deixará de confirmar. Abandonar a confirmação e partir para o palpite significa que o grounding falhou. E o fato de que aquela interpretação estava errada aparece só depois que a implementação termina.
 
 ## Chegar a um nível suficiente
 
@@ -127,11 +127,11 @@ Mesmo com o modo alinhado, um problema permanece. Outro desalinhamento que vivi 
 
 Requisitos entregues em prosa pelo product manager costumam ser abstratos demais. De uma frase como “para que o usuário consiga conferir com facilidade o histórico de reservas” não se extrai quantas telas existem nem o que leva a onde. Ao contrário, o layout do designer é concreto demais. Cor de botão e espaçamento já estão definidos, o que torna difícil discutir justamente se este fluxo está certo.
 
-Shape Up, escrito por Ryan Singer na Basecamp, aponta esse problema com precisão: começar por wireframes ou layouts visuais concretos prende você em detalhes desnecessários e impede explorar tão amplamente quanto é preciso. Por isso [o que Shape Up propõe](https://basecamp.com/shapeup/1.3-chapter-04) é uma representação intermediária. Chama-se breadboarding e toma o conceito emprestado da engenharia elétrica. Um breadboard é um protótipo que tem todas as peças e a fiação do aparelho real, mas nenhum design industrial. Por isso se desenham exatamente três coisas: os lugares para onde se pode navegar (places), aquilo que o usuário pode acionar (affordances) e as linhas de conexão que mostram para onde essa ação leva o usuário (connection lines).
+Shape Up, escrito por Ryan Singer na Basecamp, aborda esse problema: começar por wireframes ou layouts visuais concretos prende você em detalhes desnecessários e impede explorar tão amplamente quanto é preciso. Por isso [o que Shape Up propõe](https://basecamp.com/shapeup/1.3-chapter-04) é uma representação intermediária. Chama-se breadboarding e toma o conceito emprestado da engenharia elétrica. Um breadboard é um protótipo que tem todas as peças e a fiação do aparelho real, mas nenhum design industrial. Por isso se desenham exatamente três coisas: os lugares para onde se pode navegar (places), aquilo que o usuário pode acionar (affordances) e as linhas de conexão que mostram para onde essa ação leva o usuário (connection lines).
 
 O motivo de eu ter gostado dessa técnica é que ela é um artefato que o developer consegue produzir. Em vez de pedir ao product manager que escreva com mais detalhe ou de esperar o layout do designer, você desenha ali mesmo o fluxo como o entendeu e devolve com um “entendi assim, está certo?”. É um jeito concreto de executar a vigilância de que Evans falava, a de devolver a ambiguidade. E, pela lente da seção anterior, é um dispositivo que barateia o grounding. Um desenho substitui várias rodadas de confirmação por texto.
 
-Mas essa resolução é mais difícil de sustentar do que parece. Ao desenhar o fluxo, você desce naturalmente para coisas como “não seria melhor colocar este botão embaixo à direita?”. Comigo aconteceu algumas vezes. Uma vez que você desce assim, a pergunta que estava em discussão, ou seja, se este fluxo está certo, some em silêncio. Se você define a posição dos botões enquanto o fluxo ainda não está fechado, toda aquela discussão é jogada fora por inteiro quando o fluxo mudar depois.
+Mas essa resolução é mais difícil de sustentar do que parece. Ao desenhar o fluxo, você desce naturalmente para coisas como “não seria melhor colocar este botão embaixo à direita?”. Comigo aconteceu algumas vezes. Uma vez que você desce assim, a pergunta que estava em discussão, ou seja, se este fluxo está certo, deixa de ser discutida. Se você define a posição dos botões enquanto o fluxo ainda não está fechado, toda aquela discussão é jogada fora por inteiro quando o fluxo mudar depois.
 
 Por isso, nesta etapa, tento manter **um desenho deliberadamente ruim**. Se há apenas retângulos, setas e nomes, a outra pessoa nem cogita apontar detalhes e responde só ao fluxo. O baixo acabamento do desenho é, nesta ferramenta, uma funcionalidade. (Segurar a vontade de desenhar bonito é mais difícil do que parece)
 
@@ -141,7 +141,7 @@ Que o próprio nível de abstração possa ser uma ferramenta de colaboração s
 
 Outra maneira de alinhar a resolução é estruturar a própria discussão.
 
-Vejamos o [Example Mapping](https://cucumber.io/blog/bdd/example-mapping-introduction/), apresentado em 2015 por Matt Wynne, que liderou o projeto Cucumber. Ele diagnostica que a razão de muitos times terem dificuldade com discussões de requisitos é a falta de estrutura, que as torna longas e entediantes. E por isso os times deixam de fazê-las com regularidade e com consistência. Comigo era exatamente assim: quando uma reunião de requisitos se alonga, na próxima você tenta terminar rápido, e terminando rápido as ambiguidades ficam como estavam.
+Vejamos o [Example Mapping](https://cucumber.io/blog/bdd/example-mapping-introduction/), apresentado em 2015 por Matt Wynne, que liderou o projeto Cucumber. Ele diagnostica que a razão de muitos times terem dificuldade com discussões de requisitos é a falta de estrutura, que as torna longas e entediantes. E por isso os times deixam de fazê-las com regularidade e com consistência. Comigo também era assim: quando uma reunião de requisitos se alonga, na próxima você tenta terminar rápido, e terminando rápido as ambiguidades ficam como estavam.
 
 O Example Mapping divide a discussão em cartões de quatro cores. O amarelo é a história em pauta, o azul é a regra ou critério de aceitação, o verde é o exemplo concreto que ilustra essa regra e o vermelho é a pergunta cuja resposta ninguém sabe.
 
@@ -155,11 +155,11 @@ Com uma ideia parecida existe também o Three Amigos, usado há tempos no meio d
 
 ## Crie um processo para verificar o que não se sabe
 
-Mas por que temos tanta dificuldade de puxar o cartão vermelho? Aqui não dá para desviar do assunto da segurança psicológica.
+Mas por que temos tanta dificuldade de puxar o cartão vermelho? Vejamos essa pergunta pela perspectiva da segurança psicológica.
 
 O [artigo](https://web.mit.edu/curhan/www/docs/Articles/15341_Readings/Group_Performance/Edmondson%20Psychological%20safety.pdf) que Amy Edmondson publicou na Administrative Science Quarterly em 1999 é o estudo que estabeleceu formalmente o conceito de segurança psicológica de time. (O próprio artigo aponta como raiz o trabalho de Schein e Bennis de 1965.) Ele define segurança psicológica de time como a crença compartilhada de que o time é um lugar seguro para assumir riscos interpessoais. Dizer que não sabe, discordar e admitir um erro entram aí. O artigo pesquisou 51 times de uma empresa industrial e mostrou que a segurança psicológica se associa ao comportamento de aprendizado e que esse comportamento medeia a relação entre segurança psicológica e desempenho do time.
 
-Mas a frase que achei mais prática nesse artigo não foi a definição, e sim a que vem logo depois.
+Mas a frase que o autor considerou mais prática nesse artigo vinha logo depois da definição.
 
 ::::quote
 :::translation
@@ -170,16 +170,16 @@ Na maior parte das vezes, essa crença tende a ser tácita: é tomada como dada 
 For the most part, this belief tends to be tacit—taken for granted and not given direct attention either by individuals or by the team as a whole.
 :::
 ::::
-
+ 
 Essa crença costuma ser **tácita**, e nem os indivíduos nem o time lhe dão atenção direta.
 
-Daqui em diante é conjectura minha. O que o artigo diz vai até a crença ser tácita; a prescrição de que, portanto, basta criar um formulário não está no artigo. Dito isso, já vi várias vezes que o tácito não muda por declaração. Dizer “nosso time é um time em que dá para perguntar o que você não sabe” não muda grande coisa sozinho. Por isso acho que o cartão vermelho da seção anterior importa. **Se você transforma o “não sei” em um campo dentro de um formulário, preenchê-lo vira procedimento em vez de coragem.**
+Daqui em diante é conjectura minha. O que o artigo diz vai até a crença ser tácita; a prescrição de que, portanto, basta criar um formulário não está no artigo. Já vi várias vezes que o que é tácito não muda por declaração. Dizer “nosso time é um time em que dá para perguntar o que você não sabe” não muda grande coisa sozinho. Por isso acho que o cartão vermelho da seção anterior importa. **Se você transforma o “não sei” em um campo dentro de um formulário, preenchê-lo vira procedimento em vez de coragem.**
 
-Cabe uma objeção, claro. Num time que não é seguro, o campo do cartão vermelho vai simplesmente ficar vazio. É uma crítica justa, e não pretendo afirmar que esta ferramenta cria segurança. Mas, se o campo existe, ao menos **o fato de estar vazio se torna visível.** Cria-se um lugar para perguntar se está vazio porque ninguém tem dúvida ou porque é difícil falar.
+Cabe uma objeção, claro. Num time que não é seguro, o campo do cartão vermelho vai simplesmente ficar vazio. É uma crítica justa, e não pretendo afirmar que esta ferramenta cria segurança. Se o campo existe, ao menos **o fato de estar vazio se torna visível.** Cria-se um lugar para perguntar se está vazio porque ninguém tem dúvida ou porque é difícil falar.
 
 ![O modelo Bounded Context Canvas da comunidade DDD, com campos para propósito, classificação estratégica, linguagem ubíqua, premissas, métricas de verificação e questões em aberto](3.jpg)
 
-A mesma ideia está incorporada em formatos de documento reais. Olhando o [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas) criado pela comunidade de DDD, é uma ferramenta colaborativa para projetar e documentar um contexto, e a composição dos campos é interessante. Nome e propósito, classificação estratégica, papel no domínio, comunicação de entrada e de saída, e então **Ubiquitous Language**, decisões de negócio, **Assumptions**, métricas de verificação e **Open Questions**.
+A mesma ideia está incorporada em formatos de documento reais. Olhando o [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas) criado pela comunidade de DDD, é uma ferramenta colaborativa para projetar e documentar um contexto, e a composição dos campos é a seguinte. Nome e propósito, classificação estratégica, papel no domínio, comunicação de entrada e de saída, e então **Ubiquitous Language**, decisões de negócio, **Assumptions**, métricas de verificação e **Open Questions**.
 
 Há um campo separado para escrever a linguagem compartilhada, outro para os pressupostos e outro para as perguntas em aberto. A descrição do canvas diz que o próprio ato de escrever o propósito força um pensamento nebuloso a ser dito com clareza e coloca o time inteiro na mesma página.
 
@@ -205,13 +205,13 @@ organizational culture that is high-trust and emphasizes information flow is pre
 
 Uma cultura organizacional de alta confiança que **enfatiza o fluxo de informação** prediz o desempenho de entrega de software. Não é dizer que times que se comunicam bem ficam de bom humor, e sim que essa é uma variável que se move junto com o desempenho.
 
-Dito isso, “predizer” não deve ser lido aqui como causalidade. Os dados da DORA vêm de uma pesquisa em que os mesmos respondentes responderam sobre cultura e sobre desempenho, e é uma correlação em nível organizacional. Permanece a possibilidade de quem está satisfeito com a organização ter avaliado bem os dois lados, e de uma relação em nível organizacional não decorre imediatamente uma prescrição de como um indivíduo deve agir. Então o material permite dizer até aqui: o fluxo de informação não mora só no terreno do gosto, ele está num lugar em que se move junto com o desempenho.
+Mas “predizer” não deve ser lido aqui como causalidade. Os dados da DORA vêm de uma pesquisa em que os mesmos respondentes responderam sobre cultura e sobre desempenho, e é uma correlação em nível organizacional. Permanece a possibilidade de quem está satisfeito com a organização ter avaliado bem os dois lados, e de uma relação em nível organizacional não decorre imediatamente uma prescrição de como um indivíduo deve agir. Então o material permite dizer até aqui: o fluxo de informação não é um tema restrito ao terreno do gosto.
 
 O mesmo documento também organiza as três propriedades da boa informação segundo Westrum: ela responde à pergunta de que quem recebe precisa, chega no momento adequado e é apresentada de um jeito que quem recebe consegue usar com eficácia. Vale reparar que as três colocam o critério em **quem recebe**. Compartilhar muito não é o que faz um fluxo de informação ser bom.
 
 O Project Aristotle do Google é outra fonte citada com frequência. Segundo [o que foi publicado no reWork](https://rework.withgoogle.com/intl/en/guides/understand-team-effectiveness), foram estudados 180 times, rodados mais de 35 modelos estatísticos sobre centenas de variáveis, e apresentados cinco fatores que influenciam a efetividade do time: segurança psicológica, confiabilidade, estrutura e clareza, significado e impacto. E a conclusão foi que importou mais como aquele time trabalhou junto do que quem estava nele.
 
-Ainda assim, quero registrar uma coisa. A página oficial declara que lista os cinco fatores em ordem de importância e coloca a segurança psicológica em primeiro. Mas expressões de magnitude do tipo “primeiro de forma esmagadora”, que aparecem com frequência em textos que citam essa pesquisa, não estão naquela página. Haver uma ordem e um fator dominar os demais são coisas diferentes. Por isso este texto não afirma nada sobre magnitude. Para defender a importância da segurança psicológica, o preciso é se apoiar no artigo original de Edmondson, da seção anterior.
+A página oficial declara que lista os cinco fatores em ordem de importância e coloca a segurança psicológica em primeiro. Mas expressões de magnitude do tipo “primeiro de forma esmagadora”, que aparecem com frequência em textos que citam essa pesquisa, não estão naquela página. Haver uma ordem e um fator dominar os demais são coisas diferentes. Por isso este texto não afirma nada sobre magnitude. Para defender a importância da segurança psicológica, o preciso é se apoiar no artigo original de Edmondson, da seção anterior.
 
 ## De volta ao assunto da liderança
 
@@ -231,7 +231,7 @@ A falha de comunicação com outras áreas em geral não é só uma questão de 
 
 Mas devolver dá trabalho, e as pessoas tentam minimizar esse trabalho. Então, em vez de me apoiar na força de vontade, decidi usar três coisas: confirmar primeiro em que modo está esta conversa, desenhar o fluxo na resolução entre a prosa e o layout e devolvê-lo, e criar dentro do formato de reunião um campo para anotar o que não se sabe. Nenhuma das três exige corrigir a atitude; as três tornam a coisa certa mais fácil de fazer.
 
-Ainda não sou líder, e nada do que escrevi aqui foi verificado a partir daquele lugar. Com outro tamanho de time ou outra cultura organizacional, algumas coisas não vão funcionar. Mas há uma de que acho que posso ter certeza agora. O jeito como vou lidar com informação depois não será algo aprendido do zero, e sim o hábito com que hoje lido com requisitos, crescido em escala. Por isso ultimamente tento ter menos vergonha do que antes de perguntar numa reunião “o que você quer dizer com isso?”.
+Ainda não sou líder, e nada do que escrevi aqui foi verificado a partir daquele lugar. Com outro tamanho de time ou outra cultura organizacional, algumas coisas não vão funcionar. Uma coisa acho que posso ter certeza agora. O jeito como vou lidar com informação depois não será algo aprendido do zero, e sim o hábito com que hoje lido com requisitos, crescido em escala. Por isso ultimamente tento ter menos vergonha do que antes de perguntar numa reunião “o que você quer dizer com isso?”.
 
 Se para quem lê este texto vier à cabeça alguma palavra de uma reunião recente com a qual você concordou balançando a cabeça sem estar realmente certo, recomendo usar essa palavra mais uma vez na próxima. Usando repetidamente, ela aparece.
 
