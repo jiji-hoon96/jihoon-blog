@@ -8,7 +8,7 @@ description: 'Meça custos de tokens com um React POC e reduza-os com prompt cac
 keywords: 'economizar tokens de IA, custo do Claude Code, Cursor Composer, React POC, prompt caching, context engineering, subagent, MCP, model routing, context rot'
 locale: pt-BR
 translationOf: '260611'
-sourceHash: 4dbeb0d46f8579795a37d789c7ebec381ef8b89a5c262b210dbc0fc1a403a0b7
+sourceHash: c8c221d895b0faa383f1887064e38bf6f254cc1e0576c3ab6b5e79c49da7a851
 ---
 
 Neste artigo, quero falar sobre como economizar tokens de IA.
@@ -38,9 +38,9 @@ Vejamos quatro campos do objeto `usage` devolvido pelo SDK da Anthropic.
 - `cache_creation_input_tokens` tokens armazenados pela primeira vez nesta chamada
 - `cache_read_input_tokens` tokens relidos de uma cache existente
 
-Cada campo recebe uma tarifa diferente. Tokens de saída são os mais caros; os lidos da cache, os mais baratos. Segundo a documentação da Anthropic, a leitura custa 0,1 vez a tarifa base de entrada, exatamente 10%. A escrita custa 1,25 vez com TTL (Time To Live, período de validade da cache) de cinco minutos e 2 vezes com TTL de uma hora. Paga-se um pouco mais na primeira chamada e economiza-se 90% a partir da segunda.
+Cada campo recebe uma tarifa diferente. Tokens de saída são os mais caros; os lidos da cache, os mais baratos. Segundo a documentação da Anthropic, a leitura custa 0,1 vez a tarifa base de entrada, ou seja, 10%. A escrita custa 1,25 vez com TTL (Time To Live, período de validade da cache) de cinco minutos e 2 vezes com TTL de uma hora. Paga-se um pouco mais na primeira chamada e economiza-se 90% a partir da segunda.
 
-A cache também tem restrições pouco conhecidas. O mínimo varia por modelo e até por versão da mesma família. Sonnet 4.6 e Opus 4.8 exigem 1.024 tokens, Opus 4.7 exige 2.048, e Haiku 4.5 e os antigos Opus 4.5/4.6 exigem 4.096. Um prompt menor não é armazenado mesmo com `cache_control`, sem aviso. Uma solicitação aceita até quatro pontos de interrupção `cache_control`, e a cache é lida na ordem hierárquica `tools` → `system` → `messages`. Assim, mudar uma definição de ferramenta no início invalida toda a cache posterior.
+A cache tem algumas restrições pouco conhecidas. O mínimo varia por modelo e até por versão da mesma família. Sonnet 4.6 e Opus 4.8 exigem 1.024 tokens, Opus 4.7 exige 2.048, e Haiku 4.5 e os antigos Opus 4.5/4.6 exigem 4.096. Um prompt menor não é armazenado mesmo com `cache_control`, sem aviso. Uma solicitação aceita até quatro pontos de interrupção `cache_control`, e a cache é lida na ordem hierárquica `tools` → `system` → `messages`. Assim, mudar uma definição de ferramenta no início invalida toda a cache posterior.
 
 ![Prompt caching exige correspondência exata desde o início; alterar o prefixo invalida tudo que vem depois](2.webp)
 
@@ -62,7 +62,7 @@ Ao reunir as tabelas oficiais de Anthropic, OpenAI e Google de junho de 2026, o 
 | Google | Gemini 3.1 Pro | $2.00 | $0.20 | $12.00 |
 | Google | Gemini 3.5 Flash | $1.50 | $0.15 | $9.00 |
 
-Nos três provedores, a saída custa cinco a seis vezes mais que a entrada. Respostas longas elevam rapidamente o custo, mesmo dizendo a mesma coisa. Na mesma faixa, os preços dos modelos variam de três a seis vezes. A conta revela três princípios: **pedir saídas curtas, usar um modelo mais barato quando ele entregar a mesma resposta e armazenar entradas estáticas em cache**. (Se um contexto estático de 10 mil tokens for reutilizado 100 vezes, custa $5 na tarifa base do GPT-5.5 e $0.50 como leitura de cache. A economia é $4.5 e, como quase não há acréscimo de escrita inicial, o retorno começa na segunda chamada.)
+Nos três provedores, a saída custa cinco a seis vezes mais que a entrada. Respostas longas elevam rapidamente o custo, mesmo dizendo a mesma coisa. Na mesma faixa, os preços dos modelos variam de três a seis vezes. Uma conta simples já mostra que três princípios são a base para reduzir custos de tokens: **pedir saídas curtas, usar um modelo mais barato quando ele entregar a mesma resposta e armazenar entradas estáticas em cache**. (Se um contexto estático de 10 mil tokens for reutilizado 100 vezes, custa $5 na tarifa base do GPT-5.5 e $0.50 como leitura de cache. A economia é $4.5 e, como quase não há acréscimo de escrita inicial, o retorno começa na segunda chamada.)
 
 ### Diferenças entre mecanismos de cache
 
@@ -81,11 +81,11 @@ A filosofia aparece claramente. **Anthropic** exige marcação explícita, cobra
 
 ### Definições de ferramentas e tokenizadores
 
-Duas outras variáveis têm impacto surpreendente.
+Duas variáveis têm grande impacto.
 
-A primeira são as definições de ferramentas. Com vários servidores MCP, cada chamada inclui nomes e esquemas de parâmetros — mediremos depois quanto isso aumenta o custo —. Mesmo com ferramentas idênticas, trocar apenas o modelo altera o gasto. A documentação da Anthropic mostra que o prompt de ferramentas varia: com `tool_choice: auto`, Sonnet 4.6 e Haiku 4.5 usam cerca de 497 tokens, Opus 4.7 usa 675 e Opus 4.8 cai para 290. Antes do model routing, vale verificar quanto o modelo expande essas definições.
+A primeira são as definições de ferramentas. Com vários servidores MCP, cada chamada inclui nomes e esquemas de parâmetros — mediremos depois quanto isso aumenta o custo —. Mesmo com ferramentas idênticas, trocar apenas o modelo altera o gasto. A documentação da Anthropic mostra que o prompt de ferramentas varia: com `tool_choice: auto`, Sonnet 4.6 e Haiku 4.5 usam cerca de 497 tokens, Opus 4.7 usa 675 e Opus 4.8 cai para 290. Antes do model routing, vale verificar quanto o modelo expande essas definições. Isso pode fazer uma diferença considerável.
 
-A segunda é a eficiência do tokenizador, que divide texto em unidades processáveis. O mesmo texto pode gerar contagens diferentes. o200k_base da OpenAI usa bem menos tokens que cl100k_base em idiomas não ingleses; a Anthropic afirma que, com o novo tokenizador desde Opus 4.7, o mesmo texto pode ser cobrado como até 35% mais tokens do que nos modelos anteriores. Escolher apenas pela tarifa deixa o custo vazar pela ineficiência. A comparação correta é tarifa × quantidade esperada.
+A segunda é a eficiência do tokenizador, que divide texto em unidades processáveis. O mesmo texto pode gerar contagens diferentes. o200k_base da OpenAI economiza bastante mais tokens que cl100k_base em idiomas não ingleses; a Anthropic afirma que, com o novo tokenizador desde Opus 4.7, o mesmo texto pode usar até 35% mais tokens. Escolher apenas pela tarifa faz o custo subir de novo por causa da diferença de eficiência do tokenizador. A comparação entre modelos deve ser feita pelo produto entre a tarifa e a quantidade esperada de tokens.
 
 A diferença é marcante em coreano. Com dois tokenizadores da OpenAI, frases técnicas em inglês tiveram a mesma contagem, mas cl100k_base usou 31–43% mais tokens em coreano que o200k_base. Um parágrafo de 167 caracteres virou 169 tokens no antigo: **mais tokens que caracteres**. Em média, cada caractere consumiu mais de um token.
 
@@ -93,7 +93,7 @@ A diferença é marcante em coreano. Com dois tokenizadores da OpenAI, frases t�
 
 O antigo fragmenta o coreano no nível de bytes; o novo agrupa trechos frequentes como “개발” e “입니다” em um token. Mesmo com tarifa igual, uma carga em coreano pode custar mais de 1,5 vez só pela eficiência do tokenizador.
 
-Surge então a pergunta: “Onde exatamente estamos criando toda essa ineficiência?”
+Vamos examinar onde surgem as ineficiências.
 
 ## Padrões comuns de desperdício de tokens
 
@@ -119,9 +119,9 @@ Mais a fundo, a forma como o modelo trata a “posição” traz duas tendência
 
 Primeiro, o modelo **escuta mais os tokens próximos**. RoPE (Rotary Position Embedding), usado pela maioria dos modelos abertos, enfraquece a conexão conforme a distância aumenta, um decay effect. Tokens distantes recebem menos atenção.
 
-Segundo, o modelo **envia atenção demais ao primeiro token**. O softmax obriga a distribuir 100% da atenção; quando não há foco específico, o excedente costuma ir ao primeiro token. Isso é attention sink. (A equipe de Xiao no MIT quantificou o fenômeno no StreamingLLM. Não indica informação importante, mas um ralo para atenção excedente.)
+Segundo, o modelo **envia atenção demais ao primeiro token**. O softmax obriga a distribuir 100% da atenção; quando não há foco específico, o excedente costuma ir ao primeiro token. Isso é attention sink. (A equipe de Xiao no MIT quantificou o fenômeno no StreamingLLM. É um fenômeno que surge porque o primeiro token serve como ralo para a atenção excedente.)
 
-As duas tendências concentram atenção nas pontas — tokens recentes e primeiro token — e enfraquecem o meio. Não é bug de um modelo. LLaMA, Mistral e Qwen usam RoPE; Claude e GPT provavelmente usam mecanismos semelhantes. Lost in the middle é um viés da arquitetura moderna.
+As duas tendências concentram atenção nas pontas — tokens recentes e primeiro token — e enfraquecem o meio. LLaMA, Mistral e Qwen usam RoPE; Claude e GPT provavelmente usam mecanismos semelhantes. Lost in the middle é um viés da arquitetura moderna.
 
 ![Gráfico de context rot: conforme o tamanho da entrada cresce, a precisão cai em Claude, Qwen, OpenAI e Gemini igualmente](5.png)
 
@@ -149,7 +149,7 @@ Três resultados se destacaram. (Recall indica quão completas foram as resposta
 
 O princípio é igual para subagent e ferramentas: o custo extra só importa se elevar a precisão. **Escolher a ferramenta adequada ao domínio é mais barato e preciso que ativar tudo por garantia.**
 
-Então, quais métodos realmente economizam tokens?
+Vamos examinar métodos comprovados para economizar.
 
 ## Formas comprovadas de economizar tokens
 
@@ -171,9 +171,9 @@ Calculei 100 tarefas com 10 mil tokens estáticos, 500 dinâmicos e mil de saíd
 
 ![Economia com Batch API e Prompt caching: os descontos se acumulam por multiplicação](12.png?w=720)
 
-Cache reduz 57%, lote 50%, e ambos até 79%. A multiplicação ocorre na entrada estática. (Saída não entra na cache e recebe apenas o desconto de lote; quanto maior sua parcela, menor a redução total. Quanto maior a parte estática, maior o efeito.) Indexação noturna, avaliação antes da publicação, extração de dados e relatórios não exigem alguém diante da tela.
+Cache reduz 57%, lote 50%, e ambos até 79%. As duas reduções se multiplicam na entrada estática. (Saída não entra na cache e recebe apenas o desconto de lote; quanto maior sua parcela, menor a redução total. Quanto maior a parte estática, maior o efeito.) Indexação noturna, avaliação antes da publicação, extração de dados e relatórios não exigem alguém diante da tela.
 
-Nem tudo pode esperar. Batch não serve à sessão principal de um agente ou chat interativo, onde a latência tem valor. Dividir entre “preciso agora” e “preciso até o próximo expediente” pode cortar a conta pela metade.
+Nem todos os trabalhos podem ser adiados. Batch não serve à sessão principal de um agente ou chat interativo, onde a latência tem valor. Dividir entre “preciso agora” e “preciso até o próximo expediente” pode cortar a conta pela metade.
 
 ### Isolar trabalho verbose com um subagent
 
@@ -183,9 +183,9 @@ Nem tudo pode esperar. Batch não serve à sessão principal de um agente ou cha
 
 > Uma tarefa verbose produz muitos tokens para obter uma resposta de uma linha. Executar testes, pesquisar documentação e analisar logs são exemplos.
 
-Mas subagent não reduz automaticamente o custo total. Agentes usam cerca de quatro vezes mais tokens que chats; sistemas multiagente, quinze vezes. O subagent protege a precisão e o contexto principal ao retirar saídas verbose; não é mágica. Delegue apenas se a economia de limpeza superar o arranque. Tarefas curtas saem mais baratas no pai.
+O subagent não reduz o custo total. Segundo a Anthropic, agentes usam cerca de quatro vezes mais tokens que chats; sistemas multiagente, quinze vezes. O papel do subagent é tirar as saídas verbose do contexto longo e caro para preservar a precisão e o custo do agente pai. Por isso, é preciso delegar apenas quando “o custo economizado ao organizar o conteúdo superar o custo inicial”. Tarefas curtas saem mais baratas no pai.
 
-O domínio também importa. No teste interno da Anthropic, um líder Opus 4 com subagent Sonnet 4 melhorou 90,2% sobre um Opus 4 sozinho. Porém, domínios onde agentes compartilham contexto ou têm muitas dependências são inadequados — e programação é exatamente assim. Pesquisa explora rumos independentes; código vive num grafo de dependências. (Em programação, um agente com um subagent isolado de exploração pode ser um padrão mais seguro.)
+O domínio também importa. No teste interno da Anthropic, um líder Opus 4 com subagent Sonnet 4 melhorou 90,2% sobre um Opus 4 sozinho. Mas esse ganho não é igual em todos os domínios. No mesmo artigo, a Anthropic afirma que domínios em que agentes precisam compartilhar contexto ou têm muitas dependências entre si não são adequados para multiagentes, e diz que tarefas de programação são assim. Pesquisa permite explorar direções independentes em paralelo; código se organiza num grafo de dependências, onde a mudança de uma função afeta outras. (Se você usa uma configuração multiagente para programação, vale refletir se esse fluxo de trabalho realmente se aproxima de uma exploração paralela. Um agente único com um subagent de exploração isolado pode ser uma opção padrão mais segura para programação.)
 
 ### compact e progressive disclosure
 
@@ -213,11 +213,11 @@ Segundo a Anthropic, uma skill carrega em três fases. Nome e descrição — ce
 
 A entrada do Opus 4.8 custa cinco vezes a do Haiku 4.5. Usar o maior modelo para busca, exploração ou resumo simples é desperdício. Encaminhar por dificuldade — Haiku → Sonnet → Opus — e reservar Opus ao raciocínio pesado virou padrão. [RouteLLM, da LMSYS,](https://lmsys.org/blog/2024-07-01-routellm/) preservou 95% da qualidade do GPT-4 reduzindo chamadas fortes a 14%, embora o benchmark fosse de raciocínio geral.
 
-O ecossistema se firmou: OpenRouter, Martian e NotDiamond; no código aberto, RouteLLM, LiteLLM e Bifrost. Na Anthropic, a seleção do Agent SDK, o campo `model` do subagent — Explore usa Haiku — e `/model` apoiam routing. Mas as APIs não escolhem sozinhas pela dificuldade: executam o modelo indicado. Routing automático existe em produtos como Cursor Auto, ChatGPT auto e `openrouter/auto`. Para economizar, é preciso construir uma camada.
+O ecossistema se firmou: OpenRouter, Martian e NotDiamond; no código aberto, RouteLLM, LiteLLM e Bifrost. Na Anthropic, a seleção do Agent SDK, o campo `model` do subagent — Explore usa Haiku — e `/model` apoiam routing. Se você chama a API diretamente, ela não escolhe o modelo automaticamente conforme a dificuldade da entrada. Por padrão, as APIs Anthropic, OpenAI e Google executam o modelo que o usuário especifica. O routing automático só está disponível em produtos, como Cursor Auto, o modo auto do ChatGPT e `openrouter/auto`. Para economizar com routing, é preciso construir uma camada, seja com um gateway, seja com um classificador.
 
-Adicionar qualquer router não é a resposta. Auto Router, que troca o modelo por chamada, conflita com prompt caching. A cache efêmera exige mesmo modelo e prefixo; mudar a chave causa miss. Perde-se o desconto de 90% e a economia de routing volta em misses. Por isso OpenRouter recomenda stickiness com `session_id`.
+Mas, se você chama a API diretamente, não há uma função que faça routing automático. Routers como o Auto Router da OpenRouter, que mudam dinamicamente o modelo a cada chamada, entram em conflito direto com o prompt caching visto antes. A cache efêmera da Anthropic só acerta quando o modelo e o prefixo são os mesmos; se o modelo muda a cada chamada, a chave da cache também muda. Isso faz perder o desconto de 90% na leitura, e é comum economizar quase metade com routing para depois gastar de novo por causa dos cache misses. É pelo mesmo motivo que a OpenRouter recomenda a opção de stickiness baseada em `session_id`.
 
-Na prática, não classifique toda chamada; divida estaticamente por tarefa. O campo `model` segue isso: Explore sempre usa a faixa Haiku; revisão, Opus. Cada faixa repete modelo, prompt e ferramentas e acumula sua própria cache. “Routing virou padrão” significa ramificação estática “coordenador + executor”, não classificador por chamada. Assim routing e cache coexistem.
+Na prática, a forma que acabou sendo adotada é simples: em vez de classificar dinamicamente a cada chamada, dividir estaticamente por tipo de tarefa. O campo `model` do subagent, que vimos antes, segue esse padrão. O subagent Explore tem uma faixa de exploração de código que sempre roda com Haiku; o de revisão de código tem uma faixa de revisão que sempre roda com Opus. Como cada faixa repete o mesmo modelo, prompt de sistema e definições de ferramentas, cada modelo acumula sua própria cache e obtém acertos. Em suma, dizer que “o routing está virando padrão” significa que a divisão estática por tipo de tarefa, no formato “coordenador + executor”, está virando padrão em vez do routing dinâmico com um classificador a cada chamada. É isso que permite que routing e cache coexistam sem contradição no mesmo artigo.
 
 ### Cursor Composer 2.5
 
@@ -227,13 +227,13 @@ Outra opção é usar um agente como Cursor. [Composer 2.5, lançado em 18 de ma
 
 Como o benchmark é da própria Cursor, não convém tomar o número absoluto como definitivo. A tendência importa: um modelo menor especializado em código pode se aproximar de um modelo geral de fronteira e reduzir custos em uma ordem de grandeza. É uma tendência clara de 2026.
 
-O mais interessante é que ele também **reduz a própria quantidade de tokens de entrada quando projetado junto ao IDE**. Composer e Cascade consomem eficientemente arquivo atual, vizinhos e símbolos indexados, reduzindo pedidos extras e operações de grep e leitura. A tarifa cai dez vezes e a contagem também diminui, então a economia real pode ser maior.
+Nesse fluxo, além de a tarifa ser menor, **os próprios tokens de entrada também diminuem quando o modelo é projetado junto ao IDE**. Composer e Cascade consomem eficientemente arquivo atual, vizinhos e símbolos indexados, reduzindo pedidos extras e operações de grep e leitura. A tarifa cai dez vezes e a contagem também diminui, então a economia real pode ser maior.
 
 ### Levar o contexto para fora do contexto
 
-Uma tendência de 2026 é carregar “apenas o necessário, quando necessário”. A Anthropic chama isso de **contexto just in time (JIT)**. Em vez de incluir tudo, o agente mantém referências leves e busca o material por ferramentas quando precisa. Claude Code lê sob demanda com glob e grep em vez de carregar toda a base.
+Desde o início de 2026, segue em curso a tendência de carregar contexto com “apenas o necessário, quando necessário”. A Anthropic chama isso de **contexto just in time (JIT)**. Em vez de incluir tudo, o agente mantém referências leves e busca o material por ferramentas quando precisa. Claude Code lê sob demanda com glob e grep em vez de carregar toda a base.
 
-memory tool e context editing, lançados com Sonnet 4.5, seguem a mesma filosofia. A “memória” de memory tool não é o histórico da sessão nem um `CLAUDE.md` escrito por alguém e carregado no início. memory tool é **uma ferramenta com que o modelo escreve e lê arquivos diretamente**.
+memory tool e context editing, lançados com Sonnet 4.5, seguem a mesma filosofia. A memória de memory tool é diferente do histórico da sessão ou de um arquivo de configuração como `CLAUDE.md`. memory tool é **uma ferramenta com que o modelo escreve e lê arquivos diretamente**.
 
 A interface permite criar, ler, atualizar e excluir arquivos num diretório da infraestrutura do usuário. O modelo trata notas como sistema de arquivos. Isso cria memória persistente fora da janela entre sessões, enquanto o usuário controla armazenamento e retenção. A memória de sessão é volátil dentro; esta permanece fora. context editing faz o inverso: perto do limite, remove resultados antigos de ferramentas sem interromper a conversa, permitindo que o agente rode mais.
 
@@ -245,9 +245,9 @@ Na avaliação da Anthropic, as duas ferramentas melhoraram o desempenho em 39%;
 
 No fim, a economia se resume a três eixos: **enviar menos para o mesmo trabalho, pagar menos pela mesma entrada e entregar a mesma resposta a um modelo mais barato**. Prompt caching, Batch API, isolamento com subagent, `/compact`, memory tool, context editing, model routing e modelos especializados apenas atacam eixos diferentes. Em 2026, o foco migra de preencher o contexto para esvaziá-lo e selecioná-lo — context engineering. Como mostra context rot, contexto leve melhora custo e precisão.
 
-Não há resposta única. Cada equipe trabalha de um jeito, e uma mesma pessoa tem custos diferentes ao escrever texto ou código. Mas, num ecossistema rápido, supor que “o padrão de ontem ainda funciona hoje” é arriscado. Acompanhar modelos, ferramentas e preços e validá-los num pequeno POC do próprio fluxo talvez seja a economia mais duradoura. Recomendo revisar a própria contabilidade de tokens. (Para entender a raiz, leia também BPE e KV cache em Como os tokens funcionam.)
+Claro que não há resposta única. Cada equipe trabalha de um jeito, e uma mesma pessoa tem custos diferentes ao escrever texto ou código. Mas, como o ecossistema se move rapidamente, está cada vez mais arriscado supor que “o padrão de ontem ainda funciona hoje”. Acredito que o hábito de acompanhar modelos, ferramentas e preços e validá-los num pequeno POC do próprio fluxo acabará sendo a economia mais duradoura, sem parecer a mais cara. Recomendo que os leitores tirem do armário ao menos uma vez sua própria contabilidade de tokens. (Para entender a raiz de como as estratégias de economia funcionam, leia também BPE e KV cache em Como os tokens funcionam.)
 
-Resta uma pergunta: depois de esvaziar e selecionar contexto, o que vem? O foco avança ao sistema de agentes inteiro: como operá-lo (projeto do harness), medir se funcionou (eval) e confiná-lo quando falha (containment). Quando a postura “meça com um POC” deste artigo escala ao sistema, ela vira exatamente eval. Tratarei disso em [Além do contexto](/260622).
+E resta uma pergunta. Se já chegamos às técnicas de esvaziar e selecionar o contexto, o que vem depois? A julgar pelo material já publicado, o foco está avançando um passo para além do contexto, para como operar o sistema inteiro de agentes (projeto do harness), medir se funcionou bem (eval) e confiná-lo quando falha (containment). Quando a postura de “medir diretamente com um POC” enfatizada ao longo deste artigo cresce para a escala do sistema, ela se torna eval. Vou tratar desse próximo rumo em [Além do contexto](/260622).
 
 :::ref
 - [docs] [Anthropic Prompt Caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)
