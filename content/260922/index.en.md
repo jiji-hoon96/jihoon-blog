@@ -9,7 +9,7 @@ description: "Jev returns probabilities instead of text. Its confidence is arith
 keywords: 'Jev, TypeSafe AI, System One model, RLCD, model calibration, ECE, confidence threshold, decision model, Kev open source, Jev use cases'
 locale: en
 translationOf: '260922'
-sourceHash: 7aa67b3cb66a7dcec2de572e45d01b4aaf81e0d921a915a944b4bb17dbd2e3c1
+sourceHash: f77751ad7d90a95a5a88ad894e2c548d0646f522ba648f7780bb2f68f3e76838
 ---
 
 In this post, I want to talk about Jev, a model TypeSafe AI released last week that returns probabilities instead of text. This is for developers who want to put a threshold on a model's returned probability and handle cases automatically without a human check. By the end, you will know how Jev's `confidence` is calculated, how much calibration moves with the distribution, and a procedure for setting the threshold on your own data.
@@ -26,7 +26,7 @@ So the order is this. What Jev returns, what kind of training produces that prob
 
 ## A model that produces no text
 
-The release date was September 15, 2026. The company does not call it an LLM; it calls it a System One Model, a new category. In this post I call them decision models. Founder Diogo Almeida was the fourth author of the [InstructGPT paper](https://arxiv.org/abs/2203.02155) at OpenAI. He was on the team that built the method that became ChatGPT's direct ancestor, and he now stands on the side that points out that method's limits.
+Jev was released on September 15, 2026. The company does not call it an LLM; it calls it a System One Model, a new category. In this post I call them decision models. Founder Diogo Almeida was the fourth author of the [InstructGPT paper](https://arxiv.org/abs/2203.02155) at OpenAI. He was on the team that built ChatGPT, and he now stands on the side that points out that method's limits.
 
 Jev does not generate sentences. You fix the shape of the answer in advance, and it picks from that shape and returns probabilities along with it. There are only three question types.
 
@@ -56,13 +56,13 @@ But why did this call for a new training method? Could you not simply make an ex
 
 The clue lies in :term[calibration]{key="calibration"}. If accuracy is what percentage you get right, calibration is whether you know what percentage you will get right. The metric for that gap is :term[ECE]{key="ece"} (expected calibration error). It averages the difference between the stated probability and the actual hit rate in each probability bin, weighted by sample share, so 0 is perfect. :term[RLHF]{key="rlhf"} (reinforcement learning from human feedback) is a method for optimizing human preference. There is a case where this scale drifted after going through it. In Figure 8 of the [GPT-4 technical report](https://arxiv.org/abs/2303.08774), the pre-trained model's ECE was **0.007**, while the post-trained model's was **0.074**, more than ten times worse. The report does not state the cause, and I have not found a primary source that establishes one either. I wrote up the definitions and how much of the cause is known separately in [LLM Calibration and Overconfidence](/260917).
 
-**But ECE alone is not enough.** A constant predictor that stamps 0.6 on every input also has an ECE of 0 as long as its real hit rate is 60%. If the probabilities are merely honest and do not separate from case to case, there is nowhere to draw a line. So alongside calibration you have to watch **whether the probabilities actually separate**, and the "share that can be automated inside an error budget" I use later on is the metric that folds those two into one number.
+**But ECE alone is not enough.** A constant predictor that stamps 0.6 on every input also has an ECE of 0 as long as its real hit rate is 60%. If the probabilities are merely honest and do not separate from case to case, there is nowhere to draw a line. So alongside calibration you also have to watch **whether the probabilities actually separate**. The "share that can be automated inside an error budget" I use later on is the metric that folds those two into one number.
 
 From a software point of view, this is the part that matters. If the probabilities are honest and they separate, you can draw a line. You get a structure where anything above 0.95 is handled automatically and anything below goes to a person.
 
 TypeSafe says it opened a third road aimed at that spot. First is RLHF, which optimizes human preference; second is RLVR (reinforcement learning with verifiable rewards), which optimizes answers a machine can grade; third is RLCD, which it says optimizes calibrated decisions.
 
-But what has actually been published as RLCD is only three lines of output contract. As of September 23, 2026, when I am writing this, there is no paper or technical report anywhere in TypeSafe's documentation or launch post. There is a separate [ICLR 2024 paper](https://arxiv.org/abs/2307.12950) using the same acronym, but that one is reinforcement learning from contrastive distillation, a different method. Take care not to mix them up when searching.
+But what has actually been published as RLCD is only three lines of output contract. As of September 23, 2026, when I am writing this, there is no paper or technical report anywhere in TypeSafe's documentation or launch post. There is a separate [ICLR 2024 paper](https://arxiv.org/abs/2307.12950) using the same acronym, but that one is reinforcement learning from contrastive distillation, a different method.
 
 ## What confidence really is
 
@@ -72,7 +72,7 @@ So, are the numbers Jev returns honest? Before answering, there is something to 
 
 `Choice` and `Score` responses carry both `probabilities` and `confidence`. The first is a probability distribution across all the options, the second a single number between 0 and 1. When you set a threshold in code, the one your hand reaches for first is `confidence`.
 
-The adapter code calculates this value from the probability distribution. In `_utils/confidence_metrics.py` in [system-one-adapter-python](https://github.com/typesafe-ai/system-one-adapter-python), published by the TypeSafe organization, the `Choice` part looks like this.
+This value does not seem to be produced directly by the model. In `_utils/confidence_metrics.py` in [system-one-adapter-python](https://github.com/typesafe-ai/system-one-adapter-python), published by the TypeSafe organization, the `Choice` part looks like this.
 
 ```python
 def choice_confidence(probs: list[float]) -> float:
@@ -87,7 +87,7 @@ def choice_confidence(probs: list[float]) -> float:
 
 There is no model call and no learned parameter. One `probabilities` vector goes in and one real number comes out. Written as a formula it is `c = (p_max − 1/K) / (1 − 1/K)`, and with three options and a peak probability of 0.8 it comes to 0.7.
 
-This repository, unlike the production Jev server, is a substitute implementation that imitates the same API with an LLM. So this alone cannot settle it. But there are two more pieces of evidence pointing to the same formula. The [confidence page](https://docs.typesafe.ai/confidence) in TypeSafe's official documentation describes this value as "a statistic computed from the probability distribution." The demo code gives `(3 × largest probability − 1) / 2` as an approximation for three options. With K at 3, that is the formula above. And a [claims audit ledger](https://github.com/SamuelSacco/jev-exploration) recorded that on the real API, when the winner of a response given only two options that were both wrong was 0.52, `confidence` came back as 0.04. With K at 2, `(0.52 − 0.5) / (1 − 0.5) = 0.04`. It matches the formula.
+This repository, unlike the production Jev server, is a substitute implementation that imitates the same API with an LLM. So this alone cannot settle it. But there are two more pieces of evidence pointing to the same formula. The [confidence page](https://docs.typesafe.ai/confidence) in TypeSafe's official documentation describes this value as "a statistic computed from the probability distribution." The demo code gives `(3 × largest probability − 1) / 2` as an approximation for three options. With K at 3, that is the formula above. And a [claims audit ledger](https://github.com/SamuelSacco/jev-exploration) recorded a response on the real API given only two options that were both wrong. The winner of that response was 0.52, and `confidence` came back as 0.04. With K at 2, `(0.52 − 0.5) / (1 − 0.5) = 0.04`. It matches the formula.
 
 In the same repository, `Score` uses an entirely different formula. It divides the mean absolute distance from the modal level by the same quantity for a uniform distribution and then **subtracts the result from 1**. The documentation does not publish the formula for `Score`. So there are two formulas under the single name `confidence`, and with a different type the same number means something different. `Noul` having no `confidence` is for the same reason. There is no distribution to fold.
 
@@ -105,7 +105,7 @@ Why it gets worse is in the formula. With K fixed, `c` is a monotonically increa
 
 So can the `probabilities` side be trusted?
 
-There is a published record of someone actually calling Jev and measuring. The repository for [Kev](https://github.com/jaredpalmer/kev), an open source reimplementation built by Jared Palmer, has a `runs/jev-*` directory, and `usage.json` records with `"model": "typesafe-ai/jev"` that these were real calls made through the Vercel AI Gateway. Adding up the six `jev-*` directories' `usage.json` files, across September 18 and 20, 2026, it made 5,364 calls on 2,418,260 input tokens. Of the seven sets below, `scienthoon` was imported by converting that developer's result files, so it is not in this total.
+There is a published record of someone actually calling Jev and measuring. The repository for [Kev](https://github.com/jaredpalmer/kev), an open source reimplementation built by Jared Palmer, has a `runs/jev-*` directory. `usage.json` records with `"model": "typesafe-ai/jev"` that these were real calls made through the Vercel AI Gateway. Adding up the six `jev-*` directories' `usage.json` files, across September 18 and 20, 2026, it made 5,364 calls on 2,418,260 input tokens. Of the seven sets below, `scienthoon` was imported by converting that developer's result files, so it is not in this total.
 
 That the pricing really charges for input only is confirmed elsewhere. The author of the phishing benchmark looked at the TypeSafe dashboard and wrote it down. Of the 4.56 million tokens across two runs, 3.66 million were input and 900,000 were output, and the bill was $0.15, which matched the figure you get by counting input alone.
 
@@ -127,7 +127,7 @@ First, **the ECE moves by nearly ten times.** From 0.011 to 0.105. Same scorer, 
 
 The 0.105 of the set with the largest ECE is bigger even than the 0.074 of the post-RLHF GPT-4 seen earlier. Still, you must not read these two as a ranking. The tasks differ, and ECE is an estimator whose value moves with how many bins you split into and which bins the samples pile up in, so placing numbers from different scorers side by side does not make a valid comparison.
 
-Second, **the measured ECE is almost entirely explained by overconfidence alone.** The difference between the two columns runs from 0.002 to 0.011 for all seven. ECE is a weighted average of per-bin gaps, so it cannot be smaller than the overall overconfidence. But that difference being nearly 0 means **the gaps are skewed in one direction, rather than canceling one another across bins**.
+Second, **the measured ECE is almost entirely explained by overconfidence alone.** The difference between the two columns runs from 0.002 to 0.011 for all seven. ECE is a weighted average of per-bin gaps, so it cannot be smaller than the overall overconfidence. But that difference being nearly 0 means **the per-bin gaps are skewed in one direction**. If they went in opposite directions and canceled out, the gap would be wider than this.
 
 Reading down the columns shows why. Leave out `semif` and six of the mean peak probabilities sit packed between 0.851 and 0.906. Over the same stretch accuracy moves twice as wide, from 0.753 to 0.857. **Peak probability barely moves when the distribution changes, and only accuracy moves. The difference left over is the ECE.**
 
@@ -135,13 +135,13 @@ Reading down the columns shows why. Leave out `semif` and six of the mean peak p
 
 Another benchmark shows how this property surfaces in practice. In a [measurement](https://github.com/anisselbd/jev-phishing-bench) on 2,000 phishing emails with Claude Haiku 4.5 as the control, Jev's accuracy was 62.6% and Haiku's was 81.3%. The ECE is 0.154 for Jev and 0.097 for Haiku as reported in the repository, and when the claims audit ledger re-bins Jev's `P(phishing)` values into 10 bins from 0 to 1, it comes to 0.170. Read either way, **a model that puts calibration forward as its training objective lost on calibration to an LLM built with RLHF.** The same author got 91.6% from the link host list rule alone.
 
-Looking at the same metric across several sets makes the spread plainer. The share that can be handled automatically at a 5% :term[error budget]{key="error-budget"} is 0.486 on the `scienthoon` set, 0.695 on `transfer-v9`, and 1.000 on `semif`. Kev's scorer notes that this value is the maximum with the threshold chosen inside the sample, and it cannot be read as a guarantee of post-deployment error. **You must not cite any one of them as if it were the model's spec.**
+Looking at the same metric across several sets makes the spread plainer. The share that can be handled automatically at a 5% :term[error budget]{key="error-budget"} is 0.486 on the `scienthoon` set, 0.695 on `transfer-v9`, and 1.000 on `semif`. Kev's scorer notes that this value is the maximum with the threshold chosen inside the sample. This value cannot be used as a guarantee of post-deployment error. **You must not cite any one of them as if it were the model's spec.**
 
 ## The transliteration gate
 
 Reading someone else's benchmark and measuring on my own data are different things. So I put the gate from the opening through it for real.
 
-I do not have a Jev API key yet. Instead I **ran Kev-9B locally**, the reimplementation mentioned above. It puts a rank-16 :term[LoRA]{key="lora"} and a pointer head on Qwen3.5-9B-Base. Its license is Apache-2.0. **The numbers below are Kev's, not Jev's.** Kev's training data is English decision tasks, and in the same author's measurements Kev-9B trails Jev even on English tasks. Its automation share at a 5% error budget is 0.45 to 0.57 against Jev's 0.70, and on MMLU-Pro it is 0.52 against 0.84. The TypeSafe documentation also states, about Jev, that [English is the primary training language and CJK is not equivalent](https://docs.typesafe.ai/models).
+I **ran Kev-9B locally**, the reimplementation mentioned above. It puts a rank-16 :term[LoRA]{key="lora"} and a pointer head on Qwen3.5-9B-Base. Its license is Apache-2.0. **The numbers below are Kev's, not Jev's.** Kev's training data is English decision tasks, and in the same author's measurements Kev-9B trails Jev even on English tasks. Its automation share at a 5% error budget is 0.45 to 0.57 against Jev's 0.70, and on MMLU-Pro it is 0.52 against 0.84. The TypeSafe documentation also states, about Jev, that [English is the primary training language and CJK is not equivalent](https://docs.typesafe.ai/models).
 
 The evaluation sets were drawn from 18 Korean posts in this repository. The ground truth for a label is **which spelling this repository consistently uses for that word**. This means the blog's convention is the standard here instead of a consensus of the Korean technical writing community. On words where the two diverge, the model can be right by the community standard and wrong by this one.
 
@@ -191,7 +191,7 @@ If the model says yes to whatever you ask, this result is meaningless. That is w
 | Korean / English | Is this sentence written in English? | 0.01 |
 | English / English | Is this sentence about software? | 0.96 |
 
-**It reads Korean, it says "no," and it separates 0.02 from 0.98.** A global bias toward answering yes to everything is ruled out, and the possibility that the wording of the gate question itself is bad remains.
+**It reads Korean, it says "no," and it separates 0.02 from 0.98.** A global bias toward answering yes to everything does not seem to be the case, and the possibility that the wording of the gate question itself is bad remains.
 
 ## Putting the rules into state
 
@@ -214,7 +214,7 @@ The latency is local inference run on an M2 Max, so it is on a different axis fr
 
 ![Before and after adding the rule paragraph to state, on the 60 held-out sentences. Before, all 30 revert sentences were right and all 30 keep sentences wrong; after, 8 and 22 were right. The total correct is 30 both times](7.png?w=720)
 
-The 0.225 to 0.676 on the gate set cannot be read as an improvement in skill. Before, it said "turn it back" on all 102 sentences; once given the reference material it answered that way on only 12. Negatives climbed from 0/79 to 68/79, but positives collapsed from 23/23 to 1/23. That set has more negatives, 79 against 23, so a constant that says "mostly leave it" automatically scores higher. **It did not learn the distinction; it changed which way it leans.**
+The 0.225 to 0.676 on the gate set cannot be read as an improvement in skill. Before, it said "turn it back" on all 102 sentences; once given the reference material it answered that way on only 12. Negatives climbed from 0/79 to 68/79, but positives collapsed from 23/23 to 1/23. That set has more negatives, 79 against 23, so a constant that says "mostly leave it" automatically scores higher. **It did not learn the distinction; it only changed which way it leans.**
 
 Still, the model reads the sentences to some extent. For the same sentences containing the same word, the predictions scattered sentence by sentence once the reference material was given. The standard deviation for `로더` grew from 0.096 to 0.217, and `뮤테이션` from 0.042 to 0.236. **It reads, but it cannot distinguish.**
 
@@ -239,13 +239,13 @@ Only the rerank row is a search ranking quality metric, so it sits on a differen
 
 **The gap opens when the distribution is new and there are no labels.** On :term[out-of-distribution]{key="out-of-distribution"} spam it is 98.6% against 73.0%. The fitted classifier collapses in front of a shape it has never seen, while this side holds. The place for decision models is **judgments you cannot collect data for, label, and train on**. It is where every situation is new, so labels cannot be gathered, yet the judgment has to be made within seconds.
 
-This frame also explains why my transliteration judgment failed. What that judgment needs is specific domain knowledge of which words have settled in Korean technical writing, and the 9B reimplementation trained on English decision tasks has no such item in its knowledge inventory. It is knowledge the model does not have at all, rather than knowledge that is merely out of distribution. That is why giving it the rules in prose did not work either.
+This frame also explains why my transliteration judgment failed. What that judgment needs is specific domain knowledge of which words have settled in Korean technical writing rather than general reasoning, and the 9B reimplementation trained on English decision tasks does not have that item. Rather than being out of distribution, this knowledge is not in the model in the first place. That is why giving it the rules in prose did not work either.
 
 In a TechCrunch article, Armin Ronacher, the CTO of Earendil, which builds the Pi harness, [put it this way](https://techcrunch.com/2026/09/18/a-new-kind-of-ai-model-from-a-chatgpt-inventor-is-thrilling-developers/).
 
 > At the end of the day, it delegates the hallucination problem a little bit to the user.
 
-It has not removed hallucination; it has handed the judgment to the developer. The TypeSafe documentation says calibration holds only over a batch of predictions and does not guarantee that an individual answer is right. Under the 0% hallucination bar in the launch post, the Nuance entry reads "Our number is not empirical." The form is guaranteed, but the content falls outside its scope.
+It has not removed hallucination; rather, it has handed the judgment to the developer. The TypeSafe documentation also says calibration only holds over a batch of predictions and does not guarantee that an individual answer is right. Under the 0% hallucination bar in the launch post, the Nuance entry reads "Our number is not empirical." The form is guaranteed, but the content falls outside its scope.
 
 ## The 194 projects on jevable
 

@@ -9,7 +9,7 @@ description: '有个模型不返回文本，只返回概率。confidence 不是�
 keywords: 'Jev, TypeSafe AI, System One 模型, RLCD, 模型校准, ECE, confidence 阈值, 决策模型, Kev 开源, Jev 应用案例'
 locale: zh-CN
 translationOf: '260922'
-sourceHash: 7aa67b3cb66a7dcec2de572e45d01b4aaf81e0d921a915a944b4bb17dbd2e3c1
+sourceHash: f77751ad7d90a95a5a88ad894e2c548d0646f522ba648f7780bb2f68f3e76838
 ---
 
 这篇文章想聊聊上周 TypeSafe AI 公开的 Jev，一个不返回文本、只返回概率的模型。本文写给想给模型返回的概率设阈值、在没有人工确认的情况下自动处理的开发者。读完之后，你会知道 Jev 的 `confidence` 是怎么算出来的，校准会随分布变化多少，以及用自己的数据定阈值的步骤。
@@ -26,7 +26,7 @@ sourceHash: 7aa67b3cb66a7dcec2de572e45d01b4aaf81e0d921a915a944b4bb17dbd2e3c1
 
 ## 不生成文本的模型
 
-公开日期是 2026 年 9 月 15 日。公司不把它叫作 LLM，而是归进 System One Model 这个新类别。本文称之为决策模型。创始人 Diogo Almeida 曾在 OpenAI 以第四作者的身份参与过[InstructGPT 论文](https://arxiv.org/abs/2203.02155)。他待过打造了 ChatGPT 直系祖先那套方法的团队，如今站在指出这套方法局限的一边。
+Jev 的公开日期是 2026 年 9 月 15 日。公司不把它叫作 LLM，而是归进 System One Model 这个新类别。本文称之为决策模型。创始人 Diogo Almeida 曾在 OpenAI 以第四作者的身份参与过[InstructGPT 论文](https://arxiv.org/abs/2203.02155)。他待过打造 ChatGPT 的团队，如今站在指出该方法局限的一边。
 
 Jev 不生成句子。预先给定答案的形状，它就从中挑选，并一并返回概率。问题类型只有三种。
 
@@ -56,13 +56,13 @@ endpoint 也只有一个。向 `POST /v1/systemone` 发送 `state`（要评估�
 
 线索在:term[校准]{key="calibration"}里。准确率是能答对百分之几，校准则是知不知道自己能答对百分之几。衡量这种偏离的指标是 :term[ECE]{key="ece"}（expected calibration error）。它把每个概率区间里说出口的概率与实际命中率的差值按样本比例加权平均，0 为完美。:term[RLHF]{key="rlhf"}（reinforcement learning from human feedback）是一种优化人类偏好的方法。经过这一步之后，出现了这个刻度偏离的案例。在 [GPT-4 技术报告](https://arxiv.org/abs/2303.08774)的 Figure 8 中，预训练模型的 ECE 是 **0.007**，经过 post-training 的模型则是 **0.074**，差了十倍以上。报告没有写出原因，笔者也没有找到能确定原因的一手证据。定义以及原因目前弄清到了什么程度，另外整理在[LLM 的校准与过度自信](/260917)中。
 
-**但光靠 ECE 一个是不够的。** 对所有输入都打 0.6 的常数预测器，只要实际命中率是 60%，ECE 也是 0。概率只是诚实、却不随案例分开，就没有划线的地方。所以除校准之外还要一起看**概率是否真的分得开**，后文要用的“在误差预算内可自动处理的比例”就是把这两者捆成一个数字的指标。
+**但光靠 ECE 一个是不够的。** 对所有输入都打 0.6 的常数预测器，只要实际命中率是 60%，ECE 也是 0。概率只是诚实、却不随案例分开，就没有划线的地方。所以除校准之外也要看**概率是否真的分得开**。后文要用的“在误差预算内可自动处理的比例”就是把这两者捆成一个数字的指标。
 
 从软件的角度看，重要的是这一部分。概率既诚实又分得开，就能划线。于是有了超过 0.95 就自动处理、低于这个值就交给人的结构。
 
 TypeSafe 说自己瞄准这个位置开出了第三条路。第一种是优化人类偏好的 RLHF，第二种是优化机器可判分的正确答案的 RLVR（reinforcement learning with verifiable rewards），第三种是声称优化校准后决策的 RLCD。
 
-不过，RLCD 公开的只有三行输出契约。截至写这篇文章的 2026 年 9 月 23 日，TypeSafe 的文档和发布文章里都没有论文或技术报告。另有一篇用同样缩写的 [ICLR 2024 论文](https://arxiv.org/abs/2307.12950)，那边是 reinforcement learning from contrastive distillation，是不同的方法。检索时注意别混在一起。
+不过，RLCD 公开的只有三行输出契约。截至写这篇文章的 2026 年 9 月 23 日，TypeSafe 的文档和发布文章里都没有论文或技术报告。另有一篇用同样缩写的 [ICLR 2024 论文](https://arxiv.org/abs/2307.12950)，那边是 reinforcement learning from contrastive distillation，是不同的方法。
 
 ## confidence 的真面目
 
@@ -72,7 +72,7 @@ TypeSafe 说自己瞄准这个位置开出了第三条路。第一种是优化�
 
 `Choice` 和 `Score` 的响应里同时装着 `probabilities` 和 `confidence`。前者是覆盖全部选项的概率分布，后者是 0 到 1 之间的一个数字。在代码里设阈值时，手先伸过去的是 `confidence`。
 
-这个值是适配器代码根据概率分布算出来的。TypeSafe 组织公开的 [system-one-adapter-python](https://github.com/typesafe-ai/system-one-adapter-python) 里，`_utils/confidence_metrics.py` 总共 32 行，`Choice` 的部分是这样。
+这个值似乎不是模型直接生成的。TypeSafe 组织公开的 [system-one-adapter-python](https://github.com/typesafe-ai/system-one-adapter-python) 里，`_utils/confidence_metrics.py` 中 `Choice` 的部分是这样。
 
 ```python
 def choice_confidence(probs: list[float]) -> float:
@@ -87,7 +87,7 @@ def choice_confidence(probs: list[float]) -> float:
 
 没有模型调用，也没有学出来的参数。进去的是一个 `probabilities` 向量，出来的是一个实数。写成式子就是 `c = (p_max − 1/K) / (1 − 1/K)`，选项为三个、最大概率为 0.8 时得到 0.7。
 
-这个仓库与生产环境的 Jev 服务器不同，是用 LLM 模仿同一套 API 的替代实现。所以只凭它还不能断言。不过还有两个指向同一个式子的证据。TypeSafe 官方文档的 [confidence 页面](https://docs.typesafe.ai/confidence)把这个值写成 "a statistic computed from the probability distribution"。演示代码里则放了一条标注为三选项近似式的 `(3 × largest probability − 1) / 2`。K 为 3 时与上式相同。另外[主张审计账本](https://github.com/SamuelSacco/jev-exploration)记录了在真实 API 上，只给两个都错的选项时，响应中胜者为 0.52，`confidence` 返回的是 0.04。K 为 2 时 `(0.52 − 0.5) / (1 − 0.5) = 0.04`。与式子吻合。
+这个仓库与生产环境的 Jev 服务器不同，是用 LLM 模仿同一套 API 的替代实现。所以只凭它还不能断言。不过还有两个指向同一个式子的证据。TypeSafe 官方文档的 [confidence 页面](https://docs.typesafe.ai/confidence)把这个值写成 "a statistic computed from the probability distribution"。演示代码里则放了一条标注为三选项近似式的 `(3 × largest probability − 1) / 2`。K 为 3 时与上式相同。另外[主张审计账本](https://github.com/SamuelSacco/jev-exploration)记录了在真实 API 上只给两个都错的选项时的响应。该响应的胜者为 0.52，`confidence` 返回的是 0.04。K 为 2 时 `(0.52 − 0.5) / (1 − 0.5) = 0.04`。与式子吻合。
 
 在同一个仓库里，`Score` 用的干脆是另一个式子。把到众数水平的平均绝对距离除以均匀分布下的同一个量，然后**用 1 减去它**。文档没有公开 `Score` 的式子。也就是说，`confidence` 这一个名字底下有两套算式，类型不同时同一个数字含义也不同。`Noul` 没有 `confidence` 也是同样的理由。没有可折叠的分布。
 
@@ -105,7 +105,7 @@ def choice_confidence(probs: list[float]) -> float:
 
 那么 `probabilities` 那一侧可以信吗。
 
-实际调用 Jev 测过的记录是公开的。Jared Palmer 做的开源复现实现 [Kev](https://github.com/jaredpalmer/kev) 的仓库里有 `runs/jev-*` directory，`usage.json` 以 `"model": "typesafe-ai/jev"` 记录着这是经由 Vercel AI Gateway 的真实调用。把六个 `jev-*` directory 的 `usage.json` 加起来，2026 年 9 月 18 日和 20 日两天共调用了 5,364 次，输入是 2,418,260 token。下面七个集合中的 `scienthoon` 是把那位开发者的结果文件转换后导入的，不在这个合计里。
+实际调用 Jev 测过的记录是公开的。Jared Palmer 做的开源复现实现 [Kev](https://github.com/jaredpalmer/kev) 的仓库里有 `runs/jev-*` directory。`usage.json` 以 `"model": "typesafe-ai/jev"` 记录着这是经由 Vercel AI Gateway 的真实调用。把六个 `jev-*` directory 的 `usage.json` 加起来，2026 年 9 月 18 日和 20 日两天共调用了 5,364 次，输入是 2,418,260 token。下面七个集合中的 `scienthoon` 是把那位开发者的结果文件转换后导入的，不在这个合计里。
 
 价格确实只按输入计费这一点，可以在别处得到确认。钓鱼基准的作者看了 TypeSafe dashboard 记了下来。两次运行的 456 万 token 中，输入 366 万、输出 90 万，而账单是 $0.15，这个值与只按输入计算的结果吻合。
 
@@ -127,7 +127,7 @@ def choice_confidence(probs: list[float]) -> float:
 
 ECE 最大的那个集合的 0.105，比前面看到的 post-RLHF GPT-4 的 0.074 还要大。尽管如此，这两个数字不能用来排名。任务不同，而且 ECE 是一个会随着区间分成几份、样本挤在哪个区间而变动的估计量，把来自不同评分器的数字放在一起，比较并不成立。
 
-第二，**测得的 ECE 几乎全部由过度自信一项解释。** 两列之差在七个集合上全都落在 0.002 到 0.011 之间。ECE 是各区间差距的加权平均，不可能小于整体的过度自信。不过这个差几乎为 0，意味着**各区间的差距不是在不同区间里朝不同方向相互抵消，而是集中在同一个方向**。
+第二，**测得的 ECE 几乎全部由过度自信一项解释。** 两列之差在七个集合上全都落在 0.002 到 0.011 之间。ECE 是各区间差距的加权平均，不可能小于整体的过度自信。不过这个差几乎为 0，意味着**各区间的差距集中在同一个方向**。如果方向交错而相互抵消，差值就会比这大得多。
 
 为什么会这样，竖着读就看得见。平均确信度除去 `semif` 之外，六个都挤在 0.851 到 0.906 之间。在同一段区间里，准确率却从 0.753 摆到 0.857，宽度是前者的两倍。**确信度即使分布变了也几乎不动，动的只有准确率。剩下的差值就直接是 ECE。**
 
@@ -135,13 +135,13 @@ ECE 最大的那个集合的 0.105，比前面看到的 post-RLHF GPT-4 的 0.07
 
 这个性质在实务里怎么显现，另一个基准给出了答案。在 2,000 封钓鱼邮件上以 Claude Haiku 4.5 作对照组的[测量](https://github.com/anisselbd/jev-phishing-bench)中，Jev 的准确率是 62.6%，Haiku 是 81.3%。ECE 是仓库报告的 Jev 0.154、Haiku 0.097，而主张审计账本把 Jev 的 `P(phishing)` 值在 0 到 1 上按 10 个区间重新测算，得到 0.170。无论按哪种读法，**把校准当作训练目标的模型，在校准上都输给了用 RLHF 造出来的 LLM。** 同一位作者只用一条链接主机列表规则就拿到了 91.6%。
 
-把同一个指标放到多个集合上看，幅度就更清楚。:term[误差预算]{key="error-budget"} 5% 下可自动处理的比例，在 `scienthoon` 集合是 0.486，`transfer-v9` 是 0.695，`semif` 是 1.000。Kev 的评分器注明这个值是在样本内选取阈值得到的最大值，不能理解为对部署后误差的保证。**不能把其中任何一个当作模型的规格来引用。**
+把同一个指标放到多个集合上看，幅度就更清楚。:term[误差预算]{key="error-budget"} 5% 下可自动处理的比例，在 `scienthoon` 集合是 0.486，`transfer-v9` 是 0.695，`semif` 是 1.000。Kev 的评分器注明这个值是在样本内选取阈值得到的最大值。这个值不能用作对部署后误差的保证。**不能把其中任何一个当作模型的规格来引用。**
 
 ## 音译判别闸门
 
 读别人的基准和在自己的数据上测，是两回事。所以笔者把开头那道闸门实际交给它过了一遍。
 
-笔者还没有 Jev 的 API key。于是改成**在本地跑了前面提到的 Kev-9B。** 它是在 Qwen3.5-9B-Base 上加了 rank-16 :term[LoRA]{key="lora"} 和 pointer head 的复现实现。许可证是 Apache-2.0。**下面的数字属于 Kev，而非 Jev。** Kev 的训练数据是英语决策任务，在同一位作者的测量里，Kev-9B 即使在英语任务上也不如 Jev。误差预算 5% 的自动化比例是 0.45 到 0.57，而 Jev 是 0.70；MMLU-Pro 是 0.52 对 0.84。而且 TypeSafe 文档也就 Jev 说明了[英语是主要训练语言，CJK 并不对等](https://docs.typesafe.ai/models)。
+笔者**在本地跑了前面提到的 Kev-9B。** 它是在 Qwen3.5-9B-Base 上加了 rank-16 :term[LoRA]{key="lora"} 和 pointer head 的复现实现。许可证是 Apache-2.0。**下面的数字属于 Kev，而非 Jev。** Kev 的训练数据是英语决策任务，在同一位作者的测量里，Kev-9B 即使在英语任务上也不如 Jev。误差预算 5% 的自动化比例是 0.45 到 0.57，而 Jev 是 0.70；MMLU-Pro 是 0.52 对 0.84。而且 TypeSafe 文档也就 Jev 说明了[英语是主要训练语言，CJK 并不对等](https://docs.typesafe.ai/models)。
 
 评估集合取自本博客的 18 篇韩语文章。标签的正确答案标准是**本博客一贯把那个词写成哪种形式**。也就是说，标准采用的是这个博客的惯例，而不是韩语技术文档社区的共识。在两者分歧的词上，模型可能按社区标准是对的，按这个标准却是错的。
 
@@ -191,7 +191,7 @@ ECE 最大的那个集合的 0.105，比前面看到的 post-RLHF GPT-4 的 0.07
 | 韩语 / 英语 | Is this sentence written in English? | 0.01 |
 | 英语 / 英语 | Is this sentence about software? | 0.96 |
 
-**它读韩语，会说“不是”，并且把 0.02 和 0.98 分开。** 全局性地什么都回答“是”的偏差可以排除，但闸门问题的措辞本身很差的可能性仍然留着。
+**它读韩语，会说“不是”，并且把 0.02 和 0.98 分开。** 似乎不是全局性地什么都回答“是”的偏差，但闸门问题的措辞本身很差的可能性仍然留着。
 
 ## 把规则放进 state 的结果
 
@@ -214,7 +214,7 @@ ECE 最大的那个集合的 0.105，比前面看到的 post-RLHF GPT-4 的 0.07
 
 ![在闸门外的 60 句上，把规则段落放进 state 前后的对比。之前 30 句该还原的全对、30 句该保留的全错；之后分别对了 8 句和 22 句。答对总数两次都是 30](7.png?w=720)
 
-闸门集合从 0.225 到 0.676 不能理解为实力提升。之前它对 102 句全都说“还原”，给了参考资料之后只对 12 句这样回答。阴性从 0/79 升到了 68/79，但阳性从 23/23 崩到了 1/23。那个集合里阴性以 79 比 23 占多数，所以“大体上保持原样”这个常数自动就能拿到更高的分。**它学到的不是区分，而是改变了倾斜。**
+闸门集合从 0.225 到 0.676 不能理解为实力提升。之前它对 102 句全都说“还原”，给了参考资料之后只对 12 句这样回答。阴性从 0/79 升到了 68/79，但阳性从 23/23 崩到了 1/23。那个集合里阴性以 79 比 23 占多数，所以“大体上保持原样”这个常数自动就能拿到更高的分。**它并没有学会区分，而只是改变了倾斜。**
 
 不过，模型仍在一定程度上读句子。同一个词的同一批句子，给了参考资料之后，预测在句子之间散开了。`로더`的标准差从 0.096 增加到 0.217，`뮤테이션`从 0.042 增加到 0.236。**它会读，只是无法区分。**
 
@@ -239,13 +239,13 @@ ECE 最大的那个集合的 0.105，比前面看到的 post-RLHF GPT-4 的 0.07
 
 **差距是在分布是新的、又没有标签的时候拉开的。** :term[分布外]{key="out-of-distribution"}的垃圾邮件上是 98.6% 对 73.0%。调好的分类器在自己没见过的形状面前垮掉，而这一侧撑住了。决策模型的位置，是**无法收集数据、打上标签再训练的判断**。每次情况都是新的所以收不到标签，判断却要以秒为单位做出的地方。
 
-笔者的音译判别为什么失败，也能用这个框架解释。那个判断需要的是韩语技术文档里哪种说法已经定型这种特定领域的知识，而用英语决策任务训练出来的 9B 复现实现所拥有的知识列表中没有这一项。相比模型知识范围之外的知识，这是模型根本没有的知识。把规则写成文字给它也不管用的原因就在这里。
+笔者的音译判别为什么失败，也能用这个框架解释。那个判断需要的与其说是一般的推理，不如说是韩语技术文档里哪种说法已经定型这种特定领域的知识，而用英语决策任务训练出来的 9B 复现实现并没有这一项。与其说这项知识处于分布之外，不如说模型里原本就没有。把规则写成文字给它也不管用的原因就在这里。
 
 在 TechCrunch 的报道里，做 Pi harness 的 Earendil 的 CTO Armin Ronacher [这样说](https://techcrunch.com/2026/09/18/a-new-kind-of-ai-model-from-a-chatgpt-inventor-is-thrilling-developers/)。
 
 > At the end of the day, it delegates the hallucination problem a little bit to the user.
 
-不是消除了幻觉，而是把判断交给了开发者。TypeSafe 文档写道，calibration 只对一组预测成立，并不保证个别回答正确。公开发布文章里幻觉率 0% 柱子下方的 Nuance 项写着 "Our number is not empirical"。形式有保证，但内容超出这个范围。
+没有消除幻觉，而是把判断交给了开发者。TypeSafe 文档也写道，calibration 只对一组预测成立，并不保证个别回答正确。公开发布文章里幻觉率 0% 柱子下方的 Nuance 项写着 "Our number is not empirical"。形式有保证，但内容超出这个范围。
 
 ## jevable 上的 194 个项目
 
