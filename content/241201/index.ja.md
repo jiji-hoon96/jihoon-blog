@@ -8,7 +8,7 @@ description: "BiomeのLintとフォーマット性能を、ESLintとPrettierを�
 keywords: "Biome vs ESLint, Biome vs Prettier, Biome移行, JavaScriptリンター比較, Rust製リンター, フロントエンド開発ツール"
 locale: ja
 translationOf: '241201'
-sourceHash: 003986df20a3fb2cbb5dba760b4a967e022be04ed5c24f3c249909ebc0e79281
+sourceHash: 817da6c8efe14e3c4cb096fa4601a39a9942936ef701ac5bad67c2982e97d4fa
 ---
 
 今回は、Biomeというツールについて紹介したい。
@@ -170,3 +170,5 @@ BiomeがESLintとPrettierを完全に置き換えられるかという問いに�
 性能は圧倒的で、設定は簡潔、開発速度も速い。ただし、プラグインエコシステムの未成熟さと一部言語サポートの制約は、プロジェクトによっては障害になり得る。プロジェクトの技術スタックとチームの要件を綿密に検討した上で、導入の可否を判断するのが望ましい。
 
 一つ確かなのは、フロントエンドツールのエコシステムが「より速く、より簡潔で、より統合された」方向へ進んでいることだ。Biomeがその流れの先頭に立っていることは否定できない。今後の成長が期待されるツールであることは間違いない。
+
+Biomeをプロダクトで2年近く使ってみた記録と、2026年時点で変わった点を、[Biomeを2年使ってみた感想](/261115)にまとめた。

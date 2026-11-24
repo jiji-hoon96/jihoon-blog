@@ -46,7 +46,7 @@
     {
       "key": "241201",
       "source": "content/241201/index.md",
-      "sourceHash": "003986df20a3fb2cbb5dba760b4a967e022be04ed5c24f3c249909ebc0e79281",
+      "sourceHash": "817da6c8efe14e3c4cb096fa4601a39a9942936ef701ac5bad67c2982e97d4fa",
       "reviewed": [
         "en",
         "ja",
@@ -413,6 +413,12 @@
       "key": "261120",
       "source": "content/261120/index.md",
       "sourceHash": "d042953f2b5f612a21f4d2c9e416a9ddd7b509eafa8de9fa080916dede2a3734",
+      "reviewed": []
+    },
+    {
+      "key": "261115",
+      "source": "content/261115/index.md",
+      "sourceHash": "feec0e755ce7548b6041920f4a0c6c5c69e93f2b62859ef17347e02523e41d8a",
       "reviewed": []
     }
   ]
