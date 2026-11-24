@@ -8,7 +8,7 @@ description: "Qué hacer cuando product manager y developer usan la misma palabr
 keywords: 'ubiquitous language, lenguaje compartido dominio, comunicación entre disciplinas, cómo definir requisitos, comunicación product manager developer, grounding common ground, Example Mapping, breadboarding, bounded context, seguridad psicológica equipo de desarrollo'
 locale: es
 translationOf: '260723'
-sourceHash: af4f1610b5b9fa729514bce6e07341af24e221cfad7fdf955eee8a8801240b0a
+sourceHash: 12252cb1c69e3698a15c852ae30fe89c4fe446dadf23f8d6e73c8178e8d5c00a
 ---
 
 En este artículo quiero hablar de la comunicación con otras disciplinas.
@@ -21,7 +21,7 @@ Hace poco leí [Las actividades diarias de un líder de ingeniería](https://sof
 
 Aunque quiero asumir un rol de liderazgo algún día, lo que pensé al leer ese pasaje fue algo distinto. **Si lo primero que aborda un líder es recopilar información, el equivalente para quien está en la ejecución es entender los requisitos.** La forma en que manejo hoy los requisitos será la forma en que maneje mañana la información de una organización.
 
-Hablo de qué estaba haciendo mal al comunicarme con otras disciplinas desde mi puesto actual y de qué puedo usar como herramienta. Empezando por la conclusión: llegué a pensar que este problema no es solo una cuestión de actitud. Existe una formulación alternativa, llamada ubiquitous language, y vale la pena ver de qué se trata.
+En lugar de hablar de liderazgo, este texto trata de qué estaba haciendo mal al comunicarme con otras disciplinas desde mi puesto actual y de qué puedo usar como herramienta. Empezando por la conclusión: llegué a pensar que este problema no es solo una cuestión de actitud. Cuando no se ve solo como una cuestión de actitud, existe una herramienta llamada ubiquitous language, y vale la pena ver de qué se trata.
 
 ## La misma palabra, significados distintos
 
@@ -39,7 +39,7 @@ here the word 'meter' meant subtly different things to different parts of the or
 
 La misma palabra, «meter», significaba cosas sutilmente distintas según el departamento de la organización. Fowler añade que había visto repetirse esa confusión con palabras polisémicas como Customer o Product.
 
-La causa no estaba tanto en la capacidad de los asistentes a la reunión como en la existencia de contextos distintos dentro de la organización. Cuando una organización contiene contextos distintos, es natural que la misma palabra se bifurque. Si se deja pasar, acaba bifurcando también el código.
+**La causa no estaba en la destreza de los asistentes en las reuniones, sino en la existencia de contextos distintos dentro de la organización.** Cuando los contextos son distintos, es natural que la misma palabra se bifurque. Si se deja pasar, acaba bifurcando también el código.
 
 El trasfondo técnico de esta historia lo traté una vez en [Modelo de dominio](/260418). Allí hablaba de cómo expresar el modelo dentro del código. En este artículo trato la etapa anterior a que ese modelo exista, la de la conversación entre personas.
 
@@ -47,7 +47,7 @@ El trasfondo técnico de esta historia lo traté una vez en [Modelo de dominio](
 
 Pero ¿por qué se repite esto de forma estructural? Hay dos líneas de explicación.
 
-Una viene de la estructura organizativa. El artículo [How Do Committees Invent?](https://melconway.com/Home/Committees_Paper.html), que Mel Conway publicó en Datamation en 1968, sostiene que, en la medida en que una organización no puede cambiar con flexibilidad su estructura de comunicación, su imagen queda estampada en todos los diseños que produce. La única frase que suele citarse como ley de Conway es en realidad una formulación que el propio autor elaboró más tarde, y esta descripción del texto de 1968 me resulta más directa.
+Una viene de la estructura organizativa. El artículo [How Do Committees Invent?](https://melconway.com/Home/Committees_Paper.html), que Mel Conway publicó en Datamation en 1968, sostiene que, en la medida en que una organización no puede cambiar con flexibilidad su estructura de comunicación, esa organización estampa su propia imagen en todos los diseños que produce. La única frase que suele citarse como ley de Conway es en realidad una formulación que el propio autor elaboró más tarde, y esta descripción del texto de 1968 me resulta más directa.
 
 Lo que leí en clave práctica en esa frase es la expresión «estampa». Significa que la bifurcación de los términos no termina en la conversación, sino que **permanece en los artefactos**. El «meter» anterior es exactamente eso. Si cada uno construye manteniendo un entendimiento distinto del alcance de «meter», esa diferencia no queda en el acta de la reunión, sino en los nombres de las tablas, en los campos de la respuesta de la API y en los textos de la pantalla. Y a partir de ahí, el coste de arreglarlo no admite comparación con el de mantener una conversación más.
 
@@ -75,9 +75,9 @@ Los expertos de dominio objetan a los términos y estructuras torpes o insuficie
 
 Al leer esa frase corregí mi comprensión de mi propio papel. Hasta entonces me consideraba un receptor en las reuniones de requisitos. Pensaba que mi trabajo era recibir lo decidido en producto e implementarlo. Pero la parte que Evans asigna al developer no era la recepción. **Es detectar la ambigüedad y devolverla.** A diferencia de la cooperación pasiva, es vigilancia activa.
 
-(Por cierto, Fowler tradujo esta frase en su artículo como «Domain experts **should** object ... developers **should** watch». El libro original no lleva verbo modal. Es una diferencia menor, pero el original se lee de forma más categórica. Así funciona este patrón.)
+(Por cierto, Fowler tradujo esta frase en su artículo como «Domain experts **should** object ... developers **should** watch». El libro original no lleva verbo modal. Es una diferencia menor, pero el original se lee de forma más categórica. En lugar de una recomendación de que conviene hacerlo así, tiene el tono de ser la definición de este patrón.)
 
-Evans también responde a cómo detectar la ambigüedad. Usar los términos repetidamente en la conversación es lo que revela las diferencias de interpretación. Yo leí esa frase así. La ambigüedad no se revela por mucho que se lea un documento con atención. Por muy cuidadosamente que se lea una especificación, no aflora el hecho de que «meter» tiene varios significados. Esa palabra tiene que usarse repetidamente contra casos concretos para que se bifurque. El momento en que surge una pregunta como «¿Qué entienden los demás por meter?» es justamente ese punto.
+Evans también responde a cómo detectar la ambigüedad. Usar los términos repetidamente en la conversación es lo que revela las diferencias de interpretación. Yo leí esa frase así. La ambigüedad no se revela por mucho que se lea un documento con atención. Por muy cuidadosamente que se lea una especificación, no sale a la luz el hecho de que «meter» tiene varios significados. Esa palabra tiene que usarse repetidamente contra casos concretos para que se bifurque. El momento en que surge una pregunta como «¿Qué entienden los demás por meter?» es justamente ese punto.
 
 ## El principio del mínimo esfuerzo colaborativo
 
@@ -103,7 +103,7 @@ Este artículo se escribió en 1991 y los medios que compararon los autores son 
 
 Aplicado así, se explica por qué yo no preguntaba una y otra vez. En un entorno donde recibes la especificación como texto y la confirmas como texto, enviar un mensaje de confirmación en cada punto ambiguo es caro. No sabes cuándo llegará la respuesta y temes que preguntar varias veces te haga parecer alguien que no ha entendido. Así que uno se desliza de forma natural hacia su propia interpretación.
 
-Conviene distinguir aquí dos fuerzas. Una es que el medio encarece la confirmación, y eso es lo que dicen Clark y Brennan. La otra es el temor a parecer incompetente por preguntar varias veces, y eso tiene que ver con la seguridad psicológica de la que hablaremos después. Lo que predice el principio del mínimo esfuerzo colaborativo es **elegir la forma más barata de confirmar, y abandonar la confirmación equivale a que el grounding haya fracasado.** Y el hecho de que esa interpretación fuera errónea aflora cuando la implementación ya está terminada.
+Conviene distinguir aquí dos fuerzas. Una es que el medio encarece la confirmación, y eso es lo que dicen Clark y Brennan. La otra es el temor a parecer incompetente por preguntar varias veces, y eso queda fuera de lo que predice su principio y pertenece más bien a la seguridad psicológica de la que hablaremos después. Lo que predice el principio del mínimo esfuerzo colaborativo es que **se elige la forma más barata de confirmar**. Abandonar la confirmación y pasar a la suposición, a diferencia de cómo opera el principio, es un fracaso del grounding. Y el hecho de que esa interpretación fuera errónea aflora cuando la implementación ya está terminada.
 
 ## Alcanzar un nivel suficiente
 
@@ -145,13 +145,13 @@ Veamos [Example Mapping](https://cucumber.io/blog/bdd/example-mapping-introducti
 
 Example Mapping divide la discusión en tarjetas de cuatro colores. La amarilla es la historia que se está tratando, la azul es la regla o criterio de aceptación, la verde es el ejemplo concreto que ilustra esa regla y la roja es la pregunta cuya respuesta nadie conoce.
 
-De todas ellas, **creo que la tarjeta roja es la clave.** Las otras tres son técnicas de ordenación, pero la roja es el dispositivo que convierte el «no lo sé» en un producto oficial de la reunión. Decir que no se sabe no se queda en un acto que retrasa la reunión, sino que se convierte en un resultado que la reunión debe producir.
+De todas ellas, **creo que la tarjeta roja es la clave.** Las otras tres son técnicas de ordenación, pero la roja es el dispositivo que convierte el «no lo sé» en un producto oficial de la reunión. Decir que no se sabe, en lugar de ser un acto que retrasa la reunión, se convierte en un resultado que la reunión debe producir.
 
 Por qué esto importa se ve claro al imaginar el caso contrario. En una reunión sin tarjetas rojas, encontrarse con un punto ambiguo deja dos opciones: enrocarse ahora y alargar la reunión, o seguir adelante e interpretarlo uno mismo más tarde. Como vimos en la sección anterior, la gente suele elegir lo segundo. Pero con una tarjeta a mano aparece una tercera opción. **Anotarlo y seguir, sin que desaparezca.** La reunión continúa y la ambigüedad permanece en la lista.
 
 La tarjeta verde cumple un papel parecido. Cuando solo se escribe la regla, todo el mundo asiente; en el momento en que alguien intenta escribir un ejemplo concreto que la ilustre, las interpretaciones se separan. Es la frase de Evans, «usar los términos repetidamente en la conversación revela las diferencias», trasladada al formato de reunión. Si pides que se añadan tres ejemplos por cada regla, en uno de ellos suele salir un «espera, ¿y en este caso qué pasa?». (Por mi experiencia, la reunión en la que esa pregunta no aparece parece ser una reunión en la que todos entendieron, pero en realidad cada uno entendió algo distinto)
 
-Con una idea parecida existe también Three Amigos, usado desde hace tiempo en el ámbito de BDD. Las tres perspectivas, negocio, desarrollo y pruebas, plantean cada una una pregunta distinta. El [glosario de Agile Alliance](https://www.agilealliance.org/glossary/three-amigos/) resume esas preguntas en tres: qué problema se intenta resolver, cómo se construirá una solución para resolverlo y qué pasa con esto, qué podría llegar a ocurrir. No hace falta explicar qué sucede en una reunión donde no aparece la tercera pregunta.
+Con una idea parecida existe también Three Amigos, usado desde hace tiempo en el ámbito de BDD. Las tres perspectivas, negocio, desarrollo y pruebas, plantean cada una una pregunta distinta. El [glosario de Agile Alliance](https://www.agilealliance.org/glossary/three-amigos/) resume esas preguntas en tres: qué problema se intenta resolver, cómo se construirá una solución para resolverlo y, planteando qué pasa con esto, qué podría llegar a ocurrir. No hace falta explicar qué sucede en una reunión donde no aparece la tercera pregunta.
 
 ## Crear un proceso para comprobar lo que no se sabe
 
@@ -173,7 +173,7 @@ For the most part, this belief tends to be tacit—taken for granted and not giv
 
 Esta creencia suele ser **tácita** y ni los individuos ni el equipo le prestan atención directa.
 
-A partir de aquí es una conjetura mía. Lo que dice el artículo llega hasta que la creencia es tácita; la receta de que por tanto basta con crear un formulario no está en el artículo. Lo tácito no cambia por declaración: lo he visto varias veces. Decir «somos un equipo donde se puede preguntar lo que no se sabe» no cambia gran cosa por sí solo. Por eso creo que la tarjeta roja de la sección anterior importa. **Si conviertes el «no lo sé» en una casilla dentro de un formulario, pasa a ser una cuestión de seguir un procedimiento en vez de necesitar valentía.**
+A partir de aquí es una conjetura mía. Lo que dice el artículo llega hasta que la creencia es tácita; la receta de que por tanto basta con crear un formulario no está en el artículo. Sin embargo, lo tácito no cambia por declaración: lo he visto varias veces. Decir «somos un equipo donde se puede preguntar lo que no se sabe» no cambia gran cosa por sí solo. Por eso creo que la tarjeta roja de la sección anterior importa. **Si conviertes el «no lo sé» en una casilla dentro de un formulario, rellenar esa casilla pasa a ser un procedimiento en lugar de valentía.**
 
 Cabe una objeción, por supuesto. En un equipo que no es seguro, la casilla de la tarjeta roja se quedará simplemente vacía. Es una crítica justa y no pretendo afirmar que esta herramienta genere seguridad. Si la casilla existe, al menos **el hecho de que esté vacía se vuelve visible.** Aparece un lugar donde preguntar si está vacía porque nadie tiene dudas o porque cuesta decirlas.
 
@@ -203,9 +203,9 @@ organizational culture that is high-trust and emphasizes information flow is pre
 :::
 ::::
 
-Una cultura organizativa de alta confianza que **enfatiza el flujo de información** predice el rendimiento en la entrega de software. La comunicación fluida no se limita a crear un buen ambiente, sino que es una variable que se mueve junto al rendimiento.
+Una cultura organizativa de alta confianza que **enfatiza el flujo de información** predice el rendimiento en la entrega de software. Que haya buena comunicación no significa solo que el equipo tenga un buen ambiente, sino que es una variable que se mueve junto al rendimiento.
 
-Pero «predecir» no debe leerse aquí como causalidad. Los datos de DORA proceden de una encuesta en la que los mismos participantes respondieron sobre cultura y sobre rendimiento, y es una correlación a nivel organizativo. Queda la posibilidad de que quien está satisfecho con su organización puntuara alto en ambas cosas, y de una relación a nivel organizativo no se deriva de inmediato una receta sobre cómo debe comportarse un individuo. Así que hasta aquí llega lo que permite decir este material: el flujo de información es un tema cuya relación con el rendimiento se puede estudiar.
+Pero «predecir» no debe leerse aquí como causalidad. Los datos de DORA proceden de una encuesta en la que los mismos participantes respondieron sobre cultura y sobre rendimiento, y es una correlación a nivel organizativo. Queda la posibilidad de que quien está satisfecho con su organización puntuara alto en ambas cosas, y de una relación a nivel organizativo no se deriva de inmediato una receta sobre cómo debe comportarse un individuo. Así que hasta aquí llega lo que permite decir este material: el flujo de información es también una cuestión de preferencia, pero está asimismo en un lugar que se mueve junto al rendimiento.
 
 El mismo documento recoge también las tres propiedades de la buena información según Westrum: responde a la pregunta que necesita quien la recibe, llega en el momento oportuno y se presenta de forma que quien la recibe pueda usarla con eficacia. Merece la pena fijarse en que las tres sitúan el criterio en **quien recibe**. El criterio de un buen flujo de información no es cuánto se comparte, sino si quien la recibe puede usarla.
 
@@ -231,7 +231,7 @@ El fallo de comunicación con otras disciplinas no suele ser solo una cuestión 
 
 Pero devolverla exige esfuerzo, y la gente intenta minimizarlo. Así que, en lugar de apoyarme en la voluntad, decidí usar tres cosas: confirmar primero en qué modo está esta conversación, dibujar el flujo en la resolución intermedia entre la prosa y la maqueta y devolverlo, y crear dentro del formato de reunión una casilla para anotar lo que no se sabe. Ninguna de las tres exige corregir la actitud; las tres facilitan hacerlo.
 
-Todavía no soy líder y nada de lo que he escrito aquí lo he verificado desde ese puesto. Con otro tamaño de equipo u otra cultura organizativa habrá cosas que no funcionen. Hay algo de lo que creo poder estar seguro ahora. La manera en que maneje la información más adelante no será algo que aprenda de nuevo, sino el hábito con el que hoy manejo los requisitos, crecido a otra escala. Por eso últimamente intento avergonzarme menos que antes de preguntar en una reunión «¿qué quieres decir con eso?».
+Todavía no soy líder y nada de lo que he escrito aquí lo he verificado desde ese puesto. Con otro tamaño de equipo u otra cultura organizativa habrá cosas que no funcionen. Aun así, hay algo de lo que creo poder estar seguro ahora. La manera en que maneje la información más adelante no será una capacidad que adquiera de nuevo, sino el hábito con el que hoy manejo los requisitos, crecido a otra escala. Por eso últimamente intento avergonzarme menos que antes de preguntar en una reunión «¿qué quieres decir con eso?».
 
 Si a quien lee esto le viene a la cabeza alguna palabra de una reunión reciente ante la que asintió sin estar realmente seguro, le recomiendo usar esa palabra una vez más la próxima vez. Al usarla repetidamente, aflora.
 

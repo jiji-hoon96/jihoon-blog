@@ -8,7 +8,7 @@ description: "What to do when a product manager and a developer use the same wor
 keywords: 'ubiquitous language, shared domain language, cross-functional communication, gathering requirements, product manager developer communication, grounding common ground, Example Mapping, breadboarding, bounded context, psychological safety engineering team'
 locale: en
 translationOf: '260723'
-sourceHash: af4f1610b5b9fa729514bce6e07341af24e221cfad7fdf955eee8a8801240b0a
+sourceHash: 12252cb1c69e3698a15c852ae30fe89c4fe446dadf23f8d6e73c8178e8d5c00a
 ---
 
 In this post, I want to talk about communicating across functions.
@@ -21,7 +21,7 @@ I recently read [Engineering Leaders' Day-to-Day Activities](https://softwarelea
 
 I do hope to take on a leadership role someday, but what struck me after reading that passage was slightly different. **If the first thing a leader handles is gathering information, then the individual contributor's counterpart to that is understanding requirements.** The way I handle requirements now will become the way I handle an organization's information later.
 
-This is about what I have been doing wrong as an individual contributor communicating across functions, and what I can use as tools. To state the conclusion first, I came to believe this is not purely a matter of attitude. There is an alternative framing available, called ubiquitous language, and it is worth looking at what that means.
+Rather than being about leadership, this is about what I have been doing wrong as an individual contributor communicating across functions, and what I can use as tools. To state the conclusion first, I came to believe this is not purely a matter of attitude. When we do not treat it purely as a matter of attitude, there is a tool available called ubiquitous language, and it is worth looking at what that means.
 
 ## The same word, different meanings
 
@@ -39,7 +39,7 @@ here the word 'meter' meant subtly different things to different parts of the or
 
 The same word, “meter,” meant subtly different things in different parts of the organization. Fowler adds that he has seen this confusion recur around polysemous words like Customer and Product.
 
-The cause lay more in the presence of different contexts within the organization than in the meeting participants' abilities. When an organization contains different contexts, the same word naturally diverges. If that is left alone, the code eventually diverges too.
+**The cause lay in the presence of different contexts within the organization rather than in the meeting participants' meeting skills.** When contexts differ, the same word naturally diverges. If that is left alone, the code eventually diverges too.
 
 I covered the technical background of this story once in [Domain Model](/260418). That post was about how to express a model inside the code. This post is about the stage before that model exists, when people are still talking to each other.
 
@@ -47,7 +47,7 @@ I covered the technical background of this story once in [Domain Model](/260418)
 
 But why does this repeat structurally? There are two lines of explanation.
 
-One comes from organizational structure. In [How Do Committees Invent?](https://melconway.com/Home/Committees_Paper.html), the paper Mel Conway published in Datamation in 1968, he says that to the degree an organization is unable to flexibly change its communication structure, the organization's image is stamped onto every design. The single sentence usually quoted as Conway's Law is in fact a formulation the author himself produced later, and I find this 1968 passage more direct.
+One comes from organizational structure. In [How Do Committees Invent?](https://melconway.com/Home/Committees_Paper.html), the paper Mel Conway published in Datamation in 1968, he says that to the degree an organization is unable to flexibly change its communication structure, the organization stamps its own image onto every design it produces. The single sentence usually quoted as Conway's Law is in fact a formulation the author himself produced later, and I find this 1968 passage more direct.
 
 What I took from that sentence in practical terms is the word “stamps.” It means that diverging terminology does not end with the conversation but **remains in the artifacts**. The “meter” above is exactly that. If people build separately while holding different understandings of the scope of “meter,” that difference persists not in the meeting notes but in table names, API response fields, and the wording on screens. And from that point on, the cost of fixing it is nowhere near the cost of having one more conversation.
 
@@ -75,9 +75,9 @@ Domain experts object to terms and structures that are awkward or inadequate for
 
 Reading that sentence, I corrected my understanding of my own role. Until then I had regarded myself as a receiver in requirements meetings. I thought my job was to take what the product side decided and implement it. But the developer's share as Evans defines it was not reception. **It is finding ambiguity and handing it back.** Unlike passive cooperation, it is active watching.
 
-(For reference, Fowler rendered this sentence in his own article as “Domain experts **should** object ... developers **should** watch.” The original book has no modal verb. It is a small difference, but the original reads as more definitive. That is the definition of this pattern.)
+(For reference, Fowler rendered this sentence in his own article as “Domain experts **should** object ... developers **should** watch.” The original book has no modal verb. It is a small difference, but the original reads as more definitive. Rather than a recommendation that it is good to do so, the tone is that this is the definition of the pattern.)
 
-Evans also answers how to find ambiguity. Using the terms repeatedly in conversation is what exposes differences in how they are interpreted. This is how I read that sentence: ambiguity does not surface by reading documents closely. No matter how carefully you read a spec, the fact that “meter” means several different things will not surface. That word has to be used repeatedly against concrete cases before it splits apart. The moment someone asks, “What does everyone else understand meter to mean?” is that point.
+Evans also answers how to find ambiguity. Using the terms repeatedly in conversation is what exposes differences in how they are interpreted. This is how I read that sentence: ambiguity does not surface by reading documents closely. No matter how carefully you read a spec, the fact that “meter” means several different things will not come to light. That word has to be used repeatedly against concrete cases before it splits apart. The moment someone asks, “What does everyone else understand meter to mean?” is that point.
 
 ## The principle of least collaborative effort
 
@@ -103,7 +103,7 @@ This paper was written in 1991, and the media the authors compared were things l
 
 Applying it that way explains why I did not ask repeatedly. In an environment where you receive a spec as text and confirm it as text, sending a confirmation message at every ambiguous point is expensive. You do not know when the answer will come, and you worry that asking several times will make you look like you did not understand. So people naturally slide into their own interpretation.
 
-It is worth separating two forces here. One is that the medium raises the cost of confirmation, and that is Clark and Brennan's point. The other is the worry that asking several times will make you look incompetent, and that is related to the psychological safety discussed later. The principle of least collaborative effort predicts **choosing a cheaper way to confirm; giving up on confirmation altogether is a state in which grounding has failed.** And the fact that the interpretation was wrong surfaces only after implementation is done.
+It is worth separating two forces here. One is that the medium raises the cost of confirmation, and that is Clark and Brennan's point. The other is the worry that asking several times will make you look incompetent, and that is outside what their principle predicts and belongs to the psychological safety discussed later. The principle of least collaborative effort predicts **choosing a cheaper way to confirm**. Giving up on confirmation and moving to guessing is, unlike the operation of the principle, a failure of grounding. And the fact that the interpretation was wrong surfaces only after implementation is done.
 
 ## Reaching a sufficient level
 
@@ -145,13 +145,13 @@ Consider [Example Mapping](https://cucumber.io/blog/bdd/example-mapping-introduc
 
 Example Mapping splits the discussion across four colors of cards. Yellow is the story under discussion, blue is a rule or acceptance criterion, green is a concrete example that illustrates that rule, and red is a question nobody knows the answer to.
 
-Of these, **I think the red card is the core.** The other three are organizing techniques, but the red card is a device that turns “I don't know” into an official output of the meeting. Saying that you do not know does not end as an act that delays the meeting; it becomes a result the meeting is supposed to produce.
+Of these, **I think the red card is the core.** The other three are organizing techniques, but the red card is a device that turns “I don't know” into an official output of the meeting. Saying that you do not know, rather than being an act that delays the meeting, becomes a result the meeting is supposed to produce.
 
 Why that matters becomes clear if you imagine the opposite. In a meeting without red cards, running into an ambiguity leaves two options: dig in now and stretch the meeting out, or move on and interpret it alone later. As we saw in the previous section, people generally choose the latter. But with one card available, a third option appears. **You write it down and move on, without letting it disappear.** The meeting keeps moving, and the ambiguity remains on the list.
 
 Green cards play a similar role. When only the rule is written, everyone agrees; the moment someone tries to write a concrete example illustrating that rule, interpretations diverge. It is a way of translating Evans's “using the terms repeatedly in conversation exposes differences” into a meeting format. If you ask people to attach three examples to a single rule, one of them will usually produce a “wait, what happens in this case?” (In my experience, a meeting where that question does not come up may look like everyone understood, but in reality everyone understood differently.)
 
-A similar idea long used in BDD circles is the Three Amigos. The three perspectives of business, development, and testing each ask a different question. The [Agile Alliance glossary](https://www.agilealliance.org/glossary/three-amigos/) organizes those questions into three: what problem are we trying to solve, how might we build a solution to solve it, and what about this, what could possibly happen. What becomes of a meeting where the third question never gets asked probably does not need spelling out.
+A similar idea long used in BDD circles is the Three Amigos. The three perspectives of business, development, and testing each ask a different question. The [Agile Alliance glossary](https://www.agilealliance.org/glossary/three-amigos/) organizes those questions into three: what problem are we trying to solve, how might we build a solution to solve it, and asking what about this, what could happen. What becomes of a meeting where the third question never gets asked probably does not need spelling out.
 
 ## Create a process for checking what you do not know
 
@@ -173,7 +173,7 @@ For the most part, this belief tends to be tacit—taken for granted and not giv
 
 This belief is usually **tacit**, and neither individuals nor the team give it direct attention.
 
-From here on this is my own conjecture. What the paper says stops at the belief being tacit; the prescription that you should therefore create a form is not in the paper. I have seen several times that something tacit does not become explicit through declaration. Saying “our team is a team where it is fine to ask about what you do not know” does not change much on its own. That is why I think the red card from the previous section matters. **If you turn “I don't know” into a field inside a form, it becomes following a procedure rather than doing something that requires courage.**
+From here on this is my own conjecture. What the paper says stops at the belief being tacit; the prescription that you should therefore create a form is not in the paper. However, I have seen several times that something tacit does not become explicit through declaration. Saying “our team is a team where it is fine to ask about what you do not know” does not change much on its own. That is why I think the red card from the previous section matters. **If you turn “I don't know” into a field inside a form, filling in that field becomes a procedure rather than courage.**
 
 There is an obvious counterargument, of course. On an unsafe team, the red card field will simply stay empty. That is a fair point, and I have no intention of claiming this tool creates safety. If the field exists, at least **the fact that it is empty becomes visible.** It creates an opening to ask whether it is empty because nobody has an open question, or empty because it is hard to speak up.
 
@@ -203,9 +203,9 @@ organizational culture that is high-trust and emphasizes information flow is pre
 :::
 ::::
 
-An organizational culture that is high-trust and **emphasizes information flow** is predictive of software delivery performance. The point is that communicating well goes beyond creating a pleasant atmosphere and is a variable that moves together with performance.
+An organizational culture that is high-trust and **emphasizes information flow** is predictive of software delivery performance. The point is that communicating well does not stop at meaning the team atmosphere is good, but is a variable that moves together with performance.
 
-However, “predictive” must not be read as causal here. DORA's data comes from a survey in which the same respondents answered about both culture and performance, and it is a correlation at the organizational level. It remains possible that people satisfied with their organization rated both generously, and a prescription for how an individual should behave does not follow directly from a relationship at the organizational level. So this is as far as the material takes us: information flow is a topic we can consider in connection with performance.
+However, “predictive” must not be read as causal here. DORA's data comes from a survey in which the same respondents answered about both culture and performance, and it is a correlation at the organizational level. It remains possible that people satisfied with their organization rated both generously, and a prescription for how an individual should behave does not follow directly from a relationship at the organizational level. So this is as far as the material takes us: information flow is a matter of preference, but it also sits in a place that moves together with performance.
 
 The same document also lays out Westrum's three properties of good information: it answers the question the receiver needs answered, it is timely, and it is presented in a way the receiver can use effectively. It is worth noticing that all three set the standard at the **receiver**. The standard for good information flow is whether the receiver can use the information, rather than how much is shared.
 
@@ -231,7 +231,7 @@ Cross-functional communication failures are usually not purely a matter of attit
 
 But handing it back takes effort, and people try to minimize that effort. So instead of relying on willpower, I decided to use three things: checking first which mode this conversation is in, drawing the flow at the resolution between prose and mockup and handing it back, and building a field for what you do not know into the meeting format. None of the three demand that you fix your attitude; they make the right thing easier to do.
 
-I am not a leader yet, and I have not verified any of this from that seat. Some of it will not hold at a different team size or in a different organizational culture. One thing I feel confident about now is that the way I handle information later will be the way I handle requirements today, grown to scale, rather than something new I learn. So these days I try to be less embarrassed than I used to be about asking “what do you mean by that?” in meetings.
+I am not a leader yet, and I have not verified any of this from that seat. Some of it will not hold at a different team size or in a different organizational culture. Even so, one thing I feel confident about now is that the way I handle information later will be the way I handle requirements today, grown to scale, rather than a new skill I pick up. So these days I try to be less embarrassed than I used to be about asking “what do you mean by that?” in meetings.
 
 If you can think of one word from a recent meeting that you nodded along to without actually being sure about, I would suggest using that word one more time next time. Use it repeatedly and it will surface.
 
