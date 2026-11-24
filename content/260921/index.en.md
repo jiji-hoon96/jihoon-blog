@@ -8,14 +8,14 @@ description: "Swapping a global isOpen flag for one await: what I gained, what I
 keywords: 'overlay-kit, React modal state management, declarative interface, openAsync, useOverlay, promise based modal, React overlay, nice-modal-react'
 locale: en
 translationOf: '260921'
-sourceHash: c7c303502866bf66297497a66a3cfb063d660b9f41835e48a20b50fa8c87b404
+sourceHash: 1d61004f355efa14a744b50f6a2c0aa050d7034daa2212a8f2be420180c1b831
 ---
 
 In this post, I want to talk about interfaces that treat overlays declaratively.
 
 I like declarative code. When it comes to opening an overlay, closing it, and doing asynchronous work inside it, I think the overlay itself should manage that sequence. When the calling side holds `isOpen` and flips it on and off, the code that handles the state ends up in a different place from the component that renders it.
 
-The modals on the screens I owned at work were the opposite. Whether a modal was open lived in a global store, the call site opened it, and the call site closed it. The call site was also writing the code that closed the modal and the callbacks that received its result. So I spent a long time working out how to move this in a declarative direction, and rewrote it myself.
+The modals on the screens I owned at work were the exact opposite. Whether a modal was open lived in a global store, the call site opened it, and the call site closed it. The call site was also writing the code that closed the modal and the callbacks that received its result. So I spent a long time working out how to move this in a declarative direction, and rewrote it myself.
 
 While doing that work I looked at [overlay-kit](https://github.com/toss/overlay-kit). It was close to the interface I was aiming for. This post is a record of overlay-kit's declarative interface and of how I designed our internal modal system.
 
@@ -48,7 +48,7 @@ Three things about this code bothered me.
 
 **Second, the result comes back through callbacks.** Whether the note was saved or the user simply closed the dialog arrives through two separate branches, `onSubmit` and `onClose`. Anything you want to do after opening the modal goes inside a callback. If you have to open two modals in a row, you get a callback inside a callback.
 
-**Third, closing is the call site's responsibility.** The call site is the one that calls `closePopup(PopupType.ADD_NOTE)`. Instead of the modal closing itself, the side that opened it remembers its type and closes it. That is why the same constant appears three times in one function.
+**Third, closing is the call site's responsibility.** The call site is the one that calls `closePopup(PopupType.ADD_NOTE)`. Rather than the modal closing itself, the side that opened it remembers its type and closes it. That is why the same constant appears three times in one function.
 
 What the three have in common is that opening a single modal requires the call site to write three kinds of code: the code that opens it, the callback that receives the result, and the code that closes it.
 
@@ -162,7 +162,7 @@ One part here was not what I expected.
 
 **The state does not live outside React.** Because the API opens overlays through a module function, I assumed the store would sit at module level too, but it is actually a `useReducer` inside the provider. The only thing outside React is the event bus, and that holds no state. Overlays render as siblings next to the provider's `children`. It does not use `createPortal`, and it does not import `react-dom`.
 
-From the call site it is one line, `overlay.open()`, but inside it is a fixed procedure: emit an event, feed `ADD` into the reducer, wait a frame, and feed `OPEN` in again.
+One more thing stands out. From the call site it is one line, `overlay.open()`, but inside it is a fixed procedure: emit an event, feed `ADD` into the reducer, wait a frame, and feed `OPEN` in again. A declarative interface has not eliminated imperative code; it has moved it inside the boundary.
 
 ### The opening side and the closing side
 
@@ -187,7 +187,7 @@ The last row explains why the closing side is left to the user. On the opening s
 
 The reducer is what makes the closing side work. `CLOSE` only flips, inside `overlayData`, the `isOpen` value, and leaves `overlayOrderList` alone. The provider renders by walking that list, so the component stays alive as long as it remains in the list. It only unmounts once `REMOVE` takes it out.
 
-**Meanwhile, rAF is not always necessary.** react-transition-group [does not run the enter transition on first mount by default](https://reactcommunity.org/react-transition-group/transition). It skips it even when `in` is already `true`, and you have to turn on `appear`. overlay-kit's rAF changes `isOpen` from `false` to `true` after mount, which covers that case.
+**However, rAF is not always necessary.** react-transition-group [does not run the enter transition on first mount by default](https://reactcommunity.org/react-transition-group/transition). It skips it even when `in` is already `true`, and you have to turn on `appear`. overlay-kit's rAF changes `isOpen` from `false` to `true` after mount, which covers that case.
 
 ### Twenty lines wrapped in a Promise
 
@@ -215,9 +215,9 @@ const openAsync = async <T>(controller: OverlayAsyncControllerComponent<T>, opti
 
 All it does is swap the `close` that goes to the controller. The original `close` takes no arguments; this one takes an argument, resolves the Promise with it, and then calls the original `close`. This is also why the result type is decided at the call site. `T` is both the argument type of `close` and the type of the Promise.
 
-This structure has a problem: the Promise only resolves when `close` is called. So if you remove an overlay with `unmount` alone, the Promise stays pending forever. It is filed as [issue #169](https://github.com/toss/overlay-kit/issues/169), and I think it needs fixing, and the issue is still open.
+However, this structure has one gap. Resolution only happens when `close` is called. So if you remove an overlay with `unmount` alone, the Promise stays pending forever. It is filed as [issue #169](https://github.com/toss/overlay-kit/issues/169), and I think it needs fixing, and the issue is still open.
 
-The Promise resolves before the closing animation ends, when closing begins. That is fine for a flow that takes a confirmation and then calls an API, but in a flow that takes a confirmation and then opens the next modal, the second modal rises while the first is still disappearing.
+The fact that resolution happens at `close` also has another implication. It is not when the closing animation ends, but when closing begins. That is fine for a flow that takes a confirmation and then calls an API, but in a flow that takes a confirmation and then opens the next modal, the second modal rises while the first is still disappearing.
 
 ### Where the design came full circle
 
@@ -229,7 +229,7 @@ The reason for reverting is written in [issue #148](https://github.com/toss/over
 
 When fetching data inside an overlay caused it to suspend, React warned that a component had suspended while responding to synchronous input. The original goal of moving to an external store was to let overlay state be read without a hook, and the PR at the time says outright that the goal was not achieved the intended way. In the end the goal was solved with a hook, and only the storage mechanism returned to where it started.
 
-I took a criterion from this record. Putting state outside React frees up where you can call things, at the cost of opening room to fall out of step with React's scheduling. overlay-kit put only the call site outside and kept the state inside.
+What I took from this record is not a conclusion, but a criterion. Putting state outside React frees up where you can call things, at the cost of opening room to fall out of step with React's scheduling. overlay-kit put only the call site outside and kept the state inside.
 
 ## Reopening with the same id
 
@@ -292,7 +292,7 @@ It says that reopening after closing brings the overlay to the front. But becaus
 
 ### Behavior that contradicts the comment
 
-I did not confirm whether reopening while preserving the DOM order shows an immediate visible problem on screen. The test only looked at DOM order. Most dialog libraries use their own z-index or portals, so the order visible on screen can differ from DOM order.
+I did not confirm whether reopening while preserving the DOM order shows an immediate visible problem on screen. The test only looked at DOM order, and since most dialog libraries use their own z-index or portals, DOM order is not necessarily visual order.
 
 My version exposes the same situation as an option. When the same kind of modal is opened again, the call site chooses whether to keep the existing one or replace it with new props. Choosing replacement settles the existing Promise as `replaced`. This is one of the reasons I split the result type into five branches earlier.
 
@@ -300,7 +300,7 @@ My version exposes the same situation as an option. When the same kind of modal 
 
 ## The price of JSX at the call site
 
-I do not think writing JSX at the call site is always better than using a string key. There are three prices to pay.
+So is writing JSX at the call site always better than using a string key? I do not think so. There are three prices to pay.
 
 **Code splitting drops out of the default.** Writing JSX at the call site means the call site imports that component. If the modal is a heavy editor screen and only a few users press that button, its weight goes into the bundle of the list screen.
 
@@ -332,7 +332,7 @@ Let us start from the definition. [The React documentation](https://react.dev/le
 
 The analogy in the same document is sharper. Imperative is calling out every turn to the person driving the car; declarative is getting into a taxi and naming your destination.
 
-**A declarative interface does not remove the imperative procedure. It moves it to the other side of a boundary and gives that boundary a name.** The inside of overlay-kit we saw earlier is that. The call site is one line, while inside, a procedure emits an event and dispatches twice.
+**A declarative interface does not remove the imperative procedure. It moves it to the other side of a boundary and gives that boundary a name.** The inside of overlay-kit we saw earlier is exactly that. The call site is one line, while inside, a procedure emits an event and dispatches twice.
 
 So let us look at where each project applies the word. overlay-kit's docs call the previous approach imperative. What they point to is code that holds the open flag with `useState` and flips it in an event handler. What they call declarative is the side that treats an overlay as an action rather than as state. The toss tech blog's [article on declarative code](https://toss.tech/article/frontend-declarative-code) defines the word more broadly: declarative code is code at a higher level of abstraction, and a hook that abstracts the act of showing an overlay is one example.
 
@@ -350,7 +350,7 @@ overlay-kit reached the same place and then went one step further: it also puts 
 
 **It was the difference between treating a modal as a function and treating it as data.** Writing JSX at the call site makes the controller a closure, and a closure's contents cannot be changed from outside once it is stored. That structure is where the ignored JSX on reopening with the same id comes from. Treating it with a string key makes the modal a value in a store that you can replace, update, and code split, but the call site only ever learns a name.
 
-I think the feeling that you like a library's interface is a fairly reliable signal. However, you should put into words what that feeling points to at least once. Without doing that, you cannot tell whether what you liked was the interface or the reputation of the people using the library. I would encourage readers to do that exercise once for a library they are using right now.
+I think the feeling that you like a library's interface is a fairly reliable signal. However, you should put into words what exactly that feeling points to at least once. Without doing that, you cannot tell whether what you liked was the interface or the reputation of the people using the library. I would encourage readers to do that exercise once for a library they are using right now.
 
 :::ref
 - [docs] [overlay-kit official documentation](https://overlay-kit.slash.page/)

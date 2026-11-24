@@ -8,7 +8,7 @@ description: '把用全局状态保存模态框开关的代码换成一行 await
 keywords: 'overlay-kit, React 模态框状态管理, 声明式接口, openAsync, useOverlay, Promise 模态框, React overlay, nice-modal-react'
 locale: zh-CN
 translationOf: '260921'
-sourceHash: c7c303502866bf66297497a66a3cfb063d660b9f41835e48a20b50fa8c87b404
+sourceHash: 1d61004f355efa14a744b50f6a2c0aa050d7034daa2212a8f2be420180c1b831
 ---
 
 这篇文章想聊聊以声明式方式处理 overlay 的接口。
@@ -162,7 +162,7 @@ useEffect(() => {
 
 **状态并不在 React 之外。** 因为是用模块函数打开的 API，笔者以为 store 也会在模块层级，实际上却是 Provider 内部的 `useReducer`。在 React 之外的只有事件总线，而它并不持有状态。overlay 被渲染为 Provider 的 `children` 旁边的兄弟节点。它不使用 `createPortal`，也不 import `react-dom`。
 
-从调用处看是 `overlay.open()` 一行，而其内部是一套顺序固定的流程：发出事件、把 `ADD` 送进 reducer、等一帧、再送入 `OPEN`。
+还有一点值得注意。从调用处看是 `overlay.open()` 一行，而其内部是一套顺序固定的流程：发出事件、把 `ADD` 送进 reducer、等一帧、再送入 `OPEN`。声明式的接口并不是消灭了命令式代码，而是把它挪到了边界内侧。
 
 ### 打开的一侧与关闭的一侧
 
@@ -187,7 +187,7 @@ useEffect(() => {
 
 关闭的一侧能够成立，依据在 reducer 里。`CLOSE` 只翻转 `overlayData` 中的 `isOpen`，不碰 `overlayOrderList`。Provider 遍历那个列表来渲染，因此只要还留在列表里，组件就活着。只有 `REMOVE` 把它从列表中移除，才会真正卸载。
 
-**另一方面，rAF 并非总是必要。** react-transition-group [默认不会在首次挂载时执行 enter 过渡](https://reactcommunity.org/react-transition-group/transition)。即使 `in` 已经是 `true` 也会跳过，必须开启 `appear`。overlay-kit 的 rAF 会在挂载之后把 `isOpen` 从 `false` 改为 `true`，正好覆盖了这种情况。
+**不过，rAF 并非总是必要。** react-transition-group [默认不会在首次挂载时执行 enter 过渡](https://reactcommunity.org/react-transition-group/transition)。即使 `in` 已经是 `true` 也会跳过，必须开启 `appear`。overlay-kit 的 rAF 会在挂载之后把 `isOpen` 从 `false` 改为 `true`，正好覆盖了这种情况。
 
 ### 用 Promise 包起来的二十行
 
@@ -215,9 +215,9 @@ const openAsync = async <T>(controller: OverlayAsyncControllerComponent<T>, opti
 
 它所做的全部事情，就是把传给 controller 的 `close` 换掉。原本的 `close` 不接收参数，这里则接收参数，用它 resolve Promise，然后再调用原来的 `close`。结果类型之所以在调用处确定，原因也在这里。`T` 既是 `close` 的参数类型，也是 Promise 的类型。
 
-这个结构的问题在于，resolve 只取决于是否调用了 `close`。因此如果只用 `unmount` 移除 overlay，Promise 就会永远停留在 pending。[issue #169](https://github.com/toss/overlay-kit/issues/169)记录了这一点。笔者认为需要解决，而该 issue 目前仍然是打开状态。
+不过这个结构有一个漏洞。resolve 只有在调用 `close` 时才会发生。因此如果只用 `unmount` 移除 overlay，Promise 就会永远停留在 pending。[issue #169](https://github.com/toss/overlay-kit/issues/169)记录了这一点。笔者认为需要解决，而该 issue 目前仍然是打开状态。
 
-resolve 发生在关闭动画结束之前，也就是关闭开始时。如果流程是拿到确认后调用 API 就没问题，但如果是拿到确认后打开下一个模态框，那么前一个还在消失的过程中，后一个就已经升起来了。
+resolve 的时机是 `close`，这一点还有另一层含义。它不是关闭动画结束的时机，而是开始关闭的时机。如果流程是拿到确认后调用 API 就没问题，但如果是拿到确认后打开下一个模态框，那么前一个还在消失的过程中，后一个就已经升起来了。
 
 ### 设计绕了一圈的地方
 
@@ -229,7 +229,7 @@ resolve 发生在关闭动画结束之前，也就是关闭开始时。如果流
 
 在 overlay 内部取数据导致 suspend 时，React 会警告说组件在响应同步输入的过程中 suspend 了。挪到外部 store 的本意是让人不用 hook 也能读到 overlay 的状态，而当时的 PR 正文里写明了这个目标并没有按预期达成。最终目标是靠 hook 解决的，只有存储方式回到了原处。
 
-笔者从这段记录里得到了一个标准。把状态放到 React 之外，调用位置会变自由，代价是留出了与 React 调度错位的余地。overlay-kit 只把调用位置放到了外面，状态留在了里面。
+笔者从这段记录里得到的不是结论，而是标准。把状态放到 React 之外，调用位置会变自由，代价是留出了与 React 调度错位的余地。overlay-kit 只把调用位置放到了外面，状态留在了里面。
 
 ## 用同一个 id 再次打开时
 
@@ -292,7 +292,7 @@ overlayOrderList: [...state.overlayOrderList.filter((item) => item !== action.ov
 
 ### 与注释不符的实际行为
 
-保持 DOM 顺序并再次打开后，是否会立刻在画面上出现问题，笔者并未确认。测试只检查了 DOM 顺序。大多数对话框库都使用自己的 z-index 或 portal，所以画面上看到的顺序可能与 DOM 顺序不同。
+保持 DOM 顺序并再次打开后，是否会立刻在画面上出现问题，笔者并未确认。测试只检查了 DOM 顺序，而且大多数对话框库都使用自己的 z-index 或 portal，所以 DOM 顺序并不等同于视觉顺序。
 
 笔者做的那一版把同样的情况作为选项暴露出来。再次打开同一种模态框时，由调用方选择是保留既有的还是用新的 props 替换。选择替换的话，既有的 Promise 会以 `replaced` 结束。前面把结果类型分成五种的原因之一就是这个。
 
@@ -300,7 +300,7 @@ overlayOrderList: [...state.overlayOrderList.filter((item) => item !== action.ov
 
 ## 在调用处写 JSX 的代价
 
-笔者不认为在调用处写 JSX 的方式始终比字符串 key 的方式好。要付出的代价有三个。
+那么在调用处写 JSX 的方式就始终比字符串 key 的方式好吗？笔者认为并非如此。要付出的代价有三个。
 
 **代码分割从默认值里掉了出去。** 调用处写 JSX，意味着调用处 import 了那个组件。如果模态框是一个沉重的编辑页面，而按下那个按钮的用户只是少数，那份重量就会进到列表页面的 bundle 里。
 

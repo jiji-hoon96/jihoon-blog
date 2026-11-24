@@ -8,7 +8,7 @@ description: 'Cambiar un flag global isOpen por un await: lo que gané, lo que p
 keywords: 'overlay-kit, gestión de estado de modales en React, interfaz declarativa, openAsync, useOverlay, modal con Promise, overlay React, nice-modal-react'
 locale: es
 translationOf: '260921'
-sourceHash: c7c303502866bf66297497a66a3cfb063d660b9f41835e48a20b50fa8c87b404
+sourceHash: 1d61004f355efa14a744b50f6a2c0aa050d7034daa2212a8f2be420180c1b831
 ---
 
 En este artículo quiero hablar de las interfaces que tratan los overlays de forma declarativa.
@@ -48,7 +48,7 @@ Tres cosas de este código me incomodaban.
 
 **Segunda: el resultado vuelve por callbacks.** Si se guardó la nota o si el usuario simplemente cerró el diálogo llega por dos ramas distintas, `onSubmit` y `onClose`. Todo lo que quieras hacer después de abrir el modal entra dentro de un callback. Y si tienes que abrir dos modales seguidos, aparece un callback dentro de otro callback.
 
-**Tercera: cerrar es responsabilidad de quien llama.** Es quien llama el que invoca `closePopup(PopupType.ADD_NOTE)`. En lugar de que el modal se cierre solo, el lado que abrió el modal recuerda de qué tipo de modal se trata y lo cierra. Por eso la misma constante aparece tres veces en una sola función.
+**Tercera: cerrar es responsabilidad de quien llama.** Es quien llama el que invoca `closePopup(PopupType.ADD_NOTE)`. El modal no se cierra a sí mismo, sino que el lado que abrió el modal recuerda de qué tipo de modal se trata y lo cierra. Por eso la misma constante aparece tres veces en una sola función.
 
 Lo que las tres tienen en común es que abrir un único modal obliga a quien llama a escribir tres clases de código: el que lo abre, el callback que recibe el resultado y el que lo cierra.
 
@@ -162,7 +162,7 @@ Aquí hubo una parte que no coincidió con lo que esperaba.
 
 **El estado no está fuera de React.** Como es una API que abre mediante una función de módulo, supuse que el store también estaría a nivel de módulo, pero en realidad es un `useReducer` dentro del provider. Lo único que está fuera de React es el bus de eventos, y ese no guarda estado. Los overlays se renderizan como hermanos junto a los `children` del provider. No usa `createPortal` ni importa `react-dom`.
 
-Desde el punto de llamada es una sola línea, `overlay.open()`, pero dentro hay un procedimiento con un orden fijo: emitir un evento, meter `ADD` en el reducer, esperar un frame y volver a meter `OPEN`.
+Hay algo más que llama la atención. Desde el punto de llamada es una sola línea, `overlay.open()`, pero dentro hay un procedimiento con un orden fijo: emitir un evento, meter `ADD` en el reducer, esperar un frame y volver a meter `OPEN`. Una interfaz declarativa no elimina el código imperativo, sino que lo mueve hacia el interior de la frontera.
 
 ### El lado que abre y el lado que cierra
 
@@ -187,7 +187,7 @@ La última fila explica por qué el lado que cierra queda en manos de quien usa 
 
 Lo que sostiene el lado que cierra está en el reducer. `CLOSE` solo invierte, dentro de `overlayData`, el valor `isOpen`, y no toca `overlayOrderList`. El provider renderiza recorriendo esa lista, así que el componente sigue vivo mientras permanezca en ella. Solo se desmonta cuando `REMOVE` lo saca.
 
-**Por otro lado, rAF no siempre es necesario.** react-transition-group [no ejecuta la transición de entrada en el primer montaje de forma predeterminada](https://reactcommunity.org/react-transition-group/transition). La salta incluso cuando `in` ya es `true`, y hay que activar `appear`. El rAF de overlay-kit cambia `isOpen` de `false` a `true` después del montaje, lo que cubre ese caso.
+**Sin embargo, rAF no siempre es necesario.** react-transition-group [no ejecuta la transición de entrada en el primer montaje de forma predeterminada](https://reactcommunity.org/react-transition-group/transition). La salta incluso cuando `in` ya es `true`, y hay que activar `appear`. El rAF de overlay-kit cambia `isOpen` de `false` a `true` después del montaje, lo que cubre ese caso.
 
 ### Veinte líneas envueltas en una Promise
 
@@ -215,9 +215,9 @@ const openAsync = async <T>(controller: OverlayAsyncControllerComponent<T>, opti
 
 Todo lo que hace es sustituir el `close` que llega al controlador. El `close` original no recibe argumentos; este recibe uno, resuelve la Promise con él y después llama al `close` original. Esta es también la razón por la que el tipo del resultado se decide en el punto de llamada. `T` es a la vez el tipo del argumento de `close` y el tipo de la Promise.
 
-Este diseño tiene un problema: la resolución solo está vinculada a la llamada a `close`. Por eso, si quitas un overlay únicamente con `unmount`, la Promise se queda pendiente para siempre. Está registrado en el [issue #169](https://github.com/toss/overlay-kit/issues/169) y creo que hay que arreglarlo, pero el issue sigue abierto.
+Sin embargo, este diseño tiene una laguna: la resolución solo ocurre cuando se llama a `close`. Por eso, si quitas un overlay únicamente con `unmount`, la Promise se queda pendiente para siempre. Está registrado en el [issue #169](https://github.com/toss/overlay-kit/issues/169) y creo que hay que arreglarlo, pero el issue sigue abierto.
 
-El momento en que se resuelve es cuando empieza el cierre, antes de que termine la animación. Eso da igual en un flujo que pide confirmación y luego llama a una API, pero en un flujo que pide confirmación y luego abre el siguiente modal, el segundo sube mientras el primero todavía está desapareciendo.
+Que el momento de resolución sea `close` tiene además otro significado: no es cuando termina la animación de cierre, sino cuando empieza el cierre. Eso da igual en un flujo que pide confirmación y luego llama a una API, pero en un flujo que pide confirmación y luego abre el siguiente modal, el segundo sube mientras el primero todavía está desapareciendo.
 
 ### Donde el diseño dio la vuelta completa
 
@@ -229,7 +229,7 @@ El motivo de la vuelta atrás está escrito en el [issue #148](https://github.co
 
 Cuando obtener datos dentro de un overlay lo hacía suspender, React avisaba de que un componente había suspendido mientras respondía a una entrada síncrona. El objetivo original de pasar a un store externo era poder leer el estado del overlay sin un hook, y el PR de entonces dice sin rodeos que el objetivo no se logró de la forma prevista. Al final el objetivo se resolvió con un hook y solo el mecanismo de almacenamiento volvió a su sitio original.
 
-El criterio que saqué de este historial fue el siguiente. Al poner el estado fuera de React, ganas libertad para elegir desde dónde llamar, pero corres el riesgo de que no encaje con la planificación de React. overlay-kit dejó fuera solo el punto de llamada y mantuvo el estado dentro.
+Lo que saqué de este historial no es una conclusión, sino un criterio. Al poner el estado fuera de React, ganas libertad para elegir desde dónde llamar, pero corres el riesgo de que no encaje con la planificación de React. overlay-kit dejó fuera solo el punto de llamada y mantuvo el estado dentro.
 
 ## Al reabrir con el mismo id
 
@@ -292,7 +292,7 @@ Dice que reabrir después de cerrar trae el overlay al frente. Pero como la rama
 
 ### Un comportamiento que contradice el comentario
 
-No comprobé si mantener el orden del DOM al reabrir provoca un problema visible en pantalla. La prueba solo miró el orden del DOM. Como la mayoría de las librerías de diálogos usan su propio z-index o portales, el orden visible en pantalla puede diferir del orden del DOM.
+No comprobé si mantener el orden del DOM al reabrir provoca un problema visible en pantalla. La prueba solo miró el orden del DOM, y como la mayoría de las librerías de diálogos usan su propio z-index o portales, el orden del DOM no es necesariamente el orden visual.
 
 Mi versión expone esta misma situación como una opción. Al reabrir un modal del mismo tipo, quien llama elige si conservar el existente o reemplazarlo con props nuevas. Si elige el reemplazo, la Promise existente termina como `replaced`. Esta es una de las razones por las que antes dividí el tipo del resultado en cinco ramas.
 
@@ -300,7 +300,7 @@ Mi versión expone esta misma situación como una opción. Al reabrir un modal d
 
 ## El precio del JSX en el punto de llamada
 
-¿Escribir JSX en el punto de llamada es siempre mejor que usar una clave de texto? No lo creo. Hay tres costes.
+Entonces, ¿escribir JSX en el punto de llamada es siempre mejor que usar una clave de texto? No lo creo. Hay tres costes.
 
 **La división de código deja de ser lo predeterminado.** Escribir JSX en el punto de llamada significa que quien llama importa ese componente. Si el modal es una pantalla de edición pesada y solo unos pocos usuarios pulsan ese botón, ese peso entra en el bundle de la pantalla de listado.
 
@@ -332,7 +332,7 @@ Empecemos por la definición. [La documentación de React](https://react.dev/lea
 
 La analogía del mismo documento es más nítida. Lo imperativo es ir cantando cada giro a quien conduce el coche; lo declarativo es subirse a un taxi y decir el destino.
 
-**Una interfaz declarativa no elimina el procedimiento imperativo: lo mueve al otro lado de una frontera y le pone nombre a esa frontera.** El interior de overlay-kit que hemos visto es así. El punto de llamada es una línea, mientras que dentro corre un procedimiento que emite un evento y hace dos dispatch.
+**Una interfaz declarativa no elimina el procedimiento imperativo: lo mueve al otro lado de una frontera y le pone nombre a esa frontera.** El interior de overlay-kit que hemos visto es exactamente así. El punto de llamada es una línea, mientras que dentro corre un procedimiento que emite un evento y hace dos dispatch.
 
 Veamos entonces dónde aplica cada proyecto la palabra. La documentación de overlay-kit llama imperativo al enfoque anterior. Lo que señala es el código que guarda el indicador de apertura con `useState` y lo invierte en un manejador de eventos. Lo que llama declarativo es el lado que trata el overlay como una acción en vez de como estado. El [artículo sobre código declarativo](https://toss.tech/article/frontend-declarative-code) del blog técnico de toss define la palabra de forma más amplia: el código declarativo es código con un nivel de abstracción más alto, y explica que un hook que abstrae la acción de mostrar un overlay es un ejemplo de ello.
 
@@ -350,7 +350,7 @@ overlay-kit llegó al mismo lugar y luego dio un paso más: pone también en el 
 
 **Era la diferencia entre tratar un modal como una función y tratarlo como datos.** Escribir JSX en el punto de llamada convierte al controlador en un closure, y el contenido de un closure no se puede cambiar desde fuera una vez guardado. De esa estructura sale el JSX ignorado al reabrir con el mismo id. Tratarlo con una clave de texto convierte al modal en un valor guardado en un store que puedes reemplazar, actualizar y dividir en chunks, pero quien llama solo llega a conocer un nombre.
 
-Creo que la sensación de que te gusta la interfaz de una librería es una señal bastante fiable. Pero hay que poner en palabras al menos una vez a qué apunta esa sensación. Si no lo haces, no puedes distinguir si lo que te gustó fue la interfaz o la reputación de quienes usan la librería. Animo a quien lea esto a hacer ese ejercicio una vez con alguna librería que esté usando ahora mismo.
+Creo que la sensación de que te gusta la interfaz de una librería es una señal bastante fiable. Pero hay que poner en palabras al menos una vez a qué apunta exactamente esa sensación. Si no lo haces, no puedes distinguir si lo que te gustó fue la interfaz o la reputación de quienes usan la librería. Animo a quien lea esto a hacer ese ejercicio una vez con alguna librería que esté usando ahora mismo.
 
 :::ref
 - [docs] [Documentación oficial de overlay-kit](https://overlay-kit.slash.page/)
