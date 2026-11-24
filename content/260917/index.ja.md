@@ -9,7 +9,7 @@ description: "キャリブレーションは正解率ではなく、自分が何
 keywords: "モデルキャリブレーション, ECE, expected calibration error, RLHF 過信, LLM 過信, キャリブレーション 正解率 違い, GPT-4 キャリブレーション"
 locale: ja
 translationOf: '260917'
-sourceHash: e1151120f123ed9b2f743853f3223fdc37c1102f6d3e23943e7fc8f7ea3208ec
+sourceHash: e037bb8555e956ba22f7894b7474da005daab10b536a884bd5f0437b813f587c
 ---
 
 今回の記事では、モデルのキャリブレーションと、RLHF の後に現れる過信について話してみたい。モデルが返す確率や確信度を、コードの中で判断基準として使いたい開発者のための記事だ。最後まで読めば、正解率とキャリブレーションがどう違うのか、ECE が何を測るのか説明できる。また、人の選好で仕上げたモデルの確率が実際の的中率とどうずれるのか、その原因がどこまで明らかになっているのかも説明できる。
@@ -63,7 +63,7 @@ console.log(ece(answers.map((a) => ({ ...a, p: 0.95 }))).toFixed(3)) // 매번 0
 
 では、人のフィードバックで仕上げたモデルは、なぜこの目盛りがずれるのだろうか。まず :term[RLHF]{key="rlhf"}（reinforcement learning from human feedback）が何を最適化しているのかを見る必要がある。人の選好比較から報酬モデルを立てる骨格は [Christiano et al. 2017](https://arxiv.org/abs/1706.03741) で生まれた。これを言語モデルに移した初期の仕事が [Ziegler et al. 2019](https://arxiv.org/abs/1909.08593) で、[InstructGPT](https://arxiv.org/abs/2203.02155) が指示追従に適用した。このとき押し上げる値は、**人の選好を真似た報酬モデルの点数**だ。言語モデルでの仕事は、強化学習を始める前のモデルから離れすぎないよう引き留める KL penalty を報酬に加え、InstructGPT は事前学習データの勾配も混ぜたが（PPO-ptx）、押し上げる対象はやはりその点数である。
 
-チャットボットにとって、人の選好は正しい目標だ。問題は、その選好が不確実さを表に出した口調を避ける側に傾いていることにある。[Zhou et al. 2024](https://arxiv.org/abs/2401.06730) は、四つの公開選好データセットで、アノテーターが "I'm not sure, maybe" のような弱める表現を含む答えをあまり選ばないことを示した。差は小さいが有意だった。とはいえ、確信を強める表現を含む答えをより多く選んだわけではない。[Leng et al. 2025](https://arxiv.org/abs/2410.09724) は、報酬モデルが答えの実際の品質と関係なく、高い確信度の数値を書いた答えに高い点数を与えることを示した。どちらもトークン確率ではなく、文章の中の確信表現（verbalized confidence）を扱った結果だ。RLHF に代わる学習法を打ち出した TypeSafe も、自社の[入門ドキュメント](https://docs.typesafe.ai/introduction/machine-learning-primer)で、RLHF が自信ありげに聞こえるハルシネーション（confident-sounding hallucinations）に報酬を与えうると書いている。代替案を売る側の立場である。
+チャットボットにとって、人の選好は正しい目標だ。問題は、その選好が不確実さを表に出した口調を避ける側に傾いていることにある。[Zhou et al. 2024](https://arxiv.org/abs/2401.06730) は、四つの公開選好データセットで、アノテーターが "I'm not sure, maybe" のような弱める表現を含む答えをあまり選ばないことを示した。差は小さいが有意だった。ただ、確信を強める表現を含む答えをより多く選んだわけではない。[Leng et al. 2025](https://arxiv.org/abs/2410.09724) は、報酬モデルが答えの実際の品質と関係なく、高い確信度の数値を書いた答えに高い点数を与えることを示した。どちらもトークン確率ではなく、文章の中の確信表現（verbalized confidence）を扱った結果だ。RLHF に代わる学習法を打ち出した TypeSafe も、自社の[入門ドキュメント](https://docs.typesafe.ai/introduction/machine-learning-primer)で、RLHF が自信ありげに聞こえるハルシネーション（confident-sounding hallucinations）に報酬を与えうると書いている。代替案を売る側の立場である。
 
 ## GPT-4のキャリブレーション曲線
 

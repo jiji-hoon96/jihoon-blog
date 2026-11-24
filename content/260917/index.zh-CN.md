@@ -9,7 +9,7 @@ description: "校准不是准确率，而是知道自己能答对百分之几的
 keywords: "模型校准, ECE, expected calibration error, RLHF 过度自信, LLM 过度自信, 校准 准确率 区别, GPT-4 校准"
 locale: zh-CN
 translationOf: '260917'
-sourceHash: e1151120f123ed9b2f743853f3223fdc37c1102f6d3e23943e7fc8f7ea3208ec
+sourceHash: e037bb8555e956ba22f7894b7474da005daab10b536a884bd5f0437b813f587c
 ---
 
 这篇文章想聊聊模型的校准，以及 RLHF 之后出现的过度自信。本文写给想把模型返回的概率或确信度当作代码中判断标准的开发者。读完之后，你可以说明准确率和校准有什么不同、ECE 衡量的是什么。还可以说明用人类偏好打磨过的模型给出的概率如何偏离实际命中率，以及背后的原因目前弄清到了什么程度。
@@ -63,7 +63,7 @@ console.log(ece(answers.map((a) => ({ ...a, p: 0.95 }))).toFixed(3)) // 매번 0
 
 那么，用人的反馈打磨过的模型，为什么这个刻度会偏呢。首先要看 :term[RLHF]{key="rlhf"}（reinforcement learning from human feedback）在优化什么。用人的偏好比较来建立奖励模型这一骨架出自 [Christiano et al. 2017](https://arxiv.org/abs/1706.03741)。把它搬到语言模型上的早期工作是 [Ziegler et al. 2019](https://arxiv.org/abs/1909.08593)，[InstructGPT](https://arxiv.org/abs/2203.02155) 又把它用于指令跟随。这时被推高的值，是**模仿人类偏好的奖励模型的分数**。语言模型方面的工作会在奖励上加 KL penalty，让模型不要离开始强化学习之前的模型太远，InstructGPT 还混入了预训练数据的梯度（PPO-ptx），但推高的对象仍然是那个分数。
 
-对聊天机器人来说，人的偏好是对的目标。问题在于这种偏好偏向回避流露不确定性的语气。[Zhou et al. 2024](https://arxiv.org/abs/2401.06730) 在四个公开偏好数据集上表明，标注者较少选择含有 "I'm not sure, maybe" 这类弱化表达的回答。差异很小，但显著。即便如此，他们也没有更多地选择含有强调确信的表达的回答。[Leng et al. 2025](https://arxiv.org/abs/2410.09724) 表明，奖励模型不管回答的实际质量如何，都会给写出高确信度分数的回答更高的分数。两者讨论的都是文字中的确信表达（verbalized confidence），而不是 token 概率。推出替代 RLHF 的训练方法的 TypeSafe，也在自家的[入门文档](https://docs.typesafe.ai/introduction/machine-learning-primer)中写道，RLHF 可能会奖励听起来很有把握的幻觉（confident-sounding hallucinations）。这是推销替代方案的一方的立场。
+对聊天机器人来说，人的偏好是对的目标。问题在于这种偏好偏向回避流露不确定性的语气。[Zhou et al. 2024](https://arxiv.org/abs/2401.06730) 在四个公开偏好数据集上表明，标注者较少选择含有 "I'm not sure, maybe" 这类弱化表达的回答。差异很小，但显著。不过，他们也没有更多地选择含有强调确信的表达的回答。[Leng et al. 2025](https://arxiv.org/abs/2410.09724) 表明，奖励模型不管回答的实际质量如何，都会给写出高确信度分数的回答更高的分数。两者讨论的都是文字中的确信表达（verbalized confidence），而不是 token 概率。推出替代 RLHF 的训练方法的 TypeSafe，也在自家的[入门文档](https://docs.typesafe.ai/introduction/machine-learning-primer)中写道，RLHF 可能会奖励听起来很有把握的幻觉（confident-sounding hallucinations）。这是推销替代方案的一方的立场。
 
 ## GPT-4 的校准曲线
 
