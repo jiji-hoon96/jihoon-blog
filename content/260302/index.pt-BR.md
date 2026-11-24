@@ -6,7 +6,7 @@ date: '2026-03-02'
 categories: frontend carreira IA
 locale: pt-BR
 translationOf: '260302'
-sourceHash: c2fa8469abc21ff1a933ac6f740362bfc7b640c4b87f1f0780aeaabf148ee5bc
+sourceHash: 564e6e8621bb8659cdf47fea184c422775fff84a22c176634126518fc63e8d7a
 description: "Como crescer como engenheiro frontend quando a IA escreve o código: validação, especificação e discernimento, a partir de Karpathy, Vercel v0 e METR."
 keywords: 'frontend na era da IA, desenvolvedor na era da IA, vibe coding, agentic engineering, ferramentas de programação com IA, Product Engineer, plano de carreira para frontend'
 ---
@@ -28,7 +28,7 @@ Mais uma vez, procurei consultar e verificar o máximo possível de fontes. Aind
 
 ## “Agora a IA não faz tudo?”
 
-Antes de tudo, precisamos esclarecer uma coisa. A frase “a IA faz tudo” é verdadeira? Até que ponto ela é verdade e a partir de onde passa a ser fantasia?
+A frase “a IA faz tudo” é verdadeira? Até que ponto ela é verdade e a partir de onde passa a ser fantasia?
 
 Em fevereiro de 2025, [Andrej Karpathy](https://x.com/karpathy/status/1886192184808149383), cofundador da OpenAI e ex-diretor de IA da Tesla, publicou a seguinte frase no Twitter:
 
@@ -44,12 +44,12 @@ There's a new kind of coding I call 'vibe coding', where you fully give in to th
 
 Em poucas palavras, **vibe coding** é “uma forma de programar em que você entrega o teclado à IA e apenas descreve, em linguagem natural, o que deseja”. Não há documentação de arquitetura, boilerplate nem busca por ponto e vírgula. O código simplesmente funciona na vibe. Em menos de um ano, o termo entrou no vocabulário corrente das comunidades de desenvolvimento de língua inglesa.
 
-Exatamente um ano depois, em fevereiro de 2026, o mesmo Karpathy [recuou um pouco](https://thenewstack.io/vibe-coding-is-passe/). Ele propôs substituir o termo vibe coding por **“agentic engineering”**. A diferença entre os dois é clara.
+Exatamente um ano depois, em fevereiro de 2026, o mesmo Karpathy [recuou um pouco](https://thenewstack.io/vibe-coding-is-passe/). Ele propôs substituir o termo vibe coding por **“agentic engineering”**. A diferença entre os dois é a seguinte.
 
 - **Vibe coding**: descrever o que se deseja e aceitar o resultado
 - **Agentic engineering**: projetar o sistema, especificar as restrições e usar a IA para acelerar uma implementação cujo raciocínio já foi concluído mentalmente
 
-Se, um ano atrás, a premissa era “é só pedir que ela faz tudo”, agora “a capacidade de planejar o que pedir à IA e como pedir” se consolidou como uma competência de engenharia. E essa tendência não se resume ao tweet de uma única pessoa. Na mesma época, o engenheiro do Google [Addy Osmani](https://addyosmani.com/) publicou o livro [Beyond Vibe Coding: From Coder to AI-Era Developer](https://www.amazon.com/Beyond-Vibe-Coding-AI-Era-Developer/dp/B0F6S5425Y), afirmando categoricamente: “A IA é apenas uma assistente, não uma programadora em quem se possa confiar de forma autônoma. Você é o desenvolvedor sênior, e o LLM existe para acelerar o seu julgamento.”
+Se, um ano atrás, a premissa era “é só pedir que ela faz tudo”, agora “a capacidade de planejar o que pedir à IA e como pedir” se consolidou como uma competência de engenharia. Essa mesma tendência também aparece no texto do engenheiro do Google [Addy Osmani](https://addyosmani.com/). Ele publicou o livro [Beyond Vibe Coding: From Coder to AI-Era Developer](https://www.amazon.com/Beyond-Vibe-Coding-AI-Era-Developer/dp/B0F6S5425Y), afirmando categoricamente: “A IA é apenas uma assistente, não uma programadora em quem se possa confiar de forma autônoma. Você é o desenvolvedor sênior, e o LLM existe para acelerar o seu julgamento.”
 
 
 ### As ferramentas estão avançando sem freio
@@ -84,7 +84,7 @@ Um experimento realizado em 2025 pela organização sem fins lucrativos [**METR*
 - Logo após concluir as tarefas, ainda avaliaram que “parecia ter sido cerca de 20% mais rápido”.
 - Mas a medição real mostrou que eles ficaram **19% mais lentos**.
 
-As causas apontadas pelos pesquisadores são interessantes. A taxa de aceitação do código gerado pela IA ficou abaixo de 44%; mesmo o código rejeitado exigiu tempo de revisão e testes; e até o código aceito demandou um tempo considerável de revisão e ajustes. Essa ilusão de ter ficado mais rápido mesmo ficando mais lento — essa lacuna — é uma das razões pelas quais desenvolvedores seniores têm se tornado cada vez mais céticos em relação à IA.
+As causas apontadas pelos pesquisadores são as seguintes. A taxa de aceitação do código gerado pela IA ficou abaixo de 44%; mesmo o código rejeitado exigiu tempo de revisão e testes; e até o código aceito demandou um tempo considerável de revisão e ajustes. Essa ilusão de ter ficado mais rápido mesmo ficando mais lento — essa lacuna — é uma das razões pelas quais desenvolvedores seniores têm se tornado cada vez mais céticos em relação à IA.
 
 Além disso, a própria “qualidade do código escrito pela IA” está longe de ser impecável. Vejamos o experimento da [**Veracode**](https://www.veracode.com/blog/genai-code-security-report/), que pediu a mais de cem modelos de IA que escrevessem código.
 
@@ -106,11 +106,11 @@ A interpretação não é tão difícil. A capacidade de produzir código rapida
 
 ## O que a IA substituiu e o que não conseguiu substituir
 
-As ferramentas avançam sem freio, mas os números são ambíguos. Então, o que exatamente a IA substituiu e o que ainda não conseguiu substituir? Só com essa distinção clara conseguimos enxergar onde devemos investir nosso tempo.
+As ferramentas avançam sem freio, mas os números são ambíguos. Então, o que a IA substituiu e o que ainda não conseguiu substituir? Só com essa distinção clara conseguimos enxergar onde devemos investir nosso tempo.
 
 O que foi substituído foi parte do trabalho de digitação manual dos desenvolvedores. Há menos situações em que precisamos escrever boilerplate ou código repetitivo; com apenas um layout, uma tela que respeita as convenções pode ficar pronta em poucos minutos; e tanto o tempo gasto pesquisando sintaxe e APIs quanto a curva de aprendizado caíram drasticamente. Em suma, a IA **nivelou a “velocidade de produção”**.
 
-Mas, no campo do “julgamento”, ela ainda não nos substituiu. (Para ser mais preciso, seria melhor dizer que “ainda não correspondeu às expectativas”. Embora a capacidade de usar IA varie de pessoa para pessoa, aqui parto da experiência média de uso.)
+Mas, no campo do “julgamento”, ela ainda não nos substituiu. (Isso significa, em termos aproximados, que ela ainda não correspondeu às expectativas. Embora a capacidade de usar IA varie de pessoa para pessoa, aqui parto da experiência média de uso.)
 
 O primeiro obstáculo é **traduzir requisitos em especificações**. Transformar necessidades de negócio ambíguas em casos de borda precisos e máquinas de estado ainda exige uma intervenção humana mais profunda. O mesmo vale para **compreender impactos no sistema como um todo**: mesmo quando a IA oferece respostas plausíveis para perguntas como o impacto de um componente no bundle, se uma dependência permite tree shaking ou como um padrão de data fetching afeta, nos [Core Web Vitals](https://web.dev/articles/vitals), a pontuação de [INP (Interaction to Next Paint)](https://web.dev/articles/inp), só ficamos tranquilos depois que uma pessoa confere mais uma vez.
 
@@ -120,15 +120,15 @@ Por fim, tomando emprestada a expressão usada no texto de [yceffort](https://yc
 
 > Não são os desenvolvedores que desaparecem, mas a forma do trabalho que eles faziam. O gargalo passou da “velocidade de criação” para a “velocidade de decisão”.
 
-No mesmo contexto, [“Os desenvolvedores serão substituídos pela IA?”, da Toss](https://toss.tech/article/will-ai-replace-developers), oferece um diagnóstico mais contundente. A ideia central é a seguinte: a IA não está substituindo toda a força de trabalho; está eliminando a escada de aprendizagem (apprenticeship ladder). Daqui a dez ou vinte anos, quando os atuais profissionais seniores se aposentarem, faltarão pessoas da próxima geração capazes de projetar sistemas complexos. Não é um problema da ordem de “o que faremos com as contratações da nossa empresa no ano que vem?”, mas uma espécie de bomba-relógio com efeito retardado para todo o setor. (Acho que é um texto realmente bem escrito para um período de tantas incertezas.)
+No mesmo contexto, [“Os desenvolvedores serão substituídos pela IA?”, da Toss](https://toss.tech/article/will-ai-replace-developers) oferece um diagnóstico. A ideia central é a seguinte: a IA não está substituindo toda a força de trabalho; está eliminando a escada de aprendizagem (apprenticeship ladder). Daqui a dez ou vinte anos, quando os atuais profissionais seniores se aposentarem, faltarão pessoas da próxima geração capazes de projetar sistemas complexos. Esse problema ultrapassa o plano de contratação de uma única empresa: vai atingir todo o setor com um efeito retardado e é uma preocupação mais séria que os problemas vistos anteriormente. (Acho que é um texto realmente bem escrito para um período de tantas incertezas.)
 
 A “primeira versão que funciona” criada pela IA corresponde a 70%. Os 30% necessários para chegar a uma “versão que pode ser entregue a usuários reais” são território humano. E a capacidade de preencher esses 30% não surge da noite para o dia. Essa é a essência do problema da escada de aprendizagem. Se desaparece o tempo de “pôr a mão na massa” escrevendo boilerplate e componentes simples, também desaparecem as pessoas capazes de completar esses 30%.
 
-O texto original de Hwidong Bae apontava como “cinco competências fundamentais de um engenheiro excepcional” a **escrita de bom código, a maximização do valor atual (equilibrando rapidez de lançamento e manutenção de longo prazo), a tomada de decisões baseada em dados, o apoio eficaz às decisões dos colegas e o aprendizado contínuo**. Todas as cinco continuam válidas na era da IA, mas a última delas ocupa a posição mais vulnerável. O aprendizado em si não desapareceu; o objeto do aprendizado mudou. Antes, aprendíamos “como usar esta ferramenta”; agora, precisamos dedicar tempo a aprender “como este sistema inteiro funciona”. Mais assustador ainda é o [problema apontado por Evan Moon](https://evan-moon.github.io/2026/04/18/developers-who-stopped-growing-in-ai-era/): “no momento em que a IA assume a escrita do código, a carga cognitiva do cérebro cai drasticamente”. Reduzir a carga cognitiva parece bom, mas é perigoso porque essa carga era justamente a matéria-prima do aprendizado. **Quanto mais cômodo, menos se cresce.**
+O texto original de Hwidong Bae apontava como “cinco competências fundamentais de um engenheiro excepcional” a **escrita de bom código, a maximização do valor atual (equilibrando rapidez de lançamento e manutenção de longo prazo), a tomada de decisões baseada em dados, o apoio eficaz às decisões dos colegas e o aprendizado contínuo**. Todas as cinco continuam válidas na era da IA, mas a última delas ocupa a posição mais vulnerável. O aprendizado continua sendo necessário, mas seu objeto mudou. Antes, aprendíamos “como usar esta ferramenta”; agora, precisamos dedicar tempo a aprender “como este sistema inteiro funciona”. O problema maior é o [ponto destacado por Evan Moon](https://evan-moon.github.io/2026/04/18/developers-who-stopped-growing-in-ai-era/): “no momento em que a IA assume a escrita do código, a carga cognitiva do cérebro cai drasticamente”. Reduzir a carga cognitiva parece bom, mas é perigoso porque essa carga era justamente a matéria-prima do aprendizado. **Quanto mais cômodo, menos se cresce.**
 
 Daí surge naturalmente uma pergunta. Então as três trilhas do texto de Hwidong Bae — especialização em web, produto e operações — deixaram de fazer sentido?
 
-Penso diferente. As trilhas continuam válidas. O mais correto é entender que cada uma evoluiu um estágio para se adaptar à era da IA. Vejamos como o cenário mudou em cada uma delas.
+Vejo as trilhas como válidas até hoje. Cada uma evoluiu um estágio para se adaptar à era da IA. Vejamos como o cenário mudou em cada uma delas.
 
 
 ## De produtor a “validador”
@@ -149,7 +149,7 @@ Além disso, surgiu um tema inteiramente novo no território desses especialista
 
 A trilha de especialização em produto foi a mais beneficiada. Quem conhece profundamente o mercado e os clientes e se comunica com frequência com stakeholders externos ganhou uma ferramenta muito mais poderosa ao incorporar a IA. Outra característica dessa trilha era a possibilidade de expandir a carreira para outras funções, com caminhos seniores como **engenheiro de growth ou consultor / transição para PM, PO ou CPO**.
 
-Uma mudança interessante é que o nome dessa trilha começou a se consolidar como padrão global. O texto original já a chamava de “Product Engineer”, mas, quando o li, a expressão ainda me parecia pouco familiar. Um ano depois, ela se estabeleceu a ponto de a [Vercel substituir “Fullstack Engineer” por “Product Engineer” em todas as descrições de cargo](https://leerob.com/product-engineers).
+O nome dessa trilha começou a se consolidar como padrão global. O texto original já a chamava de “Product Engineer”, mas, quando o li, a expressão ainda me parecia pouco familiar. Um ano depois, ela se estabeleceu a ponto de a [Vercel substituir “Fullstack Engineer” por “Product Engineer” em todas as descrições de cargo](https://leerob.com/product-engineers).
 
 Lee Robinson aponta três qualidades essenciais de um Product Engineer.
 
@@ -165,7 +165,7 @@ Nesse movimento, **Design Engineer** começou a ganhar status de cargo formal. A
 
 ## Orquestrador de IA
 
-A trilha de especialização em operações é a que passa pela transformação mais drástica. No texto original, Hwidong Bae a classificava como **Full-Stack Engineer** e a definia como “uma pessoa muito interessada em estrutura, integração, testes e implantação de projetos, capaz de lidar diretamente com APIs e infraestrutura simples, preencher lacunas na organização e melhorar processos”. Nos últimos um ou dois anos, **a função de operar os próprios agentes de IA** foi acrescentada a essa base, ampliando rapidamente o alcance da trilha.
+A trilha de especialização em operações é a que passa pela maior transformação. No texto original, Hwidong Bae a classificava como **Full-Stack Engineer** e a definia como “uma pessoa muito interessada em estrutura, integração, testes e implantação de projetos, capaz de lidar diretamente com APIs e infraestrutura simples, preencher lacunas na organização e melhorar processos”. Nos últimos um ou dois anos, **a função de operar os próprios agentes de IA** foi acrescentada a essa base, ampliando rapidamente o alcance da trilha.
 
 Ao resumir as [tendências de 2026](https://beyond.addy.ie/2026-trends/), ele apontou o conceito de **“orquestração de agentes de programação (Orchestrating Coding Agents)”** como um dos pontos centrais. Isso significa ir além de dar ordens a uma única IA: trata-se de projetar e operar um sistema em que vários agentes de IA colaboram simultaneamente. No mesmo contexto, ele propôs um framework chamado [“agent-skills”](https://github.com/addyosmani/agent-skills), e também vem ganhando espaço a ideia de codificar diretamente na lógica de funcionamento dos agentes os workflows profissionais, quality gates e melhores práticas do setor.
 
@@ -183,13 +183,13 @@ Enquanto as três trilhas evoluem cada uma à sua maneira, há competências que
 
 ## Cinco competências
 
-**A primeira é a capacidade de escrever especificações (Specification).** Na era da IA, o “ponto de partida da programação” não é o teclado, mas a **especificação**. A capacidade de registrar com precisão o que pedir à IA se tornou mais importante que o próprio código. Aqui, “especificação” não significa necessariamente um documento RFC grandioso. Pode ser um **teste** que expressa em código o comportamento esperado da lógica de negócio, uma história do **Storybook** que organiza os cenários e o contrato visual de um componente de UI ou uma **definição de tipos** que explicita o contrato do fluxo de dados. No fim, é o trabalho de estabelecer previamente critérios para validar de forma automática o resultado criado pela IA. Quando programamos com IA sem essa base, os problemas se acumulam.
+**A primeira é a capacidade de escrever especificações (Specification).** Na era da IA, o “ponto de partida da programação” não é o teclado, mas a **especificação**. A capacidade de registrar com precisão o que pedir à IA se tornou mais importante que o próprio código. Aqui, a especificação não precisa ser um documento RFC grandioso. Pode ser um **teste** que expressa em código o comportamento esperado da lógica de negócio, uma história do **Storybook** que organiza os cenários e o contrato visual de um componente de UI ou uma **definição de tipos** que explicita o contrato do fluxo de dados. No fim, é o trabalho de estabelecer previamente critérios para validar de forma automática o resultado criado pela IA. Quando programamos com IA sem essa base, os problemas se acumulam.
 
 **A segunda é a capacidade de validação e discernimento.** A IA produz com confiança código plausível, porém incorreto. Por isso, considero que “a capacidade de revisar código de IA com rapidez e precisão” se tornou essencial. É preciso identificar se foram esquecidos headers de segurança, sanitização de inputs ou tokens CSRF; se a acessibilidade continua funcionando — ARIA, navegação por teclado e focus trap —; e se há problemas nos impactos de desempenho, como custo de renderização, memória e tamanho do bundle. Jogar AI slop em um PR sem revisão é negligenciar a própria função como engenheiro. Quem aperta o botão de merge ainda é uma pessoa, e essa responsabilidade não pode ser transferida para a IA. O fato de os profissionais seniores apresentarem a menor confiança em IA na pesquisa do Stack Overflow provavelmente se deve, no fim das contas, a terem olhos treinados para encontrar justamente esses detalhes.
 
 **A terceira é a compreensão de sistemas e o pensamento arquitetural.** A IA lida bem com um arquivo por vez e tem grande capacidade de perceber fluxos e relações. Ela corrige sintomas rapidamente, mas um desenvolvedor competente encontra a causa raiz. Uma forma de desenvolver essa competência é realizar atividades deliberadas, como Architecture Retrospectives. Como o código muda mais rápido, se não elevarmos conscientemente a compreensão que a equipe tem do sistema, a dívida cognitiva se acumulará depressa.
 
-**A quarta é a capacidade de orquestrar IA.** A competência de lidar com a própria IA também está se separando em um conjunto específico de habilidades. Já não se trata simplesmente de “escrever bons prompts”, mas de uma área que exige tratar como um todo a capacidade de dividir o trabalho em tickets pequenos, escolher qual modelo usar para cada tarefa, projetar pipelines de avaliação e validação de agentes e definir estratégias de recuperação (rollback) em caso de falha. [Steve Yegge](https://sourcegraph.com/blog/revenge-of-the-junior-developer) organiza essa evolução em **seis waves (traditional → completions → chat → coding agents → agent clusters → agent fleets)**.
+**A quarta é a capacidade de orquestrar IA.** A competência de lidar com a própria IA também está se separando em um conjunto específico de habilidades. A área passou a reunir desde a capacidade de dividir o trabalho em tickets pequenos até a escolha de qual modelo usar para cada tarefa, o projeto de pipelines de avaliação e validação de agentes e a definição de estratégias de recuperação (rollback) em caso de falha. [Steve Yegge](https://sourcegraph.com/blog/revenge-of-the-junior-developer) organiza essa evolução em **seis waves (traditional → completions → chat → coding agents → agent clusters → agent fleets)**.
 
 **A quinta é Context Engineering.** É um conceito que [Karpathy e Tobi Lütke, CEO da Shopify, começaram a promover juntos em meados de 2025](https://www.faros.ai/blog/context-engineering-for-developers). Em poucas palavras, trata-se da “capacidade de planejar qual contexto mostrar à IA, em que formato e em qual quantidade”. Na prática, aparece de formas como o trabalho com **arquivos CLAUDE.md / rules**, que registra convenções do projeto, princípios de arquitetura e proibições em locais acessíveis à IA; a **redução intencional do contexto**, que seleciona apenas os módulos relevantes em vez de inserir todos os arquivos no contexto; a **separação explícita de etapas**, que divide planejamento → implementação → validação em sessões distintas para evitar a contaminação do contexto; e o **contexto externo via MCP**, que conecta, por meio de interfaces padronizadas, fontes externas como design systems, schemas de API e dados de monitoramento. A [documentação oficial da Anthropic](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) chama isso de “the new prompt engineering” e afirma categoricamente que um único prompt jamais consegue conter o conhecimento arquitetural, os padrões e a tribal wisdom de um sistema. Em outras palavras, “projetar um ambiente em que a IA sempre receba um bom contexto” se tornou muito mais importante do que “escrever um bom prompt de uma só vez”.
 
@@ -206,7 +206,7 @@ O código produzido por IA tende a crescer demais. Ela gera centenas de linhas p
 
 Há uma prática diretamente ligada ao problema da redução da carga cognitiva apontado no texto de Evan Moon: é bom reservar uma ou duas horas por dia para escrever código sem IA. Desenhar a arquitetura à mão ou ler diretamente, linha por linha, código de uma área pouco familiar são alguns exemplos. (Eu também tento programar sem IA todos os dias naquele período sonolento depois do almoço. É um tempo que reservo para não me afastar de uma familiaridade antiga.)
 
-Isso não serve apenas para “não esquecer o jeito antigo”. A sua própria profundidade deixa de crescer durante o tempo em que a IA faz o trabalho por você. Competências como validação e discernimento e compreensão do sistema são função do tempo que você passou enfrentando os problemas diretamente.
+Esse tempo não serve apenas para preservar métodos antigos; também ajuda a impedir que a profundidade pessoal deixe de crescer na mesma medida em que a IA assume tarefas. Competências como validação e discernimento e compreensão do sistema são função do tempo que você passou enfrentando os problemas diretamente.
 
 
 ## Portanto, nós
@@ -228,4 +228,3 @@ Ao examinar os textos de Andrej Karpathy, autoridade em OpenAI, vemos que a ess�
 A mensagem final do texto original também era que se torna sênior “quem não se satisfaz apenas em concluir bem o trabalho recebido, mas observa o contexto anterior e posterior e gera um impacto maior”. Na era da IA, apenas a definição desse “impacto” mudou. Há quem faça merge de uma tela produzida pela IA em uma hora pensando “funciona, então está pronto”; e há quem passe mais trinta minutos verificando até que ponto essa tela é adequada em termos de acessibilidade, segurança, desempenho e coerência com o sistema. Daqui a um ano, quem será reconhecido como sênior é o segundo. Sobrevive quem se posiciona do lado dos 30% na fronteira entre 70% (funcionamento) e 30% (aplicação e uso).
 
 Espero que os engenheiros frontend que lerem este texto também encontrem sua própria resposta para a pergunta “o que mais devo estudar agora?”. Ninguém sabe a resposta certa, mas tenho bastante convicção de que, quanto mais a IA escreve código, mais sobrevivem as pessoas capazes de enxergar “o que existe além do código”. Encerro na esperança de que, daqui a um ano, eu possa voltar a escrever sobre como esse cenário terá mudado mais uma vez. **(Se este texto parecer óbvio demais ou ultrapassado daqui a um ano, talvez isso signifique que reagimos bem.)**
-
