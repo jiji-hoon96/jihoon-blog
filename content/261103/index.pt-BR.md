@@ -8,7 +8,7 @@ description: 'O que priorizar como dev na era da IA: por que coloco o raciocíni
 keywords: 'retrospectiva de desenvolvedor, desenvolvedor na era da IA, prioridades de desenvolvedor, pensamento crítico para desenvolvedores, tomada de decisão, profissional em T, crescimento como desenvolvedor frontend'
 locale: pt-BR
 translationOf: '261103'
-sourceHash: 8c3c44b819628c4c5a956409e08249dcff0af1d2920e93d59b94d9dbe4cca53d
+sourceHash: 39b3b2ac23387bd8e4ca7b8ef954c5275cea2fefffb26fecd54e80404ffdbdb2
 ---
 
 Neste post, quero falar sobre o que vou colocar em primeiro lugar agora que a IA está mudando tão rápido.
@@ -28,7 +28,7 @@ Por isso, quero dividir o tempo que vem em blocos de três, seis e nove meses e 
 - **Tornar meu processo de pensamento tecnicamente concreto**: Trata-se de deixar claros o modo como vejo os problemas, como analiso as causas, os trade-offs das escolhas técnicas e os fundamentos das minhas decisões. Não basta resolver o problema que tenho na frente. Preciso conseguir explicar por que escolhi aquela abordagem e aplicar o mesmo princípio em outras situações. Acho que minha competitividade profissional virá daqui.
 - **Aprender a fazer esse pensamento de forma mais eficiente**: Aqui entram foco, gestão do tempo, métodos de aprendizado, uso de IA, gestão de informação e automação de tarefas repetitivas. Por enquanto, vejo isso como uma base que sustenta meu desempenho profissional, à parte do trabalho em si.
 
-As duas direções precisam ser tratadas de forma diferente, a começar pelo ciclo de aprendizado. Os hábitos para o raciocínio e o foco precisam de um prazo bem definido, como três ou seis meses, e de treino concentrado. Mesmo num período curto, se a repetição consciente e o feedback se acumulam, dá para gerar uma mudança grande o bastante. Já aprender a usar bem as ferramentas ou acompanhar as tendências de tecnologia depende mais de um acompanhamento constante do que de resultados de curto prazo. Em vez de aprender a fundo toda tecnologia nova, acho que o certo é avaliar se ela realmente ajuda a resolver os problemas que tenho agora e adotá-la de forma seletiva.
+As duas direções precisam ser tratadas de forma diferente, a começar pelo ciclo de aprendizado. Os hábitos para o raciocínio e o foco precisam de um prazo definido, como três ou seis meses, e de treino concentrado. Mesmo num período curto, se a repetição consciente e o feedback se acumulam, dá para gerar uma mudança grande o bastante. Já aprender a usar bem as ferramentas ou acompanhar as tendências de tecnologia depende mais de um acompanhamento constante do que de resultados de curto prazo. Em vez de aprender a fundo toda tecnologia nova, acho que o certo é avaliar se ela realmente ajuda a resolver os problemas que tenho agora e adotá-la de forma seletiva.
 
 Então, o que eu quero, no fim das contas? Elevar minha capacidade de engenharia e crescer mais como desenvolvedor frontend? Tenho uma meta financeira. Quero construir uma base econômica e, sobre ela, me concentrar nas coisas que mais quero fazer ou ter novas opções. Para isso, o que importa agora é tirar a maior eficiência e o melhor desempenho possíveis do meu trabalho atual e do tempo que tenho. Elevar minha capacidade profissional também está, no fim, ligado a essa meta.
 
@@ -42,7 +42,7 @@ Vale a pena perguntar se eu estou mesmo ficando para trás ou se estou me avalia
 
 O avanço tecnológico e as mudanças na estrutura da indústria que vêm com ele são, sem dúvida, importantes. Não é preciso dar o mesmo peso a toda mudança. As diferenças técnicas não surgem só de quem teve contato primeiro com a tecnologia mais recente. No longo prazo, as diferenças maiores vêm da capacidade de entender e usar a tecnologia, da experiência de ter resolvido problemas e da capacidade de acumular conhecimento e aplicá-lo.
 
-Por isso, decidi não me aprofundar no estudo de IA agora. Se eu começar a estudar IA, com certeza vou mergulhar nisso. Aí desconfio que acabaria escolhendo repetidamente a amplitude no lugar do foco que mantive até aqui. Pelo ceticismo que tenho em repetir essa escolha, desta vez estou tentando não fazê-la.
+Por isso, decidi não me aprofundar no estudo de IA agora. Se eu começar a estudar IA, vou mergulhar nisso. Aí desconfio que acabaria escolhendo repetidamente a amplitude no lugar do foco que mantive até aqui. Pelo ceticismo que tenho em repetir essa escolha, desta vez estou tentando não fazê-la.
 
 Alguns podem dizer que fiquei para trás, e outros podem achar que estou bem à frente. Já não sei o quanto essa comparação importa. Se a direção que escolhi tem fundamento e eu continuo crescendo de forma constante nela, isso não basta?
 

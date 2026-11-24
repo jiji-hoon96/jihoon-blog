@@ -8,7 +8,7 @@ description: 'Qué priorizo como desarrollador en la era de la IA: el pensamient
 keywords: 'retrospectiva de desarrollador, desarrollador en la era de la IA, prioridades de un desarrollador, pensamiento crítico para desarrolladores, toma de decisiones, perfil en T, crecimiento como desarrollador frontend'
 locale: es
 translationOf: '261103'
-sourceHash: 8c3c44b819628c4c5a956409e08249dcff0af1d2920e93d59b94d9dbe4cca53d
+sourceHash: 39b3b2ac23387bd8e4ca7b8ef954c5275cea2fefffb26fecd54e80404ffdbdb2
 ---
 
 En este artículo quiero hablar de qué voy a poner en primer lugar ahora que la IA cambia tan rápido.
@@ -28,7 +28,7 @@ Por eso quiero dividir el tiempo que viene en bloques de tres, seis y nueve mese
 - **Concretar técnicamente mi proceso de pensamiento**: Se trata de dejar claros mi forma de ver los problemas, cómo analizo las causas, los trade-offs de cada elección técnica y los fundamentos de mis decisiones. No basta con resolver el problema que tengo delante. Tengo que poder explicar por qué elegí ese enfoque y aplicar el mismo principio en otras situaciones. Creo que mi competitividad profesional saldrá de aquí.
 - **Aprender a hacer ese pensamiento de forma más eficiente**: Aquí entran la concentración, la gestión del tiempo, los métodos de aprendizaje, el uso de la IA, la gestión de la información y la automatización de tareas repetitivas. Por ahora, lo veo como una base que sostiene mi rendimiento profesional, independiente del trabajo en sí.
 
-Las dos direcciones hay que tratarlas de forma distinta, empezando por su ciclo de aprendizaje. Los hábitos para el pensamiento y la concentración necesitan un plazo bien definido, como tres o seis meses, y un entrenamiento intensivo. Incluso en un período corto, si se acumulan la repetición consciente y la retroalimentación, se puede lograr un cambio considerable. En cambio, aprender a usar bien las herramientas o seguir las tendencias tecnológicas depende más de un seguimiento constante que de resultados a corto plazo. En lugar de aprender a fondo cada tecnología nueva, creo que lo correcto es juzgar si de verdad aporta valor para resolver los problemas que tengo ahora y adoptarla de forma selectiva.
+Las dos direcciones hay que tratarlas de forma distinta, empezando por su ciclo de aprendizaje. Los hábitos para el pensamiento y la concentración necesitan un plazo definido, como tres o seis meses, y un entrenamiento intensivo. Incluso en un período corto, si se acumulan la repetición consciente y la retroalimentación, se puede lograr un cambio considerable. En cambio, aprender a usar bien las herramientas o seguir las tendencias tecnológicas depende más de un seguimiento constante que de resultados a corto plazo. En lugar de aprender a fondo cada tecnología nueva, creo que lo correcto es juzgar si de verdad aporta valor para resolver los problemas que tengo ahora y adoptarla de forma selectiva.
 
 Entonces, ¿qué es lo que quiero en última instancia? ¿Mejorar mis capacidades de ingeniería y crecer más como desarrollador frontend? Tengo una meta económica. Quiero construir una base financiera y, sobre ella, concentrarme en las cosas que más quiero hacer o tener nuevas opciones. Para eso, lo que importa ahora es sacar la mayor eficiencia y el mejor rendimiento posibles de mi trabajo actual y del tiempo que tengo. Mejorar mis capacidades profesionales también está, al final, conectado con esta meta.
 
@@ -42,7 +42,7 @@ Vale la pena preguntarse si de verdad me estoy quedando atrás o si me estoy eva
 
 El avance tecnológico y los cambios en la estructura de la industria que trae consigo son sin duda importantes. No hace falta darle el mismo peso a cada cambio. Las brechas técnicas no nacen solo de quién tuvo antes acceso a la tecnología más reciente. A largo plazo, las diferencias más grandes vienen de la capacidad de entender y usar la tecnología, de la experiencia de haber resuelto problemas y de la capacidad de acumular conocimiento y aplicarlo.
 
-Por eso decidí no meterme a fondo en estudiar IA por ahora. Si empiezo a estudiar IA, seguro que me voy a enganchar. Y entonces sospecho que acabaría eligiendo una y otra vez la amplitud en lugar de la concentración que he mantenido hasta ahora. Por el escepticismo que me produce repetir esa elección, esta vez intento no hacerla.
+Por eso decidí no meterme a fondo en estudiar IA por ahora. Si empiezo a estudiar IA, me voy a enganchar. Y entonces sospecho que acabaría eligiendo una y otra vez la amplitud en lugar de la concentración que he mantenido hasta ahora. Por el escepticismo que me produce repetir esa elección, esta vez intento no hacerla.
 
 Habrá quien diga que me he quedado atrás y quien opine que voy bastante adelantado. Ya no tengo claro cuánto importa esa comparación. Si la dirección que elegí tiene fundamentos y sigo creciendo de forma constante en ella, ¿no es suficiente?
 

@@ -8,7 +8,7 @@ description: 'What to prioritize as a developer in the AI era: why I put thinkin
 keywords: 'developer retrospective, developer in the AI era, developer priorities, critical thinking for developers, decision making, T-shaped developer, frontend developer growth'
 locale: en
 translationOf: '261103'
-sourceHash: 8c3c44b819628c4c5a956409e08249dcff0af1d2920e93d59b94d9dbe4cca53d
+sourceHash: 39b3b2ac23387bd8e4ca7b8ef954c5275cea2fefffb26fecd54e80404ffdbdb2
 ---
 
 In this post, I want to talk about what I will put first while AI is changing this fast.
@@ -28,7 +28,7 @@ So I want to divide the time ahead into three-, six-, and nine-month blocks, and
 - **Making my thought process technically concrete**: This means making clear how I look at problems, how I analyze causes, the trade-offs in technical choices, and the grounds for my decisions. It is not enough to solve the problem in front of me. I should be able to explain why I chose that approach and apply the same principle in other situations. I think my professional competitiveness will come from here.
 - **Learning how to do that thinking more efficiently**: This covers focus, time management, learning methods, using AI, managing information, and automating repetitive work. For now, I see this as a foundation that supports my professional performance, separate from the job itself.
 
-The two directions need to be handled differently, starting with their learning cycles. Habits for thinking and focus need a clearly defined period, like three or six months, and concentrated training. Even in a short period, conscious repetition and feedback can add up to a big enough change. On the other hand, getting good with tools or following technology trends depends more on steady follow-up than on short-term results. Rather than learning every new technology in depth, I think the right approach is to judge whether it actually helps solve the problems I have now, and adopt it selectively.
+The two directions need to be handled differently, starting with their learning cycles. Habits for thinking and focus need a defined period, like three or six months, and concentrated training. Even in a short period, conscious repetition and feedback can add up to a big enough change. On the other hand, getting good with tools or following technology trends depends more on steady follow-up than on short-term results. Rather than learning every new technology in depth, I think the right approach is to judge whether it actually helps solve the problems I have now, and adopt it selectively.
 
 Then what do I ultimately want? To raise my engineering skills and grow bigger as a frontend developer? I have a financial goal. I want to build an economic foundation, and on top of it, focus on the things I want to do more or have new options. For that, what matters now is getting the highest efficiency and performance I can out of my current job and the time I have. Raising my professional skills is, in the end, connected to this goal too.
 
@@ -42,7 +42,7 @@ It is worth asking whether I am really falling behind, or whether I am judging m
 
 Technological progress and the shifts in industry structure that follow are clearly important. There is no need to give every change the same weight. Technical gaps do not come only from who got to the latest technology first. In the long run, bigger differences come from the ability to understand and use technology, the experience of having solved problems, and the ability to build up and apply knowledge.
 
-That is why I decided not to go deep into studying AI right now. If I start studying AI, I will certainly get absorbed in it. Then I suspect I would end up repeatedly choosing breadth over the focus I have kept so far. Because I have grown skeptical of making that choice again and again, I am trying not to make it this time.
+That is why I decided not to go deep into studying AI right now. If I start studying AI, I will get absorbed in it. Then I suspect I would end up repeatedly choosing breadth over the focus I have kept so far. Because I have grown skeptical of making that choice again and again, I am trying not to make it this time.
 
 Some may say I have fallen behind, and others may judge that I am well ahead. I am no longer sure how much that comparison matters. If the direction I chose has grounds, and I keep growing in that direction, isn't that enough?
 
