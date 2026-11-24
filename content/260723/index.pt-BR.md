@@ -8,7 +8,7 @@ description: "O que fazer quando product manager e developer usam a mesma palavr
 keywords: 'ubiquitous language, linguagem compartilhada domínio, comunicação entre áreas, como levantar requisitos, comunicação product manager developer, grounding common ground, Example Mapping, breadboarding, bounded context, segurança psicológica time de desenvolvimento'
 locale: pt-BR
 translationOf: '260723'
-sourceHash: 12252cb1c69e3698a15c852ae30fe89c4fe446dadf23f8d6e73c8178e8d5c00a
+sourceHash: 0ea9dbe212a38bf18aaa7450d951351eeddcd8403c1aa03ccea6cab9241e40e6
 ---
 
 Neste post, quero falar sobre a comunicação com outras áreas.
@@ -39,7 +39,7 @@ here the word 'meter' meant subtly different things to different parts of the or
 
 A mesma palavra, “meter”, significava coisas sutilmente diferentes conforme a área da organização. Fowler acrescenta que viu essa confusão se repetir com palavras polissêmicas como Customer e Product.
 
-**A causa estava na existência de contextos diferentes dentro da organização, em vez da habilidade dos participantes em reuniões.** Quando os contextos são diferentes, é natural que a mesma palavra se divida. Se isso não for resolvido, o código também acaba se dividindo.
+**Isso não aconteceu porque os participantes eram ruins em reuniões.** Quando há contextos diferentes na organização, é natural que a mesma palavra se divida, e se isso não for resolvido, o código também acaba se dividindo.
 
 O pano de fundo técnico dessa história eu tratei uma vez em [Modelo de domínio](/260418). Naquele texto falei de como expressar o modelo dentro do código. Neste, trato da etapa anterior à existência desse modelo, a da conversa entre pessoas.
 
@@ -73,15 +73,15 @@ Domain experts object to terms or structures that are awkward or inadequate to c
 
 Os especialistas de domínio contestam termos e estruturas desajeitados ou insuficientes para transmitir o entendimento do domínio, e **os developers vigiam a ambiguidade ou inconsistência que vai derrubar o design**.
 
-Ao ler essa frase, corrigi meu entendimento do próprio papel. Até então eu me via como receptor nas reuniões de requisitos. Achava que meu trabalho era receber o que o produto decidisse e implementar. Mas a parte que Evans atribui ao developer não era a recepção. **É encontrar a ambiguidade e devolvê-la.** É vigilância ativa, diferente da cooperação passiva.
+Ao ler essa frase, corrigi meu entendimento do próprio papel. Até então eu me via como receptor nas reuniões de requisitos. Achava que meu trabalho era receber exatamente o que o produto decidisse e implementar. Mas a parte que Evans atribui ao developer não era a recepção. **É encontrar a ambiguidade e devolvê-la.** É vigilância ativa, diferente da cooperação passiva.
 
 (A propósito, Fowler traduziu essa frase no próprio artigo como “Domain experts **should** object ... developers **should** watch”. O livro original não tem verbo modal. É uma diferença pequena, mas o original se lê de forma mais categórica. Em vez de uma recomendação de que seja bom fazer assim, o tom é o da definição do padrão.)
 
-Evans também responde sobre como encontrar a ambiguidade. Usar os termos repetidamente na conversa revela as diferenças de interpretação. Eu li essa frase assim. A ambiguidade não se revela com uma leitura atenta dos documentos. Por mais cuidadosa que seja a leitura de uma especificação, o fato de “meter” ter vários significados não vem à tona. Essa palavra precisa ser usada repetidamente contra casos concretos para se dividir. O momento em que surge uma pergunta como “o que as outras pessoas entendem por meter?” é exatamente esse ponto.
+Então como encontrar a ambiguidade? Evans também responde a isso. Usar os termos repetidamente na conversa revela as diferenças de interpretação. Eu li essa frase assim. A ambiguidade não se revela com uma leitura atenta dos documentos. Por mais cuidadosa que seja a leitura de uma especificação, o fato de “meter” ter vários significados não vem à tona. Essa palavra precisa ser usada repetidamente contra casos concretos para se dividir. O momento em que surge uma pergunta como “o que as outras pessoas entendem por meter?” é exatamente esse ponto.
 
 ## O princípio do mínimo esforço colaborativo
 
-Podemos conhecer esse método e ainda assim não praticá-lo. Vamos ver por que não perguntamos repetidamente.
+Podemos conhecer esse método e ainda assim não praticá-lo. Então por que não perguntamos repetidamente?
 
 Voltemos ao artigo de Clark e Brennan. Os autores dão o nome de grounding ao processo de transformar o que foi dito em parte do common ground. E propõem um princípio sobre como as pessoas se comportam nesse processo: o princípio do mínimo esforço colaborativo (the principle of least collaborative effort). Ele nasce da observação de que as pessoas não gostam de trabalhar mais do que o necessário.
 
@@ -103,11 +103,11 @@ Esse artigo foi escrito em 1991, e os meios comparados pelos autores são a conv
 
 Aplicando assim, fica explicado por que eu não perguntava repetidamente. Num ambiente em que você recebe a especificação como texto e confirma como texto, mandar uma mensagem de confirmação a cada ponto ambíguo é caro. Você não sabe quando virá a resposta e teme que perguntar várias vezes faça você parecer alguém que não entendeu. Então a pessoa naturalmente escorrega para a própria interpretação.
 
-Convém separar duas forças aqui. Uma é que o meio encarece a confirmação, e isso é o que dizem Clark e Brennan. A outra é o receio de parecer incompetente por perguntar várias vezes, e isso está fora do alcance do que o princípio deles prevê e tem a ver com a segurança psicológica que vem adiante. O que o princípio do mínimo esforço colaborativo prevê é **escolher um jeito mais barato de confirmar**. Abandonar a confirmação e passar para a suposição, ao contrário do funcionamento do princípio, é uma falha de grounding. E o fato de que aquela interpretação estava errada aparece só depois que a implementação termina.
+Convém separar duas forças aqui. Uma é que o meio encarece a confirmação, e isso é o que dizem Clark e Brennan. A outra é o receio de parecer incompetente por perguntar várias vezes, e isso está fora do alcance do que o princípio deles prevê e tem a ver com a segurança psicológica que vem adiante. Para ser exato, o que o princípio do mínimo esforço colaborativo prevê é **escolher um jeito mais barato de confirmar**, e não parar de confirmar. Abandonar a confirmação e passar para a suposição, ao contrário do funcionamento do princípio, é uma falha de grounding. E o fato de que aquela interpretação estava errada aparece só depois que a implementação termina.
 
 ## Chegar a um nível suficiente
 
-Não dá para perguntar sobre cada ambiguidade. Isso não é realista, e nunca vi ninguém fazer isso. O artigo também oferece um critério para saber até onde perguntar: o grounding criterion. Ele designa o estado em que ambas as partes acreditam mutuamente que o ouvinte entendeu o que o falante quis dizer **num nível suficiente para o propósito atual**. Os autores o antecedem com a observação de que a compreensão perfeita é impossível desde o início.
+Então será que é preciso perguntar sobre cada ambiguidade? Isso não é realista, e nunca vi ninguém fazer isso. O artigo também oferece um critério para essa pergunta: o grounding criterion. Ele designa o estado em que ambas as partes acreditam mutuamente que o ouvinte entendeu o que o falante quis dizer **num nível suficiente para o propósito atual**. Os autores o antecedem com a observação de que a compreensão perfeita é impossível desde o início.
 
 O motivo de esse critério ter me parecido prático é que ele baixa a meta. Não é preciso entender os requisitos perfeitamente. **Basta poder confiar mutuamente que vocês se entendem o suficiente para o que estão prestes a fazer.** E os autores dizem que, se o propósito muda, o critério precisa mudar junto.
 
@@ -127,13 +127,13 @@ Mesmo com o modo alinhado, um problema permanece. Outro desalinhamento que vivi 
 
 Requisitos entregues em prosa pelo product manager costumam ser abstratos demais. De uma frase como “para que o usuário consiga conferir com facilidade o histórico de reservas” não se extrai quantas telas existem nem o que leva a onde. Ao contrário, o layout do designer é concreto demais. Cor de botão e espaçamento já estão definidos, o que torna difícil discutir justamente se este fluxo está certo.
 
-Shape Up, escrito por Ryan Singer na Basecamp, aborda esse problema: começar por wireframes ou layouts visuais concretos prende você em detalhes desnecessários e impede explorar tão amplamente quanto é preciso. Por isso [o que Shape Up propõe](https://basecamp.com/shapeup/1.3-chapter-04) é uma representação intermediária. Chama-se breadboarding e toma o conceito emprestado da engenharia elétrica. Um breadboard é um protótipo que tem todas as peças e a fiação do aparelho real, mas nenhum design industrial. Por isso se desenham exatamente três coisas: os lugares para onde se pode navegar (places), aquilo que o usuário pode acionar (affordances) e as linhas de conexão que mostram para onde essa ação leva o usuário (connection lines).
+Shape Up, escrito por Ryan Singer na Basecamp, aponta exatamente esse problema: começar por wireframes ou layouts visuais concretos prende você em detalhes desnecessários e impede explorar tão amplamente quanto é preciso. Por isso [o que Shape Up propõe](https://basecamp.com/shapeup/1.3-chapter-04) é uma representação intermediária. Chama-se breadboarding e toma o conceito emprestado da engenharia elétrica. Um breadboard é um protótipo que tem todas as peças e a fiação do aparelho real, mas nenhum design industrial. Por isso se desenham exatamente três coisas: os lugares para onde se pode navegar (places), aquilo que o usuário pode acionar (affordances) e as linhas de conexão que mostram para onde essa ação leva o usuário (connection lines).
 
 O motivo de eu ter gostado dessa técnica é que ela é um artefato que o developer consegue produzir. Em vez de pedir ao product manager que escreva com mais detalhe ou de esperar o layout do designer, você desenha ali mesmo o fluxo como o entendeu e devolve com um “entendi assim, está certo?”. É um jeito concreto de executar a vigilância de que Evans falava, a de devolver a ambiguidade. E, pela lente da seção anterior, é um dispositivo que barateia o grounding. Um desenho substitui várias rodadas de confirmação por texto.
 
 Mas essa resolução é mais difícil de sustentar do que parece. Ao desenhar o fluxo, você desce naturalmente para coisas como “não seria melhor colocar este botão embaixo à direita?”. Comigo aconteceu algumas vezes. Uma vez que você desce assim, a pergunta que estava em discussão, ou seja, se este fluxo está certo, deixa de ser discutida. Se você define a posição dos botões enquanto o fluxo ainda não está fechado, toda aquela discussão é jogada fora por inteiro quando o fluxo mudar depois.
 
-Por isso, nesta etapa, tento manter **um desenho deliberadamente ruim**. Se há apenas retângulos, setas e nomes, a outra pessoa nem cogita apontar detalhes e responde só ao fluxo. O baixo acabamento do desenho é, nesta ferramenta, uma funcionalidade. (Segurar a vontade de desenhar bonito é mais difícil do que parece)
+Por isso, nesta etapa, tento manter **um desenho deliberadamente ruim**. Se há apenas retângulos, setas e nomes, a outra pessoa nem cogita apontar detalhes e responde só ao fluxo. O baixo acabamento do desenho acaba sendo, nesta ferramenta, uma funcionalidade. (Segurar a vontade de desenhar bonito é mais difícil do que parece)
 
 Que o próprio nível de abstração possa ser uma ferramenta de colaboração se conecta ao que tratei em [Abstração](/260201). Lá eu falava do nível de abstração do código; na conversa existe a mesma coisa.
 
@@ -141,7 +141,7 @@ Que o próprio nível de abstração possa ser uma ferramenta de colaboração s
 
 Outra maneira de alinhar a resolução é estruturar a própria discussão.
 
-Vejamos o [Example Mapping](https://cucumber.io/blog/bdd/example-mapping-introduction/), apresentado em 2015 por Matt Wynne, que liderou o projeto Cucumber. Ele diagnostica que a razão de muitos times terem dificuldade com discussões de requisitos é a falta de estrutura, que as torna longas e entediantes. E por isso os times deixam de fazê-las com regularidade e com consistência. Comigo também era assim: quando uma reunião de requisitos se alonga, na próxima você tenta terminar rápido, e terminando rápido as ambiguidades ficam como estavam.
+Vejamos o [Example Mapping](https://cucumber.io/blog/bdd/example-mapping-introduction/), apresentado em 2015 por Matt Wynne, que liderou o projeto Cucumber. Ele diagnostica que a razão de muitos times terem dificuldade com discussões de requisitos é a falta de estrutura, que as torna longas e entediantes. E por isso os times deixam de fazê-las com regularidade e com consistência. Comigo também era exatamente assim: quando uma reunião de requisitos se alonga, na próxima você tenta terminar rápido, e terminando rápido as ambiguidades ficam como estavam.
 
 O Example Mapping divide a discussão em cartões de quatro cores. O amarelo é a história em pauta, o azul é a regra ou critério de aceitação, o verde é o exemplo concreto que ilustra essa regra e o vermelho é a pergunta cuja resposta ninguém sabe.
 
@@ -155,7 +155,7 @@ Com uma ideia parecida existe também o Three Amigos, usado há tempos no meio d
 
 ## Crie um processo para verificar o que não se sabe
 
-Vamos examinar pela perspectiva da segurança psicológica por que é difícil puxar o cartão vermelho.
+Mas por que não conseguimos puxar o cartão vermelho com facilidade? Aqui não dá para deixar de falar de segurança psicológica.
 
 O [artigo](https://web.mit.edu/curhan/www/docs/Articles/15341_Readings/Group_Performance/Edmondson%20Psychological%20safety.pdf) que Amy Edmondson publicou na Administrative Science Quarterly em 1999 é o estudo que estabeleceu formalmente o conceito de segurança psicológica de time. (O próprio artigo aponta como raiz o trabalho de Schein e Bennis de 1965.) Ele define segurança psicológica de time como a crença compartilhada de que o time é um lugar seguro para assumir riscos interpessoais. Dizer que não sabe, discordar e admitir um erro entram aí. O artigo pesquisou 51 times de uma empresa industrial e mostrou que a segurança psicológica se associa ao comportamento de aprendizado e que esse comportamento medeia a relação entre segurança psicológica e desempenho do time.
 
@@ -205,7 +205,7 @@ organizational culture that is high-trust and emphasizes information flow is pre
 
 Uma cultura organizacional de alta confiança que **enfatiza o fluxo de informação** prediz o desempenho de entrega de software. Comunicar-se bem não significa apenas que o clima do time é bom; é uma variável que se move junto com o desempenho.
 
-Mas “predizer” não deve ser lido aqui como causalidade. Os dados da DORA vêm de uma pesquisa em que os mesmos respondentes responderam sobre cultura e sobre desempenho, e é uma correlação em nível organizacional. Permanece a possibilidade de quem está satisfeito com a organização ter avaliado bem os dois lados, e de uma relação em nível organizacional não decorre imediatamente uma prescrição de como um indivíduo deve agir. Então o que se pode dizer com esses dados é o seguinte: o fluxo de informação é também uma questão de preferência, mas também ocupa um lugar que se move junto com o desempenho.
+Mas “predizer” não deve ser lido aqui como causalidade. Os dados da DORA vêm de uma pesquisa em que os mesmos respondentes responderam sobre cultura e sobre desempenho, e é uma correlação em nível organizacional. Permanece a possibilidade de quem está satisfeito com a organização ter avaliado bem os dois lados, e de uma relação em nível organizacional não decorre imediatamente uma prescrição de como um indivíduo deve agir. Então o que se pode dizer com esses dados é o seguinte: o fluxo de informação não está apenas no campo da preferência, mas ocupa um lugar que se move junto com o desempenho.
 
 O mesmo documento também organiza as três propriedades da boa informação segundo Westrum: ela responde à pergunta de que quem recebe precisa, chega no momento adequado e é apresentada de um jeito que quem recebe consegue usar com eficácia. Vale reparar que as três colocam o critério em **quem recebe**. O critério de um bom fluxo de informação é se quem recebe consegue usar o que foi compartilhado, em vez da quantidade compartilhada.
 
@@ -231,7 +231,7 @@ A falha de comunicação com outras áreas em geral não é só uma questão de 
 
 Mas devolver dá trabalho, e as pessoas tentam minimizar esse trabalho. Então, em vez de me apoiar na força de vontade, decidi usar três coisas: confirmar primeiro em que modo está esta conversa, desenhar o fluxo na resolução entre a prosa e o layout e devolvê-lo, e criar dentro do formato de reunião um campo para anotar o que não se sabe. Nenhuma das três exige corrigir a atitude; as três tornam a coisa certa mais fácil de fazer.
 
-Ainda não sou líder, e nada do que escrevi aqui foi verificado a partir daquele lugar. Com outro tamanho de time ou outra cultura organizacional, algumas coisas não vão funcionar. Ainda assim, de uma coisa acho que posso ter certeza agora. O jeito como vou lidar com informação depois será o hábito com que hoje lido com requisitos, ampliado em escala, em vez de uma habilidade que vou adquirir do zero. Por isso ultimamente tento ter menos vergonha do que antes de perguntar numa reunião “o que você quer dizer com isso?”.
+Ainda não sou líder, e nada do que escrevi aqui foi verificado a partir daquele lugar. Com outro tamanho de time ou outra cultura organizacional, algumas coisas não vão funcionar. No entanto, de uma coisa acho que posso ter certeza agora. O jeito como vou lidar com informação depois não será algo que se aprende do zero, mas o hábito com que hoje lido com requisitos, ampliado em escala. Por isso ultimamente tento ter menos vergonha do que antes de perguntar numa reunião “o que você quer dizer com isso?”.
 
 Se para quem lê este texto vier à cabeça alguma palavra de uma reunião recente com a qual você concordou balançando a cabeça sem estar realmente certo, recomendo usar essa palavra mais uma vez na próxima. Usando repetidamente, ela aparece.
 
