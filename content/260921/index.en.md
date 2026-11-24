@@ -8,7 +8,7 @@ description: "Swapping a global isOpen flag for one await: what I gained, what I
 keywords: 'overlay-kit, React modal state management, declarative interface, openAsync, useOverlay, promise based modal, React overlay, nice-modal-react'
 locale: en
 translationOf: '260921'
-sourceHash: f0dd8fb8b50bd354daff397ab0586b251d87ce1713db27811ba92b5618bcf7f8
+sourceHash: c7c303502866bf66297497a66a3cfb063d660b9f41835e48a20b50fa8c87b404
 ---
 
 In this post, I want to talk about interfaces that treat overlays declaratively.

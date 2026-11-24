@@ -8,7 +8,7 @@ description: 'Cambiar un flag global isOpen por un await: lo que gané, lo que p
 keywords: 'overlay-kit, gestión de estado de modales en React, interfaz declarativa, openAsync, useOverlay, modal con Promise, overlay React, nice-modal-react'
 locale: es
 translationOf: '260921'
-sourceHash: f0dd8fb8b50bd354daff397ab0586b251d87ce1713db27811ba92b5618bcf7f8
+sourceHash: c7c303502866bf66297497a66a3cfb063d660b9f41835e48a20b50fa8c87b404
 ---
 
 En este artículo quiero hablar de las interfaces que tratan los overlays de forma declarativa.

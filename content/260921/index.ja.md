@@ -8,7 +8,7 @@ description: 'モーダルの開閉をグローバル状態で持っていたコ
 keywords: 'overlay-kit, Reactモーダル 状態管理, 宣言的インターフェース, openAsync, useOverlay, Promise モーダル, Reactオーバーレイ, nice-modal-react'
 locale: ja
 translationOf: '260921'
-sourceHash: f0dd8fb8b50bd354daff397ab0586b251d87ce1713db27811ba92b5618bcf7f8
+sourceHash: c7c303502866bf66297497a66a3cfb063d660b9f41835e48a20b50fa8c87b404
 ---
 
 今回の記事では、オーバーレイを宣言的に扱うインターフェースについて話してみたい。
