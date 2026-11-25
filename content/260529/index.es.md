@@ -167,7 +167,7 @@ Mucha gente habrá pensado: «Entonces, ¿lo mejor será escribir todo lo posibl
 
 El equipo de ETH Zurich publicó en febrero de 2026 el artículo «Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?». Se midió con cuatro agentes: Claude Code (Sonnet-4.5), Codex (GPT-5.2 / GPT-5.1 mini) y Qwen Code en un benchmark de 138 tareas reales de ingeniería de software en Python (AGENTBENCH) y SWE-bench Lite, y los resultados fueron inesperados.
 
-- Los **archivos de contexto generados automáticamente por un LLM** redujeron la tasa de éxito de las tareas aproximadamente un 0,5 % en SWE-bench Lite y un 2 % en AGENTBENCH
+- Los **archivos de contexto generados automáticamente por un LLM** **en realidad redujeron la tasa de éxito de las tareas** aproximadamente un 0,5 % en SWE-bench Lite y un 2 % en AGENTBENCH
 - Incluso los **archivos escritos por personas** solo lograron, de media, una mejora marginal cercana al 4 %
 - Añadir archivos de contexto incrementó el **coste de inferencia por instancia en más de un 20 %**
 - En modelos más potentes (GPT-5.2), el efecto de los archivos de contexto fue aún menor (cuanto más potente es el modelo, mayor es su conocimiento paramétrico y más probable que el contexto adicional actúe como ruido)

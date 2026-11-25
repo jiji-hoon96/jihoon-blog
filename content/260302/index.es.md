@@ -198,7 +198,7 @@ Llegados hasta aquí, surge una pregunta natural. Entonces, ¿cómo se estudia e
 
 ## Cómo aprender
 
-La «formación continua» señalada en el artículo original sigue siendo válida, pero debe cambiar **la distribución del tiempo de aprendizaje**.
+La «formación continua» señalada en el artículo original sigue siendo válida, pero debe cambiar la distribución del tiempo de aprendizaje.
 
 Hay áreas a las que antes dedicábamos mucho tiempo y que ahora podemos reducir. En cambio, también existen ámbitos complejos que antes evitábamos por su dificultad o porque exigían mucho tiempo. Entre estos últimos están la redacción de especificaciones de pruebas, el uso de herramientas de medición del rendimiento ([Lighthouse](https://developer.chrome.com/docs/lighthouse), [WebPageTest](https://www.webpagetest.org/), Chrome DevTools Performance), la accesibilidad ([WCAG](https://www.w3.org/WAI/standards-guidelines/wcag/)) y la seguridad, en especial el [OWASP Top 10](https://owasp.org/www-project-top-ten/). Y hay ámbitos completamente nuevos que debemos aprender, como Vercel AI SDK, LangChain.js, MCP, los patrones de UI por streaming y los pipelines de evaluación de agentes. **Es importante reconocer qué competencias necesito y distribuir el tiempo en consecuencia.**
 

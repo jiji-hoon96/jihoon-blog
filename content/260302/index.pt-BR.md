@@ -198,7 +198,7 @@ Se você chegou até aqui, uma pergunta surge naturalmente. Então, como estudar
 
 ## Como estudar
 
-O item “aprendizado contínuo” citado no texto original continua válido, mas precisamos mudar **a distribuição do tempo de estudo**.
+O item “aprendizado contínuo” citado no texto original continua válido, mas precisamos mudar a distribuição do tempo de estudo.
 
 Há áreas às quais dedicávamos muito tempo e que agora podem receber menos. Por outro lado, também há áreas complexas que antes evitávamos por serem difíceis ou demoradas. Entre estas últimas estão a escrita de especificações de testes, o uso de ferramentas de medição de desempenho — [Lighthouse](https://developer.chrome.com/docs/lighthouse), [WebPageTest](https://www.webpagetest.org/) e Chrome DevTools Performance —, acessibilidade ([WCAG](https://www.w3.org/WAI/standards-guidelines/wcag/)) e segurança, especialmente o [OWASP Top 10](https://owasp.org/www-project-top-ten/). Também há áreas completamente novas a aprender, como Vercel AI SDK, LangChain.js, MCP, padrões de UI com streaming e pipelines de avaliação de agentes. **É importante reconhecer quais competências eu preciso desenvolver e distribuir meu tempo de acordo com isso.**
 
