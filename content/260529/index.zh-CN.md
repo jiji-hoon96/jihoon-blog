@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: zh-CN
 translationOf: '260529'
-sourceHash: c427e7b7449b5542ce896f1560dabdd76dcd015dfff0c187e69db61bb27be414
+sourceHash: fc80d5a6dcfd28ba8a5c340c57a54e2c005ec95f98fb9bcea76b91941d5cb537
 categories: AI 开发工具 Claude MCP CodeGraph
 description: "梳理 CLAUDE.md、AGENTS.md、SKILL.md 与 Cursor rules 何时、如何被智能体读取，并根据 CLAUDE.md 以 user message 注入的机制、上下文遗忘与 ETH Zurich 研究，给出上下文文件该写什么的判断标准。"
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, 上下文文件, AI 编程智能体, Claude Code, ETH Zurich AGENTS.md 研究"
@@ -112,7 +112,7 @@ Prisma 쿼리 결과에 optional chaining 쓰지 말 것 — null은 if-check로
 (이전에 옵셔널 체이닝으로 null을 흘려보내 프로덕션 이슈 발생.)
 ```
 
-如果说 `CLAUDE.md` 或 `AGENTS.md` 记录的是**当前规则**，那么 `MEMORY.md` 记录的就是**这些规则为何形成的历史**。（两者是互补关系，而非替代关系。）
+如果说 `CLAUDE.md` 或 `AGENTS.md` 记录的是**当前规则**，那么 `MEMORY.md` 记录的就是**这些规则为何形成的历史**。（两者互为补充。）
 
 
 ### 智能体如何读取这些文件

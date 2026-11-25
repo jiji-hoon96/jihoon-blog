@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: en
 translationOf: '260529'
-sourceHash: c427e7b7449b5542ce896f1560dabdd76dcd015dfff0c187e69db61bb27be414
+sourceHash: fc80d5a6dcfd28ba8a5c340c57a54e2c005ec95f98fb9bcea76b91941d5cb537
 categories: AI Developer-Tools Claude MCP CodeGraph
 description: "How agents load CLAUDE.md, AGENTS.md, SKILL.md, and Cursor rules, why instructions get lost, and what an ETH Zurich study says to put in context files."
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, context files, AI coding agents, Claude Code, ETH Zurich AGENTS.md study"
@@ -112,7 +112,7 @@ Prisma 쿼리 결과에 optional chaining 쓰지 말 것 — null은 if-check로
 (이전에 옵셔널 체이닝으로 null을 흘려보내 프로덕션 이슈 발생.)
 ```
 
-If `CLAUDE.md` or `AGENTS.md` records **the rules as they stand today**, `MEMORY.md` records **the history of why those rules were created**. (The two complement each other rather than replace one another.)
+If `CLAUDE.md` or `AGENTS.md` records **the rules as they stand today**, `MEMORY.md` records **the history of why those rules were created**. (The two complement each other.)
 
 
 ### How Agents Read These Files

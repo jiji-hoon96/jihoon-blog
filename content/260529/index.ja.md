@@ -6,7 +6,7 @@ date: '2026-05-29'
 updatedAt: "2026-10-08"
 locale: ja
 translationOf: '260529'
-sourceHash: c427e7b7449b5542ce896f1560dabdd76dcd015dfff0c187e69db61bb27be414
+sourceHash: fc80d5a6dcfd28ba8a5c340c57a54e2c005ec95f98fb9bcea76b91941d5cb537
 categories: AI 開発ツール Claude MCP CodeGraph
 description: "CLAUDE.md・AGENTS.md・SKILL.md・Cursor rulesがいつ、どのようにエージェントに読み込まれるのかを整理する。CLAUDE.mdがuser messageとして注入される仕組みとコンテキストの忘却、ETH Zurichの研究をもとに、何を書くべきかの基準を示す。"
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, コンテキストファイル, AIコーディングエージェント, Claude Code, ETH Zurich AGENTS.md 研究"
@@ -112,7 +112,7 @@ Prisma 쿼리 결과에 optional chaining 쓰지 말 것 — null은 if-check로
 (이전에 옵셔널 체이닝으로 null을 흘려보내 프로덕션 이슈 발생.)
 ```
 
-`CLAUDE.md`や`AGENTS.md`が**現時点のルール**を書く場所なら、`MEMORY.md`は**そのルールがなぜ作られたのかという歴史**を書く場所だ。（両者は補完関係であり、代替関係ではない。）
+`CLAUDE.md`や`AGENTS.md`が**現時点のルール**を書く場所なら、`MEMORY.md`は**そのルールがなぜ作られたのかという歴史**を書く場所だ。（両者は互いに補完し合う。）
 
 
 ### エージェントはこれらのファイルをどう読むのか

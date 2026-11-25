@@ -9,7 +9,7 @@ description: "Cómo cargan los agentes CLAUDE.md, AGENTS.md, SKILL.md y Cursor r
 keywords: "CLAUDE.md, AGENTS.md, SKILL.md, MEMORY.md, Cursor rules, copilot-instructions.md, archivos de contexto, agente de codificación con IA, Claude Code, estudio ETH Zurich AGENTS.md"
 locale: es
 translationOf: '260529'
-sourceHash: c427e7b7449b5542ce896f1560dabdd76dcd015dfff0c187e69db61bb27be414
+sourceHash: fc80d5a6dcfd28ba8a5c340c57a54e2c005ec95f98fb9bcea76b91941d5cb537
 ---
 
 En esta publicación quiero hablar sobre **los archivos de contexto que leen los agentes de codificación con IA**.
@@ -112,7 +112,7 @@ Prisma 쿼리 결과에 optional chaining 쓰지 말 것 — null은 if-check로
 (이전에 옵셔널 체이닝으로 null을 흘려보내 프로덕션 이슈 발생.)
 ```
 
-Si `CLAUDE.md` o `AGENTS.md` contienen **las reglas vigentes en el presente**, `MEMORY.md` recoge **la historia de por qué se crearon esas reglas**. (Son complementarios, no sustitutivos).
+Si `CLAUDE.md` o `AGENTS.md` contienen **las reglas vigentes en el presente**, `MEMORY.md` recoge **la historia de por qué se crearon esas reglas**. (Se complementan entre sí).
 
 
 ### Cómo leen estos archivos los agentes
